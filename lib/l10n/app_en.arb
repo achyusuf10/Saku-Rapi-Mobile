@@ -1,0 +1,459 @@
+{
+  "@@locale": "en",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "thisWeek": "This Week",
+  "last7Days": "Last 7 Days",
+  "thisMonth": "This Month",
+  "lastMonth": "Last Month",
+  "thisYear": "This Year",
+  "lastYear": "Last Year",
+  "custom": "Custom",
+  "yearSuffix": "year",
+  "monthSuffix": "month",
+  "weekSuffix": "week",
+  "daySuffix": "day",
+  "hourSuffix": "hour",
+  "minuteSuffix": "minute",
+  "agoSuffix": "ago",
+  "justNow": "just now",
+  "fabVoiceInput": "Voice Input",
+  "fabScanReceipt": "Scan Receipt",
+  "fabManualInput": "Manual Input",
+  "appName": "SakuRapi",
+  "loginSubtitle": "Track your finances without the hassle.",
+  "loginWithGoogle": "Sign in with Google",
+  "loginErrorGeneric": "Sign in failed. Please try again.",
+  "loginTitle": "Welcome to SakuRapi",
+  "loginSecurityNote": "Your data is safe & encrypted",
+  "logoutConfirm": "Are you sure you want to sign out?",
+  "logoutButton": "Sign Out",
+  "walletTitle": "My Wallets",
+  "walletAdd": "Add Wallet",
+  "walletEdit": "Edit Wallet",
+  "walletDelete": "Delete",
+  "walletDeleteConfirm": "Are you sure you want to delete \"{name}\"? All transactions in this wallet will also be deleted.",
+  "@walletDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletName": "Wallet Name",
+  "walletNameHint": "e.g. Cash, BCA, Jago",
+  "walletNameRequired": "Wallet name is required",
+  "walletInitialBalance": "Initial Balance",
+  "walletBalance": "Balance",
+  "walletBalanceRequired": "Balance is required",
+  "walletIcon": "Icon",
+  "walletColor": "Color",
+  "walletExcludeFromTotal": "Exclude from Total",
+  "walletExcludeHint": "This wallet's balance is not included in total",
+  "walletSave": "Save",
+  "walletTotalBalance": "Total Balance",
+  "walletIncludedSection": "Included in Total",
+  "walletExcludedSection": "Excluded from Total",
+  "walletEmpty": "No wallets yet",
+  "walletEmptyHint": "Tap + to add a new wallet",
+  "walletAdjust": "Adjust Balance",
+  "walletAdjustActual": "Actual Balance",
+  "walletAdjustDiff": "Difference",
+  "walletAdjustHint": "Enter the real balance of this wallet",
+  "walletSuccessAdd": "\"{name}\" successfully added",
+  "@walletSuccessAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessEdit": "\"{name}\" successfully updated",
+  "@walletSuccessEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessDelete": "\"{name}\" successfully deleted",
+  "@walletSuccessDelete": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessAdjust": "Balance adjusted successfully",
+  "walletErrorAdd": "Failed to add wallet",
+  "walletErrorEdit": "Failed to update wallet",
+  "walletErrorDelete": "Failed to delete wallet",
+  "walletErrorAdjust": "Failed to adjust balance",
+  "walletOptionEdit": "Edit",
+  "walletOptionDelete": "Delete",
+  "walletOptionAdjust": "Adjust Balance",
+  "retryButton": "Try Again",
+  "confirmYes": "Yes",
+  "confirmCancel": "Cancel",
+  "transactionExpense": "Expense",
+  "transactionIncome": "Income",
+  "transactionDebt": "Debt",
+  "transactionLoan": "Loan",
+  "transactionTransfer": "Transfer",
+  "transactionAdjustment": "Adjustment",
+  "transactionAmount": "Amount",
+  "transactionCategory": "Category",
+  "transactionWallet": "Wallet",
+  "transactionDate": "Date",
+  "transactionNote": "Note",
+  "transactionAttachment": "Attachment",
+  "transactionWithPerson": "Contact Name",
+  "transactionWithPersonHint": "e.g. Budi, Mom",
+  "transactionAddItem": "+ Add Item",
+  "transactionGrandTotal": "Grand Total",
+  "transactionSave": "Save",
+  "transactionSaveSuccess": "Transaction saved successfully",
+  "transactionDeleteConfirm": "Delete this transaction?",
+  "transactionPrefilledFromVoice": "Pre-filled from voice",
+  "transactionPrefilledFromOcr": "Pre-filled from receipt",
+  "transactionDebtStatus": "Status",
+  "transactionUnpaid": "Unpaid",
+  "transactionPaid": "Paid",
+  "transactionDueDate": "Due Date",
+  "transactionSourceWallet": "Source Wallet",
+  "transactionDestWallet": "Destination Wallet",
+  "transactionMerchant": "Merchant Name",
+  "transactionMerchantHint": "e.g. Indomaret, Grab",
+  "transactionWalletRequired": "Please select a wallet",
+  "transactionAmountRequired": "Amount is required",
+  "transactionWithPersonRequired": "Contact name is required for debt/loan",
+  "transactionDestWalletRequired": "Please select a destination wallet",
+  "transactionSameWalletError": "Source and destination wallets must be different",
+  "transactionErrorSave": "Failed to save transaction",
+  "transactionDebtTypeHutang": "Debt (I owe someone)",
+  "transactionDebtTypePiutang": "Loan (someone owes me)",
+  "transactionSelectCategory": "Select Category",
+  "transactionSelectWallet": "Select Wallet",
+  "transactionMultiItemToggle": "Multiple Items",
+  "transactionNewTitle": "New Transaction",
+  "transactionAttachmentAdd": "Add Attachment",
+  "transactionAttachmentChange": "Change Attachment",
+  "transactionOptionalFields": "Optional Details",
+  "dashboardTitle": "Dashboard",
+  "dashboardTotalBalance": "Total Balance",
+  "dashboardMyWallets": "My Wallets",
+  "dashboardSeeAll": "See All",
+  "dashboardSnapshotTitle": "This Month's Summary",
+  "dashboardTopExpenses": "Top Expenses",
+  "dashboardRecentTransactions": "Recent Transactions",
+  "dashboardIncomeLabel": "Income",
+  "dashboardExpenseLabel": "Expense",
+  "dashboardEmptyTransactions": "No transactions yet",
+  "dashboardHideBalance": "Hide balance",
+  "dashboardShowBalance": "Show balance",
+  "dashboardExcludedFromTotal": "Excluded from total",
+  "dashboardWeekLabel": "Week {week}",
+  "dashboardComingSoon": "Coming Soon",
+  "historyTitle": "History",
+  "historyTabTransactions": "Transactions",
+  "historyTabReport": "Report",
+  "historyNoTransactions": "No transactions in this period",
+  "historyTotalIn": "Income",
+  "historyTotalOut": "Expense",
+  "historyFilter": "Filter",
+  "historyAllWallets": "All Wallets",
+  "historySelectWallet": "Select Wallet",
+  "historyApplyFilter": "Apply Filter",
+  "historyResetFilter": "Reset",
+  "breakdownTitle": "Expense Breakdown",
+  "breakdownVsLastMonth": "vs Last Month",
+  "breakdownDailyAverage": "Daily Average",
+  "breakdownSubcategories": "Sub-categories",
+  "breakdownTransactions": "Transactions",
+  "breakdownNoData": "No data available",
+  "categoryTitle": "Categories",
+  "categoryExpense": "Expense",
+  "categoryIncome": "Income",
+  "categoryAdd": "Add Category",
+  "categoryEdit": "Edit Category",
+  "categoryDelete": "Delete Category",
+  "categoryDeleteConfirm": "Are you sure you want to delete \"{name}\"? Transactions using this category won't be affected.",
+  "@categoryDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeleteDefault": "Default categories cannot be deleted",
+  "categoryHide": "Hide",
+  "categoryShow": "Show",
+  "categoryHidden": "Hidden",
+  "categoryIconPicker": "Choose Icon",
+  "categoryColorPicker": "Choose Color",
+  "categoryName": "Category Name",
+  "categoryNameRequired": "Category name is required",
+  "categoryParent": "Parent Category",
+  "categoryNoParent": "No Parent (Top Level)",
+  "categorySave": "Save",
+  "categorySuccessAdd": "\"{name}\" successfully added",
+  "@categorySuccessAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categorySuccessEdit": "\"{name}\" successfully updated",
+  "@categorySuccessEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categorySuccessDelete": "Category deleted successfully",
+  "categorySuccessHide": "Category hidden",
+  "categorySuccessShow": "Category shown",
+  "categoryErrorSave": "Failed to save category",
+  "categoryErrorDelete": "Failed to delete category",
+  "categoryEmpty": "No categories yet",
+  "categorySearchIcon": "Search icon...",
+  "categoryChildCount": "{count} sub-categories",
+  "@categoryChildCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceListening": "Listening...",
+  "voiceStop": "Stop",
+  "voiceProcessing": "Processing voice...",
+  "voiceError": "Could not recognize speech, please try again",
+  "voicePermissionDenied": "Microphone permission is required",
+  "voiceCountdown": "Stops in {seconds} seconds",
+  "@voiceCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "voicePrefilledBadge": "Filled from voice",
+  "ocrTitle": "Scan Receipt",
+  "ocrCamera": "Camera",
+  "ocrGallery": "Gallery",
+  "ocrCropInstruction": "Crop receipt area",
+  "ocrScanning": "Reading receipt...",
+  "ocrResultTitle": "Scan Result",
+  "ocrMerchant": "Merchant",
+  "ocrGrandTotal": "Total",
+  "ocrItemCount": "{count} items detected",
+  "@ocrItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrContinue": "Continue",
+  "ocrRescan": "Rescan",
+  "ocrAutoBalance": "Difference added automatically",
+  "ocrNoText": "No text detected",
+  "ocrPrefilledBadge": "Filled from receipt scan",
+  "budgetTitle": "Active Budgets",
+  "budgetAdd": "Create Budget",
+  "budgetEmpty": "No budgets yet",
+  "budgetEmptyHint": "Start tracking your spending by creating your first budget",
+  "budgetActiveBudgets": "Active Budgets",
+  "budgetSpendableLabel": "Amount you can spend",
+  "budgetTotalBudgetLabel": "Total Budget",
+  "budgetUsed": "Used",
+  "budgetEndOfMonthLabel": "End of Month",
+  "budgetDaysRemaining": "{days} days",
+  "@budgetDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetRemaining": "Remaining {amount}",
+  "@budgetRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOver": "Over by {amount}",
+  "@budgetOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetToday": "Today",
+  "budgetPeriodTitle": "Select Period",
+  "budgetPeriodThisWeek": "This week",
+  "budgetPeriodThisMonth": "This month",
+  "budgetPeriodThisQuarter": "This quarter",
+  "budgetPeriodThisYear": "This year",
+  "budgetPeriodCustom": "Custom",
+  "budgetAllWallets": "All Wallets",
+  "budgetSpecificWallet": "Specific Wallet",
+  "budgetFormTitleAdd": "Add Budget",
+  "budgetFormTitleEdit": "Edit Budget",
+  "budgetFormCategory": "Category",
+  "budgetFormCategorySelect": "Select category...",
+  "budgetFormCategoryError": "Failed to load categories",
+  "budgetFormCategoryRequired": "Please select a category",
+  "budgetFormAmount": "Budget Amount",
+  "budgetFormAmountRequired": "Enter budget amount",
+  "budgetFormAmountInvalid": "Amount must be greater than 0",
+  "budgetFormPeriod": "Period",
+  "budgetFormPeriodSelect": "Select period...",
+  "budgetFormPeriodRequired": "Please select a period",
+  "budgetFormWalletScope": "Apply to",
+  "budgetFormRecurringTitle": "Repeat this budget",
+  "budgetFormRecurringSubtitle": "Budget automatically renews each period",
+  "budgetSave": "Save",
+  "budgetCancel": "Cancel",
+  "budgetSuccessAdd": "Budget created successfully",
+  "budgetSuccessEdit": "Budget updated successfully",
+  "budgetSuccessDelete": "Budget deleted successfully",
+  "budgetErrorAdd": "Failed to create budget",
+  "budgetErrorEdit": "Failed to update budget",
+  "budgetErrorDelete": "Failed to delete budget",
+  "budgetDeleteConfirmTitle": "Delete Budget?",
+  "budgetDeleteConfirmMessage": "Budget for \"{name}\" will be permanently deleted.",
+  "@budgetDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentTitle": "Investments",
+  "investmentAdd": "Add Investment",
+  "investmentEdit": "Edit Investment",
+  "investmentDelete": "Delete Investment",
+  "investmentPortfolio": "Total Portfolio",
+  "investmentTotalValue": "Current Value",
+  "investmentTotalPL": "Total P&L",
+  "investmentTypeGold": "Gold",
+  "investmentTypeBtc": "Bitcoin",
+  "investmentTypeCustom": "Custom",
+  "investmentBuyPrice": "Buy Price",
+  "investmentCurrentPrice": "Current Price",
+  "investmentAmount": "Amount",
+  "investmentUnit": "unit",
+  "investmentEmptyTitle": "No Investments Yet",
+  "investmentEmptySubtitle": "Tap + to add your first asset",
+  "investmentRefreshPrice": "Refresh Prices",
+  "investmentFormTitleAdd": "Add Investment",
+  "investmentFormTitleEdit": "Edit Investment",
+  "investmentFormType": "Asset Type",
+  "investmentFormName": "Asset Name",
+  "investmentFormNameHint": "e.g., Gold Bar, Bitcoin",
+  "investmentFormNameRequired": "Asset name is required",
+  "investmentFormAmount": "Amount (units)",
+  "investmentFormAmountRequired": "Amount is required",
+  "investmentFormAmountInvalid": "Amount must be greater than 0",
+  "investmentFormBuyPrice": "Buy Price per Unit (IDR)",
+  "investmentFormBuyPriceRequired": "Buy price is required",
+  "investmentFormBuyPriceInvalid": "Buy price must be greater than 0",
+  "investmentFormCurrentPrice": "Current Price (IDR)",
+  "investmentFormCurrentPriceHint": "Optional — for custom assets",
+  "investmentFormDeductWallet": "Deduct from Wallet",
+  "investmentFormDeductWalletSubtitle": "Wallet balance will be deducted automatically",
+  "investmentFormWallet": "Select Wallet",
+  "investmentFormWalletRequired": "Please select a wallet",
+  "investmentFormNotes": "Notes",
+  "investmentFormNotesHint": "Optional",
+  "investmentFormEstimatedCost": "Estimated Total Cost",
+  "investmentSave": "Save Investment",
+  "investmentSuccessAdd": "Investment added successfully",
+  "investmentSuccessEdit": "Investment updated successfully",
+  "investmentSuccessDelete": "Investment deleted successfully",
+  "investmentErrorAdd": "Failed to add investment",
+  "investmentErrorEdit": "Failed to update investment",
+  "investmentErrorDelete": "Failed to delete investment",
+  "investmentDeleteConfirmTitle": "Delete Investment?",
+  "investmentDeleteConfirmMessage": "Asset \"{name}\" will be permanently deleted.",
+  "@investmentDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTitle": "Notifications",
+  "notifReminderTitle": "Daily Reminder",
+  "notifReminderSubtitle": "Remind me to record transactions",
+  "notifReminderTime": "Reminder Time",
+  "notifBudgetTitle": "Budget Alert",
+  "notifBudgetSubtitle": "Notify when budget reaches 80% and 100%",
+  "notifDebtTitle": "Debt Reminder",
+  "notifDebtSubtitle": "Remind before due date",
+  "notifDebtDaysBefore": "Remind {days} days before",
+  "@notifDebtDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notifBudgetAlert80": "Budget {category} is 80% used!",
+  "@notifBudgetAlert80": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBudgetAlert100": "Budget {category} is fully used!",
+  "@notifBudgetAlert100": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDebtDue": "Debt to {person} is due in {days} days",
+  "@notifDebtDue": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notifSave": "Save Settings",
+  "notifSaveSuccess": "Notification settings saved successfully",
+  "notifSaveError": "Failed to save notification settings",
+  "navDashboard": "Dashboard",
+  "navHistory": "History",
+  "navBudget": "Budget",
+  "navInvestment": "Investment",
+  "profileTitle": "Profile",
+  "profileEditName": "Edit Name",
+  "profileEmail": "Email",
+  "profileMemberSince": "Member since",
+  "profileSettings": "Settings",
+  "profileCategories": "Categories",
+  "profileWallets": "Wallets",
+  "profileNotifications": "Notifications",
+  "profileLogout": "Logout",
+  "profileLogoutConfirmTitle": "Logout",
+  "profileLogoutConfirmMessage": "Are you sure you want to logout?",
+  "profileDarkMode": "Dark Mode",
+  "profileLanguage": "Language",
+  "pickerChooseIcon": "Choose Icon",
+  "pickerChooseColor": "Choose Color",
+  "pickerSearchCategory": "Search category..."
+}

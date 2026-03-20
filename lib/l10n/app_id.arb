@@ -1,0 +1,459 @@
+{
+  "@@locale": "id",
+  "today": "Hari Ini",
+  "yesterday": "Kemarin",
+  "thisWeek": "Minggu Ini",
+  "last7Days": "7 Hari Terakhir",
+  "thisMonth": "Bulan Ini",
+  "lastMonth": "Bulan Lalu",
+  "thisYear": "Tahun Ini",
+  "lastYear": "Tahun Lalu",
+  "custom": "Kustom",
+  "yearSuffix": "tahun",
+  "monthSuffix": "bulan",
+  "weekSuffix": "minggu",
+  "daySuffix": "hari",
+  "hourSuffix": "jam",
+  "minuteSuffix": "menit",
+  "agoSuffix": "lalu",
+  "justNow": "baru saja",
+  "fabVoiceInput": "Input Suara",
+  "fabScanReceipt": "Scan Struk",
+  "fabManualInput": "Input Manual",
+  "appName": "SakuRapi",
+  "loginSubtitle": "Catat keuangan tanpa capek ngetik.",
+  "loginWithGoogle": "Masuk dengan Google",
+  "loginErrorGeneric": "Gagal masuk. Silakan coba lagi.",
+  "loginTitle": "Selamat Datang di SakuRapi",
+  "loginSecurityNote": "Data kamu aman & terenkripsi",
+  "logoutConfirm": "Yakin ingin keluar?",
+  "logoutButton": "Keluar",
+  "walletTitle": "Dompet Saya",
+  "walletAdd": "Tambah Dompet",
+  "walletEdit": "Edit Dompet",
+  "walletDelete": "Hapus",
+  "walletDeleteConfirm": "Yakin ingin menghapus \"{name}\"? Semua transaksi di dompet ini juga akan terhapus.",
+  "@walletDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletName": "Nama Dompet",
+  "walletNameHint": "Contoh: Cash, BCA, Jago",
+  "walletNameRequired": "Nama dompet tidak boleh kosong",
+  "walletInitialBalance": "Saldo Awal",
+  "walletBalance": "Saldo",
+  "walletBalanceRequired": "Saldo tidak boleh kosong",
+  "walletIcon": "Ikon",
+  "walletColor": "Warna",
+  "walletExcludeFromTotal": "Kecualikan dari Total",
+  "walletExcludeHint": "Saldo dompet ini tidak dihitung ke total",
+  "walletSave": "Simpan",
+  "walletTotalBalance": "Total Saldo",
+  "walletIncludedSection": "Dimasukkan dalam Total",
+  "walletExcludedSection": "Dikecualikan dari Total",
+  "walletEmpty": "Belum ada dompet",
+  "walletEmptyHint": "Tap + untuk menambah dompet baru",
+  "walletAdjust": "Sesuaikan Saldo",
+  "walletAdjustActual": "Saldo Sebenarnya",
+  "walletAdjustDiff": "Selisih",
+  "walletAdjustHint": "Masukkan saldo asli dompet ini",
+  "walletSuccessAdd": "\"{name}\" berhasil ditambahkan",
+  "@walletSuccessAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessEdit": "\"{name}\" berhasil diperbarui",
+  "@walletSuccessEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessDelete": "\"{name}\" berhasil dihapus",
+  "@walletSuccessDelete": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSuccessAdjust": "Saldo berhasil disesuaikan",
+  "walletErrorAdd": "Gagal menambah dompet",
+  "walletErrorEdit": "Gagal memperbarui dompet",
+  "walletErrorDelete": "Gagal menghapus dompet",
+  "walletErrorAdjust": "Gagal menyesuaikan saldo",
+  "walletOptionEdit": "Edit",
+  "walletOptionDelete": "Hapus",
+  "walletOptionAdjust": "Sesuaikan Saldo",
+  "retryButton": "Coba Lagi",
+  "confirmYes": "Ya",
+  "confirmCancel": "Batal",
+  "transactionExpense": "Pengeluaran",
+  "transactionIncome": "Pemasukan",
+  "transactionDebt": "Hutang",
+  "transactionLoan": "Piutang",
+  "transactionTransfer": "Transfer",
+  "transactionAdjustment": "Penyesuaian",
+  "transactionAmount": "Nominal",
+  "transactionCategory": "Kategori",
+  "transactionWallet": "Dompet",
+  "transactionDate": "Tanggal",
+  "transactionNote": "Catatan",
+  "transactionAttachment": "Lampiran",
+  "transactionWithPerson": "Nama Kontak",
+  "transactionWithPersonHint": "Contoh: Budi, Mama",
+  "transactionAddItem": "+ Tambah Item",
+  "transactionGrandTotal": "Total",
+  "transactionSave": "Simpan",
+  "transactionSaveSuccess": "Transaksi berhasil disimpan",
+  "transactionDeleteConfirm": "Hapus transaksi ini?",
+  "transactionPrefilledFromVoice": "Diisi dari suara",
+  "transactionPrefilledFromOcr": "Diisi dari struk",
+  "transactionDebtStatus": "Status",
+  "transactionUnpaid": "Belum Lunas",
+  "transactionPaid": "Sudah Lunas",
+  "transactionDueDate": "Jatuh Tempo",
+  "transactionSourceWallet": "Dompet Asal",
+  "transactionDestWallet": "Dompet Tujuan",
+  "transactionMerchant": "Nama Merchant",
+  "transactionMerchantHint": "Contoh: Indomaret, Grab",
+  "transactionWalletRequired": "Pilih dompet terlebih dahulu",
+  "transactionAmountRequired": "Nominal harus diisi",
+  "transactionWithPersonRequired": "Nama kontak wajib diisi untuk hutang/piutang",
+  "transactionDestWalletRequired": "Pilih dompet tujuan",
+  "transactionSameWalletError": "Dompet asal dan tujuan tidak boleh sama",
+  "transactionErrorSave": "Gagal menyimpan transaksi",
+  "transactionDebtTypeHutang": "Hutang (saya berhutang)",
+  "transactionDebtTypePiutang": "Piutang (saya yang memberi hutang)",
+  "transactionSelectCategory": "Pilih Kategori",
+  "transactionSelectWallet": "Pilih Dompet",
+  "transactionMultiItemToggle": "Beberapa Item",
+  "transactionNewTitle": "Transaksi Baru",
+  "transactionAttachmentAdd": "Tambah Lampiran",
+  "transactionAttachmentChange": "Ganti Lampiran",
+  "transactionOptionalFields": "Detail Tambahan",
+  "dashboardTitle": "Dashboard",
+  "dashboardTotalBalance": "Total Saldo",
+  "dashboardMyWallets": "Dompet Saya",
+  "dashboardSeeAll": "Lihat Semua",
+  "dashboardSnapshotTitle": "Ringkasan Bulan Ini",
+  "dashboardTopExpenses": "Pengeluaran Terbesar",
+  "dashboardRecentTransactions": "Transaksi Terkini",
+  "dashboardIncomeLabel": "Pemasukan",
+  "dashboardExpenseLabel": "Pengeluaran",
+  "dashboardEmptyTransactions": "Belum ada transaksi",
+  "dashboardHideBalance": "Sembunyikan saldo",
+  "dashboardShowBalance": "Tampilkan saldo",
+  "dashboardExcludedFromTotal": "Dikecualikan dari total",
+  "dashboardWeekLabel": "Minggu {week}",
+  "dashboardComingSoon": "Segera Hadir",
+  "historyTitle": "Riwayat",
+  "historyTabTransactions": "Transaksi",
+  "historyTabReport": "Laporan",
+  "historyNoTransactions": "Belum ada transaksi di periode ini",
+  "historyTotalIn": "Pemasukan",
+  "historyTotalOut": "Pengeluaran",
+  "historyFilter": "Filter",
+  "historyAllWallets": "Semua Dompet",
+  "historySelectWallet": "Pilih Dompet",
+  "historyApplyFilter": "Terapkan Filter",
+  "historyResetFilter": "Reset",
+  "breakdownTitle": "Rincian Biaya",
+  "breakdownVsLastMonth": "vs Bulan Lalu",
+  "breakdownDailyAverage": "Rata-rata Harian",
+  "breakdownSubcategories": "Sub-kategori",
+  "breakdownTransactions": "Transaksi",
+  "breakdownNoData": "Belum ada data",
+  "categoryTitle": "Kategori",
+  "categoryExpense": "Pengeluaran",
+  "categoryIncome": "Pemasukan",
+  "categoryAdd": "Tambah Kategori",
+  "categoryEdit": "Edit Kategori",
+  "categoryDelete": "Hapus Kategori",
+  "categoryDeleteConfirm": "Yakin ingin menghapus \"{name}\"? Transaksi yang menggunakan kategori ini tidak akan terpengaruh.",
+  "@categoryDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeleteDefault": "Kategori bawaan tidak bisa dihapus",
+  "categoryHide": "Sembunyikan",
+  "categoryShow": "Tampilkan",
+  "categoryHidden": "Tersembunyi",
+  "categoryIconPicker": "Pilih Icon",
+  "categoryColorPicker": "Pilih Warna",
+  "categoryName": "Nama Kategori",
+  "categoryNameRequired": "Nama kategori tidak boleh kosong",
+  "categoryParent": "Kategori Induk",
+  "categoryNoParent": "Tanpa Induk (Parent)",
+  "categorySave": "Simpan",
+  "categorySuccessAdd": "\"{name}\" berhasil ditambahkan",
+  "@categorySuccessAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categorySuccessEdit": "\"{name}\" berhasil diperbarui",
+  "@categorySuccessEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categorySuccessDelete": "Kategori berhasil dihapus",
+  "categorySuccessHide": "Kategori disembunyikan",
+  "categorySuccessShow": "Kategori ditampilkan",
+  "categoryErrorSave": "Gagal menyimpan kategori",
+  "categoryErrorDelete": "Gagal menghapus kategori",
+  "categoryEmpty": "Belum ada kategori",
+  "categorySearchIcon": "Cari icon...",
+  "categoryChildCount": "{count} sub-kategori",
+  "@categoryChildCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceListening": "Sedang mendengarkan...",
+  "voiceStop": "Stop",
+  "voiceProcessing": "Memproses suara...",
+  "voiceError": "Gagal mengenali suara, coba lagi",
+  "voicePermissionDenied": "Izin mikrofon diperlukan",
+  "voiceCountdown": "Berhenti dalam {seconds} detik",
+  "@voiceCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "voicePrefilledBadge": "Diisi dari suara",
+  "ocrTitle": "Scan Struk",
+  "ocrCamera": "Kamera",
+  "ocrGallery": "Galeri",
+  "ocrCropInstruction": "Crop area struk",
+  "ocrScanning": "Membaca struk...",
+  "ocrResultTitle": "Hasil Scan",
+  "ocrMerchant": "Merchant",
+  "ocrGrandTotal": "Total",
+  "ocrItemCount": "{count} item terdeteksi",
+  "@ocrItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrContinue": "Lanjutkan",
+  "ocrRescan": "Scan Ulang",
+  "ocrAutoBalance": "Selisih ditambahkan otomatis",
+  "ocrNoText": "Tidak ada teks terdeteksi",
+  "ocrPrefilledBadge": "Diisi dari scan struk",
+  "budgetTitle": "Anggaran Berjalan",
+  "budgetAdd": "Membuat Anggaran",
+  "budgetEmpty": "Belum ada anggaran",
+  "budgetEmptyHint": "Mulai pantau pengeluaran dengan membuat anggaran pertama",
+  "budgetActiveBudgets": "Anggaran Aktif",
+  "budgetSpendableLabel": "Jumlah yang dapat Anda belanjakan",
+  "budgetTotalBudgetLabel": "Total Anggaran",
+  "budgetUsed": "Terpakai",
+  "budgetEndOfMonthLabel": "Akhir Bulan",
+  "budgetDaysRemaining": "{days} hari",
+  "@budgetDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetRemaining": "Sisa {amount}",
+  "@budgetRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOver": "Lebih {amount}",
+  "@budgetOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetToday": "Hari ini",
+  "budgetPeriodTitle": "Pilih Periode",
+  "budgetPeriodThisWeek": "Minggu ini",
+  "budgetPeriodThisMonth": "Bulan ini",
+  "budgetPeriodThisQuarter": "Kuartal ini",
+  "budgetPeriodThisYear": "Tahun ini",
+  "budgetPeriodCustom": "Kustom",
+  "budgetAllWallets": "Semua Dompet",
+  "budgetSpecificWallet": "Dompet Tertentu",
+  "budgetFormTitleAdd": "Tambah Anggaran",
+  "budgetFormTitleEdit": "Edit Anggaran",
+  "budgetFormCategory": "Kategori",
+  "budgetFormCategorySelect": "Pilih kategori...",
+  "budgetFormCategoryError": "Gagal memuat kategori",
+  "budgetFormCategoryRequired": "Pilih kategori terlebih dahulu",
+  "budgetFormAmount": "Nominal Anggaran",
+  "budgetFormAmountRequired": "Masukkan nominal anggaran",
+  "budgetFormAmountInvalid": "Nominal harus lebih dari 0",
+  "budgetFormPeriod": "Periode",
+  "budgetFormPeriodSelect": "Pilih periode...",
+  "budgetFormPeriodRequired": "Pilih periode terlebih dahulu",
+  "budgetFormWalletScope": "Berlaku untuk",
+  "budgetFormRecurringTitle": "Ulangi anggaran ini",
+  "budgetFormRecurringSubtitle": "Anggaran otomatis diperpanjang setiap periode berikutnya",
+  "budgetSave": "Simpan",
+  "budgetCancel": "Batal",
+  "budgetSuccessAdd": "Anggaran berhasil dibuat",
+  "budgetSuccessEdit": "Anggaran berhasil diperbarui",
+  "budgetSuccessDelete": "Anggaran berhasil dihapus",
+  "budgetErrorAdd": "Gagal membuat anggaran",
+  "budgetErrorEdit": "Gagal memperbarui anggaran",
+  "budgetErrorDelete": "Gagal menghapus anggaran",
+  "budgetDeleteConfirmTitle": "Hapus Anggaran?",
+  "budgetDeleteConfirmMessage": "Anggaran untuk \"{name}\" akan dihapus permanen.",
+  "@budgetDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentTitle": "Investasi",
+  "investmentAdd": "Tambah Investasi",
+  "investmentEdit": "Edit Investasi",
+  "investmentDelete": "Hapus Investasi",
+  "investmentPortfolio": "Total Portofolio",
+  "investmentTotalValue": "Nilai Saat Ini",
+  "investmentTotalPL": "Total P&L",
+  "investmentTypeGold": "Emas",
+  "investmentTypeBtc": "Bitcoin",
+  "investmentTypeCustom": "Kustom",
+  "investmentBuyPrice": "Harga Beli",
+  "investmentCurrentPrice": "Harga Saat Ini",
+  "investmentAmount": "Jumlah",
+  "investmentUnit": "unit",
+  "investmentEmptyTitle": "Belum Ada Investasi",
+  "investmentEmptySubtitle": "Ketuk + untuk menambahkan aset pertama Anda",
+  "investmentRefreshPrice": "Perbarui Harga",
+  "investmentFormTitleAdd": "Tambah Investasi",
+  "investmentFormTitleEdit": "Edit Investasi",
+  "investmentFormType": "Tipe Aset",
+  "investmentFormName": "Nama Aset",
+  "investmentFormNameHint": "misal: Emas Antam, BTC",
+  "investmentFormNameRequired": "Nama aset wajib diisi",
+  "investmentFormAmount": "Jumlah Unit",
+  "investmentFormAmountRequired": "Jumlah wajib diisi",
+  "investmentFormAmountInvalid": "Jumlah harus lebih dari 0",
+  "investmentFormBuyPrice": "Harga Beli per Unit (IDR)",
+  "investmentFormBuyPriceRequired": "Harga beli wajib diisi",
+  "investmentFormBuyPriceInvalid": "Harga beli harus lebih dari 0",
+  "investmentFormCurrentPrice": "Harga Saat Ini (IDR)",
+  "investmentFormCurrentPriceHint": "Opsional — untuk aset kustom",
+  "investmentFormDeductWallet": "Potong dari Dompet",
+  "investmentFormDeductWalletSubtitle": "Saldo dompet akan dikurangi otomatis",
+  "investmentFormWallet": "Pilih Dompet",
+  "investmentFormWalletRequired": "Pilih dompet terlebih dahulu",
+  "investmentFormNotes": "Catatan",
+  "investmentFormNotesHint": "Opsional",
+  "investmentFormEstimatedCost": "Estimasi Total Biaya",
+  "investmentSave": "Simpan Investasi",
+  "investmentSuccessAdd": "Investasi berhasil ditambahkan",
+  "investmentSuccessEdit": "Investasi berhasil diperbarui",
+  "investmentSuccessDelete": "Investasi berhasil dihapus",
+  "investmentErrorAdd": "Gagal menambahkan investasi",
+  "investmentErrorEdit": "Gagal memperbarui investasi",
+  "investmentErrorDelete": "Gagal menghapus investasi",
+  "investmentDeleteConfirmTitle": "Hapus Investasi?",
+  "investmentDeleteConfirmMessage": "Aset \"{name}\" akan dihapus permanen.",
+  "@investmentDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTitle": "Notifikasi",
+  "notifReminderTitle": "Pengingat Harian",
+  "notifReminderSubtitle": "Ingatkan saya untuk catat transaksi",
+  "notifReminderTime": "Jam Pengingat",
+  "notifBudgetTitle": "Alert Anggaran",
+  "notifBudgetSubtitle": "Notifikasi saat anggaran 80% dan 100%",
+  "notifDebtTitle": "Pengingat Piutang",
+  "notifDebtSubtitle": "Ingatkan sebelum jatuh tempo",
+  "notifDebtDaysBefore": "Ingatkan {days} hari sebelumnya",
+  "@notifDebtDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notifBudgetAlert80": "Anggaran {category} sudah 80% terpakai!",
+  "@notifBudgetAlert80": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBudgetAlert100": "Anggaran {category} sudah habis!",
+  "@notifBudgetAlert100": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDebtDue": "Piutang ke {person} jatuh tempo {days} hari lagi",
+  "@notifDebtDue": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notifSave": "Simpan Pengaturan",
+  "notifSaveSuccess": "Pengaturan notifikasi berhasil disimpan",
+  "notifSaveError": "Gagal menyimpan pengaturan notifikasi",
+  "navDashboard": "Beranda",
+  "navHistory": "Riwayat",
+  "navBudget": "Anggaran",
+  "navInvestment": "Investasi",
+  "profileTitle": "Profil",
+  "profileEditName": "Ubah Nama",
+  "profileEmail": "Email",
+  "profileMemberSince": "Bergabung sejak",
+  "profileSettings": "Pengaturan",
+  "profileCategories": "Kategori",
+  "profileWallets": "Dompet",
+  "profileNotifications": "Notifikasi",
+  "profileLogout": "Keluar",
+  "profileLogoutConfirmTitle": "Keluar",
+  "profileLogoutConfirmMessage": "Apakah Anda yakin ingin keluar?",
+  "profileDarkMode": "Mode Gelap",
+  "profileLanguage": "Bahasa",
+  "pickerChooseIcon": "Pilih Ikon",
+  "pickerChooseColor": "Pilih Warna",
+  "pickerSearchCategory": "Cari kategori..."
+}
