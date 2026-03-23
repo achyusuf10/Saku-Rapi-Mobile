@@ -177,52 +177,73 @@ FAB Tap 📝 → TransactionFormScreen (Tab Pengeluaran)
 
 ---
 
-### E. Asisten Voice Input (STT) 🎙️
-**Deskripsi:**
-- Trigger: Tap ikon 🎙️ di Expandable FAB.
-- UI: Bottom Sheet dengan animasi mic berdenyut + teks real-time yang diucapkan user.
-- Durasi maks **10 detik**. Auto-stop jika hening **3 detik**.
-- Setelah selesai: `VoiceService` → `TransactionParserService` (regex + keyword matching dari Kamus Hive) → ekstrak `amount`, `category_id`, `note`, `type`.
-- Output: Pre-fill `TransactionFormScreen`. User wajib review & tap Simpan manual.
-- Tampilkan badge/toast kecil: *"Berhasil diekstrak dari suara"*.
-- Hasil voice **DILARANG LANGSUNG DISIMPAN** ke DB tanpa review user.
 
-**Flowchart:**
-```
-FAB 🎙️ → VoiceBottomSheet (rekam, maks 10s / auto-stop 3s)
-  → Selesai → context.showLoadingOverlay()
-  → VoiceService → raw text
-  → TransactionParserService → ParsedTransactionModel
-  → context.closeOverlay()
-  → Push TransactionFormScreen (pre-filled)
-  → User review → Simpan
-```
+### E. Asisten Voice Input (STT) AI-Powered
+**Deskripsi:**
+- User menahan tombol mic (maks 10 detik) untuk merekam suara (contoh input: *"Beli kopi kenangan dua puluh ribu pakai gopay"*).
+- Suara diubah menjadi teks menggunakan package `speech_to_text`.
+- **AI Processing Pipeline (Waterfall):**
+  1. **Primary AI (Gemini Flash):** Teks dikirim ke Supabase Edge Function yang memanggil API Gemini Flash. Prompt diatur agar mengekstrak entitas dari kalimat (nominal, nama *merchant*, kategori, jenis dompet, dan tipe transaksi) menjadi JSON terstruktur.
+  2. **Secondary AI (Grok):** Jika API Gemini *limit* atau *timeout*, Edge Function otomatis me-routing *request* teks yang sama ke API Grok dengan instruksi *prompt* yang sama.
+  3. **Fallback (Local Manual):** Jika kedua API AI gagal/limit, teks dilempar kembali ke Flutter untuk diproses secara lokal menggunakan `TransactionParserService` (Regex + Kamus Hive).
+- **Flowchart:**
+  `Mic` → `speech_to_text (String)` → `Edge Function (Gemini/Grok)` → `Return JSON` → `Push TransactionFormScreen (Pre-filled)`
+
+**Expected JSON Response (Kontrak Data dari Edge Function):**
+Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut agar dapat langsung di-mapping ke `TransactionModel` di Flutter:
+
+```json
+{
+  "transaction_type": "expense", 
+  "amount": 20000,
+  "merchant_name": "Kopi Kenangan",
+  "suggested_category": "Makanan & Minuman",
+  "suggested_wallet": "GoPay",
+  "notes": "Beli kopi kenangan",
+  "date": "2026-03-23T07:25:00Z"
+}
+
 
 ---
-
-### F. Asisten Scan Struk OCR 📷
+### F. Asisten Scan Struk OCR AI-Powered
 **Deskripsi:**
-- Trigger: Tap ikon 📷 di Expandable FAB.
-- Flow: Ambil foto (kamera/galeri) → **Crop area** (wajib, pakai image cropper) → OCR Scan.
-- `OcrService` membaca teks → `TransactionParserService` ekstrak:
-  - `amount`: Cari pola "Total", "Grand Total", "Jumlah", "TOTAL BAYAR", dll. (ambil angka terbesar sebagai kandidat)
-  - `date`: Deteksi pola tanggal dari struk
-  - Item-item pengeluaran (untuk mode Multi-Item)
-- **Auto-Balance Logic:** Jika `Grand Total > Σ Item yang terbaca` → buat baris item tambahan bernama **"Pajak / Biaya Lain / Selisih"** untuk menutup selisih.
-- Output: Pre-fill `TransactionFormScreen` dalam mode Multi-Item. Foto struk di-attach sementara di UI (upload ke Supabase Storage saat user tap Simpan).
-- Hasil OCR **DILARANG LANGSUNG DISIMPAN** ke DB tanpa review user.
+- User memfoto struk transaksi (minimarket, restoran, dll) menggunakan kamera.
+- Sistem akan memproses gambar untuk mengekstrak informasi secara mendetail, termasuk **nama barang, jumlah (qty), dan harga**, lalu memetakannya langsung ke form Transaksi Multi-Item.
+- **AI Processing Pipeline (Waterfall):**
+  1. **Primary AI (Gemini Flash Multimodal):** Foto struk dikirim ke Supabase Edge Function. AI di-prompt secara khusus untuk mengekstrak rincian struk menjadi format JSON terstruktur.
+  2. **Secondary AI (Grok Vision/Text):** Jika Gemini limit/gagal, foto dikirim ke Grok API dengan instruksi prompt pengekstrakan rincian item yang persis sama.
+  3. **Fallback (Local ML Kit):** Jika semua layanan Cloud AI limit/gagal, aplikasi menggunakan `google_mlkit_text_recognition` di lokal. Hasil teks mentah akan di-parsing oleh `TransactionParserService` lokal yang akan berusaha menangkap `Total Harga` saja jika rincian item terlalu sulit di-Regex.
+- **UI Mapping:** Data JSON yang didapat dari AI akan otomatis mengisi layar `TransactionFormScreen` mode **Multi-Item**.
+- **Flowchart:**
+  `Foto Struk` → `Edge Function (Gemini/Grok)` → `Return JSON (beserta array rincian item & qty)` → `Push TransactionFormScreen (Mode Multi-Item, Pre-filled baris per baris, Foto attached)`
 
-**Flowchart:**
-```
-FAB 📷 → Kamera/Galeri → Pilih Foto → ImageCropperScreen
-  → Crop → context.showLoadingOverlay()
-  → OcrService → raw text
-  → TransactionParserService → items[], grand_total, date
-  → Auto-Balance: tambah baris "Selisih" jika perlu
-  → context.closeOverlay()
-  → Push TransactionFormScreen (Multi-Item, pre-filled, foto attached)
-  → User review → Simpan → Upload foto ke Storage
-```
+**Expected JSON Response (Kontrak Data dari Edge Function):**
+Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut agar dapat di-parsing oleh `TransactionItemModel` di Flutter:
+
+```json
+{
+  "merchant_name": "Indomaret",
+  "date": "2026-03-23T14:30:00Z",
+  "total_amount": 45000,
+  "suggested_category": "Kebutuhan Harian",
+  "is_multi_item": true,
+  "items": [
+    {
+      "item_name": "Kopi Kenangan Mantan",
+      "qty": 2,
+      "price_per_item": 15000,
+      "subtotal": 30000,
+      "notes": "2x Kopi Kenangan Mantan" 
+    },
+    {
+      "item_name": "Roti Sobek Coklat",
+      "qty": 1,
+      "price_per_item": 15000,
+      "subtotal": 15000,
+      "notes": "1x Roti Sobek Coklat"
+    }
+  ]
+}
 
 ---
 
