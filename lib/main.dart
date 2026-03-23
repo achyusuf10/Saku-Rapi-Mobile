@@ -2,7 +2,6 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
-import 'package:app_saku_rapi/global/services/notification_service.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:app_saku_rapi/utils/services/screen_util_service.dart';
@@ -56,14 +55,6 @@ Future<void> main() async {
     anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
 
-  // Inisialisasi local notifications service.
-  await NotificationService().initialize();
-
-  // Inisialisasi WorkManager untuk background task (boot-complete reschedule).
-  await Workmanager().initialize(
-    _workmanagerCallbackDispatcher,
-    isInDebugMode: kDebugMode,
-  );
   if (kDebugMode) {
     hierarchicalLoggingEnabled = true;
     final supabaseLogger = Logger('supabase');

@@ -154,6 +154,17 @@
   "dashboardExcludedFromTotal": "Excluded from total",
   "dashboardWeekLabel": "Week {week}",
   "dashboardComingSoon": "Coming Soon",
+  "dashboardGreeting": "Hi, {name} 👋",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardEmptyWallets": "No wallets yet",
+  "dashboardMonthlyIncome": "This Month's Income",
+  "dashboardMonthlyExpense": "This Month's Expense",
   "historyTitle": "History",
   "historyTabTransactions": "Transactions",
   "historyTabReport": "Report",
@@ -455,5 +466,31 @@
   "profileLanguage": "Language",
   "pickerChooseIcon": "Choose Icon",
   "pickerChooseColor": "Choose Color",
-  "pickerSearchCategory": "Search category..."
+  "pickerSearchCategory": "Search category...",
+  "voiceInitializing": "Preparing microphone...",
+  "voiceAnalyzingAi": "Analyzing with AI...",
+  "voiceDoneButton": "Done",
+  "voicePleaseWait": "Please wait...",
+  "voiceNoSpeech": "No speech detected",
+  "ocrExtractingText": "Reading text from receipt...",
+  "ocrAnalyzingAi": "Analyzing with AI...",
+  "ocrPickerTitle": "Scan Shopping Receipt",
+  "ocrCropToolbar": "Select Receipt Area",
+  "ocrErrorGeneric": "Failed to process image",
+  "transactionListTitle": "Transactions",
+  "transactionRangeTitle": "Select Time Range",
+  "transactionRangeHari": "Today",
+  "transactionRangeMinggu": "This Week",
+  "transactionRangeBulan": "This Month",
+  "transactionRangeKuartal": "This Quarter",
+  "transactionRangeTahun": "This Year",
+  "transactionRangeSemua": "All",
+  "transactionRangeSesuaikan": "Custom",
+  "transactionViewByCategory": "View by Category",
+  "transactionViewByTransaction": "View by Transaction",
+  "transactionTransferMoney": "Transfer Money",
+  "transactionDetailTitle": "Transaction Detail",
+  "transactionDuplicate": "Duplicate",
+  "transactionShareDetail": "Share",
+  "transactionDeleteSuccess": "Transaction deleted successfully"
 }

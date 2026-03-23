@@ -3,141 +3,210 @@ import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Remote data source untuk operasi autentikasi SakuRapi.
+/// Remote data source untuk operasi autentikasi via Supabase.
 ///
-/// Menggunakan `google_sign_in` untuk mendapatkan token OAuth Google,
-/// lalu meneruskannya ke Supabase Auth via `signInWithIdToken`.
+/// Bertanggung jawab atas:
+/// - Google Sign-In via `signInWithIdToken`
+/// - Sign-Out
+/// - Membaca data user dari tabel `public.users`
+/// - Update profil user (`full_name`, `avatar_url`)
 ///
-/// Semua fungsi dibungkus [SupabaseHandler.call] dan me-return [DataState].
+/// Semua operasi dibungkus dengan [SupabaseHandler.call] untuk
+/// penanganan error terpusat.
 class AuthRemoteDataSource {
   AuthRemoteDataSource({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
-  /// Web client ID untuk Google Sign-In (dari Supabase dashboard / GCP).
+  /// Web Client ID dari Google Cloud Console untuk Supabase OAuth.
   ///
-  /// Diambil dari compile-time env agar tidak ter-hardcode di source.
-  static const String _webClientId = String.fromEnvironment(
+  /// Harus sesuai dengan yang dikonfigurasi di Supabase Dashboard
+  /// Authentication → Providers → Google.
+  static const _webClientId = String.fromEnvironment(
     'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '',
   );
 
-  /// iOS client ID untuk Google Sign-In.
-  static const String _iosClientId = String.fromEnvironment(
-    'GOOGLE_IOS_CLIENT_ID',
-  );
+  /// Flag untuk memastikan GoogleSignIn hanya di-initialize sekali.
   Future<void>? _initialization;
 
+  /// Initialize [GoogleSignIn] singleton (lazy, sekali saja).
   Future<void> _ensureInitialized() {
-    AppLogger.call('Ensuring Google Sign-In is initialized...');
-    AppLogger.call('Web Client ID: $_webClientId');
     return _initialization ??=
-        GoogleSignInPlatform.instance.init(
-          InitParameters(
-            // clientId: _iosClientId.isNotEmpty ? _iosClientId : null,
-            serverClientId: _webClientId.isNotEmpty ? _webClientId : null,
-          ),
+        GoogleSignIn.instance.initialize(
+          serverClientId: _webClientId.isNotEmpty ? _webClientId : null,
         )..catchError((dynamic _) {
-          AppLogger.call('Google Sign In Initialization Error');
+          AppLogger.logError(
+            'Google Sign-In initialization failed',
+            runtimeType: AuthRemoteDataSource,
+          );
           _initialization = null;
         });
   }
 
-  /// Login menggunakan Google Sign-In dan sambungkan ke Supabase.
+  /// Melakukan Google Sign-In dan autentikasi ke Supabase.
   ///
-  /// Return [DataState<AuthResponse?>].
-  Future<DataState<AuthResponse?>> signInWithGoogle() async {
-    return SupabaseHandler.call(
+  /// Flow (google_sign_in v7):
+  /// 1. Panggil `GoogleSignIn.instance.authenticate()` untuk mendapatkan akun.
+  /// 2. Ambil `idToken` dari `account.authentication`.
+  /// 3. Kirim `idToken` ke Supabase via `signInWithIdToken`.
+  /// 4. Trigger di Supabase (`handle_new_user`) otomatis membuat
+  ///    record di `public.users`.
+  ///
+  /// Returns [DataState] berisi [AuthResponse] jika berhasil.
+  /// Mengembalikan error jika user membatalkan sign-in atau terjadi kegagalan.
+  Future<DataState<AuthResponse>> signInWithGoogle() async {
+    return SupabaseHandler.call<AuthResponse>(
       function: () async {
-        await _ensureInitialized();
-        final result = await GoogleSignInPlatform.instance.authenticate(
-          AuthenticateParameters(),
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Starting Google Sign-In...',
+          colorLog: ColorLog.blue,
         );
-        final idToken = result.authenticationTokens.idToken ?? '';
-        final AuthResponse res = await _client.auth.signInWithIdToken(
+
+        await _ensureInitialized();
+
+        final googleUser = await GoogleSignIn.instance.authenticate();
+        final idToken = googleUser.authentication.idToken;
+
+        if (idToken == null) {
+          throw Exception('Gagal mendapatkan ID Token dari Google');
+        }
+
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Google token obtained, signing into Supabase...',
+          colorLog: ColorLog.blue,
+        );
+
+        final response = await _client.auth.signInWithIdToken(
           provider: OAuthProvider.google,
           idToken: idToken,
         );
-        return res;
+
+        AppLogger.logSuccess(
+          'User signed in: ${response.user?.email}',
+          runtimeType: AuthRemoteDataSource,
+        );
+
+        return response;
       },
     );
   }
 
-  /// Logout user dari Supabase dan Google.
+  /// Sign out dari Supabase dan Google.
   ///
-  /// Return [DataState<void>].
-  Future<DataState<void>> signOut() {
+  /// Menghapus sesi lokal Supabase dan juga memanggil
+  /// `GoogleSignIn().signOut()` agar user bisa memilih akun lain
+  /// saat login berikutnya.
+  Future<DataState<void>> signOut() async {
     return SupabaseHandler.call<void>(
       function: () async {
-        await _ensureInitialized();
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Signing out...',
+          colorLog: ColorLog.yellow,
+        );
+
         await _client.auth.signOut();
+        await _ensureInitialized();
         await GoogleSignIn.instance.signOut();
+
+        AppLogger.logSuccess(
+          'User signed out successfully',
+          runtimeType: AuthRemoteDataSource,
+        );
       },
     );
   }
 
-  /// Ambil profil user saat ini dari tabel `public.users`.
+  /// Mendapatkan session yang sedang aktif.
   ///
-  /// Return [DataState<UserModel>].
-  Future<DataState<UserModel>> getCurrentUser() {
+  /// Digunakan saat app pertama kali dibuka (splash screen)
+  /// untuk mengecek apakah user masih memiliki sesi valid.
+  Session? getCurrentSession() {
+    return _client.auth.currentSession;
+  }
+
+  /// Mendapatkan user yang sedang login dari Supabase Auth.
+  User? getCurrentAuthUser() {
+    return _client.auth.currentUser;
+  }
+
+  /// Membaca data profil user dari tabel `public.users`.
+  ///
+  /// Data di `public.users` disinkronkan otomatis saat user
+  /// pertama kali sign-up melalui trigger `handle_new_user`.
+  Future<DataState<UserModel>> getUserProfile(String userId) async {
     return SupabaseHandler.call<UserModel>(
       function: () async {
-        final userId = _client.auth.currentUser!.id;
-        final data = await _client
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Fetching user profile: $userId',
+          colorLog: ColorLog.blue,
+        );
+
+        final response = await _client
             .from('users')
             .select()
             .eq('id', userId)
             .single();
-        return UserModel.fromMap(data);
-      },
-    );
-  }
 
-  /// Upsert profil user ke tabel `public.users` menggunakan metadata
-  /// dari Supabase Auth (email, nama, avatar dari Google).
-  ///
-  /// Dipanggil setelah Google Sign-In berhasil untuk memastikan row
-  /// ada di tabel (baik user baru maupun user yang sudah ada).
-  ///
-  /// Return [DataState<void>].
-  Future<DataState<void>> upsertProfile() {
-    return SupabaseHandler.call<void>(
-      function: () async {
-        final user = _client.auth.currentUser!;
-        await _client.from('users').upsert({
-          'id': user.id,
-          'email': user.email ?? '',
-          'full_name': user.userMetadata?['full_name'],
-          'avatar_url': user.userMetadata?['avatar_url'],
-        }, onConflict: 'id');
+        final user = UserModel.fromMap(response);
+
+        AppLogger.logSuccess(
+          'Profile fetched: ${user.fullName ?? user.email}',
+          runtimeType: AuthRemoteDataSource,
+        );
+
+        return user;
       },
     );
   }
 
   /// Update profil user di tabel `public.users`.
   ///
-  /// Return [DataState<UserModel>] dengan data terbaru.
-  Future<DataState<UserModel>> updateProfile({
+  /// Hanya field `full_name` dan `avatar_url` yang boleh diubah
+  /// oleh user. Field `id`, `email` dikelola oleh Supabase Auth.
+  Future<DataState<UserModel>> updateUserProfile({
+    required String userId,
     String? fullName,
     String? avatarUrl,
-  }) {
+  }) async {
     return SupabaseHandler.call<UserModel>(
       function: () async {
-        final userId = _client.auth.currentUser!.id;
-        final updates = <String, dynamic>{};
-        if (fullName != null) updates['full_name'] = fullName;
-        if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
-        final data = await _client
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Updating profile: $userId',
+          colorLog: ColorLog.blue,
+        );
+
+        final updateData = <String, dynamic>{};
+        if (fullName != null) updateData['full_name'] = fullName;
+        if (avatarUrl != null) updateData['avatar_url'] = avatarUrl;
+
+        final response = await _client
             .from('users')
-            .update(updates)
+            .update(updateData)
             .eq('id', userId)
             .select()
             .single();
-        return UserModel.fromMap(data);
+
+        final user = UserModel.fromMap(response);
+
+        AppLogger.logSuccess(
+          'Profile updated: ${user.fullName}',
+          runtimeType: AuthRemoteDataSource,
+        );
+
+        return user;
       },
     );
+  }
+
+  /// Stream untuk mendengarkan perubahan status autentikasi.
+  ///
+  /// Digunakan oleh [AuthController] dan router `refreshListenable`
+  /// untuk merespons login/logout secara realtime.
+  Stream<AuthState> onAuthStateChange() {
+    return _client.auth.onAuthStateChange;
   }
 }

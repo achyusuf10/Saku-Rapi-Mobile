@@ -854,6 +854,30 @@ abstract class AppLocalizations {
   /// **'Segera Hadir'**
   String get dashboardComingSoon;
 
+  /// No description provided for @dashboardGreeting.
+  ///
+  /// In id, this message translates to:
+  /// **'Halo, {name} 👋'**
+  String dashboardGreeting(String name);
+
+  /// No description provided for @dashboardEmptyWallets.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada dompet'**
+  String get dashboardEmptyWallets;
+
+  /// No description provided for @dashboardMonthlyIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan Bulan Ini'**
+  String get dashboardMonthlyIncome;
+
+  /// No description provided for @dashboardMonthlyExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran Bulan Ini'**
+  String get dashboardMonthlyExpense;
+
   /// No description provided for @historyTitle.
   ///
   /// In id, this message translates to:
@@ -2017,6 +2041,162 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Cari kategori...'**
   String get pickerSearchCategory;
+
+  /// No description provided for @voiceInitializing.
+  ///
+  /// In id, this message translates to:
+  /// **'Mempersiapkan mikrofon...'**
+  String get voiceInitializing;
+
+  /// No description provided for @voiceAnalyzingAi.
+  ///
+  /// In id, this message translates to:
+  /// **'Menganalisis dengan AI...'**
+  String get voiceAnalyzingAi;
+
+  /// No description provided for @voiceDoneButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Selesai'**
+  String get voiceDoneButton;
+
+  /// No description provided for @voicePleaseWait.
+  ///
+  /// In id, this message translates to:
+  /// **'Mohon tunggu...'**
+  String get voicePleaseWait;
+
+  /// No description provided for @voiceNoSpeech.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada suara terdeteksi'**
+  String get voiceNoSpeech;
+
+  /// No description provided for @ocrExtractingText.
+  ///
+  /// In id, this message translates to:
+  /// **'Membaca teks dari struk...'**
+  String get ocrExtractingText;
+
+  /// No description provided for @ocrAnalyzingAi.
+  ///
+  /// In id, this message translates to:
+  /// **'Menganalisis dengan AI...'**
+  String get ocrAnalyzingAi;
+
+  /// No description provided for @ocrPickerTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Scan Struk Belanja'**
+  String get ocrPickerTitle;
+
+  /// No description provided for @ocrCropToolbar.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Area Struk'**
+  String get ocrCropToolbar;
+
+  /// No description provided for @ocrErrorGeneric.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memproses gambar'**
+  String get ocrErrorGeneric;
+
+  /// No description provided for @transactionListTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi'**
+  String get transactionListTitle;
+
+  /// No description provided for @transactionRangeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Rentang Waktu'**
+  String get transactionRangeTitle;
+
+  /// No description provided for @transactionRangeHari.
+  ///
+  /// In id, this message translates to:
+  /// **'Hari Ini'**
+  String get transactionRangeHari;
+
+  /// No description provided for @transactionRangeMinggu.
+  ///
+  /// In id, this message translates to:
+  /// **'Minggu Ini'**
+  String get transactionRangeMinggu;
+
+  /// No description provided for @transactionRangeBulan.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan Ini'**
+  String get transactionRangeBulan;
+
+  /// No description provided for @transactionRangeKuartal.
+  ///
+  /// In id, this message translates to:
+  /// **'Kuartal Ini'**
+  String get transactionRangeKuartal;
+
+  /// No description provided for @transactionRangeTahun.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahun Ini'**
+  String get transactionRangeTahun;
+
+  /// No description provided for @transactionRangeSemua.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get transactionRangeSemua;
+
+  /// No description provided for @transactionRangeSesuaikan.
+  ///
+  /// In id, this message translates to:
+  /// **'Sesuaikan'**
+  String get transactionRangeSesuaikan;
+
+  /// No description provided for @transactionViewByCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat per Kategori'**
+  String get transactionViewByCategory;
+
+  /// No description provided for @transactionViewByTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat per Transaksi'**
+  String get transactionViewByTransaction;
+
+  /// No description provided for @transactionTransferMoney.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer Uang'**
+  String get transactionTransferMoney;
+
+  /// No description provided for @transactionDetailTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Transaksi'**
+  String get transactionDetailTitle;
+
+  /// No description provided for @transactionDuplicate.
+  ///
+  /// In id, this message translates to:
+  /// **'Duplikasi'**
+  String get transactionDuplicate;
+
+  /// No description provided for @transactionShareDetail.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagikan'**
+  String get transactionShareDetail;
+
+  /// No description provided for @transactionDeleteSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi berhasil dihapus'**
+  String get transactionDeleteSuccess;
 }
 
 class _AppLocalizationsDelegate

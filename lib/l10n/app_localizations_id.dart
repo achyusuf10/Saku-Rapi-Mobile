@@ -399,6 +399,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashboardComingSoon => 'Segera Hadir';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Halo, $name 👋';
+  }
+
+  @override
+  String get dashboardEmptyWallets => 'Belum ada dompet';
+
+  @override
+  String get dashboardMonthlyIncome => 'Pemasukan Bulan Ini';
+
+  @override
+  String get dashboardMonthlyExpense => 'Pengeluaran Bulan Ini';
+
+  @override
   String get historyTitle => 'Riwayat';
 
   @override
@@ -1013,4 +1027,82 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get pickerSearchCategory => 'Cari kategori...';
+
+  @override
+  String get voiceInitializing => 'Mempersiapkan mikrofon...';
+
+  @override
+  String get voiceAnalyzingAi => 'Menganalisis dengan AI...';
+
+  @override
+  String get voiceDoneButton => 'Selesai';
+
+  @override
+  String get voicePleaseWait => 'Mohon tunggu...';
+
+  @override
+  String get voiceNoSpeech => 'Tidak ada suara terdeteksi';
+
+  @override
+  String get ocrExtractingText => 'Membaca teks dari struk...';
+
+  @override
+  String get ocrAnalyzingAi => 'Menganalisis dengan AI...';
+
+  @override
+  String get ocrPickerTitle => 'Scan Struk Belanja';
+
+  @override
+  String get ocrCropToolbar => 'Pilih Area Struk';
+
+  @override
+  String get ocrErrorGeneric => 'Gagal memproses gambar';
+
+  @override
+  String get transactionListTitle => 'Transaksi';
+
+  @override
+  String get transactionRangeTitle => 'Pilih Rentang Waktu';
+
+  @override
+  String get transactionRangeHari => 'Hari Ini';
+
+  @override
+  String get transactionRangeMinggu => 'Minggu Ini';
+
+  @override
+  String get transactionRangeBulan => 'Bulan Ini';
+
+  @override
+  String get transactionRangeKuartal => 'Kuartal Ini';
+
+  @override
+  String get transactionRangeTahun => 'Tahun Ini';
+
+  @override
+  String get transactionRangeSemua => 'Semua';
+
+  @override
+  String get transactionRangeSesuaikan => 'Sesuaikan';
+
+  @override
+  String get transactionViewByCategory => 'Lihat per Kategori';
+
+  @override
+  String get transactionViewByTransaction => 'Lihat per Transaksi';
+
+  @override
+  String get transactionTransferMoney => 'Transfer Uang';
+
+  @override
+  String get transactionDetailTitle => 'Detail Transaksi';
+
+  @override
+  String get transactionDuplicate => 'Duplikasi';
+
+  @override
+  String get transactionShareDetail => 'Bagikan';
+
+  @override
+  String get transactionDeleteSuccess => 'Transaksi berhasil dihapus';
 }

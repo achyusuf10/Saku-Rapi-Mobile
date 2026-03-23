@@ -154,6 +154,17 @@
   "dashboardExcludedFromTotal": "Dikecualikan dari total",
   "dashboardWeekLabel": "Minggu {week}",
   "dashboardComingSoon": "Segera Hadir",
+  "dashboardGreeting": "Halo, {name} 👋",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardEmptyWallets": "Belum ada dompet",
+  "dashboardMonthlyIncome": "Pemasukan Bulan Ini",
+  "dashboardMonthlyExpense": "Pengeluaran Bulan Ini",
   "historyTitle": "Riwayat",
   "historyTabTransactions": "Transaksi",
   "historyTabReport": "Laporan",
@@ -455,5 +466,31 @@
   "profileLanguage": "Bahasa",
   "pickerChooseIcon": "Pilih Ikon",
   "pickerChooseColor": "Pilih Warna",
-  "pickerSearchCategory": "Cari kategori..."
+  "pickerSearchCategory": "Cari kategori...",
+  "voiceInitializing": "Mempersiapkan mikrofon...",
+  "voiceAnalyzingAi": "Menganalisis dengan AI...",
+  "voiceDoneButton": "Selesai",
+  "voicePleaseWait": "Mohon tunggu...",
+  "voiceNoSpeech": "Tidak ada suara terdeteksi",
+  "ocrExtractingText": "Membaca teks dari struk...",
+  "ocrAnalyzingAi": "Menganalisis dengan AI...",
+  "ocrPickerTitle": "Scan Struk Belanja",
+  "ocrCropToolbar": "Pilih Area Struk",
+  "ocrErrorGeneric": "Gagal memproses gambar",
+  "transactionListTitle": "Transaksi",
+  "transactionRangeTitle": "Pilih Rentang Waktu",
+  "transactionRangeHari": "Hari Ini",
+  "transactionRangeMinggu": "Minggu Ini",
+  "transactionRangeBulan": "Bulan Ini",
+  "transactionRangeKuartal": "Kuartal Ini",
+  "transactionRangeTahun": "Tahun Ini",
+  "transactionRangeSemua": "Semua",
+  "transactionRangeSesuaikan": "Sesuaikan",
+  "transactionViewByCategory": "Lihat per Kategori",
+  "transactionViewByTransaction": "Lihat per Transaksi",
+  "transactionTransferMoney": "Transfer Uang",
+  "transactionDetailTitle": "Detail Transaksi",
+  "transactionDuplicate": "Duplikasi",
+  "transactionShareDetail": "Bagikan",
+  "transactionDeleteSuccess": "Transaksi berhasil dihapus"
 }

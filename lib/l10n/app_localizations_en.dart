@@ -401,6 +401,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardComingSoon => 'Coming Soon';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Hi, $name 👋';
+  }
+
+  @override
+  String get dashboardEmptyWallets => 'No wallets yet';
+
+  @override
+  String get dashboardMonthlyIncome => 'This Month\'s Income';
+
+  @override
+  String get dashboardMonthlyExpense => 'This Month\'s Expense';
+
+  @override
   String get historyTitle => 'History';
 
   @override
@@ -1015,4 +1029,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pickerSearchCategory => 'Search category...';
+
+  @override
+  String get voiceInitializing => 'Preparing microphone...';
+
+  @override
+  String get voiceAnalyzingAi => 'Analyzing with AI...';
+
+  @override
+  String get voiceDoneButton => 'Done';
+
+  @override
+  String get voicePleaseWait => 'Please wait...';
+
+  @override
+  String get voiceNoSpeech => 'No speech detected';
+
+  @override
+  String get ocrExtractingText => 'Reading text from receipt...';
+
+  @override
+  String get ocrAnalyzingAi => 'Analyzing with AI...';
+
+  @override
+  String get ocrPickerTitle => 'Scan Shopping Receipt';
+
+  @override
+  String get ocrCropToolbar => 'Select Receipt Area';
+
+  @override
+  String get ocrErrorGeneric => 'Failed to process image';
+
+  @override
+  String get transactionListTitle => 'Transactions';
+
+  @override
+  String get transactionRangeTitle => 'Select Time Range';
+
+  @override
+  String get transactionRangeHari => 'Today';
+
+  @override
+  String get transactionRangeMinggu => 'This Week';
+
+  @override
+  String get transactionRangeBulan => 'This Month';
+
+  @override
+  String get transactionRangeKuartal => 'This Quarter';
+
+  @override
+  String get transactionRangeTahun => 'This Year';
+
+  @override
+  String get transactionRangeSemua => 'All';
+
+  @override
+  String get transactionRangeSesuaikan => 'Custom';
+
+  @override
+  String get transactionViewByCategory => 'View by Category';
+
+  @override
+  String get transactionViewByTransaction => 'View by Transaction';
+
+  @override
+  String get transactionTransferMoney => 'Transfer Money';
+
+  @override
+  String get transactionDetailTitle => 'Transaction Detail';
+
+  @override
+  String get transactionDuplicate => 'Duplicate';
+
+  @override
+  String get transactionShareDetail => 'Share';
+
+  @override
+  String get transactionDeleteSuccess => 'Transaction deleted successfully';
 }

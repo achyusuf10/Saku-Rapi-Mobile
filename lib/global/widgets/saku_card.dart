@@ -2,51 +2,79 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Kontainer kartu elegan global SakuRapi.
+/// Card utama SakuRapi.
 ///
-/// Menggunakan `context.colors.surface` sebagai warna background kartu
-/// dengan box-shadow sangat soft sehingga terlihat melayang tipis
-/// di atas `context.colors.background`.
-///
-/// Opsional support [onTap] untuk kartu yang bisa diklik.
+/// Gunakan widget ini untuk semua container card di aplikasi.
 class SakuCard extends StatelessWidget {
-  const SakuCard({super.key, required this.child, this.padding, this.onTap});
+  const SakuCard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.margin,
+    this.onTap,
+    this.borderRadius,
+    this.backgroundColor,
+    this.border,
+    this.elevation,
+  });
 
-  /// Konten di dalam kartu.
+  /// Konten di dalam card.
   final Widget child;
 
-  /// Padding internal kartu. Default: `16.r` di semua sisi.
+  /// Padding konten. Default: 16 semua sisi.
   final EdgeInsetsGeometry? padding;
 
-  /// Callback ketika kartu ditekan. `null` = tidak bisa diklik.
+  /// Margin luar card.
+  final EdgeInsetsGeometry? margin;
+
+  /// Callback saat card di-tap.
   final VoidCallback? onTap;
+
+  /// Border radius. Default: 16.
+  final double? borderRadius;
+
+  /// Background color kustom.
+  final Color? backgroundColor;
+
+  /// Border kustom.
+  final BoxBorder? border;
+
+  /// Elevasi shadow.
+  final double? elevation;
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.colors;
+    final colors = context.colors;
+    final radius = borderRadius ?? 16.r;
 
-    final container = Container(
-      padding: padding ?? EdgeInsets.all(16.r),
+    return Container(
+      margin: margin,
       decoration: BoxDecoration(
-        color: appColors.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        color: backgroundColor ?? colors.surface,
+        borderRadius: BorderRadius.circular(radius),
+        border:
+            border ?? Border.all(color: colors.border.withValues(alpha: 0.5)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
+          if ((elevation ?? 0) > 0)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: elevation! * 2,
+              offset: Offset(0, elevation!),
+            ),
         ],
       ),
-      child: child,
-    );
-
-    if (onTap == null) return container;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: container,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(radius),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(radius),
+          child: Padding(
+            padding: padding ?? EdgeInsets.all(16.w),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }

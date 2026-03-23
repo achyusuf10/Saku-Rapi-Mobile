@@ -3,85 +3,158 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Tombol global SakuRapi yang konsisten di seluruh aplikasi.
+/// Tombol utama SakuRapi yang sudah anti double-tap.
 ///
-/// Mendukung dua varian:
-/// - **Filled** (default): background `primary`, teks putih.
-/// - **Outlined** (`isOutlined: true`): border `primary`, teks `primary`.
-///
-/// Jika [isLoading] `true`, isi tombol diganti [CircularProgressIndicator].
-class SakuButton extends StatelessWidget {
+/// Gunakan widget ini untuk semua tombol aksi di aplikasi.
+/// Memiliki proteksi duplikasi tap bawaan (debounce 500ms).
+class SakuButton extends StatefulWidget {
   const SakuButton({
     super.key,
     required this.text,
-    this.onPressed,
+    required this.onPressed,
     this.isLoading = false,
+    this.isEnabled = true,
     this.isOutlined = false,
+    this.icon,
+    this.width,
+    this.height,
+    this.backgroundColor,
+    this.textColor,
+    this.borderRadius,
   });
 
-  /// Label teks tombol.
+  /// Teks yang ditampilkan di tombol.
   final String text;
 
-  /// Callback ketika tombol ditekan. `null` = disabled.
+  /// Callback saat tombol ditekan.
   final VoidCallback? onPressed;
 
-  /// Jika `true`, tampilkan spinner loading di dalam tombol.
+  /// Jika `true`, tampilkan indikator loading dan blokir tap.
   final bool isLoading;
 
-  /// Jika `true`, tombol menggunakan varian outlined (transparan).
+  /// Jika `false`, tombol disabled.
+  final bool isEnabled;
+
+  /// Jika `true`, tampilkan sebagai tombol outlined (tanpa fill).
   final bool isOutlined;
+
+  /// Icon opsional di sebelah kiri teks.
+  final Widget? icon;
+
+  /// Lebar tombol. Default: full width.
+  final double? width;
+
+  /// Tinggi tombol.
+  final double? height;
+
+  /// Warna background kustom.
+  final Color? backgroundColor;
+
+  /// Warna teks kustom.
+  final Color? textColor;
+
+  /// Border radius kustom.
+  final double? borderRadius;
+
+  @override
+  State<SakuButton> createState() => _SakuButtonState();
+}
+
+class _SakuButtonState extends State<SakuButton> {
+  bool _isProcessing = false;
+
+  Future<void> _handleTap() async {
+    if (_isProcessing || widget.isLoading || !widget.isEnabled) return;
+    _isProcessing = true;
+
+    try {
+      widget.onPressed?.call();
+    } finally {
+      // Debounce 500ms untuk mencegah double-tap.
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        _isProcessing = false;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.colors;
+    final colors = context.colors;
+    final bgColor = widget.backgroundColor ?? colors.primary;
+    final fgColor = widget.textColor ?? colors.onPrimary;
+    final radius = widget.borderRadius ?? 12.r;
+    final enabled = widget.isEnabled && !widget.isLoading;
 
-    final Widget child = isLoading
-        ? SizedBox(
-            width: 22.r,
-            height: 22.r,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: isOutlined ? appColors.primary : Colors.white,
-            ),
-          )
-        : Text(
-            text,
-            style: TextStyleConstants.b1.copyWith(
-              fontWeight: FontWeight.w700,
-              color: isOutlined ? appColors.primary : Colors.white,
-            ),
-          );
-
-    final effectiveOnPressed = isLoading ? null : onPressed;
-
-    if (isOutlined) {
+    if (widget.isOutlined) {
       return SizedBox(
-        height: 48.h,
+        width: widget.width ?? double.infinity,
+        height: widget.height ?? 48.h,
         child: OutlinedButton(
-          onPressed: effectiveOnPressed,
+          onPressed: enabled ? _handleTap : null,
           style: OutlinedButton.styleFrom(
-            side: BorderSide(color: appColors.primary),
+            side: BorderSide(color: enabled ? bgColor : colors.border),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(radius),
             ),
           ),
-          child: child,
+          child: _buildChild(bgColor),
         ),
       );
     }
 
     return SizedBox(
-      height: 48.h,
-      child: FilledButton(
-        onPressed: effectiveOnPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: appColors.primary,
+      width: widget.width ?? double.infinity,
+      height: widget.height ?? 48.h,
+      child: ElevatedButton(
+        onPressed: enabled ? _handleTap : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: bgColor,
+          foregroundColor: fgColor,
+          disabledBackgroundColor: colors.border,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(radius),
           ),
+          elevation: 0,
         ),
-        child: child,
+        child: _buildChild(fgColor),
       ),
+    );
+  }
+
+  Widget _buildChild(Color foreground) {
+    if (widget.isLoading) {
+      return SizedBox(
+        width: 20.w,
+        height: 20.w,
+        child: CircularProgressIndicator(strokeWidth: 2.w, color: foreground),
+      );
+    }
+
+    if (widget.icon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          widget.icon!,
+          SizedBox(width: 8.w),
+          Flexible(
+            child: Text(
+              widget.text,
+              style: TextStyleConstants.b2.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Text(
+      widget.text,
+      style: TextStyleConstants.b2.copyWith(fontWeight: FontWeight.w600),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
