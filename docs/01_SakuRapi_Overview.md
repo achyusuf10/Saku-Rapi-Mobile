@@ -255,21 +255,31 @@ Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut 
 
 ---
 
-### H. Riwayat & Laporan
+### H. Riwayat & Navigasi Transaksi (History)
 **Deskripsi:**
-- **Tab History:** Navigasi swipe kiri/kanan untuk ganti bulan/periode.
-- **View 1 — List View:** Transaksi digroup per tanggal. Tiap grup tampilkan ringkasan harian (total in & out hari itu).
-- **View 2 — Report View:** Donut Chart pengeluaran per kategori.
-- **Expense Breakdown:** Tap potongan donut → `ExpenseBreakdownScreen`: perbandingan vs bulan lalu, rata-rata harian, list sub-kategori, list transaksi spesifik.
-- **Filter:** Berdasarkan rentang tanggal (Hari, Minggu, Bulan, Tahun, Custom) + filter per Wallet.
+- **Tab History Utama:** Menampilkan layar riwayat dengan navigasi *swipeable* (geser kiri/kanan) untuk berpindah ke periode sebelum/selanjutnya.
+- **Filter Periode Dinamis (Advanced Period Filter):** Terdapat *dropdown* / *bottom sheet* untuk mengubah rentang waktu laporan:
+  - **Harian (Daily)**
+  - **Mingguan (Weekly)**
+  - **Bulanan (Monthly - Default)**
+  - **Kuartal (Quarterly)**
+  - **Tahunan (Yearly)**
+  - **Custom Date Range:** Menggunakan *Date Range Picker* untuk memilih tanggal mulai dan akhir secara bebas.
+- **Opsi Tampilan Daftar (View Mode Grouping):** Terdapat fitur/toggle untuk mengubah cara *list* transaksi dikelompokkan:
+  1. **Berdasarkan Transaksi (Default):** Daftar di-grouping murni berdasarkan **Hari/Tanggal**. Tiap grup (*header* tanggal) menampilkan ringkasan total *income* & *expense* pada hari tersebut.
+  2. **Berdasarkan Kategori:** Daftar di-grouping berdasarkan **Kategori** terlebih dahulu (misal: "Makanan & Minuman", "Transportasi"). Di dalam masing-masing *header* kategori tersebut, barulah rincian transaksinya diurutkan berdasarkan hari/tanggal.
+- **Tab Perbandingan (Comparison View):** Sebuah sub-tab (berdampingan dengan Tab Daftar/List) yang menampilkan grafik atau ringkasan komparasi keuangan.
+  - Skala waktu perbandingan **otomatis beradaptasi** dengan *Filter Periode* yang sedang aktif.
+  - *Contoh Logika:* - Jika filter **Bulanan** aktif → Membandingkan performa Bulan Ini vs Bulan Lalu.
+    - Jika filter **Mingguan** aktif → Membandingkan Minggu Ini vs Minggu Lalu.
+    - Jika filter **Kuartal** aktif → Membandingkan Kuartal Ini vs Kuartal Sebelumnya.
+- **Filter Dompet (Wallet Filter):** Semua riwayat dan perbandingan dapat difilter lebih spesifik hanya untuk Dompet (*Wallet*) tertentu atau "Semua Dompet".
 
-**Flowchart Breakdown:**
-```
-Tab History → Swipe ke bulan tertentu → Tap Tab "Laporan"
-  → Tap potongan kategori di Donut Chart
-  → ExpenseBreakdownScreen
-  → Tampil: % vs bulan lalu | rata-rata harian | sub-kategori | list transaksi
-```
+**Catatan Teknis & State Management (Instruksi Wajib untuk AI / Developer):**
+- **Single Fetch Policy:** *State management* (Riverpod) untuk layar ini WAJIB disiapkan agar mengolah satu sumber data (`List<TransactionModel>`) yang sama dari Supabase.
+- *Fetching* data ke database (Supabase RPC/Query) HANYA boleh terjadi satu kali berdasarkan parameter **Rentang Tanggal (Date Range)** dan **Filter Dompet** yang sedang aktif.
+- **Local Grouping:** Perubahan UI dari *View Mode Grouping* (mengelompokkan berdasarkan Hari vs Kategori) HANYA berupa *logic filtering/grouping* murni di sisi lokal Flutter menggunakan fungsi `groupBy` (bisa memanfaatkan *package* `collection`). DILARANG KERAS melakukan *query* ulang ke *database* hanya untuk mengubah mode tampilan (*grouping*), agar performa aplikasi tetap tinggi dan hemat *read operations* di Supabase.
+
 
 ---
 
@@ -339,6 +349,21 @@ Tab Investasi → Fetch API (jika cache > 1 jam) → Tampil portofolio
 - **Budget Alert:** Kirim local notification saat penggunaan budget mencapai **80%** dan **100%**.
 - **Reminder Catat Transaksi:** User bisa set jadwal pengingat harian (misal: "Ingatkan saya setiap jam 21:00 untuk catat pengeluaran hari ini"). Implementasi via `flutter_local_notifications` + `WorkManager` atau `AlarmManager`.
 - **Piutang Jatuh Tempo:** Notifikasi pengingat jika ada piutang yang mendekati/melewati `due_date`.
+
+---
+
+### M. Tab Pengaturan (Settings & Preferences)
+**Deskripsi:**
+Tab khusus sebagai pusat kontrol preferensi pengguna dan konfigurasi aplikasi SakuRapi.
+
+- **Daftar Menu Pengaturan:**
+  1. **Edit Profil:** Pengguna dapat mengubah data personal seperti Nama dan mengelola otentikasi (Google Sign-In status).
+  2. **Ganti Bahasa (Localization):** Pilihan untuk mengubah bahasa aplikasi (misal: Bahasa Indonesia, English). Perubahan akan langsung tersimpan di lokal (Hive) dan me-refresh UI tanpa perlu *restart*.
+  3. **Ganti Tema (Theme):** Pilihan untuk mode tampilan: *Light Mode*, *Dark Mode*, atau *System Default*. Preferensi disimpan menggunakan Hive.
+  4. **Manajemen Kategori:** Pintu masuk (*entry point*) untuk menuju layar Manajemen Kategori. Di sini pengguna bisa melakukan CRUD kategori kustom (Parent-Child) dan memilih *icon*.
+  5. **Export / Import Data:**
+     - Fitur untuk membackup atau memulihkan data transaksi.
+     - **Status Saat Ini:** Jika menu ini di-tap, wajib memunculkan *Dialog* atau *Snackbar* informatif: *"Fitur masih dalam tahap pengembangan (Coming Soon)"*.
 
 ---
 
