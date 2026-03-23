@@ -2,10 +2,13 @@ import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/login_page.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/splash_page.dart';
 import 'package:app_saku_rapi/features/budget/view/ui/budget_page.dart';
+import 'package:app_saku_rapi/features/category/view/ui/category_management_page.dart';
 import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_page.dart';
 import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/view/ui/transaction_detail_page.dart';
 import 'package:app_saku_rapi/features/transaction/view/ui/transaction_form_page.dart';
 import 'package:app_saku_rapi/features/wallet/view/ui/wallet_page.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
@@ -48,7 +51,9 @@ class AppRouter {
   static const String investment = '/investment';
   static const String wallet = '/wallet';
   static const String transactionForm = '/transaction/form';
+  static const String transactionDetail = '/transaction/detail';
   static const String settings = '/settings';
+  static const String categories = '/categories';
 
   // ───────────────── Shell Keys ─────────────────
 
@@ -156,12 +161,26 @@ class AppRouter {
         GoRoute(
           path: transactionForm,
           parentNavigatorKey: navigatorKey,
-          builder: (context, state) => const TransactionFormPage(),
+          builder: (context, state) => TransactionFormPage(
+            existingTransaction: state.extra as TransactionModel?,
+          ),
+        ),
+        GoRoute(
+          path: transactionDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => TransactionDetailPage(
+            transaction: state.extra! as TransactionModel,
+          ),
         ),
         GoRoute(
           path: settings,
           parentNavigatorKey: navigatorKey,
           builder: (context, state) => const SettingsPage(),
+        ),
+        GoRoute(
+          path: categories,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const CategoryManagementPage(),
         ),
       ],
     );

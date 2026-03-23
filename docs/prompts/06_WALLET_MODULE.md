@@ -22,7 +22,7 @@ Implementasikan modul Wallet.
 
 ## Yang harus kamu lakukan
 1. Implementasikan CRUD wallet sesuai schema.
-2. Buat validasi form wallet.
+2. Buat validasi form wallet. Bikin Text Field nya dengan thousand formatter, agar lebih mudah dibaca. Dan bikin text field tersebut reusable agar bisa digunakan di fitur2 yang lain
 3. Sediakan UI list dan form yang clean.
 4. Pastikan delete wallet aman terhadap relasi/transaksi existing sesuai dokumen.
 5. Sediakan komponen reusable untuk wallet chip/card/selector.

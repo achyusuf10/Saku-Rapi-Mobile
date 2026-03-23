@@ -249,6 +249,9 @@ Text(DateFormat('dd MMMM yyyy').format(date))
 ### Catatan Locale
 Semua extension di `date_time_ext.dart` secara otomatis mengikuti locale aktif aplikasi (`appContext?.locale.languageCode`), sehingga nama hari dan bulan otomatis tampil dalam Bahasa Indonesia atau Bahasa Inggris sesuai pengaturan user — **tanpa hardcode locale**.
 
+## 12. SakuCurrencyField
+Pakai widget global saku_currency_field.dart jika butuh inputan berupa uang, karena butuh untuk thousand formatter agar mudah dibaca oleh user
+
 ---
 
 # Bagian B — Tetap Disertakan Penuh: 03_COPILOT_RULES.md
