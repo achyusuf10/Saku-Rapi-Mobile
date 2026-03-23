@@ -92,16 +92,17 @@ lib/global/
 | 3 | Dashboard & Ringkasan Cepat | 🔴 P0 |
 | 4 | Transaksi Reguler (Income/Expense/Transfer/Debt/Adjust) | 🔴 P0 |
 | 5 | Transaksi Multi-Item / Split Bill | 🟠 P1 |
-| 6 | Asisten Voice Input (STT, maks 10 detik) | 🟠 P1 |
-| 7 | Asisten Scan Struk OCR (Crop + Auto-Balance) | 🟠 P1 |
+| 6 | Asisten Voice Input AI (Waterfall: Gemini -> Grok -> Local STT) | 🟠 P1 |
+| 7 | Asisten Scan Struk OCR AI (Ekstraksi Rincian Item: Gemini -> Grok -> Local) | 🟠 P1 |
 | 8 | Kamus Parsing AI (API + Cache Hive, TTL 24 jam) | 🟠 P1 |
-| 9 | Riwayat & Navigasi Periode (Swipeable) | 🔴 P0 |
+| 9 | Riwayat & Navigasi Lanjut (Filter Periode Dinamis, Grouping Tampilan, Tab Perbandingan) | 🔴 P0 |
 | 10 | Laporan Visual (Bar Chart & Donut Chart) | 🟠 P1 |
 | 11 | Rincian Biaya (Expense Breakdown per Kategori) | 🟠 P1 |
-| 12 | Manajemen Kategori (Parent-Child + Icon Picker) | 🔴 P0 |
-| 13 | Manajemen Anggaran (Budgeting Parent-Child + Auto-Renew) | 🟠 P1 |
-| 14 | Manajemen Investasi (Emas, BTC, Custom Asset) | 🟡 P2 |
-| 15 | Notifikasi & Reminder (Budget Alert + Pengingat Rutin) | 🟡 P2 |
+| 12 | Manajemen Kategori (Parent-Child, Icon FontAwesome) | 🔴 P0 |
+| 13 | Manajemen Anggaran / Budgeting (Parent-Child, Scope, Auto-Renew) | 🟠 P1 |
+| 14 | Wealth Management (Investasi Kripto/Emas via API) | 🟡 P2 |
+| 15 | Tab Pengaturan (Profil, Tema, Bahasa, Export/Import) | 🔴 P0 |
+|
 
 ---
 
