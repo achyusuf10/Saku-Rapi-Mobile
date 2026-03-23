@@ -175,9 +175,6 @@ FAB Tap 📝 → TransactionFormScreen (Tab Pengeluaran)
   → [TRIGGER DB] Kurangi saldo dompet → Insert transactions + transaction_items
 ```
 
----
-
-
 ### E. Asisten Voice Input (STT) AI-Powered
 **Deskripsi:**
 - User menahan tombol mic (maks 10 detik) untuk merekam suara (contoh input: *"Beli kopi kenangan dua puluh ribu pakai gopay"*).
@@ -204,7 +201,6 @@ Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut 
 }
 
 
----
 ### F. Asisten Scan Struk OCR AI-Powered
 **Deskripsi:**
 - User memfoto struk transaksi (minimarket, restoran, dll) menggunakan kamera.
@@ -245,7 +241,6 @@ Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut 
   ]
 }
 
----
 
 ### G. Kamus Parsing AI (API + Cache Hive)
 **Deskripsi:**
