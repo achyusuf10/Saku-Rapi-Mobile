@@ -200,6 +200,8 @@ Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut 
   "date": "2026-03-23T07:25:00Z"
 }
 
+```
+
 
 ### F. Asisten Scan Struk OCR AI-Powered
 **Deskripsi:**
@@ -241,6 +243,7 @@ Prompt AI di Supabase Edge Function **WAJIB** mengembalikan format JSON berikut 
   ]
 }
 
+```
 
 ### G. Kamus Parsing AI (API + Cache Hive)
 **Deskripsi:**
