@@ -345,6 +345,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionNewTitle => 'New Transaction';
 
   @override
+  String get transactionEditTitle => 'Edit Transaction';
+
+  @override
+  String get transactionSettleDebt => 'Settle Debt';
+
+  @override
+  String get transactionSettleLoan => 'Collect Loan';
+
+  @override
+  String get transactionSettleAmount => 'Settlement Amount';
+
+  @override
+  String get transactionSettleSuccess => 'Settlement saved successfully';
+
+  @override
   String get transactionAttachmentAdd => 'Add Attachment';
 
   @override
@@ -413,6 +428,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardMonthlyExpense => 'This Month\'s Expense';
+
+  @override
+  String get dashboardChartTitle => 'Income vs Expense';
+
+  @override
+  String get dashboardThisMonth => 'This Month';
+
+  @override
+  String get dashboardLastMonth => 'Last Month';
+
+  @override
+  String get dashboardThisWeek => 'This Week';
+
+  @override
+  String get dashboardLastWeek => 'Last Week';
+
+  @override
+  String get dashboardMonthlyMode => 'Monthly';
+
+  @override
+  String get dashboardWeeklyMode => 'Weekly';
+
+  @override
+  String get dashboardQuickAdd => 'Quick Add';
+
+  @override
+  String get dashboardNetFlow => 'Net';
+
+  @override
+  String get dashboardNoChange => 'No change';
+
+  @override
+  String dashboardVsPrevious(String period) {
+    return 'vs $period';
+  }
 
   @override
   String get historyTitle => 'History';

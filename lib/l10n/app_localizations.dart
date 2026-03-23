@@ -746,6 +746,36 @@ abstract class AppLocalizations {
   /// **'Transaksi Baru'**
   String get transactionNewTitle;
 
+  /// No description provided for @transactionEditTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Transaksi'**
+  String get transactionEditTitle;
+
+  /// No description provided for @transactionSettleDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Lunasi Hutang'**
+  String get transactionSettleDebt;
+
+  /// No description provided for @transactionSettleLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Tagih Piutang'**
+  String get transactionSettleLoan;
+
+  /// No description provided for @transactionSettleAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah Pelunasan'**
+  String get transactionSettleAmount;
+
+  /// No description provided for @transactionSettleSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan berhasil disimpan'**
+  String get transactionSettleSuccess;
+
   /// No description provided for @transactionAttachmentAdd.
   ///
   /// In id, this message translates to:
@@ -877,6 +907,72 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Pengeluaran Bulan Ini'**
   String get dashboardMonthlyExpense;
+
+  /// No description provided for @dashboardChartTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan vs Pengeluaran'**
+  String get dashboardChartTitle;
+
+  /// No description provided for @dashboardThisMonth.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan Ini'**
+  String get dashboardThisMonth;
+
+  /// No description provided for @dashboardLastMonth.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan Lalu'**
+  String get dashboardLastMonth;
+
+  /// No description provided for @dashboardThisWeek.
+  ///
+  /// In id, this message translates to:
+  /// **'Minggu Ini'**
+  String get dashboardThisWeek;
+
+  /// No description provided for @dashboardLastWeek.
+  ///
+  /// In id, this message translates to:
+  /// **'Minggu Lalu'**
+  String get dashboardLastWeek;
+
+  /// No description provided for @dashboardMonthlyMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulanan'**
+  String get dashboardMonthlyMode;
+
+  /// No description provided for @dashboardWeeklyMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Mingguan'**
+  String get dashboardWeeklyMode;
+
+  /// No description provided for @dashboardQuickAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Cepat'**
+  String get dashboardQuickAdd;
+
+  /// No description provided for @dashboardNetFlow.
+  ///
+  /// In id, this message translates to:
+  /// **'Netto'**
+  String get dashboardNetFlow;
+
+  /// No description provided for @dashboardNoChange.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak berubah'**
+  String get dashboardNoChange;
+
+  /// No description provided for @dashboardVsPrevious.
+  ///
+  /// In id, this message translates to:
+  /// **'vs {period}'**
+  String dashboardVsPrevious(String period);
 
   /// No description provided for @historyTitle.
   ///

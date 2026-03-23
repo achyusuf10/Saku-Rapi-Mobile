@@ -136,6 +136,11 @@
   "transactionSelectWallet": "Select Wallet",
   "transactionMultiItemToggle": "Multiple Items",
   "transactionNewTitle": "New Transaction",
+  "transactionEditTitle": "Edit Transaction",
+  "transactionSettleDebt": "Settle Debt",
+  "transactionSettleLoan": "Collect Loan",
+  "transactionSettleAmount": "Settlement Amount",
+  "transactionSettleSuccess": "Settlement saved successfully",
   "transactionAttachmentAdd": "Add Attachment",
   "transactionAttachmentChange": "Change Attachment",
   "transactionOptionalFields": "Optional Details",
@@ -165,6 +170,24 @@
   "dashboardEmptyWallets": "No wallets yet",
   "dashboardMonthlyIncome": "This Month's Income",
   "dashboardMonthlyExpense": "This Month's Expense",
+  "dashboardChartTitle": "Income vs Expense",
+  "dashboardThisMonth": "This Month",
+  "dashboardLastMonth": "Last Month",
+  "dashboardThisWeek": "This Week",
+  "dashboardLastWeek": "Last Week",
+  "dashboardMonthlyMode": "Monthly",
+  "dashboardWeeklyMode": "Weekly",
+  "dashboardQuickAdd": "Quick Add",
+  "dashboardNetFlow": "Net",
+  "dashboardNoChange": "No change",
+  "dashboardVsPrevious": "vs {period}",
+  "@dashboardVsPrevious": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "historyTitle": "History",
   "historyTabTransactions": "Transactions",
   "historyTabReport": "Report",

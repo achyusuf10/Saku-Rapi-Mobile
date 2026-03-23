@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:flutter/material.dart';
@@ -26,67 +27,70 @@ class MainShellPage extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: colors.border, width: 0.5)),
         ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) {
+        child: BottomNavigationBar(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (index) {
             navigationShell.goBranch(
               index,
               initialLocation: index == navigationShell.currentIndex,
             );
           },
           backgroundColor: colors.surface,
-          indicatorColor: colors.primaryLight,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          height: 64.h,
-          destinations: [
-            NavigationDestination(
+          selectedItemColor: colors.primary,
+          selectedLabelStyle: TextStyleConstants.label3.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyleConstants.label3,
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(
               icon: FaIcon(
                 FontAwesomeIcons.house,
-                size: 18.w,
+                size: 20.w,
                 color: colors.textSecondary,
               ),
-              selectedIcon: FaIcon(
+              activeIcon: FaIcon(
                 FontAwesomeIcons.house,
-                size: 18.w,
+                size: 20.w,
                 color: colors.primary,
               ),
               label: l10n.navDashboard,
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: FaIcon(
                 FontAwesomeIcons.clockRotateLeft,
-                size: 18.w,
+                size: 20.w,
                 color: colors.textSecondary,
               ),
-              selectedIcon: FaIcon(
+              activeIcon: FaIcon(
                 FontAwesomeIcons.clockRotateLeft,
-                size: 18.w,
+                size: 20.w,
                 color: colors.primary,
               ),
               label: l10n.navHistory,
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: FaIcon(
                 FontAwesomeIcons.chartPie,
-                size: 18.w,
+                size: 20.w,
                 color: colors.textSecondary,
               ),
-              selectedIcon: FaIcon(
+              activeIcon: FaIcon(
                 FontAwesomeIcons.chartPie,
-                size: 18.w,
+                size: 20.w,
                 color: colors.primary,
               ),
               label: l10n.navBudget,
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: FaIcon(
                 FontAwesomeIcons.chartColumn,
-                size: 18.w,
+                size: 20.w,
                 color: colors.textSecondary,
               ),
-              selectedIcon: FaIcon(
+              activeIcon: FaIcon(
                 FontAwesomeIcons.chartColumn,
-                size: 18.w,
+                size: 20.w,
                 color: colors.primary,
               ),
               label: l10n.navInvestment,

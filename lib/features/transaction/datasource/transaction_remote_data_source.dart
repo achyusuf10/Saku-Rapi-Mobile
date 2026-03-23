@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// - `update_transaction_with_items`
 /// - `delete_transaction`
 /// - `create_adjustment_transaction`
+/// - `settle_debt_or_loan`
 ///
 /// Read menggunakan query langsung dengan join.
 class TransactionRemoteDataSource {
@@ -241,6 +242,46 @@ class TransactionRemoteDataSource {
           params: {
             'p_wallet_id': walletId,
             'p_target_balance': targetBalance,
+            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_note': note,
+          },
+        );
+
+        return Map<String, dynamic>.from(result as Map);
+      },
+    );
+  }
+
+  // ───────────────── SETTLEMENT (RPC) ─────────────────
+
+  /// Lunasi hutang / tagih piutang via RPC `settle_debt_or_loan`.
+  ///
+  /// [referenceTransactionId] — ID transaksi debt/loan asal.
+  /// [settlementKind] — `debt_payment` atau `loan_collection`.
+  /// [amount] — jumlah pelunasan (tidak boleh melebihi sisa principal).
+  /// [walletId] — wallet yang digunakan untuk bayar/terima.
+  Future<DataState<Map<String, dynamic>>> settleDebtOrLoan({
+    required String referenceTransactionId,
+    required String settlementKind,
+    required double amount,
+    required String walletId,
+    DateTime? date,
+    String? note,
+  }) {
+    return SupabaseHandler.call<Map<String, dynamic>>(
+      function: () async {
+        AppLogger.call(
+          '$_tag settleDebtOrLoan: ref=$referenceTransactionId, '
+          'kind=$settlementKind, amount=$amount',
+        );
+
+        final result = await _client.rpc(
+          'settle_debt_or_loan',
+          params: {
+            'p_reference_transaction_id': referenceTransactionId,
+            'p_settlement_kind': settlementKind,
+            'p_amount': amount,
+            'p_wallet_id': walletId,
             'p_date': (date ?? DateTime.now()).toIso8601String(),
             'p_note': note,
           },

@@ -136,6 +136,11 @@
   "transactionSelectWallet": "Pilih Dompet",
   "transactionMultiItemToggle": "Beberapa Item",
   "transactionNewTitle": "Transaksi Baru",
+  "transactionEditTitle": "Edit Transaksi",
+  "transactionSettleDebt": "Lunasi Hutang",
+  "transactionSettleLoan": "Tagih Piutang",
+  "transactionSettleAmount": "Jumlah Pelunasan",
+  "transactionSettleSuccess": "Pelunasan berhasil disimpan",
   "transactionAttachmentAdd": "Tambah Lampiran",
   "transactionAttachmentChange": "Ganti Lampiran",
   "transactionOptionalFields": "Detail Tambahan",
@@ -165,6 +170,24 @@
   "dashboardEmptyWallets": "Belum ada dompet",
   "dashboardMonthlyIncome": "Pemasukan Bulan Ini",
   "dashboardMonthlyExpense": "Pengeluaran Bulan Ini",
+  "dashboardChartTitle": "Pemasukan vs Pengeluaran",
+  "dashboardThisMonth": "Bulan Ini",
+  "dashboardLastMonth": "Bulan Lalu",
+  "dashboardThisWeek": "Minggu Ini",
+  "dashboardLastWeek": "Minggu Lalu",
+  "dashboardMonthlyMode": "Bulanan",
+  "dashboardWeeklyMode": "Mingguan",
+  "dashboardQuickAdd": "Tambah Cepat",
+  "dashboardNetFlow": "Netto",
+  "dashboardNoChange": "Tidak berubah",
+  "dashboardVsPrevious": "vs {period}",
+  "@dashboardVsPrevious": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "historyTitle": "Riwayat",
   "historyTabTransactions": "Transaksi",
   "historyTabReport": "Laporan",

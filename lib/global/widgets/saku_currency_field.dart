@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app_saku_rapi/core/constants/app_constants.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
@@ -147,25 +145,29 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
             errorText: widget.errorText,
             errorStyle: TextStyleConstants.label3.copyWith(color: colors.error),
             prefixIcon: widget.showPrefix
-                ? Padding(
-                    padding: EdgeInsets.only(left: 16.w, right: 8.w),
-                    child: Text(
-                      AppConstants.currencySymbol,
-                      style: TextStyleConstants.b2.copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w600,
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      10.horizontalSpace,
+                      Center(
+                        child: Text(
+                          AppConstants.currencySymbol,
+                          style: TextStyleConstants.b1.copyWith(
+                            color: colors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   )
                 : null,
-            prefixIconConstraints: widget.showPrefix
-                ? BoxConstraints(minWidth: 0, minHeight: min(40.h, 40))
-                : null,
+            prefixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
+
             filled: true,
             fillColor: colors.surfaceVariant,
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,
-              vertical: 14.h,
+              vertical: 14.w,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),

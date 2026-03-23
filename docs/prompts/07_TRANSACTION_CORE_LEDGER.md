@@ -25,7 +25,7 @@ Implementasikan modul transaksi inti SakuRapi.
 4. Pastikan submit anti double-submit.
 5. Gunakan jalur atomik untuk write kompleks.
 6. Pastikan `sum(items) == total`.
-7. Buat UI yang cepat dipakai untuk fast capture.
+7. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
 
 ## Output
 Berikan:

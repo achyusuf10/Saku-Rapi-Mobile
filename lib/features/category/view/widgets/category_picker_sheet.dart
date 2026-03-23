@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/features/category/view/widgets/category_form_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Menampilkan daftar kategori parent-child max 2 level.
 /// Tap parent yang punya children → expand children.
 /// Tap parent tanpa children atau child → return kategori terpilih.
+/// Setiap parent punya state expand/collapse independen.
 ///
 /// Penggunaan:
 /// ```dart
@@ -54,8 +56,23 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
 }
 
 class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
-  /// ID parent yang sedang di-expand.
-  String? _expandedParentId;
+  /// Set of parent IDs yang sedang di-expand (independen per parent).
+  final Set<String> _expandedParentIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(categoryControllerProvider);
+      if (state.status == CategoryStatus.initial) {
+        ref.read(categoryControllerProvider.notifier).loadCategories();
+      }
+    });
+  }
+
+  Color get _typeColor => widget.type == CategoryType.expense
+      ? context.colors.expense
+      : context.colors.income;
 
   @override
   Widget build(BuildContext context) {
@@ -69,53 +86,105 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     return Container(
       constraints: BoxConstraints(maxHeight: 0.75.sh),
       decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        color: colors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
           Container(
-            margin: EdgeInsets.only(top: 12.h),
-            width: 40.w,
+            margin: EdgeInsets.only(top: 10.h),
+            width: 36.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: colors.border,
+              color: colors.border.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
 
-          // Title
+          // Header
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 12.h),
             child: Row(
               children: [
-                Text(
-                  l10n.transactionSelectCategory,
-                  style: TextStyleConstants.h7.copyWith(
-                    fontWeight: FontWeight.bold,
+                // Icon + title
+                Container(
+                  width: 34.w,
+                  height: 34.w,
+                  decoration: BoxDecoration(
+                    color: _typeColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.layerGroup,
+                      size: 14.w,
+                      color: _typeColor,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                // Chip tipe kategori
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: widget.type == CategoryType.expense
-                        ? colors.expense.withValues(alpha: 0.1)
-                        : colors.income.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8.r),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.transactionSelectCategory,
+                        style: TextStyleConstants.h7.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        widget.type == CategoryType.expense
+                            ? l10n.categoryExpense
+                            : l10n.categoryIncome,
+                        style: TextStyleConstants.caption.copyWith(
+                          color: _typeColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    widget.type == CategoryType.expense
-                        ? l10n.categoryExpense
-                        : l10n.categoryIncome,
-                    style: TextStyleConstants.caption.copyWith(
-                      color: widget.type == CategoryType.expense
-                          ? colors.expense
-                          : colors.income,
-                      fontWeight: FontWeight.w600,
+                ),
+
+                // Add category button
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12.r),
+                    onTap: _openAddCategory,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _typeColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: _typeColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.plus,
+                            size: 11.w,
+                            color: _typeColor,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            l10n.categoryAdd,
+                            style: TextStyleConstants.caption.copyWith(
+                              color: _typeColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -123,28 +192,44 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
             ),
           ),
 
-          Divider(height: 1, color: colors.border.withValues(alpha: 0.5)),
+          // Divider
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Divider(
+              height: 1,
+              color: colors.border.withValues(alpha: 0.3),
+            ),
+          ),
 
           // Category list
           Flexible(
             child: groupedCategories.isEmpty
-                ? SakuEmptyState(
-                    message: l10n.categoryEmpty,
-                    icon: FontAwesomeIcons.layerGroup,
+                ? Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32.h),
+                    child: SakuEmptyState(
+                      message: l10n.categoryEmpty,
+                      icon: FontAwesomeIcons.layerGroup,
+                    ),
                   )
-                : ListView.builder(
+                : ListView.separated(
                     shrinkWrap: true,
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
+                    padding: EdgeInsets.fromLTRB(
+                      12.w,
+                      10.h,
+                      12.w,
+                      8.h,
+                    ),
                     itemCount: groupedCategories.length,
+                    separatorBuilder: (_, _) => SizedBox(height: 4.h),
                     itemBuilder: (context, index) {
                       final parent = groupedCategories[index];
                       return _CategoryParentTile(
                         category: parent,
-                        isExpanded: _expandedParentId == parent.id,
+                        isExpanded: _expandedParentIds.contains(parent.id),
                         isSelected: widget.selectedId == parent.id,
                         selectedChildId: widget.selectedId,
                         onTap: () => _handleParentTap(parent),
-                        onExpand: () => _toggleExpand(parent.id),
+                        onToggleExpand: () => _toggleExpand(parent.id),
                         onChildTap: (child) => _selectCategory(child),
                       );
                     },
@@ -167,16 +252,25 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
   void _toggleExpand(String parentId) {
     setState(() {
-      _expandedParentId = _expandedParentId == parentId ? null : parentId;
+      if (_expandedParentIds.contains(parentId)) {
+        _expandedParentIds.remove(parentId);
+      } else {
+        _expandedParentIds.add(parentId);
+      }
     });
   }
 
   void _selectCategory(CategoryModel category) {
     Navigator.of(context).pop(category);
   }
+
+  Future<void> _openAddCategory() async {
+    await CategoryFormSheet.show(context: context, type: widget.type);
+  }
 }
 
 /// Tile untuk parent category dengan expand/collapse children.
+/// Menggunakan [AnimatedSize] untuk animasi expand/collapse yang smooth.
 class _CategoryParentTile extends StatelessWidget {
   const _CategoryParentTile({
     required this.category,
@@ -184,7 +278,7 @@ class _CategoryParentTile extends StatelessWidget {
     required this.isSelected,
     required this.selectedChildId,
     required this.onTap,
-    required this.onExpand,
+    required this.onToggleExpand,
     required this.onChildTap,
   });
 
@@ -193,7 +287,7 @@ class _CategoryParentTile extends StatelessWidget {
   final bool isSelected;
   final String? selectedChildId;
   final VoidCallback onTap;
-  final VoidCallback onExpand;
+  final VoidCallback onToggleExpand;
   final ValueChanged<CategoryModel> onChildTap;
 
   @override
@@ -202,87 +296,183 @@ class _CategoryParentTile extends StatelessWidget {
     final hasChildren = category.children.isNotEmpty;
     final categoryColor = _parseColor(category.color);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Parent tile
-        InkWell(
-          onTap: onTap,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            color: isSelected
-                ? colors.primary.withValues(alpha: 0.08)
-                : Colors.transparent,
-            child: Row(
-              children: [
-                // Icon
-                Container(
-                  width: 36.w,
-                  height: 36.w,
-                  decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Center(
-                    child: FaIcon(
-                      CategoryIconMapper.getIcon(category.icon),
-                      size: 16.w,
-                      color: categoryColor,
-                    ),
-                  ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: isSelected
+            ? categoryColor.withValues(alpha: 0.07)
+            : colors.background,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: isSelected
+              ? categoryColor.withValues(alpha: 0.3)
+              : colors.border.withValues(alpha: 0.2),
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: categoryColor.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-                SizedBox(width: 12.w),
-
-                // Name
-                Expanded(
-                  child: Text(
-                    category.name,
-                    style: TextStyleConstants.b2.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: isSelected ? colors.primary : colors.textPrimary,
-                    ),
-                  ),
-                ),
-
-                // Selected check
-                if (isSelected)
-                  FaIcon(
-                    FontAwesomeIcons.circleCheck,
-                    size: 16.w,
-                    color: colors.primary,
-                  ),
-
-                // Expand arrow (jika punya children)
-                if (hasChildren && !isSelected) ...[
-                  SizedBox(width: 8.w),
-                  GestureDetector(
-                    onTap: onExpand,
-                    child: AnimatedRotation(
-                      turns: isExpanded ? 0.25 : 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: FaIcon(
-                        FontAwesomeIcons.chevronRight,
-                        size: 12.w,
-                        color: colors.textSecondary,
+              ]
+            : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Parent tile
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14.r),
+              onTap: onTap,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
+                child: Row(
+                  children: [
+                    // Icon
+                    Container(
+                      width: 38.w,
+                      height: 38.w,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            categoryColor.withValues(alpha: 0.18),
+                            categoryColor.withValues(alpha: 0.08),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(11.r),
+                      ),
+                      child: Center(
+                        child: FaIcon(
+                          CategoryIconMapper.getIcon(category.icon),
+                          size: 15.w,
+                          color: categoryColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+                    SizedBox(width: 12.w),
 
-        // Children (expanded)
-        if (hasChildren && isExpanded)
-          ...category.children.map(
-            (child) => _CategoryChildTile(
-              category: child,
-              isSelected: selectedChildId == child.id,
-              onTap: () => onChildTap(child),
+                    // Name + children count
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category.name,
+                            style: TextStyleConstants.b2.copyWith(
+                              fontWeight:
+                                  isSelected ? FontWeight.w600 : FontWeight.w500,
+                              color: isSelected
+                                  ? categoryColor
+                                  : colors.textPrimary,
+                            ),
+                          ),
+                          if (hasChildren) ...[
+                            SizedBox(height: 2.h),
+                            Text(
+                              '${category.children.length} sub',
+                              style: TextStyleConstants.overline.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    // Selected check
+                    if (isSelected)
+                      Container(
+                        width: 24.w,
+                        height: 24.w,
+                        decoration: BoxDecoration(
+                          color: categoryColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: FaIcon(
+                            FontAwesomeIcons.check,
+                            size: 11.w,
+                            color: categoryColor,
+                          ),
+                        ),
+                      ),
+
+                    // Expand arrow (jika punya children)
+                    if (hasChildren && !isSelected) ...[
+                      SizedBox(width: 4.w),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onToggleExpand,
+                        child: Padding(
+                          padding: EdgeInsets.all(6.w),
+                          child: AnimatedRotation(
+                            turns: isExpanded ? 0.25 : 0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            child: FaIcon(
+                              FontAwesomeIcons.chevronRight,
+                              size: 11.w,
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
-      ],
+
+          // Children (animated expand/collapse)
+          if (hasChildren)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isExpanded
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          child: Divider(
+                            height: 1,
+                            color: colors.border.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: 8.w,
+                            right: 8.w,
+                            top: 6.h,
+                            bottom: 8.h,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: category.children
+                                .map(
+                                  (child) => _CategoryChildTile(
+                                    category: child,
+                                    isSelected: selectedChildId == child.id,
+                                    onTap: () => onChildTap(child),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -304,57 +494,71 @@ class _CategoryChildTile extends StatelessWidget {
     final colors = context.colors;
     final categoryColor = _parseColor(category.color);
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.only(
-          left: 64.w,
-          right: 16.w,
-          top: 10.h,
-          bottom: 10.h,
-        ),
-        color: isSelected
-            ? colors.primary.withValues(alpha: 0.08)
-            : Colors.transparent,
-        child: Row(
-          children: [
-            // Small icon
-            Container(
-              width: 28.w,
-              height: 28.w,
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(category.icon),
-                  size: 12.w,
-                  color: categoryColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10.r),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+          margin: EdgeInsets.only(left: 38.w, bottom: 2.h),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? categoryColor.withValues(alpha: 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Row(
+            children: [
+              // Small icon
+              Container(
+                width: 28.w,
+                height: 28.w,
+                decoration: BoxDecoration(
+                  color: categoryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                  child: FaIcon(
+                    CategoryIconMapper.getIcon(category.icon),
+                    size: 11.w,
+                    color: categoryColor,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 10.w),
+              SizedBox(width: 10.w),
 
-            // Name
-            Expanded(
-              child: Text(
-                category.name,
-                style: TextStyleConstants.caption.copyWith(
-                  fontWeight: FontWeight.w400,
-                  color: isSelected ? colors.primary : colors.textPrimary,
+              // Name
+              Expanded(
+                child: Text(
+                  category.name,
+                  style: TextStyleConstants.caption.copyWith(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? categoryColor : colors.textPrimary,
+                  ),
                 ),
               ),
-            ),
 
-            // Selected check
-            if (isSelected)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                size: 14.w,
-                color: colors.primary,
-              ),
-          ],
+              // Selected check
+              if (isSelected)
+                Container(
+                  width: 20.w,
+                  height: 20.w,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.check,
+                      size: 9.w,
+                      color: categoryColor,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -22,6 +22,7 @@ Implementasikan histori transaksi.
 3. Pastikan boundary tanggal aman dengan UTC storage + Asia/Jakarta render.
 4. Buat detail page yang menjelaskan data transaksi dengan jelas.
 5. Siapkan refresh flow setelah create/update/delete.
+6. Bikin UI Modern, Simpel, Elegan dan Fancy. Dan mudah digunakan oleh User
 
 ## Output
 Berikan:

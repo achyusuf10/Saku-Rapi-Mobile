@@ -126,6 +126,7 @@ class TransactionFormState {
     bool clearCategory = false,
     bool clearMerchant = false,
     bool clearNote = false,
+    bool clearAttachment = false,
     bool clearError = false,
   }) {
     return TransactionFormState(
@@ -137,7 +138,7 @@ class TransactionFormState {
       date: date,
       merchantName: clearMerchant ? null : merchantName,
       note: clearNote ? null : note,
-      attachmentUrl: attachmentUrl,
+      attachmentUrl: clearAttachment ? null : attachmentUrl,
       withPerson: clearWithPerson ? null : withPerson,
       dueDate: clearDueDate ? null : dueDate,
       category: clearCategory ? null : category,
@@ -206,6 +207,14 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   void setNote(String? note) {
     state = state.copyWith(note: note);
+  }
+
+  void setAttachmentUrl(String? url) {
+    if (url == null) {
+      state = state.clearFields(clearAttachment: true);
+    } else {
+      state = state.copyWith(attachmentUrl: url);
+    }
   }
 
   void setWithPerson(String? person) {

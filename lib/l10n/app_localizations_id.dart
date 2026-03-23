@@ -343,6 +343,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get transactionNewTitle => 'Transaksi Baru';
 
   @override
+  String get transactionEditTitle => 'Edit Transaksi';
+
+  @override
+  String get transactionSettleDebt => 'Lunasi Hutang';
+
+  @override
+  String get transactionSettleLoan => 'Tagih Piutang';
+
+  @override
+  String get transactionSettleAmount => 'Jumlah Pelunasan';
+
+  @override
+  String get transactionSettleSuccess => 'Pelunasan berhasil disimpan';
+
+  @override
   String get transactionAttachmentAdd => 'Tambah Lampiran';
 
   @override
@@ -411,6 +426,41 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dashboardMonthlyExpense => 'Pengeluaran Bulan Ini';
+
+  @override
+  String get dashboardChartTitle => 'Pemasukan vs Pengeluaran';
+
+  @override
+  String get dashboardThisMonth => 'Bulan Ini';
+
+  @override
+  String get dashboardLastMonth => 'Bulan Lalu';
+
+  @override
+  String get dashboardThisWeek => 'Minggu Ini';
+
+  @override
+  String get dashboardLastWeek => 'Minggu Lalu';
+
+  @override
+  String get dashboardMonthlyMode => 'Bulanan';
+
+  @override
+  String get dashboardWeeklyMode => 'Mingguan';
+
+  @override
+  String get dashboardQuickAdd => 'Tambah Cepat';
+
+  @override
+  String get dashboardNetFlow => 'Netto';
+
+  @override
+  String get dashboardNoChange => 'Tidak berubah';
+
+  @override
+  String dashboardVsPrevious(String period) {
+    return 'vs $period';
+  }
 
   @override
   String get historyTitle => 'Riwayat';

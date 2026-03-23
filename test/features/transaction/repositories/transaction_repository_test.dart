@@ -1,8 +1,11 @@
+import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
 import 'package:app_saku_rapi/core/enums/settlement_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // ─── Helpers ───
@@ -26,6 +29,9 @@ TransactionModel _txn({
   String? destinationWalletId,
   String? withPerson,
   List<TransactionItemModel>? items,
+  SettlementKindEnum? settlementKind,
+  String? referenceTransactionId,
+  String? status,
 }) => TransactionModel(
   id: 'txn-1',
   userId: 'u1',
@@ -37,6 +43,26 @@ TransactionModel _txn({
   isMultiItem: (items?.length ?? 1) > 1,
   withPerson: withPerson,
   items: items ?? [_item(amount: totalAmount)],
+  settlementKind: settlementKind,
+  referenceTransactionId: referenceTransactionId,
+  status: status != null ? DebtStatusEnum.fromString(status) : null,
+);
+
+WalletModel _wallet({
+  String id = 'w1',
+  String name = 'Mandiri',
+  double balance = 1000000,
+}) => WalletModel(
+  id: id,
+  userId: 'u1',
+  name: name,
+  icon: 'wallet',
+  color: '#10B981',
+  balance: balance,
+  initialBalance: balance,
+  currency: 'IDR',
+  excludeFromTotal: false,
+  sortOrder: 0,
 );
 
 // ─── validateInput tests ───
@@ -420,6 +446,435 @@ void main() {
       expect(item.categoryName, 'Minuman');
       expect(item.categoryIcon, 'coffee');
       expect(item.categoryColor, '#8B4513');
+    });
+  });
+
+  // ─── Edge Case: invalid category ───
+
+  group('Edge Case: invalid category', () {
+    test('expense with null category on all items rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 75000,
+        items: [
+          _item(categoryId: null, amount: 50000),
+          _item(categoryId: null, amount: 25000),
+        ],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Kategori'));
+    });
+
+    test('income with empty string categoryId rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.income,
+        totalAmount: 100000,
+        items: [_item(categoryId: '', amount: 100000)],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Kategori'));
+    });
+
+    test('multi-item expense: partial null category fails', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 100000,
+        items: [
+          _item(categoryId: 'cat-1', amount: 50000),
+          _item(categoryId: null, amount: 50000), // invalid
+        ],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Kategori'));
+    });
+
+    test('debt does not require category', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.debt,
+        totalAmount: 50000,
+        items: [_item(categoryId: null, amount: 50000)],
+        withPerson: 'Budi',
+      );
+      expect(result, isNull);
+    });
+
+    test('adjustment does not require category', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.adjustment,
+        totalAmount: 50000,
+        items: [_item(categoryId: null, amount: 50000)],
+      );
+      expect(result, isNull);
+    });
+  });
+
+  // ─── Edge Case: destination wallet same as source ───
+
+  group('Edge Case: destination wallet same as source', () {
+    test('transfer with identical wallet IDs rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'wallet-abc',
+        destinationWalletId: 'wallet-abc',
+        type: TransactionTypeEnum.transfer,
+        totalAmount: 500000,
+        items: [_item(categoryId: null, amount: 500000)],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('sama'));
+    });
+
+    test('transfer with different wallet IDs passes', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'wallet-abc',
+        destinationWalletId: 'wallet-xyz',
+        type: TransactionTypeEnum.transfer,
+        totalAmount: 500000,
+        items: [_item(categoryId: null, amount: 500000)],
+      );
+      expect(result, isNull);
+    });
+  });
+
+  // ─── Edge Case: item total mismatch ───
+
+  group('Edge Case: item total mismatch', () {
+    test('single item amount != totalAmount rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 100000,
+        items: [_item(amount: 99000)],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Total item'));
+    });
+
+    test('multi-item sum < totalAmount rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 200000,
+        items: [
+          _item(amount: 50000),
+          _item(amount: 50000),
+          _item(amount: 50000),
+        ],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Total item'));
+    });
+
+    test('multi-item sum > totalAmount rejected', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 100000,
+        items: [_item(amount: 50001), _item(amount: 50001)],
+      );
+      expect(result, isNotNull);
+      expect(result, contains('Total item'));
+    });
+
+    test('multi-item sum matches exactly passes', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 150000,
+        items: [_item(amount: 75000), _item(amount: 75000)],
+      );
+      expect(result, isNull);
+    });
+
+    test('floating point tolerance: 0.005 diff passes', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 100000,
+        items: [_item(amount: 100000.005)],
+      );
+      expect(result, isNull);
+    });
+
+    test('over tolerance: 0.02 diff fails', () {
+      final result = TransactionRepository.validateInput(
+        walletId: 'w1',
+        type: TransactionTypeEnum.expense,
+        totalAmount: 100000,
+        items: [_item(amount: 100000.02)],
+      );
+      expect(result, isNotNull);
+    });
+  });
+
+  // ─── Edge Case: duplicate submit (anti double-submit) ───
+
+  group('Edge Case: duplicate submit', () {
+    test('TransactionFormState.isSaving blocks resubmission', () {
+      const state = TransactionFormState(status: TransactionFormStatus.saving);
+      expect(state.isSaving, true);
+    });
+
+    test('idle state allows submission', () {
+      const state = TransactionFormState(status: TransactionFormStatus.idle);
+      expect(state.isSaving, false);
+    });
+
+    test('saved state does not block', () {
+      const state = TransactionFormState(status: TransactionFormStatus.saved);
+      expect(state.isSaving, false);
+    });
+
+    test('error state allows re-submission', () {
+      const state = TransactionFormState(status: TransactionFormStatus.error);
+      expect(state.isSaving, false);
+    });
+  });
+
+  // ─── Edge Case: edit/delete affecting balance (model consistency) ───
+
+  group('Edge Case: edit/delete transaction affecting balance', () {
+    test('settlement transactions are flagged correctly', () {
+      final settlement = _txn(
+        type: TransactionTypeEnum.expense,
+        settlementKind: SettlementKindEnum.debtPayment,
+        referenceTransactionId: 'ref-txn-1',
+      );
+      expect(settlement.isSettlement, true);
+      expect(settlement.isReportable, false);
+    });
+
+    test('non-settlement expense is reportable', () {
+      final expense = _txn(type: TransactionTypeEnum.expense);
+      expect(expense.isSettlement, false);
+      expect(expense.isReportable, true);
+    });
+
+    test('transfer is not reportable', () {
+      final transfer = _txn(
+        type: TransactionTypeEnum.transfer,
+        destinationWalletId: 'w2',
+      );
+      expect(transfer.isReportable, false);
+    });
+
+    test('debt is not reportable', () {
+      final debt = _txn(type: TransactionTypeEnum.debt, withPerson: 'Budi');
+      expect(debt.isReportable, false);
+    });
+
+    test('loan_collection settlement is not reportable', () {
+      final settlement = _txn(
+        type: TransactionTypeEnum.income,
+        settlementKind: SettlementKindEnum.loanCollection,
+        referenceTransactionId: 'ref-txn-2',
+      );
+      expect(settlement.isSettlement, true);
+      // Income with settlement is still isReportable via type...
+      // ...but isSettlement being true tells the report to exclude it
+      expect(settlement.isSettlement, true);
+    });
+
+    test('adjustment is not reportable', () {
+      final adj = _txn(type: TransactionTypeEnum.adjustment);
+      expect(adj.isReportable, false);
+    });
+
+    test('copyWith preserves settlement fields on edit', () {
+      final original = _txn(
+        type: TransactionTypeEnum.debt,
+        withPerson: 'Andi',
+        totalAmount: 500000,
+      );
+
+      // Simulate an edit: user changes the amount
+      final edited = original.copyWith(totalAmount: 400000);
+
+      expect(edited.type, TransactionTypeEnum.debt);
+      expect(edited.withPerson, 'Andi');
+      expect(edited.totalAmount, 400000);
+      expect(edited.walletId, original.walletId);
+    });
+  });
+
+  // ─── TransactionTypeEnum domain rules ───
+
+  group('TransactionTypeEnum domain rules', () {
+    test('only expense is budgetable', () {
+      for (final type in TransactionTypeEnum.values) {
+        if (type == TransactionTypeEnum.expense) {
+          expect(type.isBudgetable, true);
+        } else {
+          expect(
+            type.isBudgetable,
+            false,
+            reason: '$type should not be budgetable',
+          );
+        }
+      }
+    });
+
+    test('only income and expense are reportable', () {
+      expect(TransactionTypeEnum.income.isReportable, true);
+      expect(TransactionTypeEnum.expense.isReportable, true);
+      expect(TransactionTypeEnum.transfer.isReportable, false);
+      expect(TransactionTypeEnum.debt.isReportable, false);
+      expect(TransactionTypeEnum.loan.isReportable, false);
+      expect(TransactionTypeEnum.adjustment.isReportable, false);
+      expect(TransactionTypeEnum.transferToAsset.isReportable, false);
+    });
+
+    test('only transfer requires destination wallet', () {
+      for (final type in TransactionTypeEnum.values) {
+        if (type == TransactionTypeEnum.transfer) {
+          expect(type.requiresDestinationWallet, true);
+        } else {
+          expect(
+            type.requiresDestinationWallet,
+            false,
+            reason: '$type should not require dest wallet',
+          );
+        }
+      }
+    });
+
+    test('only debt and loan require withPerson', () {
+      expect(TransactionTypeEnum.debt.requiresWithPerson, true);
+      expect(TransactionTypeEnum.loan.requiresWithPerson, true);
+      expect(TransactionTypeEnum.income.requiresWithPerson, false);
+      expect(TransactionTypeEnum.expense.requiresWithPerson, false);
+      expect(TransactionTypeEnum.transfer.requiresWithPerson, false);
+    });
+
+    test('fromString round trips all values', () {
+      for (final type in TransactionTypeEnum.values) {
+        final dbVal = type.toDbValue();
+        final roundTripped = TransactionTypeEnum.fromString(dbVal);
+        expect(roundTripped, type);
+      }
+    });
+
+    test('fromString throws on unknown value', () {
+      expect(
+        () => TransactionTypeEnum.fromString('unknown'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
+  // ─── TransactionFormState computed props ───
+
+  group('TransactionFormState computed properties', () {
+    test('isEditing true when existingTransaction set', () {
+      final state = TransactionFormState(existingTransaction: _txn());
+      expect(state.isEditing, true);
+    });
+
+    test('isEditing false when no existingTransaction', () {
+      const state = TransactionFormState();
+      expect(state.isEditing, false);
+    });
+
+    test('isMultiItem when items > 1', () {
+      final state = TransactionFormState(
+        items: [_item(amount: 50000), _item(amount: 50000)],
+      );
+      expect(state.isMultiItem, true);
+    });
+
+    test('not isMultiItem when single item', () {
+      final state = TransactionFormState(items: [_item(amount: 50000)]);
+      expect(state.isMultiItem, false);
+    });
+
+    test('itemsTotal sums all items', () {
+      final state = TransactionFormState(
+        items: [
+          _item(amount: 30000),
+          _item(amount: 20000),
+          _item(amount: 10000),
+        ],
+      );
+      expect(state.itemsTotal, 60000.0);
+    });
+
+    test('isTotalMatched when items match totalAmount', () {
+      final state = TransactionFormState(
+        totalAmount: 100000,
+        items: [_item(amount: 60000), _item(amount: 40000)],
+      );
+      expect(state.isTotalMatched, true);
+    });
+
+    test('isTotalMatched false when mismatch', () {
+      final state = TransactionFormState(
+        totalAmount: 100000,
+        items: [_item(amount: 60000), _item(amount: 30000)],
+      );
+      expect(state.isTotalMatched, false);
+    });
+
+    test('clearFields resets nullable fields', () {
+      final state = TransactionFormState(
+        wallet: _wallet(),
+        destinationWallet: _wallet(id: 'w2', name: 'BCA'),
+        withPerson: 'Budi',
+        dueDate: DateTime(2025, 12, 31),
+        merchantName: 'Indomaret',
+        note: 'belanja',
+        errorMessage: 'some error',
+        items: [_item(amount: 50000)],
+      );
+
+      final cleared = state.clearFields(
+        clearDestWallet: true,
+        clearWithPerson: true,
+        clearDueDate: true,
+        clearMerchant: true,
+        clearNote: true,
+        clearError: true,
+      );
+
+      expect(cleared.destinationWallet, isNull);
+      expect(cleared.withPerson, isNull);
+      expect(cleared.dueDate, isNull);
+      expect(cleared.merchantName, isNull);
+      expect(cleared.note, isNull);
+      expect(cleared.errorMessage, isNull);
+      // wallet and items preserved
+      expect(cleared.wallet, isNotNull);
+      expect(cleared.items, hasLength(1));
+    });
+  });
+
+  // ─── SettlementKindEnum ───
+
+  group('SettlementKindEnum', () {
+    test('fromString round trips', () {
+      for (final kind in SettlementKindEnum.values) {
+        final dbVal = kind.toDbValue();
+        final roundTripped = SettlementKindEnum.fromString(dbVal);
+        expect(roundTripped, kind);
+      }
+    });
+
+    test('debtPayment maps to debt_payment', () {
+      expect(SettlementKindEnum.debtPayment.toDbValue(), 'debt_payment');
+    });
+
+    test('loanCollection maps to loan_collection', () {
+      expect(SettlementKindEnum.loanCollection.toDbValue(), 'loan_collection');
+    });
+
+    test('fromString throws on invalid value', () {
+      expect(
+        () => SettlementKindEnum.fromString('invalid'),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 }

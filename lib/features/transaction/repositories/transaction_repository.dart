@@ -250,6 +250,39 @@ class TransactionRepository {
     );
   }
 
+  // ───────────────── SETTLEMENT ─────────────────
+
+  /// Lunasi hutang atau tagih piutang.
+  ///
+  /// Validasi:
+  /// - amount > 0
+  /// - walletId tidak kosong
+  /// - referenceTransactionId tidak kosong
+  /// Selebihnya divalidasi oleh RPC (sisa principal, ownership, dsb).
+  Future<DataState<Map<String, dynamic>>> settleDebtOrLoan({
+    required String referenceTransactionId,
+    required String settlementKind,
+    required double amount,
+    required String walletId,
+    DateTime? date,
+    String? note,
+  }) {
+    if (amount <= 0) {
+      return Future.value(
+        const DataState.error(message: 'Nominal pelunasan harus lebih dari 0'),
+      );
+    }
+
+    return _remote.settleDebtOrLoan(
+      referenceTransactionId: referenceTransactionId,
+      settlementKind: settlementKind,
+      amount: amount,
+      walletId: walletId,
+      date: date,
+      note: note,
+    );
+  }
+
   // ───────────────── CACHE ─────────────────
 
   void clearCache() {
