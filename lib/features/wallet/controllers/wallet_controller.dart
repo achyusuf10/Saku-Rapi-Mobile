@@ -83,6 +83,12 @@ class WalletController extends StateNotifier<WalletState> {
 
   final WalletRepository _repository;
 
+  /// Update state dan sinkronkan ke cache lokal.
+  void _applyWallets(List<WalletModel> wallets) {
+    state = state.copyWith(status: WalletStatus.loaded, wallets: wallets);
+    _repository.cacheWalletList(wallets);
+  }
+
   // ───────────────── LOAD ─────────────────
 
   /// Fetch semua wallet dari server (atau cache offline).
@@ -126,7 +132,8 @@ class WalletController extends StateNotifier<WalletState> {
     );
 
     if (result.isSuccess()) {
-      await loadWallets();
+      final newWallet = result.dataSuccess()!;
+      _applyWallets([...state.wallets, newWallet]);
     }
     return result;
   }
@@ -157,7 +164,10 @@ class WalletController extends StateNotifier<WalletState> {
     );
 
     if (result.isSuccess()) {
-      await loadWallets();
+      final updated = result.dataSuccess()!;
+      _applyWallets(
+        state.wallets.map((w) => w.id == walletId ? updated : w).toList(),
+      );
     }
     return result;
   }
@@ -169,7 +179,7 @@ class WalletController extends StateNotifier<WalletState> {
     final result = await _repository.deleteWallet(walletId);
 
     if (result.isSuccess()) {
-      await loadWallets();
+      _applyWallets(state.wallets.where((w) => w.id != walletId).toList());
     }
     return result;
   }
@@ -187,7 +197,14 @@ class WalletController extends StateNotifier<WalletState> {
     );
 
     if (result.isSuccess()) {
-      await loadWallets();
+      _applyWallets(
+        state.wallets
+            .map(
+              (w) =>
+                  w.id == walletId ? w.copyWith(excludeFromTotal: exclude) : w,
+            )
+            .toList(),
+      );
     }
     return result;
   }
@@ -207,7 +224,17 @@ class WalletController extends StateNotifier<WalletState> {
     );
 
     if (result.isSuccess()) {
-      await loadWallets();
+      final data = result.dataSuccess()!;
+      if (data['adjusted'] == true) {
+        final newBalance = (data['new_balance'] as num).toDouble();
+        _applyWallets(
+          state.wallets
+              .map(
+                (w) => w.id == walletId ? w.copyWith(balance: newBalance) : w,
+              )
+              .toList(),
+        );
+      }
     }
     return result;
   }

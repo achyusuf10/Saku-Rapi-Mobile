@@ -5,46 +5,32 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_item_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Bagian multi-item untuk transaksi expense dan income.
 ///
-/// Jika [formState.isMultiItem] false, menampilkan tombol "Tambah Item".
-/// Jika true, menampilkan daftar item dengan total, mismatch warning,
-/// drag-to-reorder, dan tombol tambah.
-class TransactionMultiItemSection extends StatelessWidget {
-  const TransactionMultiItemSection({
-    super.key,
-    required this.formState,
-    required this.onAddItem,
-    required this.onUpdateItem,
-    required this.onRemoveItem,
-    required this.onReorderItem,
-  });
-
-  final TransactionFormState formState;
-  final VoidCallback onAddItem;
-  final void Function(int index, TransactionItemModel item) onUpdateItem;
-  final void Function(int index) onRemoveItem;
-  final void Function(int oldIndex, int newIndex) onReorderItem;
-
-  CategoryType get _categoryType {
-    return formState.type == TransactionTypeEnum.income
-        ? CategoryType.income
-        : CategoryType.expense;
-  }
+/// ConsumerWidget yang watch provider langsung agar rebuild hanya terjadi
+/// di section ini saat items berubah, tanpa mempengaruhi seluruh halaman.
+class TransactionMultiItemSection extends ConsumerWidget {
+  const TransactionMultiItemSection({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
+    final formState = ref.watch(transactionFormControllerProvider);
+    final ctrl = ref.read(transactionFormControllerProvider.notifier);
+
+    final categoryType = formState.type == TransactionTypeEnum.income
+        ? CategoryType.income
+        : CategoryType.expense;
 
     if (!formState.isMultiItem) {
       return GestureDetector(
-        onTap: onAddItem,
+        onTap: () => ctrl.addItem(),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 14.w),
           decoration: BoxDecoration(
@@ -205,17 +191,21 @@ class TransactionMultiItemSection extends StatelessWidget {
             );
           },
           itemCount: formState.items.length,
-          onReorder: onReorderItem,
+          onReorder: (oldIndex, newIndex) =>
+              ctrl.reorderItems(oldIndex, newIndex),
           itemBuilder: (context, index) {
             final item = formState.items[index];
+            final itemKey = index < formState.itemKeys.length
+                ? formState.itemKeys[index]
+                : index;
             return TransactionItemRow(
-              key: ValueKey('item_${item.hashCode}_$index'),
+              key: ValueKey('item_$itemKey'),
               item: item,
               index: index,
-              onChanged: (updated) => onUpdateItem(index, updated),
-              onRemove: () => onRemoveItem(index),
+              onChanged: (updated) => ctrl.updateItem(index, updated),
+              onRemove: () => ctrl.removeItem(index),
               canRemove: formState.items.length > 1,
-              categoryType: _categoryType,
+              categoryType: categoryType,
             );
           },
         ),
@@ -223,7 +213,7 @@ class TransactionMultiItemSection extends StatelessWidget {
         // Add more items
         SizedBox(height: 4.h),
         GestureDetector(
-          onTap: onAddItem,
+          onTap: () => ctrl.addItem(),
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 10.h),
             decoration: BoxDecoration(

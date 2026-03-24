@@ -24,6 +24,7 @@ Implementasikan modul budgeting.
 3. Hitung usage dengan benar berdasarkan rule ledger/report.
 4. Sediakan komponen progress/ringkasan budget yang reusable.
 5. Pastikan perubahan transaksi tercermin pada budget state saat refresh.
+6. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
 
 ## Output
 Berikan:

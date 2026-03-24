@@ -43,6 +43,7 @@ class HistoryState {
     this.offset = 0,
     this.hasMore = true,
     this.isLoadingMore = false,
+    this.subPeriodIndex,
   });
 
   final HistoryStatus status;
@@ -57,6 +58,10 @@ class HistoryState {
   final int offset;
   final bool hasMore;
   final bool isLoadingMore;
+
+  /// Index tab sub-period yang sedang aktif.
+  /// null berarti belum di-init (akan di-set ke tab terakhir / "saat ini").
+  final int? subPeriodIndex;
 
   HistoryState copyWith({
     HistoryStatus? status,
@@ -74,6 +79,8 @@ class HistoryState {
     bool clearWallet = false,
     bool clearType = false,
     bool clearError = false,
+    int? subPeriodIndex,
+    bool clearSubPeriod = false,
   }) {
     return HistoryState(
       status: status ?? this.status,
@@ -88,15 +95,25 @@ class HistoryState {
       offset: offset ?? this.offset,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      subPeriodIndex: clearSubPeriod
+          ? null
+          : (subPeriodIndex ?? this.subPeriodIndex),
     );
   }
 
-  /// Hitung date range berdasarkan period saat ini.
+  /// Hitung date range berdasarkan period + subPeriodIndex saat ini.
   /// Semua batas menggunakan UTC aman untuk query Supabase.
   (DateTime start, DateTime end) get dateRange {
+    // Custom mode — gunakan custom date range.
     if (period == HistoryPeriod.custom &&
         customStart != null &&
         customEnd != null) {
+      // Sub-period untuk custom = per hari di dalam custom range
+      if (subPeriodIndex != null) {
+        final tabs = subPeriodTabs;
+        final idx = subPeriodIndex!.clamp(0, tabs.length - 1);
+        return tabs[idx].dateRange;
+      }
       return (
         DateTime.utc(customStart!.year, customStart!.month, customStart!.day),
         DateTime.utc(
@@ -110,6 +127,14 @@ class HistoryState {
       );
     }
 
+    // Jika sub-period dipilih, gunakan date range sub-period.
+    if (subPeriodIndex != null) {
+      final tabs = subPeriodTabs;
+      final idx = subPeriodIndex!.clamp(0, tabs.length - 1);
+      return tabs[idx].dateRange;
+    }
+
+    // Fallback: range "saat ini" (tab terakhir)
     final now = DateTime.now();
     return switch (period) {
       HistoryPeriod.daily => (
@@ -146,6 +171,221 @@ class HistoryState {
         DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
       ),
     };
+  }
+
+  /// Generate list sub-period tabs berdasarkan [period].
+  /// Masing-masing tab punya label dan dateRange.
+  /// Tab terakhir selalu "saat ini".
+  List<SubPeriodTab> get subPeriodTabs {
+    final now = DateTime.now();
+
+    return switch (period) {
+      HistoryPeriod.daily => _generateDailyTabs(now, 30),
+      HistoryPeriod.weekly => _generateWeeklyTabs(now, 30),
+      HistoryPeriod.monthly => _generateMonthlyTabs(now, 14),
+      HistoryPeriod.quarterly => _generateQuarterlyTabs(now, 2),
+      HistoryPeriod.yearly => _generateYearlyTabs(now, 5),
+      HistoryPeriod.custom => _generateCustomTabs(),
+    };
+  }
+
+  List<SubPeriodTab> _generateDailyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final today = DateTime(now.year, now.month, now.day);
+    var cursor = today.subtract(Duration(days: maxItems - 1));
+
+    while (!cursor.isAfter(today)) {
+      tabs.add(
+        SubPeriodTab(
+          label: cursor == today
+              ? 'Hari Ini'
+              : '${cursor.day} ${_shortMonth(cursor.month)}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, cursor.day),
+            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+          ),
+        ),
+      );
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateWeeklyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final currentMonday = now.subtract(Duration(days: now.weekday - 1));
+    final todayMon = DateTime(
+      currentMonday.year,
+      currentMonday.month,
+      currentMonday.day,
+    );
+    var monday = todayMon.subtract(Duration(days: (maxItems - 1) * 7));
+
+    while (!monday.isAfter(todayMon)) {
+      final sunday = monday.add(const Duration(days: 6));
+      final isCurrentWeek =
+          monday.year == todayMon.year &&
+          monday.month == todayMon.month &&
+          monday.day == todayMon.day;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentWeek
+              ? 'Minggu Ini'
+              : '${monday.day}-${sunday.day} ${_shortMonth(sunday.month)}',
+          dateRange: (
+            DateTime.utc(monday.year, monday.month, monday.day),
+            DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+          ),
+        ),
+      );
+      monday = monday.add(const Duration(days: 7));
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateMonthlyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final currentMonth = DateTime(now.year, now.month);
+    var cursor = DateTime(now.year, now.month - (maxItems - 1));
+
+    while (!cursor.isAfter(currentMonth)) {
+      final isCurrentMonth =
+          cursor.year == currentMonth.year &&
+          cursor.month == currentMonth.month;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentMonth
+              ? 'Bulan Ini'
+              : '${_fullMonth(cursor.month)} ${cursor.year}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, 1),
+            DateTime.utc(cursor.year, cursor.month + 1, 0, 23, 59, 59),
+          ),
+        ),
+      );
+      // Next month
+      cursor = DateTime(cursor.year, cursor.month + 1);
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateQuarterlyTabs(DateTime now, int maxYears) {
+    final tabs = <SubPeriodTab>[];
+    final currentQ = ((now.month - 1) ~/ 3) * 3 + 1;
+    final currentYear = now.year;
+    var year = now.year - maxYears;
+    var qStart = 1;
+
+    while (year < currentYear || (year == currentYear && qStart <= currentQ)) {
+      final qNum = (qStart - 1) ~/ 3 + 1;
+      final isCurrentQ = year == currentYear && qStart == currentQ;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentQ ? 'Kuartal Ini' : 'Q$qNum $year',
+          dateRange: (
+            DateTime.utc(year, qStart, 1),
+            DateTime.utc(year, qStart + 3, 0, 23, 59, 59),
+          ),
+        ),
+      );
+      qStart += 3;
+      if (qStart > 12) {
+        qStart = 1;
+        year++;
+      }
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateYearlyTabs(DateTime now, int maxYears) {
+    final tabs = <SubPeriodTab>[];
+    for (var y = now.year - maxYears; y <= now.year; y++) {
+      tabs.add(
+        SubPeriodTab(
+          label: y == now.year ? 'Tahun Ini' : '$y',
+          dateRange: (
+            DateTime.utc(y, 1, 1),
+            DateTime.utc(y, 12, 31, 23, 59, 59),
+          ),
+        ),
+      );
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateCustomTabs() {
+    if (customStart == null || customEnd == null) return [];
+
+    final tabs = <SubPeriodTab>[];
+    var cursor = DateTime(
+      customStart!.year,
+      customStart!.month,
+      customStart!.day,
+    );
+    final endDay = DateTime(customEnd!.year, customEnd!.month, customEnd!.day);
+    final today = DateTime.now();
+
+    while (!cursor.isAfter(endDay)) {
+      final isToday =
+          cursor.year == today.year &&
+          cursor.month == today.month &&
+          cursor.day == today.day;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isToday
+              ? 'Hari Ini'
+              : '${cursor.day} ${_shortMonth(cursor.month)}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, cursor.day),
+            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+          ),
+        ),
+      );
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    return tabs;
+  }
+
+  static String _shortMonth(int m) {
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return months[m];
+  }
+
+  static String _fullMonth(int m) {
+    const months = [
+      '',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return months[m];
   }
 
   /// Filter transaksi berdasarkan type (lokal, tidak refetch).
@@ -194,6 +434,19 @@ class HistoryState {
 }
 
 enum HistoryStatus { initial, loading, loaded, error }
+
+// ───────────────── Sub-Period Tab ─────────────────
+
+/// Data model untuk satu tab sub-period.
+class SubPeriodTab {
+  const SubPeriodTab({required this.label, required this.dateRange});
+
+  /// Label yang ditampilkan di tab, misal "Jan 2024", "Hari Ini".
+  final String label;
+
+  /// Date range (start, end) UTC untuk sub-period ini.
+  final (DateTime, DateTime) dateRange;
+}
 
 // ───────────────── Controller ─────────────────
 
@@ -278,10 +531,15 @@ class HistoryController extends StateNotifier<HistoryState> {
 
   // ───────────────── FILTER ACTIONS ─────────────────
 
-  /// Ganti periode dan refetch.
+  /// Ganti periode dan refetch. Reset sub-period ke tab terakhir.
   Future<void> setPeriod(HistoryPeriod period) async {
     if (state.period == period) return;
-    state = state.copyWith(period: period);
+    state = state.copyWith(period: period, clearSubPeriod: true);
+    // Set sub-period ke tab terakhir ("saat ini")
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
     await loadTransactions();
   }
 
@@ -291,7 +549,20 @@ class HistoryController extends StateNotifier<HistoryState> {
       period: HistoryPeriod.custom,
       customStart: start,
       customEnd: end,
+      clearSubPeriod: true,
     );
+    // Set sub-period ke tab terakhir
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
+    await loadTransactions();
+  }
+
+  /// Ganti sub-period tab dan refetch.
+  Future<void> setSubPeriod(int index) async {
+    if (index == state.subPeriodIndex) return;
+    state = state.copyWith(subPeriodIndex: index);
     await loadTransactions();
   }
 
@@ -325,6 +596,10 @@ class HistoryController extends StateNotifier<HistoryState> {
   /// Reset semua filter ke default.
   Future<void> resetFilters() async {
     state = const HistoryState(period: HistoryPeriod.monthly);
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
     await loadTransactions();
   }
 

@@ -75,13 +75,13 @@ class AppRouter {
   );
 
   static GoRouter createRouter(Ref ref) {
-    final authNotifier = ref.watch(authChangeNotifierProvider);
+    // final authNotifier = ref.watch(authChangeNotifierProvider);
 
     return GoRouter(
       navigatorKey: navigatorKey,
       debugLogDiagnostics: true,
       initialLocation: splash,
-      refreshListenable: authNotifier,
+      // refreshListenable: authNotifier,
       // redirect: (context, state) {
       //   final authState = ref.read(authControllerProvider);
       //   final isAuthenticated = authState.isAuthenticated;

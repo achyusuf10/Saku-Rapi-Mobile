@@ -58,7 +58,7 @@ SakuRapi membantu pengguna mencatat keuangan pribadi dengan cepat, rapi, dan min
 2. Voice input AI
 3. OCR struk AI
 4. Parsing dictionary cache
-5. Budgeting parent-child
+5. Budgeting parent / child
 6. Visual reports
 7. Local notifications reminder / budget alert
 

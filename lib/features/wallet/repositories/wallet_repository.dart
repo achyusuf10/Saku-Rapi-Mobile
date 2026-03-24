@@ -89,9 +89,6 @@ class WalletRepository {
     );
 
     final result = await _remote.createWallet(wallet);
-    if (result.isSuccess()) {
-      await _refreshCache();
-    }
     return result;
   }
 
@@ -127,9 +124,6 @@ class WalletRepository {
     );
 
     final result = await _remote.updateWallet(updated);
-    if (result.isSuccess()) {
-      await _refreshCache();
-    }
     return result;
   }
 
@@ -148,9 +142,6 @@ class WalletRepository {
     }
 
     final result = await _remote.deleteWallet(walletId);
-    if (result.isSuccess()) {
-      await _refreshCache();
-    }
     return result;
   }
 
@@ -165,9 +156,6 @@ class WalletRepository {
       walletId: walletId,
       exclude: exclude,
     );
-    if (result.isSuccess()) {
-      await _refreshCache();
-    }
     return result;
   }
 
@@ -185,6 +173,11 @@ class WalletRepository {
     _local.clearWalletCache();
   }
 
+  /// Simpan list wallet langsung ke cache lokal (tanpa fetch remote).
+  void cacheWalletList(List<WalletModel> wallets) {
+    _local.cacheWallets(wallets);
+  }
+
   // ───────────────── PRIVATE ─────────────────
 
   /// Cek duplikasi nama wallet per user (case-insensitive).
@@ -200,13 +193,5 @@ class WalletRepository {
           w.name.toLowerCase() == nameLower &&
           (excludeId == null || w.id != excludeId),
     );
-  }
-
-  /// Refresh cache di background setelah mutasi.
-  Future<void> _refreshCache() async {
-    final result = await _remote.getWallets();
-    if (result.isSuccess()) {
-      _local.cacheWallets(result.dataSuccess()!);
-    }
   }
 }

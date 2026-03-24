@@ -50,6 +50,7 @@ class TransactionFormState {
     this.dueDate,
     this.category,
     this.items = const [],
+    this.itemKeys = const [],
     this.errorMessage,
     this.existingTransaction,
   });
@@ -67,6 +68,10 @@ class TransactionFormState {
   final DateTime? dueDate;
   final CategoryModel? category;
   final List<TransactionItemModel> items;
+
+  /// Stable identity keys per item untuk widget keying.
+  /// Setiap item punya key unik yang tidak berubah saat content berubah.
+  final List<int> itemKeys;
   final String? errorMessage;
 
   /// Jika ada, berarti mode edit.
@@ -96,6 +101,7 @@ class TransactionFormState {
     DateTime? dueDate,
     CategoryModel? category,
     List<TransactionItemModel>? items,
+    List<int>? itemKeys,
     String? errorMessage,
     TransactionModel? existingTransaction,
   }) {
@@ -113,6 +119,7 @@ class TransactionFormState {
       dueDate: dueDate ?? this.dueDate,
       category: category ?? this.category,
       items: items ?? this.items,
+      itemKeys: itemKeys ?? this.itemKeys,
       errorMessage: errorMessage ?? this.errorMessage,
       existingTransaction: existingTransaction ?? this.existingTransaction,
     );
@@ -145,6 +152,7 @@ class TransactionFormState {
       items: clearCategory
           ? items.map((item) => item.clearCategory()).toList()
           : items,
+      itemKeys: itemKeys,
       errorMessage: clearError ? null : errorMessage,
       existingTransaction: existingTransaction,
     );
@@ -163,6 +171,9 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       super(TransactionFormState(date: DateTime.now()));
 
   final TransactionRepository _repository;
+  int _nextItemKey = 0;
+
+  int _generateKey() => _nextItemKey++;
 
   // ─── Setters ───
 
@@ -249,7 +260,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   /// Inisialisasi 1 item default (single-item mode).
   void initSingleItem() {
     if (state.items.isEmpty) {
-      state = state.copyWith(items: [const TransactionItemModel(amount: 0)]);
+      state = state.copyWith(
+        items: [const TransactionItemModel(amount: 0)],
+        itemKeys: [_generateKey()],
+      );
     }
   }
 
@@ -259,7 +273,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       ...state.items,
       TransactionItemModel(amount: 0, sortOrder: state.items.length),
     ];
-    state = state.copyWith(items: newItems);
+    state = state.copyWith(
+      items: newItems,
+      itemKeys: [...state.itemKeys, _generateKey()],
+    );
   }
 
   /// Update item di index tertentu.
@@ -284,8 +301,13 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   void removeItem(int index) {
     if (state.items.length <= 1) return;
     final newItems = [...state.items]..removeAt(index);
+    final newKeys = [...state.itemKeys]..removeAt(index);
     final total = _sumItems(newItems);
-    state = state.copyWith(items: newItems, totalAmount: total);
+    state = state.copyWith(
+      items: newItems,
+      itemKeys: newKeys,
+      totalAmount: total,
+    );
   }
 
   /// Ubah urutan item (drag-to-reorder).
@@ -298,7 +320,11 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     final adjustedIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
     newItems.insert(adjustedIndex, item);
 
-    state = state.copyWith(items: newItems);
+    final newKeys = [...state.itemKeys];
+    final key = newKeys.removeAt(oldIndex);
+    newKeys.insert(adjustedIndex, key);
+
+    state = state.copyWith(items: newItems, itemKeys: newKeys);
   }
 
   /// Prefill items dari Voice/OCR input.
@@ -308,7 +334,8 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     if (items.isEmpty) return;
     final resolved = items.map(_resolveItemAmount).toList();
     final total = _sumItems(resolved);
-    state = state.copyWith(items: resolved, totalAmount: total);
+    final keys = List.generate(resolved.length, (_) => _generateKey());
+    state = state.copyWith(items: resolved, itemKeys: keys, totalAmount: total);
   }
 
   // ─── Helpers ───
@@ -340,6 +367,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   /// Pre-fill form dari transaksi yang sudah ada (mode edit).
   void loadExistingTransaction(TransactionModel txn) {
+    final items = txn.items.isNotEmpty
+        ? txn.items
+        : [TransactionItemModel(amount: txn.totalAmount)];
+    final keys = List.generate(items.length, (_) => _generateKey());
     state = TransactionFormState(
       existingTransaction: txn,
       type: txn.type,
@@ -350,9 +381,8 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       attachmentUrl: txn.attachmentUrl,
       withPerson: txn.withPerson,
       dueDate: txn.dueDate,
-      items: txn.items.isNotEmpty
-          ? txn.items
-          : [TransactionItemModel(amount: txn.totalAmount)],
+      items: items,
+      itemKeys: keys,
     );
     // Wallet and category are loaded separately via widget
   }

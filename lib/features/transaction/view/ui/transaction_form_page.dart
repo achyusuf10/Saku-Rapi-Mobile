@@ -366,21 +366,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   if (formState.type == TransactionTypeEnum.expense ||
                       formState.type == TransactionTypeEnum.income) ...[
                     SizedBox(height: 16.h),
-                    TransactionMultiItemSection(
-                      formState: formState,
-                      onAddItem: () => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .addItem(),
-                      onUpdateItem: (index, item) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .updateItem(index, item),
-                      onRemoveItem: (index) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .removeItem(index),
-                      onReorderItem: (oldIndex, newIndex) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .reorderItems(oldIndex, newIndex),
-                    ),
+                    const TransactionMultiItemSection(),
                   ],
                 ]),
               ),

@@ -7,7 +7,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 class CompressImageFunc {
   static Future<Uint8List?> call({
     required String filePath,
-    int targetSizeKb = 200,
+    int targetSizeKb = 100,
   }) async {
     // Ubah target dari KB ke Bytes
     int targetSizeBytes = targetSizeKb * 1024;

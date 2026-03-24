@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_period_selector.dart';
+import 'package:app_saku_rapi/features/history/view/widgets/history_sub_period_tabs.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
@@ -37,31 +38,35 @@ class HistoryPage extends ConsumerStatefulWidget {
 }
 
 class _HistoryPageState extends ConsumerState<HistoryPage> {
-  final _scrollController = ScrollController();
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    // Load data on first open
+    final s = ref.read(historyControllerProvider);
+    final tabs = s.subPeriodTabs;
+    final initialIdx =
+        s.subPeriodIndex ?? (tabs.isNotEmpty ? tabs.length - 1 : 0);
+    _pageController = PageController(initialPage: initialIdx);
+
     Future.microtask(() {
-      ref.read(historyControllerProvider.notifier).loadTransactions();
+      final ctrl = ref.read(historyControllerProvider.notifier);
+      final s = ref.read(historyControllerProvider);
+      if (s.subPeriodIndex == null) {
+        final tabs = s.subPeriodTabs;
+        if (tabs.isNotEmpty) {
+          ctrl.setSubPeriod(tabs.length - 1);
+          return;
+        }
+      }
+      ctrl.loadTransactions();
     });
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _pageController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(historyControllerProvider.notifier).loadMore();
-    }
   }
 
   Future<void> _openCustomDateRange() async {
@@ -70,7 +75,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       initialDateRange: DateTimeRange(start: defaultStart, end: defaultEnd),
       helpText: context.l10n.historySelectDateRange,
@@ -99,6 +104,29 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final colors = context.colors;
     final l10n = context.l10n;
     final historyState = ref.watch(historyControllerProvider);
+    final tabs = historyState.subPeriodTabs;
+
+    // Sync PageController ↔ subPeriodIndex (dari tap tab / period change)
+    ref.listen<HistoryState>(historyControllerProvider, (prev, next) {
+      final prevIdx = prev?.subPeriodIndex;
+      final newIdx = next.subPeriodIndex;
+      if (prevIdx == newIdx || newIdx == null || !_pageController.hasClients) {
+        return;
+      }
+      if (prev?.period != next.period) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(newIdx);
+          }
+        });
+      } else if (_pageController.page?.round() != newIdx) {
+        _pageController.animateToPage(
+          newIdx,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -136,6 +164,42 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             ),
           ),
 
+          // ─── Sub-Period Tabs ───
+          const HistorySubPeriodTabs(),
+
+          // ─── Swipeable Content ───
+          Expanded(
+            child: tabs.isEmpty
+                ? _buildPage(historyState)
+                : PageView.builder(
+                    controller: _pageController,
+                    itemCount: tabs.length,
+                    onPageChanged: (index) {
+                      ref
+                          .read(historyControllerProvider.notifier)
+                          .setSubPeriod(index);
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildPage(historyState);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPage(HistoryState historyState) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+          ref.read(historyControllerProvider.notifier).loadMore();
+        }
+        return false;
+      },
+      child: Column(
+        children: [
           // ─── Summary Card ───
           if (historyState.status == HistoryStatus.loaded)
             _SummaryCard(
@@ -144,7 +208,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               transactionCount: historyState.filteredTransactions.length,
             ),
 
-          // ─── Content ───
+          // ─── Body ───
           Expanded(child: _buildBody(historyState)),
         ],
       ),
@@ -201,7 +265,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       color: colors.primary,
       onRefresh: () => ref.read(historyControllerProvider.notifier).refresh(),
       child: ListView.builder(
-        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: 80.h),
         itemCount: items.length + (historyState.isLoadingMore ? 1 : 0),
