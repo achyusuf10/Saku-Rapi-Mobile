@@ -143,7 +143,7 @@ class _TransactionTile extends StatelessWidget {
                 children: [
                   Text(
                     _titleForTransaction(transaction),
-                    style: TextStyleConstants.b2.copyWith(
+                    style: TextStyleConstants.caption.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
                     ),
@@ -152,7 +152,7 @@ class _TransactionTile extends StatelessWidget {
                   SizedBox(height: 2.h),
                   Text(
                     transaction.date.extToFormattedString(
-                      outputDateFormat: 'dd MMM, HH:mm',
+                      outputDateFormat: 'dd MMM yyyy, HH:mm',
                     ),
                     style: TextStyleConstants.label2.copyWith(
                       color: colors.textSecondary,

@@ -142,7 +142,9 @@ class TransactionFormState {
       withPerson: clearWithPerson ? null : withPerson,
       dueDate: clearDueDate ? null : dueDate,
       category: clearCategory ? null : category,
-      items: items,
+      items: clearCategory
+          ? items.map((item) => item.clearCategory()).toList()
+          : items,
       errorMessage: clearError ? null : errorMessage,
       existingTransaction: existingTransaction,
     );

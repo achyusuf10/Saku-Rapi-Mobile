@@ -1,0 +1,109 @@
+import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+/// Category picker tile dengan ikon lingkaran berwarna.
+///
+/// Menampilkan kategori yang dipilih atau placeholder jika belum dipilih.
+/// Digunakan di form transaksi tipe income/expense (single-item mode).
+class TransactionCategoryPickerTile extends StatelessWidget {
+  const TransactionCategoryPickerTile({
+    super.key,
+    required this.type,
+    required this.onTap,
+    required this.iconColor,
+    this.item,
+  });
+
+  final TransactionTypeEnum type;
+  final TransactionItemModel? item;
+  final VoidCallback onTap;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final hasCategory = item?.categoryName != null;
+    final categoryColor = item?.categoryColor != null
+        ? _parseColor(item!.categoryColor!)
+        : null;
+    final circleColor = categoryColor ?? iconColor;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(14.r),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: circleColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: FaIcon(
+                  hasCategory
+                      ? CategoryIconMapper.getIcon(item!.categoryIcon!)
+                      : FontAwesomeIcons.layerGroup,
+                  size: 16.w,
+                  color: circleColor,
+                ),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.transactionCategory.toUpperCase(),
+                    style: TextStyleConstants.overline.copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    item?.categoryName ??
+                        context.l10n.transactionSelectCategory,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: hasCategory
+                          ? colors.textPrimary
+                          : colors.textSecondary,
+                      fontWeight: hasCategory
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            FaIcon(
+              FontAwesomeIcons.chevronRight,
+              size: 12.w,
+              color: colors.textSecondary.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _parseColor(String hex) {
+    final hexCode = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
+}

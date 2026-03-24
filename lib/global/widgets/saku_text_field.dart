@@ -144,12 +144,21 @@ class SakuTextField extends StatelessWidget {
             ),
             errorText: errorText,
             errorStyle: TextStyleConstants.label3.copyWith(color: colors.error),
-            prefixIcon: prefixIcon,
+            prefixIcon: prefixIcon == null
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      10.horizontalSpace,
+                      Center(child: prefixIcon),
+                    ],
+                  ),
+            prefixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: colors.surfaceVariant,
             contentPadding: EdgeInsets.symmetric(
-              horizontal: 16.w,
+              horizontal: 12.w,
               vertical: 14.h,
             ),
             border: OutlineInputBorder(

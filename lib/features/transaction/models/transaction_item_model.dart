@@ -131,6 +131,24 @@ class TransactionItemModel {
     );
   }
 
+  /// Hapus semua field kategori (categoryId, categoryName, icon, color).
+  TransactionItemModel clearCategory() {
+    return TransactionItemModel(
+      id: id,
+      transactionId: transactionId,
+      categoryId: null,
+      itemName: itemName,
+      qty: qty,
+      unitPrice: unitPrice,
+      amount: amount,
+      note: note,
+      sortOrder: sortOrder,
+      categoryName: null,
+      categoryIcon: null,
+      categoryColor: null,
+    );
+  }
+
   // ───────────────── Helpers ─────────────────
 
   static double _toDouble(dynamic value) {

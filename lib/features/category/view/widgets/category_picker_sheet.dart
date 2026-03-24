@@ -57,7 +57,20 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
 
 class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   /// Set of parent IDs yang sedang di-expand (independen per parent).
-  final Set<String> _expandedParentIds = {};
+  // final Set<String> _expandedParentIds = {};
+  final Set<String> _collapsedParentIds = {};
+
+  /// Flag agar auto-expand hanya dijalankan sekali saat categories pertama load.
+  bool _initialized = false;
+
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -83,14 +96,58 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         ? ref.watch(expenseCategoriesProvider)
         : ref.watch(incomeCategoriesProvider);
 
+    // Auto-expand semua parent saat categories pertama kali tersedia.
+    if (!_initialized && groupedCategories.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _initialized = true;
+            // _expandedParentIds.addAll(
+            //   groupedCategories.map((c) => c.id).whereType<String>(),
+            // );
+          });
+        }
+      });
+    }
+
+    // Filter kategori berdasarkan search query.
+    final q = _searchQuery.toLowerCase().trim();
+    final filteredCategories = q.isEmpty
+        ? groupedCategories
+        : groupedCategories
+              .map((parent) {
+                final parentMatches = parent.name.toLowerCase().contains(q);
+                final matchingChildren = parent.children
+                    .where((c) => c.name.toLowerCase().contains(q))
+                    .toList();
+
+                if (parentMatches) {
+                  // Return parent dengan semua children tetap
+                  return parent;
+                } else if (matchingChildren.isNotEmpty) {
+                  // Return parent dengan hanya children yang cocok
+                  return parent.copyWith(children: matchingChildren);
+                }
+                return null;
+              })
+              .whereType<CategoryModel>()
+              .toList();
+
+    // Auto-expand semua hasil saat sedang search.
+    if (q.isNotEmpty) {
+      _collapsedParentIds.clear();
+      // _expandedParentIds.addAll(
+      //   filteredCategories.map((c) => c.id).whereType<String>(),
+      // );
+    }
+
     return Container(
-      constraints: BoxConstraints(maxHeight: 0.75.sh),
+      height: double.infinity,
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
           Container(
@@ -201,9 +258,73 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
             ),
           ),
 
+          // Search field
+          Padding(
+            padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 4.h),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              style: TextStyleConstants.b2.copyWith(color: colors.textPrimary),
+              decoration: InputDecoration(
+                hintText: l10n.pickerSearchCategory,
+                hintStyle: TextStyleConstants.b2.copyWith(
+                  color: colors.textSecondary,
+                ),
+                prefixIcon: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  child: FaIcon(
+                    FontAwesomeIcons.magnifyingGlass,
+                    size: 14.w,
+                    color: colors.textSecondary,
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () => setState(() {
+                          _searchController.clear();
+                          _searchQuery = '';
+                        }),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          child: FaIcon(
+                            FontAwesomeIcons.circleXmark,
+                            size: 14.w,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      )
+                    : null,
+                suffixIconConstraints: const BoxConstraints(),
+                filled: true,
+                fillColor: colors.background,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 14.w,
+                  vertical: 10.h,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: colors.border.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: colors.border.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: _typeColor, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+
           // Category list
           Flexible(
-            child: groupedCategories.isEmpty
+            child: filteredCategories.isEmpty
                 ? Padding(
                     padding: EdgeInsets.symmetric(vertical: 32.h),
                     child: SakuEmptyState(
@@ -212,20 +333,14 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                     ),
                   )
                 : ListView.separated(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.fromLTRB(
-                      12.w,
-                      10.h,
-                      12.w,
-                      8.h,
-                    ),
-                    itemCount: groupedCategories.length,
+                    padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 8.h),
+                    itemCount: filteredCategories.length,
                     separatorBuilder: (_, _) => SizedBox(height: 4.h),
                     itemBuilder: (context, index) {
-                      final parent = groupedCategories[index];
+                      final parent = filteredCategories[index];
                       return _CategoryParentTile(
                         category: parent,
-                        isExpanded: _expandedParentIds.contains(parent.id),
+                        isExpanded: !_collapsedParentIds.contains(parent.id),
                         isSelected: widget.selectedId == parent.id,
                         selectedChildId: widget.selectedId,
                         onTap: () => _handleParentTap(parent),
@@ -243,19 +358,15 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   }
 
   void _handleParentTap(CategoryModel parent) {
-    if (parent.children.isEmpty) {
-      _selectCategory(parent);
-    } else {
-      _toggleExpand(parent.id);
-    }
+    _selectCategory(parent);
   }
 
   void _toggleExpand(String parentId) {
     setState(() {
-      if (_expandedParentIds.contains(parentId)) {
-        _expandedParentIds.remove(parentId);
+      if (_collapsedParentIds.contains(parentId)) {
+        _collapsedParentIds.remove(parentId);
       } else {
-        _expandedParentIds.add(parentId);
+        _collapsedParentIds.add(parentId);
       }
     });
   }
@@ -365,8 +476,9 @@ class _CategoryParentTile extends StatelessWidget {
                           Text(
                             category.name,
                             style: TextStyleConstants.b2.copyWith(
-                              fontWeight:
-                                  isSelected ? FontWeight.w600 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                               color: isSelected
                                   ? categoryColor
                                   : colors.textPrimary,
@@ -404,22 +516,20 @@ class _CategoryParentTile extends StatelessWidget {
                       ),
 
                     // Expand arrow (jika punya children)
-                    if (hasChildren && !isSelected) ...[
+                    if (hasChildren) ...[
                       SizedBox(width: 4.w),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: onToggleExpand,
-                        child: Padding(
-                          padding: EdgeInsets.all(6.w),
-                          child: AnimatedRotation(
-                            turns: isExpanded ? 0.25 : 0,
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            child: FaIcon(
-                              FontAwesomeIcons.chevronRight,
-                              size: 11.w,
-                              color: colors.textSecondary,
-                            ),
+                      IconButton(
+                        onPressed: onToggleExpand,
+                        padding: EdgeInsets.all(6.w),
+                        constraints: const BoxConstraints(),
+                        icon: AnimatedRotation(
+                          turns: isExpanded ? 0.25 : 0,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          child: FaIcon(
+                            FontAwesomeIcons.chevronRight,
+                            size: 11.w,
+                            color: colors.textSecondary,
                           ),
                         ),
                       ),
@@ -444,12 +554,11 @@ class _CategoryParentTile extends StatelessWidget {
                           padding: EdgeInsets.symmetric(horizontal: 12.w),
                           child: Divider(
                             height: 1,
-                            color: colors.border.withValues(alpha: 0.2),
+                            color: colors.border.withValues(alpha: 0.8),
                           ),
                         ),
                         Padding(
                           padding: EdgeInsets.only(
-                            left: 8.w,
                             right: 8.w,
                             top: 6.h,
                             bottom: 8.h,
@@ -502,7 +611,7 @@ class _CategoryChildTile extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-          margin: EdgeInsets.only(left: 38.w, bottom: 2.h),
+          margin: EdgeInsets.only(left: 16.w, bottom: 2.h),
           decoration: BoxDecoration(
             color: isSelected
                 ? categoryColor.withValues(alpha: 0.08)
