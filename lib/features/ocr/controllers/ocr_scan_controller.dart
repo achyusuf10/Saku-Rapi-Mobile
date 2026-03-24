@@ -10,18 +10,14 @@ import 'package:flutter_riverpod/legacy.dart';
 // ═══════════════ Providers ═══════════════
 
 /// Singleton provider untuk [OcrRepository].
-final ocrRepositoryProvider = Provider<OcrRepository>(
-  (ref) => OcrRepository(),
-);
+final ocrRepositoryProvider = Provider<OcrRepository>((ref) => OcrRepository());
 
 /// Singleton provider untuk [OcrImageService].
-final ocrImageServiceProvider = Provider<OcrImageService>(
-  (ref) {
-    final service = OcrImageService();
-    ref.onDispose(service.dispose);
-    return service;
-  },
-);
+final ocrImageServiceProvider = Provider<OcrImageService>((ref) {
+  final service = OcrImageService();
+  ref.onDispose(service.dispose);
+  return service;
+});
 
 /// Auto-dispose controller provider untuk OCR scan flow.
 final ocrScanControllerProvider =
@@ -172,7 +168,7 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     await _processImage(imageFile);
   }
 
-  /// Proses gambar: crop → compress → OCR → AI parse.
+  /// Proses gambar: crop → compress → AI Vision → (fallback) ML Kit → local parser.
   Future<void> _processImage(File imageFile) async {
     // Crop
     state = state.copyWith(status: OcrScanStatus.cropping);
@@ -183,58 +179,53 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       return;
     }
 
-    // Compress
+    // Compress (target 500KB agar transfer ke AI lebih cepat)
     final compressed = await _imageService.compressImage(cropped);
     final finalImage = compressed ?? cropped;
     state = state.copyWith(imageFile: finalImage);
 
-    // ML Kit OCR
-    state = state.copyWith(status: OcrScanStatus.extractingText);
-    final rawText = await _imageService.extractText(finalImage);
-    if (rawText == null || rawText.isEmpty) {
-      state = state.copyWith(
-        status: OcrScanStatus.error,
-        errorMessage: 'NO_TEXT',
-      );
-      return;
-    }
-    state = state.copyWith(rawOcrText: rawText);
-
-    // AI parse
+    // Kirim gambar ke Vision AI (Gemini → Groq failover)
     state = state.copyWith(status: OcrScanStatus.analyzingAi);
+    OcrParseResultModel result;
     try {
-      final result = await _repository.parseOcrText(rawText);
+      result = await _repository.parseImage(finalImage);
+    } catch (aiError) {
+      // Kedua AI gagal → fallback ke ML Kit OCR + local parser
+      AppLogger.call(
+        '$_tag Vision AI failed ($aiError), falling back to ML Kit OCR',
+      );
 
-      if (!result.hasUsableData) {
+      state = state.copyWith(status: OcrScanStatus.extractingText);
+      final rawText = await _imageService.extractText(finalImage);
+
+      if (rawText == null || rawText.isEmpty) {
         state = state.copyWith(
           status: OcrScanStatus.error,
-          parseResult: result,
-          errorMessage: 'PARSE_FAILED',
+          errorMessage: 'NO_TEXT',
         );
         return;
       }
 
-      AppLogger.logSuccess(
-        'OCR pipeline complete: ${result.items.length} items, '
-        'total: ${result.grandTotal}',
-        runtimeType: OcrScanController,
-      );
+      state = state.copyWith(rawOcrText: rawText);
+      result = _repository.parseTextLocally(rawText);
+    }
 
-      state = state.copyWith(
-        status: OcrScanStatus.done,
-        parseResult: result,
-      );
-    } catch (e, st) {
-      AppLogger.logError(
-        '$_tag OCR parse error: $e',
-        stackTrace: st,
-        runtimeType: OcrScanController,
-      );
+    if (!result.hasUsableData) {
       state = state.copyWith(
         status: OcrScanStatus.error,
-        errorMessage: e.toString(),
+        parseResult: result,
+        errorMessage: 'PARSE_FAILED',
       );
+      return;
     }
+
+    AppLogger.logSuccess(
+      'OCR pipeline complete: ${result.items.length} items, '
+      'total: ${result.grandTotal}, provider: ${result.provider}',
+      runtimeType: OcrScanController,
+    );
+
+    state = state.copyWith(status: OcrScanStatus.done, parseResult: result);
   }
 
   /// Rescan — reset state dan mulai ulang.

@@ -1,17 +1,19 @@
 /// Supabase Edge Function: ai-parse
 ///
 /// Menerima teks voice/OCR dan mengembalikan hasil parsing
-/// terstruktur dari AI (Gemini Flash → Groq Llama 3.3 failover).
+/// terstruktur dari AI (Gemini → Groq → OpenRouter failover).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
 const GEMINI_TIMEOUT_MS = 8000;
 const GROQ_TIMEOUT_MS = 6000;
+const OPENROUTER_TIMEOUT_MS = 10000;
 
 // ─────────────────────────────────────────────────────
 // Prompt builders
@@ -39,8 +41,8 @@ Voice input: "${text}"
 Return ONLY the JSON object, no explanation or markdown.`;
 }
 
-function buildOcrPrompt(text: string): string {
-  return `You are a receipt/invoice parser. Extract structured data from the following OCR text of a receipt (likely Indonesian).
+function buildOcrPromptForImage(): string {
+  return `You are a receipt/invoice parser. Analyze the receipt/invoice image and extract structured data.
 
 Return a JSON object with these exact fields:
 {
@@ -63,9 +65,6 @@ Rules:
 - Ignore tax lines, discount lines, change/kembalian lines, and subtotal/total summary lines from items.
 - All amounts should be plain numbers without currency symbols or thousand separators (e.g. 15000 not "Rp 15.000").
 - Indonesian receipt patterns: "Rp", "x", "@" for qty/unit price indicators.
-
-OCR text:
-"${text}"
 
 Return ONLY the JSON object, no explanation or markdown.`;
 }
@@ -92,7 +91,7 @@ async function callGemini(prompt: string): Promise<{ data: unknown; provider: st
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,6 +155,151 @@ async function callGroq(prompt: string): Promise<{ data: unknown; provider: stri
 }
 
 // ─────────────────────────────────────────────────────
+// Vision AI providers (untuk OCR mode — kirim gambar langsung)
+// ─────────────────────────────────────────────────────
+
+async function callGeminiVision(
+  base64Image: string,
+  mimeType: string,
+): Promise<{ data: unknown; provider: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { inline_data: { mime_type: mimeType, data: base64Image } },
+                { text: buildOcrPromptForImage() },
+              ],
+            },
+          ],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0.1 },
+        }),
+      },
+    );
+
+    if (!res.ok) {
+      throw new Error(`Gemini Vision HTTP ${res.status}: ${await res.text()}`);
+    }
+
+    const json = await res.json();
+    const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const parsed = JSON.parse(sanitizeJson(rawText));
+
+    return { data: parsed, provider: 'gemini' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function callGroqVision(
+  base64Image: string,
+  mimeType: string,
+): Promise<{ data: unknown; provider: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${base64Image}` },
+              },
+              { type: 'text', text: buildOcrPromptForImage() },
+            ],
+          },
+        ],
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Groq Vision HTTP ${res.status}: ${await res.text()}`);
+    }
+
+    const json = await res.json();
+    const rawText = json?.choices?.[0]?.message?.content ?? '';
+    const parsed = JSON.parse(sanitizeJson(rawText));
+
+    return { data: parsed, provider: 'groq' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// OpenRouter Vision provider (3rd fallback untuk OCR)
+// ─────────────────────────────────────────────────────
+
+async function callOpenRouterVision(
+  base64Image: string,
+  mimeType: string,
+): Promise<{ data: unknown; provider: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'google/gemma-3-27b-it:free',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${base64Image}` },
+              },
+              { type: 'text', text: buildOcrPromptForImage() },
+            ],
+          },
+        ],
+        temperature: 0.1,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`OpenRouter Vision HTTP ${res.status}: ${await res.text()}`);
+    }
+
+    const json = await res.json();
+    const rawText = json?.choices?.[0]?.message?.content ?? '';
+    const parsed = JSON.parse(sanitizeJson(rawText));
+
+    return { data: parsed, provider: 'openrouter' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// ─────────────────────────────────────────────────────
 // CORS helpers
 // ─────────────────────────────────────────────────────
 
@@ -199,11 +343,10 @@ Deno.serve(async (req) => {
     // ── Parse request body ──
     const body = await req.json();
     const mode: string = body.mode; // 'voice' | 'ocr'
-    const text: string = body.text;
 
-    if (!mode || !text) {
+    if (!mode) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing mode or text' }),
+        JSON.stringify({ success: false, error: 'Missing mode' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -215,31 +358,65 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Build prompt ──
-    const prompt = mode === 'voice' ? buildVoicePrompt(text) : buildOcrPrompt(text);
-
-    // ── Try Gemini → Groq failover ──
+    // ── Try AI providers based on mode ──
     let result: { data: unknown; provider: string };
 
-    try {
-      result = await callGemini(prompt);
-    } catch (geminiErr) {
-      console.error('[ai-parse] Gemini failed:', geminiErr);
+    if (mode === 'voice') {
+      // Voice: teks STT → Gemini/Groq text model
+      const text: string = body.text;
+      if (!text) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing text for voice mode' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const prompt = buildVoicePrompt(text);
+      try {
+        result = await callGemini(prompt);
+      } catch (geminiErr) {
+        console.error('[ai-parse] Gemini failed:', geminiErr);
+        try {
+          result = await callGroq(prompt);
+        } catch (groqErr) {
+          console.error('[ai-parse] Groq failed:', groqErr);
+          return new Response(
+            JSON.stringify({ success: false, mode, error: 'AI_BUSY' }),
+            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+      }
+    } else {
+      // OCR: kirim gambar langsung ke Vision AI → lebih akurat dari teks
+      const image: string = body.image;
+      const mimeType: string = body.mimeType || 'image/jpeg';
+
+      if (!image) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing image for ocr mode' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
 
       try {
-        result = await callGroq(prompt);
-      } catch (groqErr) {
-        console.error('[ai-parse] Groq failed:', groqErr);
-
-        // Both providers failed → AI_BUSY
-        return new Response(
-          JSON.stringify({
-            success: false,
-            mode,
-            error: 'AI_BUSY',
-          }),
-          { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
+        result = await callGeminiVision(image, mimeType);
+      } catch (geminiErr) {
+        console.error('[ai-parse] Gemini Vision failed:', geminiErr);
+        try {
+          result = await callGroqVision(image, mimeType);
+        } catch (groqErr) {
+          console.error('[ai-parse] Groq Vision failed:', groqErr);
+          try {
+            result = await callOpenRouterVision(image, mimeType);
+          } catch (openrouterErr) {
+            console.error('[ai-parse] OpenRouter Vision failed:', openrouterErr);
+            // Semua AI gagal → Flutter akan fallback ke ML Kit OCR lokal
+            return new Response(
+              JSON.stringify({ success: false, mode, error: 'AI_BUSY' }),
+              { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
+          }
+        }
       }
     }
 

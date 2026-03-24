@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
@@ -5,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk panggilan Edge Function OCR.
 ///
-/// Memanggil `ai-parse` dengan mode `ocr` untuk parsing teks struk.
+/// Mengirim gambar (base64) langsung ke Vision AI untuk hasil yang lebih akurat.
 /// Semua panggilan dibungkus [SupabaseHandler.call] untuk error handling.
 class OcrRemoteDataSource {
   OcrRemoteDataSource({SupabaseClient? client})
@@ -14,20 +17,23 @@ class OcrRemoteDataSource {
   final SupabaseClient _client;
   static const _tag = '[OcrRemoteDataSource]';
 
-  /// Kirim teks OCR ke Edge Function `ai-parse` mode `ocr`.
+  /// Kirim gambar struk ke Edge Function `ai-parse` mode `ocr` (Vision AI).
   ///
+  /// Gambar diencode sebagai base64 dan dikirim ke Gemini Vision / Groq Vision.
   /// Return [DataState] berisi response map dari AI.
-  Future<DataState<Map<String, dynamic>>> callAiParse(String ocrText) {
+  Future<DataState<Map<String, dynamic>>> callAiParseImage(File imageFile) {
     return SupabaseHandler.call<Map<String, dynamic>>(
       function: () async {
-        AppLogger.call('$_tag Calling ai-parse (mode: ocr)');
+        AppLogger.call('$_tag Calling ai-parse vision (mode: ocr)');
 
         // Pastikan session masih valid sebelum invoke Edge Function
-        await _client.auth.refreshSession();
+
+        final bytes = await imageFile.readAsBytes();
+        final base64Image = base64Encode(bytes);
 
         final response = await _client.functions.invoke(
           'ai-parse',
-          body: {'mode': 'ocr', 'text': ocrText},
+          body: {'mode': 'ocr', 'image': base64Image, 'mimeType': 'image/jpeg'},
         );
 
         final data = response.data as Map<String, dynamic>;
@@ -39,7 +45,7 @@ class OcrRemoteDataSource {
         }
 
         AppLogger.logSuccess(
-          'AI parse OCR success (provider: ${data['provider']})',
+          'AI Vision OCR success (provider: ${data['provider']})',
           runtimeType: OcrRemoteDataSource,
         );
         return data;

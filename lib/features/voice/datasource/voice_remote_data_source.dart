@@ -29,7 +29,6 @@ class VoiceRemoteDataSource {
         );
 
         // Pastikan session masih valid sebelum invoke Edge Function
-        await _client.auth.refreshSession();
 
         final response = await _client.functions.invoke(
           'ai-parse',
