@@ -41,7 +41,16 @@ Voice input: "${text}"
 Return ONLY the JSON object, no explanation or markdown.`;
 }
 
-function buildOcrPromptForImage(): string {
+function buildOcrPromptForImage(categories?: { id: string; name: string }[]): string {
+  let categoryInstruction = '';
+  if (categories && categories.length > 0) {
+    const catList = categories.map((c) => `"${c.id}":"${c.name}"`).join(', ');
+    categoryInstruction = `
+- For each item, assign the most appropriate expense category from this list: {${catList}}
+- Set "categoryId" to the UUID key of the best matching category. If no category fits well, set "categoryId" to null.
+- Match based on item name/description semantics (e.g. food items → food category, drinks → beverages category, etc).`;
+  }
+
   return `You are a receipt/invoice parser. Analyze the receipt/invoice image and extract structured data.
 
 Return a JSON object with these exact fields:
@@ -50,7 +59,7 @@ Return a JSON object with these exact fields:
   "date": "<transaction date in yyyy-MM-dd format or null>",
   "grandTotal": <total amount paid as number or null>,
   "items": [
-    { "name": "<item name>", "qty": <quantity as number, default 1>, "unitPrice": <price per unit as number or null>, "subtotal": <total price for this line item as number> }
+    { "name": "<item name>", "qty": <quantity as number, default 1>, "unitPrice": <price per unit as number or null>, "subtotal": <total price for this line item as number>${categories && categories.length > 0 ? ', "categoryId": "<UUID or null>"' : ''} }
   ]
 }
 
@@ -64,7 +73,7 @@ Rules:
 - If only one price is shown per item line, use it as subtotal and set unitPrice = subtotal / qty.
 - Ignore tax lines, discount lines, change/kembalian lines, and subtotal/total summary lines from items.
 - All amounts should be plain numbers without currency symbols or thousand separators (e.g. 15000 not "Rp 15.000").
-- Indonesian receipt patterns: "Rp", "x", "@" for qty/unit price indicators.
+- Indonesian receipt patterns: "Rp", "x", "@" for qty/unit price indicators.${categoryInstruction}
 
 Return ONLY the JSON object, no explanation or markdown.`;
 }
@@ -161,6 +170,7 @@ async function callGroq(prompt: string): Promise<{ data: unknown; provider: stri
 async function callGeminiVision(
   base64Image: string,
   mimeType: string,
+  categories?: { id: string; name: string }[],
 ): Promise<{ data: unknown; provider: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
@@ -177,7 +187,7 @@ async function callGeminiVision(
             {
               parts: [
                 { inline_data: { mime_type: mimeType, data: base64Image } },
-                { text: buildOcrPromptForImage() },
+                { text: buildOcrPromptForImage(categories) },
               ],
             },
           ],
@@ -203,6 +213,7 @@ async function callGeminiVision(
 async function callGroqVision(
   base64Image: string,
   mimeType: string,
+  categories?: { id: string; name: string }[],
 ): Promise<{ data: unknown; provider: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
@@ -225,7 +236,7 @@ async function callGroqVision(
                 type: 'image_url',
                 image_url: { url: `data:${mimeType};base64,${base64Image}` },
               },
-              { type: 'text', text: buildOcrPromptForImage() },
+              { type: 'text', text: buildOcrPromptForImage(categories) },
             ],
           },
         ],
@@ -255,6 +266,7 @@ async function callGroqVision(
 async function callOpenRouterVision(
   base64Image: string,
   mimeType: string,
+  categories?: { id: string; name: string }[],
 ): Promise<{ data: unknown; provider: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
@@ -277,7 +289,7 @@ async function callOpenRouterVision(
                 type: 'image_url',
                 image_url: { url: `data:${mimeType};base64,${base64Image}` },
               },
-              { type: 'text', text: buildOcrPromptForImage() },
+              { type: 'text', text: buildOcrPromptForImage(categories) },
             ],
           },
         ],
@@ -390,6 +402,7 @@ Deno.serve(async (req) => {
       // OCR: kirim gambar langsung ke Vision AI → lebih akurat dari teks
       const image: string = body.image;
       const mimeType: string = body.mimeType || 'image/jpeg';
+      const categories: { id: string; name: string }[] | undefined = body.categories;
 
       if (!image) {
         return new Response(
@@ -399,15 +412,15 @@ Deno.serve(async (req) => {
       }
 
       try {
-        result = await callGeminiVision(image, mimeType);
+        result = await callGeminiVision(image, mimeType, categories);
       } catch (geminiErr) {
         console.error('[ai-parse] Gemini Vision failed:', geminiErr);
         try {
-          result = await callGroqVision(image, mimeType);
+          result = await callGroqVision(image, mimeType, categories);
         } catch (groqErr) {
           console.error('[ai-parse] Groq Vision failed:', groqErr);
           try {
-            result = await callOpenRouterVision(image, mimeType);
+            result = await callOpenRouterVision(image, mimeType, categories);
           } catch (openrouterErr) {
             console.error('[ai-parse] OpenRouter Vision failed:', openrouterErr);
             // Semua AI gagal → Flutter akan fallback ke ML Kit OCR lokal

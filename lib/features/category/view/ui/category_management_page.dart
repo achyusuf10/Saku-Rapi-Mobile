@@ -294,7 +294,7 @@ class _CategoryManagementTile extends ConsumerWidget {
         // Children
         if (category.children.isNotEmpty)
           Padding(
-            padding: EdgeInsets.only(left: 52.w),
+            padding: EdgeInsets.only(left: 30.w),
             child: Column(
               children: category.children
                   .map(

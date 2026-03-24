@@ -22,6 +22,7 @@ class DashboardBalanceCard extends ConsumerWidget {
     final dashState = ref.watch(dashboardControllerProvider);
     final totalBalance = ref.watch(dashboardTotalBalanceProvider);
     final isHidden = dashState.isBalanceHidden;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -31,15 +32,23 @@ class DashboardBalanceCard extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            colors.primary,
-            colors.primaryDark,
-            colors.primary.withValues(alpha: 0.85),
-          ],
+          colors: isDark
+              ? [
+                  const Color(0xFF065F46), // Emerald 800
+                  const Color(0xFF047857), // Emerald 700
+                  const Color(0xFF059669), // Emerald 600
+                ]
+              : [
+                  colors.primary,
+                  colors.primaryDark,
+                  colors.primary.withValues(alpha: 0.85),
+                ],
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.primary.withValues(alpha: 0.3),
+            color: isDark
+                ? const Color(0xFF065F46).withValues(alpha: 0.5)
+                : colors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/repositories/wallet_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -183,6 +184,26 @@ class WalletController extends StateNotifier<WalletState> {
     final result = await _repository.toggleExcludeFromTotal(
       walletId: walletId,
       exclude: exclude,
+    );
+
+    if (result.isSuccess()) {
+      await loadWallets();
+    }
+    return result;
+  }
+
+  // ───────────────── ADJUST BALANCE ─────────────────
+
+  /// Sesuaikan saldo wallet ke nilai target via RPC adjustment.
+  Future<DataState<Map<String, dynamic>>> adjustBalance({
+    required String walletId,
+    required double targetBalance,
+    String? note,
+  }) async {
+    final result = await TransactionRemoteDataSource().createAdjustment(
+      walletId: walletId,
+      targetBalance: targetBalance,
+      note: note,
     );
 
     if (result.isSuccess()) {

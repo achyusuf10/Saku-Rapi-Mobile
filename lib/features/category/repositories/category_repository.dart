@@ -28,6 +28,14 @@ class CategoryRepository {
   ///
   /// Jika remote gagal, fallback ke cache lokal.
   Future<DataState<List<CategoryModel>>> getCategories() async {
+    final cached = _localDataSource.getCachedCategories();
+    if (cached.isNotEmpty) {
+      AppLogger.call(
+        '[Category] [CategoryRepository] Using cached categories as fallback',
+        colorLog: ColorLog.yellow,
+      );
+      return DataState<List<CategoryModel>>.success(data: cached);
+    }
     final result = await _remoteDataSource.getCategories();
 
     return result.map(

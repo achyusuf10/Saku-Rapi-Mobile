@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/controller/graphify_controller.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/view/graphify_view.dart';
 import 'package:flutter/material.dart';
@@ -15,53 +16,11 @@ import 'package:intl/intl.dart';
 /// 1. Bulan ini (solid, warna expense)
 /// 2. Bulan lalu (dashed, lebih tipis)
 /// 3. Rata-rata 3 bulan lalu (dashed gray)
-///
-/// Plus zoom controls dan smart insight di bawah chart.
-class DashboardTrendReportChart extends ConsumerStatefulWidget {
+class DashboardTrendReportChart extends ConsumerWidget {
   const DashboardTrendReportChart({super.key});
 
   @override
-  ConsumerState<DashboardTrendReportChart> createState() =>
-      _DashboardTrendReportChartState();
-}
-
-class _DashboardTrendReportChartState
-    extends ConsumerState<DashboardTrendReportChart> {
-  double _zoomStart = 0;
-  double _zoomEnd = 100;
-
-  static const _zoomStep = 20.0;
-
-  void _zoomIn() {
-    setState(() {
-      final mid = (_zoomStart + _zoomEnd) / 2;
-      final halfRange = (_zoomEnd - _zoomStart) / 2;
-      final newHalf = (halfRange - _zoomStep).clamp(5.0, 50.0);
-      _zoomStart = (mid - newHalf).clamp(0.0, 100.0);
-      _zoomEnd = (mid + newHalf).clamp(0.0, 100.0);
-    });
-  }
-
-  void _zoomOut() {
-    setState(() {
-      final mid = (_zoomStart + _zoomEnd) / 2;
-      final halfRange = (_zoomEnd - _zoomStart) / 2;
-      final newHalf = (halfRange + _zoomStep).clamp(5.0, 50.0);
-      _zoomStart = (mid - newHalf).clamp(0.0, 100.0);
-      _zoomEnd = (mid + newHalf).clamp(0.0, 100.0);
-    });
-  }
-
-  void _zoomReset() {
-    setState(() {
-      _zoomStart = 0;
-      _zoomEnd = 100;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ref = this.ref;
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
     final dashState = ref.watch(dashboardControllerProvider);
@@ -111,7 +70,7 @@ class _DashboardTrendReportChartState
     final expenseHex =
         '#${colors.expense.toARGB32().toRadixString(16).substring(2)}';
     final textColor = isDark ? '#9CA3AF' : '#6B7280';
-    final borderColor = isDark ? '#374151' : '#E5E7EB';
+    final borderColor = isDark ? '#2D3F38' : '#E5E7EB';
 
     final chartOptions = _buildChartOptions(
       xLabels: xLabels,
@@ -135,53 +94,45 @@ class _DashboardTrendReportChartState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ─── Legend ───
+        // ─── Legend + Fullscreen ───
         Row(
           children: [
-            _LegendItem(
-              color: colors.expense,
-              label: l10n.dashboardThisMonthCumulative,
-              isDashed: false,
+            Expanded(
+              child: Wrap(
+                spacing: 12.w,
+                runSpacing: 4.h,
+                children: [
+                  _LegendItem(
+                    color: colors.expense,
+                    label: l10n.dashboardThisMonthCumulative,
+                    isDashed: false,
+                  ),
+                  _LegendItem(
+                    color: colors.expense.withValues(alpha: 0.5),
+                    label: isMonthly
+                        ? l10n.dashboardPrevMonthLabel
+                        : l10n.dashboardLastWeek,
+                    isDashed: true,
+                  ),
+                  _LegendItem(
+                    color: colors.textSecondary.withValues(alpha: 0.5),
+                    label: l10n.dashboardAvg3MonthLabel,
+                    isDashed: true,
+                  ),
+                ],
+              ),
             ),
-            SizedBox(width: 12.w),
-            _LegendItem(
-              color: colors.expense.withValues(alpha: 0.5),
-              label: isMonthly
-                  ? l10n.dashboardPrevMonthLabel
-                  : l10n.dashboardLastWeek,
-              isDashed: true,
-            ),
-            SizedBox(width: 12.w),
-            _LegendItem(
-              color: colors.textSecondary.withValues(alpha: 0.5),
-              label: l10n.dashboardAvg3MonthLabel,
-              isDashed: true,
+            _FullscreenButton(
+              onPressed: () => ChartFullscreenDialog.show(
+                context,
+                title: l10n.dashboardTrendReport,
+                chartOptions: chartOptions,
+                isDark: isDark,
+              ),
             ),
           ],
         ),
         SizedBox(height: 8.h),
-
-        // ─── Zoom Controls ───
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            _ZoomButton(
-              icon: Icons.zoom_in_rounded,
-              onPressed: _zoomEnd - _zoomStart > 10 ? _zoomIn : null,
-            ),
-            SizedBox(width: 4.w),
-            _ZoomButton(
-              icon: Icons.zoom_out_rounded,
-              onPressed: _zoomEnd - _zoomStart < 100 ? _zoomOut : null,
-            ),
-            SizedBox(width: 4.w),
-            _ZoomButton(
-              icon: Icons.zoom_out_map_rounded,
-              onPressed: _zoomStart != 0 || _zoomEnd != 100 ? _zoomReset : null,
-            ),
-          ],
-        ),
-        SizedBox(height: 4.h),
 
         // ─── ECharts Line ───
         SizedBox(
@@ -202,7 +153,7 @@ class _DashboardTrendReportChartState
   }
 
   /// Fills gaps in daily data so every date in range has an entry.
-  List<Map<String, dynamic>> _fillGaps(
+  static List<Map<String, dynamic>> _fillGaps(
     List<Map<String, dynamic>> data,
     DateTime start,
     DateTime end,
@@ -227,7 +178,7 @@ class _DashboardTrendReportChartState
   }
 
   /// Converts daily expense data to cumulative running total.
-  List<double> _toCumulative(List<Map<String, dynamic>> daily) {
+  static List<double> _toCumulative(List<Map<String, dynamic>> daily) {
     final result = <double>[];
     double running = 0;
     for (final entry in daily) {
@@ -238,7 +189,7 @@ class _DashboardTrendReportChartState
   }
 
   /// Computes 3-month average cumulative: (prev + month2 + month3) / 3 per day.
-  List<double> _computeAvg3Cumulative(
+  static List<double> _computeAvg3Cumulative(
     List<Map<String, dynamic>> prev,
     List<Map<String, dynamic>> month2,
     List<Map<String, dynamic>> month3,
@@ -265,7 +216,7 @@ class _DashboardTrendReportChartState
   }
 
   /// Builds ECharts option for cumulative line chart.
-  Map<String, dynamic> _buildChartOptions({
+  static Map<String, dynamic> _buildChartOptions({
     required List<String> xLabels,
     required List<double> currentData,
     required List<double> previousData,
@@ -276,29 +227,14 @@ class _DashboardTrendReportChartState
     required bool isDark,
   }) {
     return {
+      'backgroundColor': 'transparent',
       'grid': {
         'left': '3%',
         'right': '3%',
-        'bottom': '15%',
+        'bottom': '5%',
         'top': '8%',
         'containLabel': true,
       },
-      'dataZoom': [
-        {'type': 'inside', 'start': _zoomStart, 'end': _zoomEnd},
-        {
-          'type': 'slider',
-          'start': _zoomStart,
-          'end': _zoomEnd,
-          'height': 18,
-          'bottom': '2%',
-          'borderColor': 'transparent',
-          'backgroundColor': isDark ? '#1F2937' : '#F3F4F6',
-          'fillerColor': isDark ? '#37415180' : '#D1D5DB80',
-          'handleSize': '60%',
-          'handleStyle': {'color': isDark ? '#6B7280' : '#9CA3AF'},
-          'textStyle': {'fontSize': 0},
-        },
-      ],
       'xAxis': {
         'type': 'category',
         'data': xLabels,
@@ -381,14 +317,14 @@ class _DashboardTrendReportChartState
     };
   }
 
-  int _calculateInterval(int count) {
+  static int _calculateInterval(int count) {
     if (count <= 7) return 0;
     if (count <= 14) return 1;
     if (count <= 21) return 2;
     return 4;
   }
 
-  Widget _buildInsight(
+  static Widget _buildInsight(
     BuildContext context, {
     required double currentTotal,
     required double avg3Total,
@@ -509,11 +445,10 @@ class _DashedLinePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _ZoomButton extends StatelessWidget {
-  const _ZoomButton({required this.icon, required this.onPressed});
+class _FullscreenButton extends StatelessWidget {
+  const _FullscreenButton({required this.onPressed});
 
-  final IconData icon;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -523,17 +458,15 @@ class _ZoomButton extends StatelessWidget {
       height: 28.w,
       child: IconButton(
         onPressed: onPressed,
-        icon: Icon(icon, size: 16.w),
+        icon: Icon(Icons.fullscreen_rounded, size: 18.w),
         padding: EdgeInsets.zero,
         style: IconButton.styleFrom(
           backgroundColor: colors.surfaceVariant.withValues(alpha: 0.5),
-          disabledBackgroundColor: colors.surfaceVariant.withValues(alpha: 0.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6.r),
           ),
         ),
         color: colors.textPrimary,
-        disabledColor: colors.textSecondary.withValues(alpha: 0.3),
       ),
     );
   }

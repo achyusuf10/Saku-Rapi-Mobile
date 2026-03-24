@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/themes/app_colors.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_adjust_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_card_tile.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_form_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_summary_card.dart';
@@ -173,6 +174,16 @@ class _WalletPageState extends ConsumerState<WalletPage> {
               ),
             ),
             PopupMenuItem(
+              value: 'adjust',
+              child: Row(
+                children: [
+                  FaIcon(FontAwesomeIcons.scaleBalanced, size: 14.w),
+                  SizedBox(width: 10.w),
+                  Text(l10n.walletOptionAdjust),
+                ],
+              ),
+            ),
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
@@ -203,6 +214,8 @@ class _WalletPageState extends ConsumerState<WalletPage> {
     switch (action) {
       case 'edit':
         WalletFormSheet.show(context, editWallet: wallet);
+      case 'adjust':
+        WalletAdjustSheet.show(context, wallet: wallet);
       case 'delete':
         _confirmDelete(wallet);
     }

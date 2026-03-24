@@ -2,7 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
-import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_expense_report_chart.dart';
+import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_comparison_chart.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_trend_report_chart.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:flutter/material.dart';
@@ -118,7 +118,7 @@ class _DashboardChartCarouselState
                 controller: _pageController,
                 onPageChanged: (page) => setState(() => _currentPage = page),
                 children: const [
-                  DashboardExpenseReportChart(),
+                  DashboardComparisonChart(),
                   DashboardTrendReportChart(),
                 ],
               ),

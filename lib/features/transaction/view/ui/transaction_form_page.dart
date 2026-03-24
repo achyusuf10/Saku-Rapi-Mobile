@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/themes/app_colors.dart';
+import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
@@ -139,6 +140,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   /// - Set date
   /// - Set total amount
   /// - Prefill items (multi-item mode jika > 1 item)
+  /// - Auto-assign kategori per item dari AI
   /// - Balance items jika total mismatch
   /// - Clear provider setelah dibaca
   void _applyOcrPrefill(TransactionFormController ctrl) {
@@ -162,22 +164,36 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       ctrl.setDate(ocrResult.date!);
     }
 
+    // Build lookup map kategori expense (flat, termasuk children)
+    final allCategories = ref
+        .read(categoryControllerProvider)
+        .categories
+        .where((c) => c.type == CategoryType.expense)
+        .toList();
+    final categoryMap = {for (final c in allCategories) c.id: c};
+
     // Items & total
     final balanced = OcrRepository.balanceResult(ocrResult);
     if (balanced.items.isNotEmpty) {
-      final txItems = balanced.items
-          .asMap()
-          .entries
-          .map(
-            (e) => TransactionItemModel(
-              itemName: e.value.name,
-              qty: e.value.qty,
-              unitPrice: e.value.unitPrice,
-              amount: e.value.subtotal,
-              sortOrder: e.key,
-            ),
-          )
-          .toList();
+      final txItems = balanced.items.asMap().entries.map((e) {
+        final ocrItem = e.value;
+        // Lookup kategori dari AI-assigned categoryId
+        final cat = ocrItem.categoryId != null
+            ? categoryMap[ocrItem.categoryId]
+            : null;
+
+        return TransactionItemModel(
+          itemName: ocrItem.name,
+          qty: ocrItem.qty,
+          unitPrice: ocrItem.unitPrice,
+          amount: ocrItem.subtotal,
+          sortOrder: e.key,
+          categoryId: cat?.id,
+          categoryName: cat?.name,
+          categoryIcon: cat?.icon,
+          categoryColor: cat?.color,
+        );
+      }).toList();
       ctrl.prefillItems(txItems);
     } else if (balanced.grandTotal != null && balanced.grandTotal! > 0) {
       ctrl.setTotalAmount(balanced.grandTotal!);

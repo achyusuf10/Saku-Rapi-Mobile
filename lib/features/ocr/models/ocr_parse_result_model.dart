@@ -152,6 +152,7 @@ class OcrItemModel {
     this.qty = 1,
     this.unitPrice,
     required this.subtotal,
+    this.categoryId,
   });
 
   /// Nama item di struk.
@@ -165,6 +166,9 @@ class OcrItemModel {
 
   /// Subtotal untuk baris ini (authoritative).
   final double subtotal;
+
+  /// UUID kategori yang di-assign oleh AI (bisa null jika tidak cocok).
+  final String? categoryId;
 
   /// Parse dari map Edge Function.
   ///
@@ -188,6 +192,7 @@ class OcrItemModel {
       qty: qty,
       unitPrice: unitPrice,
       subtotal: subtotal,
+      categoryId: map['categoryId'] as String?,
     );
   }
 
@@ -197,6 +202,7 @@ class OcrItemModel {
       'qty': qty,
       'unitPrice': unitPrice,
       'subtotal': subtotal,
+      'categoryId': categoryId,
     };
   }
 
@@ -205,12 +211,14 @@ class OcrItemModel {
     double? qty,
     double? unitPrice,
     double? subtotal,
+    String? categoryId,
   }) {
     return OcrItemModel(
       name: name ?? this.name,
       qty: qty ?? this.qty,
       unitPrice: unitPrice ?? this.unitPrice,
       subtotal: subtotal ?? this.subtotal,
+      categoryId: categoryId ?? this.categoryId,
     );
   }
 
@@ -232,5 +240,5 @@ class OcrItemModel {
 
   @override
   String toString() =>
-      'OcrItemModel(name: $name, qty: $qty, unitPrice: $unitPrice, subtotal: $subtotal)';
+      'OcrItemModel(name: $name, qty: $qty, unitPrice: $unitPrice, subtotal: $subtotal, categoryId: $categoryId)';
 }

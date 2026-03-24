@@ -111,7 +111,7 @@ extension ContextExt on BuildContext {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                       if (title.isNotEmpty) SizedBox(height: 4.w),
@@ -120,7 +120,7 @@ extension ContextExt on BuildContext {
                             .replaceAll('Exception:', '')
                             .replaceAll('Exception :', ''),
                         style: TextStyleConstants.caption.copyWith(
-                          color: Colors.black,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ],

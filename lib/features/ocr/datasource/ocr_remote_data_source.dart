@@ -20,8 +20,12 @@ class OcrRemoteDataSource {
   /// Kirim gambar struk ke Edge Function `ai-parse` mode `ocr` (Vision AI).
   ///
   /// Gambar diencode sebagai base64 dan dikirim ke Gemini Vision / Groq Vision.
+  /// [categories] berisi daftar kategori expense user untuk auto-assign oleh AI.
   /// Return [DataState] berisi response map dari AI.
-  Future<DataState<Map<String, dynamic>>> callAiParseImage(File imageFile) {
+  Future<DataState<Map<String, dynamic>>> callAiParseImage(
+    File imageFile, {
+    List<Map<String, String>> categories = const [],
+  }) {
     return SupabaseHandler.call<Map<String, dynamic>>(
       function: () async {
         AppLogger.call('$_tag Calling ai-parse vision (mode: ocr)');
@@ -31,10 +35,16 @@ class OcrRemoteDataSource {
         final bytes = await imageFile.readAsBytes();
         final base64Image = base64Encode(bytes);
 
-        final response = await _client.functions.invoke(
-          'ai-parse',
-          body: {'mode': 'ocr', 'image': base64Image, 'mimeType': 'image/jpeg'},
-        );
+        final body = <String, dynamic>{
+          'mode': 'ocr',
+          'image': base64Image,
+          'mimeType': 'image/jpeg',
+        };
+        if (categories.isNotEmpty) {
+          body['categories'] = categories;
+        }
+
+        final response = await _client.functions.invoke('ai-parse', body: body);
 
         final data = response.data as Map<String, dynamic>;
 

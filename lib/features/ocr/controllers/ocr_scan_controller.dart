@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/ocr/services/ocr_image_service.dart';
@@ -25,6 +27,11 @@ final ocrScanControllerProvider =
       (ref) => OcrScanController(
         repository: ref.watch(ocrRepositoryProvider),
         imageService: ref.watch(ocrImageServiceProvider),
+        expenseCategories: ref
+            .read(categoryControllerProvider)
+            .categories
+            .where((c) => c.type == CategoryType.expense && !c.isHidden)
+            .toList(),
       ),
     );
 
@@ -119,12 +126,15 @@ class OcrScanController extends StateNotifier<OcrScanState> {
   OcrScanController({
     required OcrRepository repository,
     required OcrImageService imageService,
+    List<CategoryModel> expenseCategories = const [],
   }) : _repository = repository,
        _imageService = imageService,
+       _expenseCategories = expenseCategories,
        super(const OcrScanState());
 
   final OcrRepository _repository;
   final OcrImageService _imageService;
+  final List<CategoryModel> _expenseCategories;
   static const _tag = '[OcrScanController]';
 
   /// Mulai flow OCR dari kamera.
@@ -187,8 +197,17 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     // Kirim gambar ke Vision AI (Gemini → Groq failover)
     state = state.copyWith(status: OcrScanStatus.analyzingAi);
     OcrParseResultModel result;
+
+    // Siapkan daftar kategori expense untuk AI categorization
+    final categoryMaps = _expenseCategories
+        .map((c) => {'id': c.id, 'name': c.name})
+        .toList();
+
     try {
-      result = await _repository.parseImage(finalImage);
+      result = await _repository.parseImage(
+        finalImage,
+        categories: categoryMaps,
+      );
     } catch (aiError) {
       // Kedua AI gagal → fallback ke ML Kit OCR + local parser
       AppLogger.call(

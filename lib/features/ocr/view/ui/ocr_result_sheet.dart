@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/ocr_scan_controller.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:flutter/material.dart';
@@ -83,9 +84,7 @@ class OcrResultSheet extends ConsumerWidget {
             Divider(height: 1, color: colors.border.withValues(alpha: 0.2)),
 
             // Content
-            Flexible(
-              child: _buildContent(context, ref, state, ctrl),
-            ),
+            Flexible(child: _buildContent(context, ref, state, ctrl)),
 
             // Bottom action buttons
             _buildActions(context, ref, state, ctrl),
@@ -142,7 +141,7 @@ class OcrResultSheet extends ConsumerWidget {
 
     // Done — show parsed result
     if (state.status == OcrScanStatus.done && state.parseResult != null) {
-      return _buildResult(context, state);
+      return _buildResult(context, ref, state);
     }
 
     // Idle — show source picker
@@ -166,9 +165,7 @@ class OcrResultSheet extends ConsumerWidget {
           SizedBox(height: 20.h),
           Text(
             message,
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
           ),
         ],
       ),
@@ -204,9 +201,7 @@ class OcrResultSheet extends ConsumerWidget {
           SizedBox(height: 8.h),
           Text(
             l10n.ocrPermissionExplainer,
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
           if (isPermanent) ...[
@@ -257,9 +252,7 @@ class OcrResultSheet extends ConsumerWidget {
           SizedBox(height: 16.h),
           Text(
             message,
-            style: TextStyleConstants.b1.copyWith(
-              color: colors.textPrimary,
-            ),
+            style: TextStyleConstants.b1.copyWith(color: colors.textPrimary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -310,10 +303,14 @@ class OcrResultSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildResult(BuildContext context, OcrScanState state) {
+  Widget _buildResult(BuildContext context, WidgetRef ref, OcrScanState state) {
     final colors = context.colors;
     final l10n = context.l10n;
     final result = state.parseResult!;
+
+    // Build category lookup from user's categories
+    final allCategories = ref.read(categoryControllerProvider).categories;
+    final categoryMap = {for (final c in allCategories) c.id: c.name};
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
@@ -351,11 +348,7 @@ class OcrResultSheet extends ConsumerWidget {
           if (result.items.isNotEmpty) ...[
             Row(
               children: [
-                FaIcon(
-                  FontAwesomeIcons.list,
-                  size: 14.w,
-                  color: colors.accent,
-                ),
+                FaIcon(FontAwesomeIcons.list, size: 14.w, color: colors.accent),
                 SizedBox(width: 8.w),
                 Text(
                   l10n.ocrItemCount(result.items.length),
@@ -372,6 +365,9 @@ class OcrResultSheet extends ConsumerWidget {
                 index: e.key,
                 item: e.value,
                 colors: colors,
+                categoryName: e.value.categoryId != null
+                    ? categoryMap[e.value.categoryId]
+                    : null,
               ),
             ),
           ],
@@ -384,9 +380,7 @@ class OcrResultSheet extends ConsumerWidget {
             decoration: BoxDecoration(
               color: colors.accent.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: colors.accent.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: colors.accent.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -475,11 +469,7 @@ class OcrResultSheet extends ConsumerWidget {
     return Center(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
-        child: Image.file(
-          imageFile,
-          height: 120.h,
-          fit: BoxFit.cover,
-        ),
+        child: Image.file(imageFile, height: 120.h, fit: BoxFit.cover),
       ),
     );
   }
@@ -530,9 +520,7 @@ class OcrResultSheet extends ConsumerWidget {
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.textSecondary,
-                side: BorderSide(
-                  color: colors.border.withValues(alpha: 0.3),
-                ),
+                side: BorderSide(color: colors.border.withValues(alpha: 0.3)),
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
@@ -546,7 +534,8 @@ class OcrResultSheet extends ConsumerWidget {
           // Continue / Use result button
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: state.status == OcrScanStatus.done &&
+              onPressed:
+                  state.status == OcrScanStatus.done &&
                       state.parseResult != null
                   ? () => nav.pop(state.parseResult)
                   : null,
@@ -555,8 +544,7 @@ class OcrResultSheet extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.accent,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor:
-                    colors.accent.withValues(alpha: 0.3),
+                disabledBackgroundColor: colors.accent.withValues(alpha: 0.3),
                 disabledForegroundColor: Colors.white54,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
@@ -597,9 +585,7 @@ class _SourceButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: color.withValues(alpha: 0.15),
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
         ),
         child: Column(
           children: [
@@ -674,11 +660,13 @@ class _OcrItemTile extends StatelessWidget {
     required this.index,
     required this.item,
     required this.colors,
+    this.categoryName,
   });
 
   final int index;
   final OcrItemModel item;
   final dynamic colors;
+  final String? categoryName;
 
   @override
   Widget build(BuildContext context) {
@@ -688,9 +676,7 @@ class _OcrItemTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.background,
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
-          color: colors.border.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: colors.border.withValues(alpha: 0.12)),
       ),
       child: Row(
         children: [
@@ -733,6 +719,29 @@ class _OcrItemTile extends StatelessWidget {
                     '${item.unitPrice != null ? '@ ${item.unitPrice!.toCurrency(withPrefix: false)}' : ''}',
                     style: TextStyleConstants.caption.copyWith(
                       color: colors.textSecondary,
+                    ),
+                  ),
+                if (categoryName != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: 2.h),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.accent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Text(
+                        categoryName!,
+                        style: TextStyleConstants.caption.copyWith(
+                          color: colors.accent,
+                          fontSize: 10.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
               ],

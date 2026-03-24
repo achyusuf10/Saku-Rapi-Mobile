@@ -84,7 +84,7 @@ class OcrImageService {
   Future<File?> compressImage(File imageFile) async {
     final bytes = await CompressImageFunc.call(
       filePath: imageFile.path,
-      targetSizeKb: 500,
+      targetSizeKb: 200,
     );
     if (bytes == null) return null;
 
