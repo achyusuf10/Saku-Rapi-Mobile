@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/localization/locale_controller.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
@@ -90,6 +91,7 @@ class SakuRapiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeControllerProvider);
+    final locale = ref.watch(localeControllerProvider);
     final designSize = getDesignSize(context);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return ScreenUtilInit(
@@ -107,6 +109,8 @@ class SakuRapiApp extends ConsumerWidget {
           themeMode: themeMode,
           theme: AppThemes.lightTheme(context),
           darkTheme: AppThemes.darkTheme(context),
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: ref.watch(routerProvider),
           localizationsDelegates: const [
             // 1. Delegate untuk teks custom aplikasi kamu (dari ARB)

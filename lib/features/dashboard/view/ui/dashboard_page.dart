@@ -4,7 +4,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_balance_card.dart';
-import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_comparison_chart.dart';
+import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_chart_carousel.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_period_summary.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_quick_actions.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_recent_transactions.dart';
@@ -117,8 +117,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 const SliverToBoxAdapter(child: DashboardPeriodSummary()),
                 SliverToBoxAdapter(child: SizedBox(height: 20.h)),
 
-                // ─── Comparison Chart ───
-                const SliverToBoxAdapter(child: DashboardComparisonChart()),
+                // ─── Chart Carousel ───
+                const SliverToBoxAdapter(child: DashboardChartCarousel()),
                 SliverToBoxAdapter(child: SizedBox(height: 20.h)),
 
                 // ─── Recent Transactions ───

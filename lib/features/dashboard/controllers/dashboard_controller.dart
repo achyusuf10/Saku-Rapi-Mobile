@@ -56,6 +56,8 @@ class DashboardState {
     this.chartMode = DashboardChartMode.monthly,
     this.currentPeriodDaily = const [],
     this.previousPeriodDaily = const [],
+    this.month2Daily = const [],
+    this.month3Daily = const [],
     this.errorMessage,
     this.isBalanceHidden = false,
   });
@@ -80,6 +82,10 @@ class DashboardState {
   final List<Map<String, dynamic>> currentPeriodDaily;
   final List<Map<String, dynamic>> previousPeriodDaily;
 
+  /// Daily aggregation 2 & 3 bulan/minggu lalu untuk rata-rata tren.
+  final List<Map<String, dynamic>> month2Daily;
+  final List<Map<String, dynamic>> month3Daily;
+
   /// Error message jika gagal load.
   final String? errorMessage;
 
@@ -96,6 +102,8 @@ class DashboardState {
     DashboardChartMode? chartMode,
     List<Map<String, dynamic>>? currentPeriodDaily,
     List<Map<String, dynamic>>? previousPeriodDaily,
+    List<Map<String, dynamic>>? month2Daily,
+    List<Map<String, dynamic>>? month3Daily,
     String? errorMessage,
     bool? isBalanceHidden,
   }) {
@@ -110,6 +118,8 @@ class DashboardState {
       chartMode: chartMode ?? this.chartMode,
       currentPeriodDaily: currentPeriodDaily ?? this.currentPeriodDaily,
       previousPeriodDaily: previousPeriodDaily ?? this.previousPeriodDaily,
+      month2Daily: month2Daily ?? this.month2Daily,
+      month3Daily: month3Daily ?? this.month3Daily,
       errorMessage: errorMessage,
       isBalanceHidden: isBalanceHidden ?? this.isBalanceHidden,
     );
@@ -142,6 +152,12 @@ class DashboardController extends StateNotifier<DashboardState> {
       state.chartMode,
     );
 
+    // Extra ranges for 3-month average trend
+    final (m2Start, m2End, m3Start, m3End) = extraPeriodRanges(
+      now,
+      state.chartMode,
+    );
+
     // Fetch all in parallel
     final results = await Future.wait([
       _repository.getRecentTransactions(limit: 5),
@@ -155,6 +171,8 @@ class DashboardController extends StateNotifier<DashboardState> {
         endDate: currentEnd,
       ),
       _repository.getDailyAggregation(startDate: prevStart, endDate: prevEnd),
+      _repository.getDailyAggregation(startDate: m2Start, endDate: m2End),
+      _repository.getDailyAggregation(startDate: m3Start, endDate: m3End),
     ]);
 
     final recentResult = results[0] as DataState<List<TransactionModel>>;
@@ -162,6 +180,8 @@ class DashboardController extends StateNotifier<DashboardState> {
     final previousSummary = results[2] as DataState<Map<String, double>>;
     final currentDaily = results[3] as DataState<List<Map<String, dynamic>>>;
     final previousDaily = results[4] as DataState<List<Map<String, dynamic>>>;
+    final m2Daily = results[5] as DataState<List<Map<String, dynamic>>>;
+    final m3Daily = results[6] as DataState<List<Map<String, dynamic>>>;
 
     // Check for critical errors
     if (recentResult.isError() && currentSummary.isError()) {
@@ -182,6 +202,8 @@ class DashboardController extends StateNotifier<DashboardState> {
       previousPeriodExpense: previousSummary.dataSuccess()?['expense'] ?? 0,
       currentPeriodDaily: currentDaily.dataSuccess() ?? [],
       previousPeriodDaily: previousDaily.dataSuccess() ?? [],
+      month2Daily: m2Daily.dataSuccess() ?? [],
+      month3Daily: m3Daily.dataSuccess() ?? [],
     );
   }
 
@@ -198,6 +220,7 @@ class DashboardController extends StateNotifier<DashboardState> {
       now,
       newMode,
     );
+    final (m2Start, m2End, m3Start, m3End) = extraPeriodRanges(now, newMode);
 
     final results = await Future.wait([
       _repository.getPeriodSummary(
@@ -210,12 +233,16 @@ class DashboardController extends StateNotifier<DashboardState> {
         endDate: currentEnd,
       ),
       _repository.getDailyAggregation(startDate: prevStart, endDate: prevEnd),
+      _repository.getDailyAggregation(startDate: m2Start, endDate: m2End),
+      _repository.getDailyAggregation(startDate: m3Start, endDate: m3End),
     ]);
 
     final currentSummary = results[0] as DataState<Map<String, double>>;
     final previousSummary = results[1] as DataState<Map<String, double>>;
     final currentDaily = results[2] as DataState<List<Map<String, dynamic>>>;
     final previousDaily = results[3] as DataState<List<Map<String, dynamic>>>;
+    final m2Daily = results[4] as DataState<List<Map<String, dynamic>>>;
+    final m3Daily = results[5] as DataState<List<Map<String, dynamic>>>;
 
     state = state.copyWith(
       currentPeriodIncome: currentSummary.dataSuccess()?['income'] ?? 0,
@@ -224,6 +251,8 @@ class DashboardController extends StateNotifier<DashboardState> {
       previousPeriodExpense: previousSummary.dataSuccess()?['expense'] ?? 0,
       currentPeriodDaily: currentDaily.dataSuccess() ?? [],
       previousPeriodDaily: previousDaily.dataSuccess() ?? [],
+      month2Daily: m2Daily.dataSuccess() ?? [],
+      month3Daily: m3Daily.dataSuccess() ?? [],
     );
   }
 
@@ -263,6 +292,44 @@ class DashboardController extends StateNotifier<DashboardState> {
       final prevStart = currentStart.subtract(const Duration(days: 7));
       final prevEnd = currentStart.subtract(const Duration(milliseconds: 1));
       return (currentStart, currentEnd, prevStart, prevEnd);
+    }
+  }
+
+  /// Hitung ranges untuk periode-2 dan periode-3 (untuk rata-rata tren).
+  ///
+  /// Returns `(month2Start, month2End, month3Start, month3End)`.
+  static (DateTime, DateTime, DateTime, DateTime) extraPeriodRanges(
+    DateTime now,
+    DashboardChartMode mode,
+  ) {
+    if (mode == DashboardChartMode.monthly) {
+      final m2Start = DateTime(now.year, now.month - 2);
+      final m2End = DateTime(
+        now.year,
+        now.month - 1,
+      ).subtract(const Duration(milliseconds: 1));
+      final m3Start = DateTime(now.year, now.month - 3);
+      final m3End = DateTime(
+        now.year,
+        now.month - 2,
+      ).subtract(const Duration(milliseconds: 1));
+      return (m2Start, m2End, m3Start, m3End);
+    } else {
+      final weekday = now.weekday;
+      final thisWeekStart = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: weekday - 1));
+      final w2Start = thisWeekStart.subtract(const Duration(days: 14));
+      final w2End = thisWeekStart
+          .subtract(const Duration(days: 7))
+          .subtract(const Duration(milliseconds: 1));
+      final w3Start = thisWeekStart.subtract(const Duration(days: 21));
+      final w3End = thisWeekStart
+          .subtract(const Duration(days: 14))
+          .subtract(const Duration(milliseconds: 1));
+      return (w2Start, w2End, w3Start, w3End);
     }
   }
 }

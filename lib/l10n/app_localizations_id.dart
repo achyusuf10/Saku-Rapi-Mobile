@@ -496,6 +496,69 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyResetFilter => 'Reset';
 
   @override
+  String get historyDaily => 'Harian';
+
+  @override
+  String get historyWeekly => 'Mingguan';
+
+  @override
+  String get historyMonthly => 'Bulanan';
+
+  @override
+  String get historyQuarterly => '3 Bulanan';
+
+  @override
+  String get historyYearly => 'Tahunan';
+
+  @override
+  String get historyCustomRange => 'Kustom';
+
+  @override
+  String get historyGroupByDate => 'Berdasarkan Tanggal';
+
+  @override
+  String get historyGroupByCategory => 'Berdasarkan Kategori';
+
+  @override
+  String get historyAllTypes => 'Semua Tipe';
+
+  @override
+  String get historySelectType => 'Tipe Transaksi';
+
+  @override
+  String get historyPeriod => 'Periode';
+
+  @override
+  String get historyLoadMore => 'Muat lebih banyak';
+
+  @override
+  String historyTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get historyFilterEmpty => 'Tidak ada transaksi dengan filter ini';
+
+  @override
+  String get historyDeleteSuccess => 'Transaksi berhasil dihapus';
+
+  @override
+  String get historyDeleteConfirm => 'Hapus Transaksi';
+
+  @override
+  String get historyDeleteConfirmMessage =>
+      'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan.';
+
+  @override
+  String get historySelectDateRange => 'Pilih Rentang Tanggal';
+
+  @override
+  String get historyStartDate => 'Tanggal Mulai';
+
+  @override
+  String get historyEndDate => 'Tanggal Akhir';
+
+  @override
   String get breakdownTitle => 'Rincian Biaya';
 
   @override
@@ -1070,6 +1133,63 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileLanguage => 'Bahasa';
 
   @override
+  String get profileThemeSystem => 'Ikuti Sistem';
+
+  @override
+  String get profileThemeLight => 'Terang';
+
+  @override
+  String get profileThemeDark => 'Gelap';
+
+  @override
+  String get profileThemeTitle => 'Tema Aplikasi';
+
+  @override
+  String get profileLanguageIndonesian => 'Indonesia';
+
+  @override
+  String get profileLanguageEnglish => 'English';
+
+  @override
+  String get profileLanguageTitle => 'Pilih Bahasa';
+
+  @override
+  String get profileEntryPoint => 'Entri Awal Transaksi';
+
+  @override
+  String get profileEntryManual => 'Form Manual';
+
+  @override
+  String get profileEntryVoice => 'Input Suara';
+
+  @override
+  String get profileEntryScan => 'Scan Struk';
+
+  @override
+  String get profileEntryPointTitle => 'Entri Awal Transaksi';
+
+  @override
+  String get profileExportImport => 'Export / Import';
+
+  @override
+  String get profileComingSoon => 'Segera Hadir';
+
+  @override
+  String get profileAppVersion => 'Versi Aplikasi';
+
+  @override
+  String get profileSectionAccount => 'Akun';
+
+  @override
+  String get profileSectionPreferences => 'Preferensi';
+
+  @override
+  String get profileSectionData => 'Data';
+
+  @override
+  String get profileSectionOther => 'Lainnya';
+
+  @override
   String get pickerChooseIcon => 'Pilih Ikon';
 
   @override
@@ -1094,6 +1214,26 @@ class AppLocalizationsId extends AppLocalizations {
   String get voiceNoSpeech => 'Tidak ada suara terdeteksi';
 
   @override
+  String get voiceOpenSettings => 'Buka Pengaturan';
+
+  @override
+  String get voicePermissionExplainer =>
+      'Izin mikrofon diperlukan untuk fitur input suara. Silakan aktifkan di pengaturan.';
+
+  @override
+  String get voiceParseFailed =>
+      'Gagal menganalisis, data dari suara diisi manual';
+
+  @override
+  String get voiceAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+
+  @override
+  String get voiceTapToSpeak => 'Tekan & tahan untuk bicara';
+
+  @override
+  String get voiceTranscript => 'Teks terdengar';
+
+  @override
   String get ocrExtractingText => 'Membaca teks dari struk...';
 
   @override
@@ -1107,6 +1247,39 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get ocrErrorGeneric => 'Gagal memproses gambar';
+
+  @override
+  String get ocrPermissionDenied => 'Izin kamera ditolak';
+
+  @override
+  String get ocrPermissionExplainer =>
+      'Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.';
+
+  @override
+  String get ocrAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+
+  @override
+  String get ocrPartialResult => 'Sebagian data berhasil dibaca';
+
+  @override
+  String ocrTotalMismatch(String itemsTotal, String receiptTotal) {
+    return 'Total item ($itemsTotal) tidak cocok dengan total struk ($receiptTotal)';
+  }
+
+  @override
+  String get ocrDate => 'Tanggal';
+
+  @override
+  String get ocrItemsSection => 'Daftar Item';
+
+  @override
+  String get ocrProcessing => 'Memproses...';
+
+  @override
+  String get ocrImageBlurry => 'Gambar tidak terbaca, coba foto ulang';
+
+  @override
+  String get ocrUseResult => 'Gunakan Hasil';
 
   @override
   String get transactionListTitle => 'Transaksi';
@@ -1155,4 +1328,88 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Transaksi berhasil dihapus';
+
+  @override
+  String get transactionItemQty => 'Jumlah';
+
+  @override
+  String get transactionItemUnitPrice => 'Harga Satuan';
+
+  @override
+  String get transactionItemSubtotal => 'Subtotal';
+
+  @override
+  String get transactionItemName => 'Nama Item';
+
+  @override
+  String get transactionItemNameHint => 'Contoh: Kopi, Nasi Goreng';
+
+  @override
+  String get transactionTotalMismatch =>
+      'Total item tidak cocok dengan total transaksi';
+
+  @override
+  String get transactionReorderHint => 'Geser untuk mengatur urutan';
+
+  @override
+  String get transactionRemoveItem => 'Hapus Item';
+
+  @override
+  String get transactionItemNote => 'Catatan item';
+
+  @override
+  String get dashboardExpenseReport => 'Laporan Pengeluaran';
+
+  @override
+  String get dashboardTrendReport => 'Laporan Tren';
+
+  @override
+  String get dashboardTotalExpenseLabel => 'Total pengeluaran';
+
+  @override
+  String get dashboardTotalIncomeLabel => 'Total pendapatan';
+
+  @override
+  String get dashboardThisMonthCumulative => 'Bulan ini';
+
+  @override
+  String get dashboardAvg3MonthLabel => 'Rata-rata 3 bulan lalu';
+
+  @override
+  String get dashboardPrevMonthLabel => 'Bulan lalu';
+
+  @override
+  String dashboardInsightExpenseDown(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Pengeluaranmu $period ini $percent% lebih rendah dari $prevPeriod. Bagus, terus pertahankan!';
+  }
+
+  @override
+  String dashboardInsightExpenseUp(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Pengeluaranmu $period ini $percent% lebih tinggi dari $prevPeriod. Coba kurangi pengeluaran yang tidak perlu.';
+  }
+
+  @override
+  String dashboardInsightExpenseSame(String prevPeriod) {
+    return 'Pengeluaranmu stabil dibandingkan $prevPeriod.';
+  }
+
+  @override
+  String get dashboardInsightTrendBelowAvg =>
+      'Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!';
+
+  @override
+  String get dashboardInsightTrendAboveAvg =>
+      'Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.';
+
+  @override
+  String get dashboardInsightNoData =>
+      'Mulai catat transaksi untuk melihat insight.';
 }

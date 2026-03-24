@@ -6,7 +6,10 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/themes/app_colors.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
+import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
+import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_amount_section.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_category_picker_tile.dart';
@@ -17,6 +20,7 @@ import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_opti
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_transfer_arrow.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_type_tabs.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_wallet_picker_tile.dart';
+import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
@@ -76,6 +80,12 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       } else {
         // Single-item mode default
         ctrl.initSingleItem();
+
+        // ── Voice prefill (jika ada) ──
+        _applyVoicePrefill(ctrl);
+
+        // ── OCR prefill (jika ada) ──
+        _applyOcrPrefill(ctrl);
       }
 
       // Ensure wallets are loaded
@@ -89,6 +99,89 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     _noteController.dispose();
     _withPersonController.dispose();
     super.dispose();
+  }
+
+  /// Terapkan data voice parse ke form (prefill only, bukan auto-save).
+  ///
+  /// Membaca [pendingVoicePrefillProvider], jika ada data:
+  /// - Set type (expense/income)
+  /// - Set total amount
+  /// - Set note
+  /// - Clear provider setelah dibaca
+  void _applyVoicePrefill(TransactionFormController ctrl) {
+    final voiceResult = ref.read(pendingVoicePrefillProvider);
+    if (voiceResult == null) return;
+
+    // Clear provider agar tidak ke-apply ulang
+    ref.read(pendingVoicePrefillProvider.notifier).state = null;
+
+    // Set type
+    ctrl.setType(voiceResult.type);
+
+    // Set amount
+    if (voiceResult.amount != null && voiceResult.amount! > 0) {
+      ctrl.setTotalAmount(voiceResult.amount!);
+    }
+
+    // Set note (gabungkan rawTranscript + note dari AI)
+    final note = voiceResult.note ?? voiceResult.rawTranscript;
+    if (note != null && note.isNotEmpty) {
+      ctrl.setNote(note);
+      _noteController.text = note;
+    }
+  }
+
+  /// Terapkan data OCR parse ke form (prefill only, bukan auto-save).
+  ///
+  /// Membaca [pendingOcrPrefillProvider], jika ada data:
+  /// - Set type expense (OCR selalu expense)
+  /// - Set merchant name
+  /// - Set date
+  /// - Set total amount
+  /// - Prefill items (multi-item mode jika > 1 item)
+  /// - Balance items jika total mismatch
+  /// - Clear provider setelah dibaca
+  void _applyOcrPrefill(TransactionFormController ctrl) {
+    final ocrResult = ref.read(pendingOcrPrefillProvider);
+    if (ocrResult == null) return;
+
+    // Clear provider agar tidak ke-apply ulang
+    ref.read(pendingOcrPrefillProvider.notifier).state = null;
+
+    // OCR selalu expense
+    ctrl.setType(TransactionTypeEnum.expense);
+
+    // Merchant
+    if (ocrResult.merchantName != null && ocrResult.merchantName!.isNotEmpty) {
+      ctrl.setMerchant(ocrResult.merchantName);
+      _merchantController.text = ocrResult.merchantName!;
+    }
+
+    // Date
+    if (ocrResult.date != null) {
+      ctrl.setDate(ocrResult.date!);
+    }
+
+    // Items & total
+    final balanced = OcrRepository.balanceResult(ocrResult);
+    if (balanced.items.isNotEmpty) {
+      final txItems = balanced.items
+          .asMap()
+          .entries
+          .map(
+            (e) => TransactionItemModel(
+              itemName: e.value.name,
+              qty: e.value.qty,
+              unitPrice: e.value.unitPrice,
+              amount: e.value.subtotal,
+              sortOrder: e.key,
+            ),
+          )
+          .toList();
+      ctrl.prefillItems(txItems);
+    } else if (balanced.grandTotal != null && balanced.grandTotal! > 0) {
+      ctrl.setTotalAmount(balanced.grandTotal!);
+    }
   }
 
   @override
@@ -253,8 +346,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                         .setAttachmentUrl(null),
                   ),
 
-                  // ─── Multi-item section (expense only) ───
-                  if (formState.type == TransactionTypeEnum.expense) ...[
+                  // ─── Multi-item section (expense & income) ───
+                  if (formState.type == TransactionTypeEnum.expense ||
+                      formState.type == TransactionTypeEnum.income) ...[
                     SizedBox(height: 16.h),
                     TransactionMultiItemSection(
                       formState: formState,
@@ -267,6 +361,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                       onRemoveItem: (index) => ref
                           .read(transactionFormControllerProvider.notifier)
                           .removeItem(index),
+                      onReorderItem: (oldIndex, newIndex) => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .reorderItems(oldIndex, newIndex),
                     ),
                   ],
                 ]),
@@ -368,7 +465,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
         l10n.transactionSaveSuccess,
         alertType: AlertTypeEnum.success,
       );
-      context.pop();
+      context.pop(true);
     } else {
       final (message, _, _, _) = result.dataError()!;
       context.showAppAlert(message, alertType: AlertTypeEnum.error);
@@ -403,7 +500,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
           l10n.transactionDeleteSuccess,
           alertType: AlertTypeEnum.success,
         );
-        context.pop();
+        context.pop(true);
       } else {
         context.closeOverlay();
         final (message, _, _, _) = result.dataError()!;

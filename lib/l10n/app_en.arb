@@ -199,6 +199,33 @@
   "historySelectWallet": "Select Wallet",
   "historyApplyFilter": "Apply Filter",
   "historyResetFilter": "Reset",
+  "historyDaily": "Daily",
+  "historyWeekly": "Weekly",
+  "historyMonthly": "Monthly",
+  "historyQuarterly": "Quarterly",
+  "historyYearly": "Yearly",
+  "historyCustomRange": "Custom",
+  "historyGroupByDate": "By Date",
+  "historyGroupByCategory": "By Category",
+  "historyAllTypes": "All Types",
+  "historySelectType": "Transaction Type",
+  "historyPeriod": "Period",
+  "historyLoadMore": "Load more",
+  "historyTransactionCount": "{count} transactions",
+  "@historyTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyFilterEmpty": "No transactions matching this filter",
+  "historyDeleteSuccess": "Transaction deleted successfully",
+  "historyDeleteConfirm": "Delete Transaction",
+  "historyDeleteConfirmMessage": "Are you sure you want to delete this transaction? Wallet balance will be reversed.",
+  "historySelectDateRange": "Select Date Range",
+  "historyStartDate": "Start Date",
+  "historyEndDate": "End Date",
   "breakdownTitle": "Expense Breakdown",
   "breakdownVsLastMonth": "vs Last Month",
   "breakdownDailyAverage": "Daily Average",
@@ -487,6 +514,25 @@
   "profileLogoutConfirmMessage": "Are you sure you want to logout?",
   "profileDarkMode": "Dark Mode",
   "profileLanguage": "Language",
+  "profileThemeSystem": "Follow System",
+  "profileThemeLight": "Light",
+  "profileThemeDark": "Dark",
+  "profileThemeTitle": "App Theme",
+  "profileLanguageIndonesian": "Indonesia",
+  "profileLanguageEnglish": "English",
+  "profileLanguageTitle": "Select Language",
+  "profileEntryPoint": "Default Transaction Entry",
+  "profileEntryManual": "Manual Form",
+  "profileEntryVoice": "Voice Input",
+  "profileEntryScan": "Scan Receipt",
+  "profileEntryPointTitle": "Default Transaction Entry",
+  "profileExportImport": "Export / Import",
+  "profileComingSoon": "Coming Soon",
+  "profileAppVersion": "App Version",
+  "profileSectionAccount": "Account",
+  "profileSectionPreferences": "Preferences",
+  "profileSectionData": "Data",
+  "profileSectionOther": "Others",
   "pickerChooseIcon": "Choose Icon",
   "pickerChooseColor": "Choose Color",
   "pickerSearchCategory": "Search category...",
@@ -495,11 +541,37 @@
   "voiceDoneButton": "Done",
   "voicePleaseWait": "Please wait...",
   "voiceNoSpeech": "No speech detected",
+  "voiceOpenSettings": "Open Settings",
+  "voicePermissionExplainer": "Microphone permission is required for voice input. Please enable it in settings.",
+  "voiceParseFailed": "Analysis failed, data filled manually from voice",
+  "voiceAiBusy": "AI is busy, using local parser",
+  "voiceTapToSpeak": "Press & hold to speak",
+  "voiceTranscript": "Heard text",
   "ocrExtractingText": "Reading text from receipt...",
   "ocrAnalyzingAi": "Analyzing with AI...",
   "ocrPickerTitle": "Scan Shopping Receipt",
   "ocrCropToolbar": "Select Receipt Area",
   "ocrErrorGeneric": "Failed to process image",
+  "ocrPermissionDenied": "Camera permission denied",
+  "ocrPermissionExplainer": "Camera permission is required for receipt scanning. Please enable it in settings.",
+  "ocrAiBusy": "AI is busy, using local parser",
+  "ocrPartialResult": "Partial data extracted",
+  "ocrTotalMismatch": "Items total ({itemsTotal}) does not match receipt total ({receiptTotal})",
+  "@ocrTotalMismatch": {
+    "placeholders": {
+      "itemsTotal": {
+        "type": "String"
+      },
+      "receiptTotal": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrDate": "Date",
+  "ocrItemsSection": "Item List",
+  "ocrProcessing": "Processing...",
+  "ocrImageBlurry": "Image is unreadable, try taking another photo",
+  "ocrUseResult": "Use Result",
   "transactionListTitle": "Transactions",
   "transactionRangeTitle": "Select Time Range",
   "transactionRangeHari": "Today",
@@ -515,5 +587,60 @@
   "transactionDetailTitle": "Transaction Detail",
   "transactionDuplicate": "Duplicate",
   "transactionShareDetail": "Share",
-  "transactionDeleteSuccess": "Transaction deleted successfully"
+  "transactionDeleteSuccess": "Transaction deleted successfully",
+  "transactionItemQty": "Quantity",
+  "transactionItemUnitPrice": "Unit Price",
+  "transactionItemSubtotal": "Subtotal",
+  "transactionItemName": "Item Name",
+  "transactionItemNameHint": "e.g. Coffee, Fried Rice",
+  "transactionTotalMismatch": "Items total does not match transaction total",
+  "transactionReorderHint": "Drag to reorder",
+  "transactionRemoveItem": "Remove Item",
+  "transactionItemNote": "Item note",
+  "dashboardExpenseReport": "Expense Report",
+  "dashboardTrendReport": "Trend Report",
+  "dashboardTotalExpenseLabel": "Total expense",
+  "dashboardTotalIncomeLabel": "Total income",
+  "dashboardThisMonthCumulative": "This month",
+  "dashboardAvg3MonthLabel": "Avg. last 3 months",
+  "dashboardPrevMonthLabel": "Last month",
+  "dashboardInsightExpenseDown": "Your spending this {period} is {percent}% lower than {prevPeriod}. Great, keep it up!",
+  "@dashboardInsightExpenseDown": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightExpenseUp": "Your spending this {period} is {percent}% higher than {prevPeriod}. Try to cut back on unnecessary spending.",
+  "@dashboardInsightExpenseUp": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightExpenseSame": "Your spending is stable compared to {prevPeriod}.",
+  "@dashboardInsightExpenseSame": {
+    "placeholders": {
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightTrendBelowAvg": "Your spending is below the 3-month average. You're on the right track!",
+  "dashboardInsightTrendAboveAvg": "Your spending is above the 3-month average. Watch your expenses.",
+  "dashboardInsightNoData": "Start recording transactions to see insights."
 }

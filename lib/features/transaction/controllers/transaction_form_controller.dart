@@ -263,13 +263,20 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   }
 
   /// Update item di index tertentu.
+  ///
+  /// Jika `qty` dan `unitPrice` keduanya tersedia, `amount = qty * unitPrice`.
+  /// Jika hanya `amount` yang diisi manual, tetap pakai amount apa adanya.
+  /// Auto-recalc total dari semua items.
   void updateItem(int index, TransactionItemModel item) {
     if (index < 0 || index >= state.items.length) return;
-    final newItems = [...state.items];
-    newItems[index] = item;
 
-    // Auto-recalc total amount dari items
-    final total = newItems.fold(0.0, (sum, i) => sum + i.amount);
+    // Auto-calc amount dari qty * unitPrice jika keduanya ada
+    final resolved = _resolveItemAmount(item);
+
+    final newItems = [...state.items];
+    newItems[index] = resolved;
+
+    final total = _sumItems(newItems);
     state = state.copyWith(items: newItems, totalAmount: total);
   }
 
@@ -277,9 +284,57 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   void removeItem(int index) {
     if (state.items.length <= 1) return;
     final newItems = [...state.items]..removeAt(index);
-    final total = newItems.fold(0.0, (sum, i) => sum + i.amount);
+    final total = _sumItems(newItems);
     state = state.copyWith(items: newItems, totalAmount: total);
   }
+
+  /// Ubah urutan item (drag-to-reorder).
+  void reorderItems(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.items.length) return;
+    if (newIndex < 0 || newIndex > state.items.length) return;
+
+    final newItems = [...state.items];
+    final item = newItems.removeAt(oldIndex);
+    final adjustedIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    newItems.insert(adjustedIndex, item);
+
+    state = state.copyWith(items: newItems);
+  }
+
+  /// Prefill items dari Voice/OCR input.
+  ///
+  /// Mengganti seluruh items dan auto-recalc total.
+  void prefillItems(List<TransactionItemModel> items) {
+    if (items.isEmpty) return;
+    final resolved = items.map(_resolveItemAmount).toList();
+    final total = _sumItems(resolved);
+    state = state.copyWith(items: resolved, totalAmount: total);
+  }
+
+  // ─── Helpers ───
+
+  /// Hitung amount dari qty * unitPrice jika keduanya tersedia.
+  static TransactionItemModel _resolveItemAmount(TransactionItemModel item) {
+    if (item.unitPrice != null && item.qty > 0) {
+      final computed = item.qty * item.unitPrice!;
+      return item.copyWith(amount: computed);
+    }
+    return item;
+  }
+
+  /// Sum amount dari semua items.
+  static double _sumItems(List<TransactionItemModel> items) {
+    return items.fold(0.0, (sum, i) => sum + i.amount);
+  }
+
+  /// @visibleForTesting — Exposed untuk unit test.
+  static TransactionItemModel resolveItemAmountForTest(
+    TransactionItemModel item,
+  ) => _resolveItemAmount(item);
+
+  /// @visibleForTesting — Exposed untuk unit test.
+  static double sumItemsForTest(List<TransactionItemModel> items) =>
+      _sumItems(items);
 
   // ─── Load untuk mode edit ───
 

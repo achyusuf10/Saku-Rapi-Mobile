@@ -21,6 +21,7 @@ Implementasikan fitur Voice Input AI sebagai prefill transaksi, bukan auto-save.
 4. Jika parser mengembalikan confidence/field kosong, tampilkan fallback UI yang aman.
 5. Pisahkan audio/parsing/service dari widget.
 6. Tambahkan permission handling dan edge case UX.
+7. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
 
 ## Output
 Berikan:

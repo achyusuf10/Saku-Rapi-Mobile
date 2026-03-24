@@ -2,7 +2,12 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
+import 'package:app_saku_rapi/features/ocr/view/ui/ocr_result_sheet.dart';
+import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
+import 'package:app_saku_rapi/features/voice/view/ui/voice_input_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -10,11 +15,11 @@ import 'package:go_router/go_router.dart';
 /// Quick action buttons di dashboard.
 ///
 /// Entry points: Manual Input, Voice Input, Scan Receipt, Wallets.
-class DashboardQuickActions extends StatelessWidget {
+class DashboardQuickActions extends ConsumerWidget {
   const DashboardQuickActions({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
 
@@ -29,13 +34,13 @@ class DashboardQuickActions extends StatelessWidget {
         icon: FontAwesomeIcons.microphone,
         label: l10n.fabVoiceInput,
         color: colors.info,
-        onTap: () {}, // Voice input — upcoming
+        onTap: () => _handleVoiceInput(context, ref),
       ),
       _QuickAction(
         icon: FontAwesomeIcons.camera,
         label: l10n.fabScanReceipt,
         color: colors.accent,
-        onTap: () {}, // OCR scan — upcoming
+        onTap: () => _handleOcrScan(context, ref),
       ),
       _QuickAction(
         icon: FontAwesomeIcons.wallet,
@@ -61,6 +66,24 @@ class DashboardQuickActions extends StatelessWidget {
             .toList(),
       ),
     );
+  }
+
+  /// Buka voice input sheet → jika berhasil, set pending prefill → navigate ke form.
+  Future<void> _handleVoiceInput(BuildContext context, WidgetRef ref) async {
+    final result = await VoiceInputSheet.show(context: context);
+    if (result != null && context.mounted) {
+      ref.read(pendingVoicePrefillProvider.notifier).state = result;
+      context.push(AppRouter.transactionForm);
+    }
+  }
+
+  /// Buka OCR scan sheet → jika berhasil, set pending prefill → navigate ke form.
+  Future<void> _handleOcrScan(BuildContext context, WidgetRef ref) async {
+    final result = await OcrResultSheet.show(context: context);
+    if (result != null && context.mounted) {
+      ref.read(pendingOcrPrefillProvider.notifier).state = result;
+      context.push(AppRouter.transactionForm);
+    }
   }
 }
 

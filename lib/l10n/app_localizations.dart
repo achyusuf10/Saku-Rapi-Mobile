@@ -1040,6 +1040,126 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get historyResetFilter;
 
+  /// No description provided for @historyDaily.
+  ///
+  /// In id, this message translates to:
+  /// **'Harian'**
+  String get historyDaily;
+
+  /// No description provided for @historyWeekly.
+  ///
+  /// In id, this message translates to:
+  /// **'Mingguan'**
+  String get historyWeekly;
+
+  /// No description provided for @historyMonthly.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulanan'**
+  String get historyMonthly;
+
+  /// No description provided for @historyQuarterly.
+  ///
+  /// In id, this message translates to:
+  /// **'3 Bulanan'**
+  String get historyQuarterly;
+
+  /// No description provided for @historyYearly.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahunan'**
+  String get historyYearly;
+
+  /// No description provided for @historyCustomRange.
+  ///
+  /// In id, this message translates to:
+  /// **'Kustom'**
+  String get historyCustomRange;
+
+  /// No description provided for @historyGroupByDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Berdasarkan Tanggal'**
+  String get historyGroupByDate;
+
+  /// No description provided for @historyGroupByCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Berdasarkan Kategori'**
+  String get historyGroupByCategory;
+
+  /// No description provided for @historyAllTypes.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua Tipe'**
+  String get historyAllTypes;
+
+  /// No description provided for @historySelectType.
+  ///
+  /// In id, this message translates to:
+  /// **'Tipe Transaksi'**
+  String get historySelectType;
+
+  /// No description provided for @historyPeriod.
+  ///
+  /// In id, this message translates to:
+  /// **'Periode'**
+  String get historyPeriod;
+
+  /// No description provided for @historyLoadMore.
+  ///
+  /// In id, this message translates to:
+  /// **'Muat lebih banyak'**
+  String get historyLoadMore;
+
+  /// No description provided for @historyTransactionCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} transaksi'**
+  String historyTransactionCount(int count);
+
+  /// No description provided for @historyFilterEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada transaksi dengan filter ini'**
+  String get historyFilterEmpty;
+
+  /// No description provided for @historyDeleteSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi berhasil dihapus'**
+  String get historyDeleteSuccess;
+
+  /// No description provided for @historyDeleteConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Transaksi'**
+  String get historyDeleteConfirm;
+
+  /// No description provided for @historyDeleteConfirmMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan.'**
+  String get historyDeleteConfirmMessage;
+
+  /// No description provided for @historySelectDateRange.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Rentang Tanggal'**
+  String get historySelectDateRange;
+
+  /// No description provided for @historyStartDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal Mulai'**
+  String get historyStartDate;
+
+  /// No description provided for @historyEndDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal Akhir'**
+  String get historyEndDate;
+
   /// No description provided for @breakdownTitle.
   ///
   /// In id, this message translates to:
@@ -2120,6 +2240,120 @@ abstract class AppLocalizations {
   /// **'Bahasa'**
   String get profileLanguage;
 
+  /// No description provided for @profileThemeSystem.
+  ///
+  /// In id, this message translates to:
+  /// **'Ikuti Sistem'**
+  String get profileThemeSystem;
+
+  /// No description provided for @profileThemeLight.
+  ///
+  /// In id, this message translates to:
+  /// **'Terang'**
+  String get profileThemeLight;
+
+  /// No description provided for @profileThemeDark.
+  ///
+  /// In id, this message translates to:
+  /// **'Gelap'**
+  String get profileThemeDark;
+
+  /// No description provided for @profileThemeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tema Aplikasi'**
+  String get profileThemeTitle;
+
+  /// No description provided for @profileLanguageIndonesian.
+  ///
+  /// In id, this message translates to:
+  /// **'Indonesia'**
+  String get profileLanguageIndonesian;
+
+  /// No description provided for @profileLanguageEnglish.
+  ///
+  /// In id, this message translates to:
+  /// **'English'**
+  String get profileLanguageEnglish;
+
+  /// No description provided for @profileLanguageTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Bahasa'**
+  String get profileLanguageTitle;
+
+  /// No description provided for @profileEntryPoint.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri Awal Transaksi'**
+  String get profileEntryPoint;
+
+  /// No description provided for @profileEntryManual.
+  ///
+  /// In id, this message translates to:
+  /// **'Form Manual'**
+  String get profileEntryManual;
+
+  /// No description provided for @profileEntryVoice.
+  ///
+  /// In id, this message translates to:
+  /// **'Input Suara'**
+  String get profileEntryVoice;
+
+  /// No description provided for @profileEntryScan.
+  ///
+  /// In id, this message translates to:
+  /// **'Scan Struk'**
+  String get profileEntryScan;
+
+  /// No description provided for @profileEntryPointTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri Awal Transaksi'**
+  String get profileEntryPointTitle;
+
+  /// No description provided for @profileExportImport.
+  ///
+  /// In id, this message translates to:
+  /// **'Export / Import'**
+  String get profileExportImport;
+
+  /// No description provided for @profileComingSoon.
+  ///
+  /// In id, this message translates to:
+  /// **'Segera Hadir'**
+  String get profileComingSoon;
+
+  /// No description provided for @profileAppVersion.
+  ///
+  /// In id, this message translates to:
+  /// **'Versi Aplikasi'**
+  String get profileAppVersion;
+
+  /// No description provided for @profileSectionAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Akun'**
+  String get profileSectionAccount;
+
+  /// No description provided for @profileSectionPreferences.
+  ///
+  /// In id, this message translates to:
+  /// **'Preferensi'**
+  String get profileSectionPreferences;
+
+  /// No description provided for @profileSectionData.
+  ///
+  /// In id, this message translates to:
+  /// **'Data'**
+  String get profileSectionData;
+
+  /// No description provided for @profileSectionOther.
+  ///
+  /// In id, this message translates to:
+  /// **'Lainnya'**
+  String get profileSectionOther;
+
   /// No description provided for @pickerChooseIcon.
   ///
   /// In id, this message translates to:
@@ -2168,6 +2402,42 @@ abstract class AppLocalizations {
   /// **'Tidak ada suara terdeteksi'**
   String get voiceNoSpeech;
 
+  /// No description provided for @voiceOpenSettings.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Pengaturan'**
+  String get voiceOpenSettings;
+
+  /// No description provided for @voicePermissionExplainer.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin mikrofon diperlukan untuk fitur input suara. Silakan aktifkan di pengaturan.'**
+  String get voicePermissionExplainer;
+
+  /// No description provided for @voiceParseFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menganalisis, data dari suara diisi manual'**
+  String get voiceParseFailed;
+
+  /// No description provided for @voiceAiBusy.
+  ///
+  /// In id, this message translates to:
+  /// **'AI sedang sibuk, menggunakan parser lokal'**
+  String get voiceAiBusy;
+
+  /// No description provided for @voiceTapToSpeak.
+  ///
+  /// In id, this message translates to:
+  /// **'Tekan & tahan untuk bicara'**
+  String get voiceTapToSpeak;
+
+  /// No description provided for @voiceTranscript.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks terdengar'**
+  String get voiceTranscript;
+
   /// No description provided for @ocrExtractingText.
   ///
   /// In id, this message translates to:
@@ -2197,6 +2467,66 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Gagal memproses gambar'**
   String get ocrErrorGeneric;
+
+  /// No description provided for @ocrPermissionDenied.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin kamera ditolak'**
+  String get ocrPermissionDenied;
+
+  /// No description provided for @ocrPermissionExplainer.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.'**
+  String get ocrPermissionExplainer;
+
+  /// No description provided for @ocrAiBusy.
+  ///
+  /// In id, this message translates to:
+  /// **'AI sedang sibuk, menggunakan parser lokal'**
+  String get ocrAiBusy;
+
+  /// No description provided for @ocrPartialResult.
+  ///
+  /// In id, this message translates to:
+  /// **'Sebagian data berhasil dibaca'**
+  String get ocrPartialResult;
+
+  /// No description provided for @ocrTotalMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Total item ({itemsTotal}) tidak cocok dengan total struk ({receiptTotal})'**
+  String ocrTotalMismatch(String itemsTotal, String receiptTotal);
+
+  /// No description provided for @ocrDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal'**
+  String get ocrDate;
+
+  /// No description provided for @ocrItemsSection.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar Item'**
+  String get ocrItemsSection;
+
+  /// No description provided for @ocrProcessing.
+  ///
+  /// In id, this message translates to:
+  /// **'Memproses...'**
+  String get ocrProcessing;
+
+  /// No description provided for @ocrImageBlurry.
+  ///
+  /// In id, this message translates to:
+  /// **'Gambar tidak terbaca, coba foto ulang'**
+  String get ocrImageBlurry;
+
+  /// No description provided for @ocrUseResult.
+  ///
+  /// In id, this message translates to:
+  /// **'Gunakan Hasil'**
+  String get ocrUseResult;
 
   /// No description provided for @transactionListTitle.
   ///
@@ -2293,6 +2623,146 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Transaksi berhasil dihapus'**
   String get transactionDeleteSuccess;
+
+  /// No description provided for @transactionItemQty.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah'**
+  String get transactionItemQty;
+
+  /// No description provided for @transactionItemUnitPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Satuan'**
+  String get transactionItemUnitPrice;
+
+  /// No description provided for @transactionItemSubtotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Subtotal'**
+  String get transactionItemSubtotal;
+
+  /// No description provided for @transactionItemName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Item'**
+  String get transactionItemName;
+
+  /// No description provided for @transactionItemNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: Kopi, Nasi Goreng'**
+  String get transactionItemNameHint;
+
+  /// No description provided for @transactionTotalMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Total item tidak cocok dengan total transaksi'**
+  String get transactionTotalMismatch;
+
+  /// No description provided for @transactionReorderHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Geser untuk mengatur urutan'**
+  String get transactionReorderHint;
+
+  /// No description provided for @transactionRemoveItem.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Item'**
+  String get transactionRemoveItem;
+
+  /// No description provided for @transactionItemNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan item'**
+  String get transactionItemNote;
+
+  /// No description provided for @dashboardExpenseReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Pengeluaran'**
+  String get dashboardExpenseReport;
+
+  /// No description provided for @dashboardTrendReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Tren'**
+  String get dashboardTrendReport;
+
+  /// No description provided for @dashboardTotalExpenseLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Total pengeluaran'**
+  String get dashboardTotalExpenseLabel;
+
+  /// No description provided for @dashboardTotalIncomeLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Total pendapatan'**
+  String get dashboardTotalIncomeLabel;
+
+  /// No description provided for @dashboardThisMonthCumulative.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan ini'**
+  String get dashboardThisMonthCumulative;
+
+  /// No description provided for @dashboardAvg3MonthLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata 3 bulan lalu'**
+  String get dashboardAvg3MonthLabel;
+
+  /// No description provided for @dashboardPrevMonthLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan lalu'**
+  String get dashboardPrevMonthLabel;
+
+  /// No description provided for @dashboardInsightExpenseDown.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu {period} ini {percent}% lebih rendah dari {prevPeriod}. Bagus, terus pertahankan!'**
+  String dashboardInsightExpenseDown(
+    String period,
+    String percent,
+    String prevPeriod,
+  );
+
+  /// No description provided for @dashboardInsightExpenseUp.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu {period} ini {percent}% lebih tinggi dari {prevPeriod}. Coba kurangi pengeluaran yang tidak perlu.'**
+  String dashboardInsightExpenseUp(
+    String period,
+    String percent,
+    String prevPeriod,
+  );
+
+  /// No description provided for @dashboardInsightExpenseSame.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu stabil dibandingkan {prevPeriod}.'**
+  String dashboardInsightExpenseSame(String prevPeriod);
+
+  /// No description provided for @dashboardInsightTrendBelowAvg.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!'**
+  String get dashboardInsightTrendBelowAvg;
+
+  /// No description provided for @dashboardInsightTrendAboveAvg.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.'**
+  String get dashboardInsightTrendAboveAvg;
+
+  /// No description provided for @dashboardInsightNoData.
+  ///
+  /// In id, this message translates to:
+  /// **'Mulai catat transaksi untuk melihat insight.'**
+  String get dashboardInsightNoData;
 }
 
 class _AppLocalizationsDelegate

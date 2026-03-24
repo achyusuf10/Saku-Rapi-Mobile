@@ -46,8 +46,15 @@ class TransactionDetailPage extends ConsumerWidget {
               !transaction.isSettlement)
             IconButton(
               icon: FaIcon(FontAwesomeIcons.penToSquare, size: 18.w),
-              onPressed: () =>
-                  context.push(AppRouter.transactionForm, extra: transaction),
+              onPressed: () async {
+                final edited = await context.push<bool>(
+                  AppRouter.transactionForm,
+                  extra: transaction,
+                );
+                if (edited == true && context.mounted) {
+                  context.pop(true);
+                }
+              },
             ),
           // Delete button (disabled for settlements)
           if (!transaction.isSettlement)
@@ -153,7 +160,7 @@ class TransactionDetailPage extends ConsumerWidget {
           context.l10n.transactionDeleteSuccess,
           alertType: AlertTypeEnum.success,
         );
-        context.pop();
+        context.pop(true);
       } else {
         context.closeOverlay();
         final (message, _, _, _) = result.dataError()!;

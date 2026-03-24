@@ -180,7 +180,7 @@ extension ContextExt on BuildContext {
           ),
         );
       },
-      pageBuilder: (_, __, ___) {
+      pageBuilder: (ctx, __, ___) {
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 340.w),
@@ -244,7 +244,7 @@ extension ContextExt on BuildContext {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => Navigator.of(this).pop(false),
+                            onPressed: () => Navigator.of(ctx).pop(false),
                             style: OutlinedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 12.h),
                               side: BorderSide(
@@ -268,7 +268,7 @@ extension ContextExt on BuildContext {
                         SizedBox(width: 12.w),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () => Navigator.of(this).pop(true),
+                            onPressed: () => Navigator.of(ctx).pop(true),
                             style: FilledButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 12.h),
                               backgroundColor: appColors.primary,

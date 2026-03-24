@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
@@ -8,11 +9,13 @@ import 'package:app_saku_rapi/features/transaction/models/transaction_item_model
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_item_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Bagian multi-item untuk transaksi expense.
+/// Bagian multi-item untuk transaksi expense dan income.
 ///
 /// Jika [formState.isMultiItem] false, menampilkan tombol "Tambah Item".
-/// Jika true, menampilkan daftar item dengan total dan tombol tambah.
+/// Jika true, menampilkan daftar item dengan total, mismatch warning,
+/// drag-to-reorder, dan tombol tambah.
 class TransactionMultiItemSection extends StatelessWidget {
   const TransactionMultiItemSection({
     super.key,
@@ -20,12 +23,20 @@ class TransactionMultiItemSection extends StatelessWidget {
     required this.onAddItem,
     required this.onUpdateItem,
     required this.onRemoveItem,
+    required this.onReorderItem,
   });
 
   final TransactionFormState formState;
   final VoidCallback onAddItem;
   final void Function(int index, TransactionItemModel item) onUpdateItem;
   final void Function(int index) onRemoveItem;
+  final void Function(int oldIndex, int newIndex) onReorderItem;
+
+  CategoryType get _categoryType {
+    return formState.type == TransactionTypeEnum.income
+        ? CategoryType.income
+        : CategoryType.expense;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +102,7 @@ class TransactionMultiItemSection extends StatelessWidget {
         ),
         SizedBox(height: 8.h),
 
-        // Grand total
+        // Grand total + mismatch warning
         Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
           decoration: BoxDecoration(
@@ -100,43 +111,114 @@ class TransactionMultiItemSection extends StatelessWidget {
                 : colors.error.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(10.r),
           ),
-          child: Row(
+          child: Column(
             children: [
-              Text(
-                context.l10n.transactionGrandTotal,
-                style: TextStyleConstants.label1.copyWith(
-                  color: colors.textSecondary,
-                ),
+              Row(
+                children: [
+                  Text(
+                    context.l10n.transactionGrandTotal,
+                    style: TextStyleConstants.label1.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    formState.itemsTotal.toCurrency(),
+                    style: TextStyleConstants.b1.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: formState.isTotalMatched
+                          ? colors.income
+                          : colors.error,
+                    ),
+                  ),
+                ],
               ),
-              const Spacer(),
-              Text(
-                formState.itemsTotal.toCurrency(),
-                style: TextStyleConstants.b1.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: formState.isTotalMatched
-                      ? colors.income
-                      : colors.error,
+              // Mismatch warning
+              if (!formState.isTotalMatched) ...[
+                SizedBox(height: 6.h),
+                Row(
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.triangleExclamation,
+                      size: 12.w,
+                      color: colors.error,
+                    ),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(
+                        context.l10n.transactionTotalMismatch,
+                        style: TextStyleConstants.caption.copyWith(
+                          color: colors.error,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ],
           ),
         ),
         SizedBox(height: 10.h),
 
-        // Items list
-        ...formState.items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          return TransactionItemRow(
-            key: ValueKey('item_$index'),
-            item: item,
-            index: index,
-            onChanged: (updated) => onUpdateItem(index, updated),
-            onRemove: () => onRemoveItem(index),
-            canRemove: formState.items.length > 1,
-            categoryType: CategoryType.expense,
-          );
-        }),
+        // Reorder hint
+        if (formState.items.length > 1) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(
+                FontAwesomeIcons.gripVertical,
+                size: 10.w,
+                color: colors.textSecondary.withValues(alpha: 0.5),
+              ),
+              SizedBox(width: 4.w),
+              Text(
+                context.l10n.transactionReorderHint,
+                style: TextStyleConstants.caption.copyWith(
+                  color: colors.textSecondary.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 6.h),
+        ],
+
+        // Items list with ReorderableListView
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          proxyDecorator: (child, index, animation) {
+            return AnimatedBuilder(
+              animation: animation,
+              builder: (context, child) {
+                final elevation = Tween<double>(
+                  begin: 0,
+                  end: 4,
+                ).evaluate(animation);
+                return Material(
+                  elevation: elevation,
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: child,
+                );
+              },
+              child: child,
+            );
+          },
+          itemCount: formState.items.length,
+          onReorder: onReorderItem,
+          itemBuilder: (context, index) {
+            final item = formState.items[index];
+            return TransactionItemRow(
+              key: ValueKey('item_${item.hashCode}_$index'),
+              item: item,
+              index: index,
+              onChanged: (updated) => onUpdateItem(index, updated),
+              onRemove: () => onRemoveItem(index),
+              canRemove: formState.items.length > 1,
+              categoryType: _categoryType,
+            );
+          },
+        ),
 
         // Add more items
         SizedBox(height: 4.h),

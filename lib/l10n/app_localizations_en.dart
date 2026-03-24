@@ -498,6 +498,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyResetFilter => 'Reset';
 
   @override
+  String get historyDaily => 'Daily';
+
+  @override
+  String get historyWeekly => 'Weekly';
+
+  @override
+  String get historyMonthly => 'Monthly';
+
+  @override
+  String get historyQuarterly => 'Quarterly';
+
+  @override
+  String get historyYearly => 'Yearly';
+
+  @override
+  String get historyCustomRange => 'Custom';
+
+  @override
+  String get historyGroupByDate => 'By Date';
+
+  @override
+  String get historyGroupByCategory => 'By Category';
+
+  @override
+  String get historyAllTypes => 'All Types';
+
+  @override
+  String get historySelectType => 'Transaction Type';
+
+  @override
+  String get historyPeriod => 'Period';
+
+  @override
+  String get historyLoadMore => 'Load more';
+
+  @override
+  String historyTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get historyFilterEmpty => 'No transactions matching this filter';
+
+  @override
+  String get historyDeleteSuccess => 'Transaction deleted successfully';
+
+  @override
+  String get historyDeleteConfirm => 'Delete Transaction';
+
+  @override
+  String get historyDeleteConfirmMessage =>
+      'Are you sure you want to delete this transaction? Wallet balance will be reversed.';
+
+  @override
+  String get historySelectDateRange => 'Select Date Range';
+
+  @override
+  String get historyStartDate => 'Start Date';
+
+  @override
+  String get historyEndDate => 'End Date';
+
+  @override
   String get breakdownTitle => 'Expense Breakdown';
 
   @override
@@ -1072,6 +1135,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileLanguage => 'Language';
 
   @override
+  String get profileThemeSystem => 'Follow System';
+
+  @override
+  String get profileThemeLight => 'Light';
+
+  @override
+  String get profileThemeDark => 'Dark';
+
+  @override
+  String get profileThemeTitle => 'App Theme';
+
+  @override
+  String get profileLanguageIndonesian => 'Indonesia';
+
+  @override
+  String get profileLanguageEnglish => 'English';
+
+  @override
+  String get profileLanguageTitle => 'Select Language';
+
+  @override
+  String get profileEntryPoint => 'Default Transaction Entry';
+
+  @override
+  String get profileEntryManual => 'Manual Form';
+
+  @override
+  String get profileEntryVoice => 'Voice Input';
+
+  @override
+  String get profileEntryScan => 'Scan Receipt';
+
+  @override
+  String get profileEntryPointTitle => 'Default Transaction Entry';
+
+  @override
+  String get profileExportImport => 'Export / Import';
+
+  @override
+  String get profileComingSoon => 'Coming Soon';
+
+  @override
+  String get profileAppVersion => 'App Version';
+
+  @override
+  String get profileSectionAccount => 'Account';
+
+  @override
+  String get profileSectionPreferences => 'Preferences';
+
+  @override
+  String get profileSectionData => 'Data';
+
+  @override
+  String get profileSectionOther => 'Others';
+
+  @override
   String get pickerChooseIcon => 'Choose Icon';
 
   @override
@@ -1096,6 +1216,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceNoSpeech => 'No speech detected';
 
   @override
+  String get voiceOpenSettings => 'Open Settings';
+
+  @override
+  String get voicePermissionExplainer =>
+      'Microphone permission is required for voice input. Please enable it in settings.';
+
+  @override
+  String get voiceParseFailed =>
+      'Analysis failed, data filled manually from voice';
+
+  @override
+  String get voiceAiBusy => 'AI is busy, using local parser';
+
+  @override
+  String get voiceTapToSpeak => 'Press & hold to speak';
+
+  @override
+  String get voiceTranscript => 'Heard text';
+
+  @override
   String get ocrExtractingText => 'Reading text from receipt...';
 
   @override
@@ -1109,6 +1249,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ocrErrorGeneric => 'Failed to process image';
+
+  @override
+  String get ocrPermissionDenied => 'Camera permission denied';
+
+  @override
+  String get ocrPermissionExplainer =>
+      'Camera permission is required for receipt scanning. Please enable it in settings.';
+
+  @override
+  String get ocrAiBusy => 'AI is busy, using local parser';
+
+  @override
+  String get ocrPartialResult => 'Partial data extracted';
+
+  @override
+  String ocrTotalMismatch(String itemsTotal, String receiptTotal) {
+    return 'Items total ($itemsTotal) does not match receipt total ($receiptTotal)';
+  }
+
+  @override
+  String get ocrDate => 'Date';
+
+  @override
+  String get ocrItemsSection => 'Item List';
+
+  @override
+  String get ocrProcessing => 'Processing...';
+
+  @override
+  String get ocrImageBlurry => 'Image is unreadable, try taking another photo';
+
+  @override
+  String get ocrUseResult => 'Use Result';
 
   @override
   String get transactionListTitle => 'Transactions';
@@ -1157,4 +1330,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Transaction deleted successfully';
+
+  @override
+  String get transactionItemQty => 'Quantity';
+
+  @override
+  String get transactionItemUnitPrice => 'Unit Price';
+
+  @override
+  String get transactionItemSubtotal => 'Subtotal';
+
+  @override
+  String get transactionItemName => 'Item Name';
+
+  @override
+  String get transactionItemNameHint => 'e.g. Coffee, Fried Rice';
+
+  @override
+  String get transactionTotalMismatch =>
+      'Items total does not match transaction total';
+
+  @override
+  String get transactionReorderHint => 'Drag to reorder';
+
+  @override
+  String get transactionRemoveItem => 'Remove Item';
+
+  @override
+  String get transactionItemNote => 'Item note';
+
+  @override
+  String get dashboardExpenseReport => 'Expense Report';
+
+  @override
+  String get dashboardTrendReport => 'Trend Report';
+
+  @override
+  String get dashboardTotalExpenseLabel => 'Total expense';
+
+  @override
+  String get dashboardTotalIncomeLabel => 'Total income';
+
+  @override
+  String get dashboardThisMonthCumulative => 'This month';
+
+  @override
+  String get dashboardAvg3MonthLabel => 'Avg. last 3 months';
+
+  @override
+  String get dashboardPrevMonthLabel => 'Last month';
+
+  @override
+  String dashboardInsightExpenseDown(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Your spending this $period is $percent% lower than $prevPeriod. Great, keep it up!';
+  }
+
+  @override
+  String dashboardInsightExpenseUp(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Your spending this $period is $percent% higher than $prevPeriod. Try to cut back on unnecessary spending.';
+  }
+
+  @override
+  String dashboardInsightExpenseSame(String prevPeriod) {
+    return 'Your spending is stable compared to $prevPeriod.';
+  }
+
+  @override
+  String get dashboardInsightTrendBelowAvg =>
+      'Your spending is below the 3-month average. You\'re on the right track!';
+
+  @override
+  String get dashboardInsightTrendAboveAvg =>
+      'Your spending is above the 3-month average. Watch your expenses.';
+
+  @override
+  String get dashboardInsightNoData =>
+      'Start recording transactions to see insights.';
 }

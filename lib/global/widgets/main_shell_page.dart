@@ -95,6 +95,19 @@ class MainShellPage extends StatelessWidget {
               ),
               label: l10n.navInvestment,
             ),
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.gear,
+                size: 20.w,
+                color: colors.textSecondary,
+              ),
+              activeIcon: FaIcon(
+                FontAwesomeIcons.gear,
+                size: 20.w,
+                color: colors.primary,
+              ),
+              label: 'Settings',
+            ),
           ],
         ),
       ),

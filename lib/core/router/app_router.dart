@@ -70,6 +70,10 @@ class AppRouter {
     debugLabel: 'investmentNav',
   );
 
+  static final _settingsNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'settingsNav',
+  );
+
   static GoRouter createRouter(Ref ref) {
     final authNotifier = ref.watch(authChangeNotifierProvider);
 
@@ -149,6 +153,15 @@ class AppRouter {
                 ),
               ],
             ),
+            StatefulShellBranch(
+              navigatorKey: _settingsNavKey,
+              routes: [
+                GoRoute(
+                  path: settings,
+                  builder: (context, state) => const SettingsPage(),
+                ),
+              ],
+            ),
           ],
         ),
 
@@ -172,11 +185,11 @@ class AppRouter {
             transaction: state.extra! as TransactionModel,
           ),
         ),
-        GoRoute(
-          path: settings,
-          parentNavigatorKey: navigatorKey,
-          builder: (context, state) => const SettingsPage(),
-        ),
+        // GoRoute(
+        //   path: settings,
+        //   parentNavigatorKey: navigatorKey,
+        //   builder: (context, state) => const SettingsPage(),
+        // ),
         GoRoute(
           path: categories,
           parentNavigatorKey: navigatorKey,

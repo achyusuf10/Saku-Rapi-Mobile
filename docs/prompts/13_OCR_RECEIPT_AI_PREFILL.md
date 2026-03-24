@@ -21,6 +21,7 @@ Implementasikan fitur OCR struk AI sebagai prefill transaksi multi-item.
 4. Jika OCR gagal parsial, user tetap bisa edit manual.
 5. Tambahkan permission handling kamera/storage sesuai kebutuhan Android.
 6. Sediakan UI preview hasil scan yang jelas.
+7. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
 
 ## Output
 Berikan:

@@ -199,6 +199,33 @@
   "historySelectWallet": "Pilih Dompet",
   "historyApplyFilter": "Terapkan Filter",
   "historyResetFilter": "Reset",
+  "historyDaily": "Harian",
+  "historyWeekly": "Mingguan",
+  "historyMonthly": "Bulanan",
+  "historyQuarterly": "3 Bulanan",
+  "historyYearly": "Tahunan",
+  "historyCustomRange": "Kustom",
+  "historyGroupByDate": "Berdasarkan Tanggal",
+  "historyGroupByCategory": "Berdasarkan Kategori",
+  "historyAllTypes": "Semua Tipe",
+  "historySelectType": "Tipe Transaksi",
+  "historyPeriod": "Periode",
+  "historyLoadMore": "Muat lebih banyak",
+  "historyTransactionCount": "{count} transaksi",
+  "@historyTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyFilterEmpty": "Tidak ada transaksi dengan filter ini",
+  "historyDeleteSuccess": "Transaksi berhasil dihapus",
+  "historyDeleteConfirm": "Hapus Transaksi",
+  "historyDeleteConfirmMessage": "Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan.",
+  "historySelectDateRange": "Pilih Rentang Tanggal",
+  "historyStartDate": "Tanggal Mulai",
+  "historyEndDate": "Tanggal Akhir",
   "breakdownTitle": "Rincian Biaya",
   "breakdownVsLastMonth": "vs Bulan Lalu",
   "breakdownDailyAverage": "Rata-rata Harian",
@@ -487,6 +514,25 @@
   "profileLogoutConfirmMessage": "Apakah Anda yakin ingin keluar?",
   "profileDarkMode": "Mode Gelap",
   "profileLanguage": "Bahasa",
+  "profileThemeSystem": "Ikuti Sistem",
+  "profileThemeLight": "Terang",
+  "profileThemeDark": "Gelap",
+  "profileThemeTitle": "Tema Aplikasi",
+  "profileLanguageIndonesian": "Indonesia",
+  "profileLanguageEnglish": "English",
+  "profileLanguageTitle": "Pilih Bahasa",
+  "profileEntryPoint": "Entri Awal Transaksi",
+  "profileEntryManual": "Form Manual",
+  "profileEntryVoice": "Input Suara",
+  "profileEntryScan": "Scan Struk",
+  "profileEntryPointTitle": "Entri Awal Transaksi",
+  "profileExportImport": "Export / Import",
+  "profileComingSoon": "Segera Hadir",
+  "profileAppVersion": "Versi Aplikasi",
+  "profileSectionAccount": "Akun",
+  "profileSectionPreferences": "Preferensi",
+  "profileSectionData": "Data",
+  "profileSectionOther": "Lainnya",
   "pickerChooseIcon": "Pilih Ikon",
   "pickerChooseColor": "Pilih Warna",
   "pickerSearchCategory": "Cari kategori...",
@@ -495,11 +541,37 @@
   "voiceDoneButton": "Selesai",
   "voicePleaseWait": "Mohon tunggu...",
   "voiceNoSpeech": "Tidak ada suara terdeteksi",
+  "voiceOpenSettings": "Buka Pengaturan",
+  "voicePermissionExplainer": "Izin mikrofon diperlukan untuk fitur input suara. Silakan aktifkan di pengaturan.",
+  "voiceParseFailed": "Gagal menganalisis, data dari suara diisi manual",
+  "voiceAiBusy": "AI sedang sibuk, menggunakan parser lokal",
+  "voiceTapToSpeak": "Tekan & tahan untuk bicara",
+  "voiceTranscript": "Teks terdengar",
   "ocrExtractingText": "Membaca teks dari struk...",
   "ocrAnalyzingAi": "Menganalisis dengan AI...",
   "ocrPickerTitle": "Scan Struk Belanja",
   "ocrCropToolbar": "Pilih Area Struk",
   "ocrErrorGeneric": "Gagal memproses gambar",
+  "ocrPermissionDenied": "Izin kamera ditolak",
+  "ocrPermissionExplainer": "Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.",
+  "ocrAiBusy": "AI sedang sibuk, menggunakan parser lokal",
+  "ocrPartialResult": "Sebagian data berhasil dibaca",
+  "ocrTotalMismatch": "Total item ({itemsTotal}) tidak cocok dengan total struk ({receiptTotal})",
+  "@ocrTotalMismatch": {
+    "placeholders": {
+      "itemsTotal": {
+        "type": "String"
+      },
+      "receiptTotal": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrDate": "Tanggal",
+  "ocrItemsSection": "Daftar Item",
+  "ocrProcessing": "Memproses...",
+  "ocrImageBlurry": "Gambar tidak terbaca, coba foto ulang",
+  "ocrUseResult": "Gunakan Hasil",
   "transactionListTitle": "Transaksi",
   "transactionRangeTitle": "Pilih Rentang Waktu",
   "transactionRangeHari": "Hari Ini",
@@ -515,5 +587,60 @@
   "transactionDetailTitle": "Detail Transaksi",
   "transactionDuplicate": "Duplikasi",
   "transactionShareDetail": "Bagikan",
-  "transactionDeleteSuccess": "Transaksi berhasil dihapus"
+  "transactionDeleteSuccess": "Transaksi berhasil dihapus",
+  "transactionItemQty": "Jumlah",
+  "transactionItemUnitPrice": "Harga Satuan",
+  "transactionItemSubtotal": "Subtotal",
+  "transactionItemName": "Nama Item",
+  "transactionItemNameHint": "Contoh: Kopi, Nasi Goreng",
+  "transactionTotalMismatch": "Total item tidak cocok dengan total transaksi",
+  "transactionReorderHint": "Geser untuk mengatur urutan",
+  "transactionRemoveItem": "Hapus Item",
+  "transactionItemNote": "Catatan item",
+  "dashboardExpenseReport": "Laporan Pengeluaran",
+  "dashboardTrendReport": "Laporan Tren",
+  "dashboardTotalExpenseLabel": "Total pengeluaran",
+  "dashboardTotalIncomeLabel": "Total pendapatan",
+  "dashboardThisMonthCumulative": "Bulan ini",
+  "dashboardAvg3MonthLabel": "Rata-rata 3 bulan lalu",
+  "dashboardPrevMonthLabel": "Bulan lalu",
+  "dashboardInsightExpenseDown": "Pengeluaranmu {period} ini {percent}% lebih rendah dari {prevPeriod}. Bagus, terus pertahankan!",
+  "@dashboardInsightExpenseDown": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightExpenseUp": "Pengeluaranmu {period} ini {percent}% lebih tinggi dari {prevPeriod}. Coba kurangi pengeluaran yang tidak perlu.",
+  "@dashboardInsightExpenseUp": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightExpenseSame": "Pengeluaranmu stabil dibandingkan {prevPeriod}.",
+  "@dashboardInsightExpenseSame": {
+    "placeholders": {
+      "prevPeriod": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardInsightTrendBelowAvg": "Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!",
+  "dashboardInsightTrendAboveAvg": "Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.",
+  "dashboardInsightNoData": "Mulai catat transaksi untuk melihat insight."
 }
