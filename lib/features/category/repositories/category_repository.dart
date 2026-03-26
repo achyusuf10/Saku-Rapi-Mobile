@@ -31,9 +31,11 @@ class CategoryRepository {
     final cached = _localDataSource.getCachedCategories();
     if (cached.isNotEmpty) {
       AppLogger.call(
-        '[Category] [CategoryRepository] Using cached categories as fallback',
+        '[Category] [CategoryRepository] Serving cached categories, refreshing in background',
         colorLog: ColorLog.yellow,
       );
+      // Background refresh: update cache with remote data
+      _refreshCache();
       return DataState<List<CategoryModel>>.success(data: cached);
     }
     final result = await _remoteDataSource.getCategories();

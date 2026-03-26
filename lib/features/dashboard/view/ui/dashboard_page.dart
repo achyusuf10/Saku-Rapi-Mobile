@@ -97,12 +97,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 )
               else ...[
                 // ─── Balance Card ───
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: const DashboardBalanceCard(),
-                  ),
-                ),
+                const SliverToBoxAdapter(child: DashboardBalanceCard()),
                 SliverToBoxAdapter(child: SizedBox(height: 16.h)),
 
                 // ─── Quick Actions ───

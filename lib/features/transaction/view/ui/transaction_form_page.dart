@@ -480,8 +480,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     final l10n = context.l10n;
 
     final confirmed = await context.showConfirmDialog(
-      title: l10n.transactionDeleteConfirm,
-      message: l10n.transactionDeleteConfirm,
+      title: l10n.transactionDeleteConfirmTitle,
+      message: l10n.transactionDeleteConfirmMessage,
     );
 
     if (confirmed != true) return;

@@ -397,6 +397,40 @@
       }
     }
   },
+  "budgetFilterAll": "All Wallets",
+  "budgetCompletedTitle": "Completed Budgets",
+  "budgetCompletedEmpty": "No completed budgets yet",
+  "budgetCompleted": "Completed",
+  "budgetDuplicateTitle": "Budget Already Exists",
+  "budgetDuplicateMessage": "An active budget for \"{category}\" in {wallet} already exists. Replace with new one?",
+  "@budgetDuplicateMessage": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetDuplicateReplace": "Replace",
+  "budgetDuplicateKeep": "Cancel",
+  "budgetTabWeekly": "Weekly",
+  "budgetTabMonthly": "Monthly",
+  "budgetTabQuarterly": "Quarterly",
+  "budgetTabYearly": "Yearly",
+  "budgetTabCustom": "Custom",
+  "budgetDetailTitle": "Budget Detail",
+  "budgetDetailSpent": "Spent",
+  "budgetDetailRemaining": "Remaining",
+  "budgetDetailPeriod": "Period",
+  "budgetDetailDaysLeft": "Days Left",
+  "budgetDetailWallet": "Wallet",
+  "budgetDetailDailyRecommended": "Daily Recommended",
+  "budgetDetailProjectedSpend": "Projected Spend",
+  "budgetDetailActualDaily": "Actual Daily",
+  "budgetDetailTransactions": "Transactions",
+  "budgetDetailTransactionsEmpty": "No transactions yet",
   "investmentTitle": "Investments",
   "investmentAdd": "Add Investment",
   "investmentEdit": "Edit Investment",
@@ -451,6 +485,8 @@
       }
     }
   },
+  "investmentTotalUnits": "Total Holdings",
+  "investmentGram": "gram",
   "notifTitle": "Notifications",
   "notifReminderTitle": "Daily Reminder",
   "notifReminderSubtitle": "Remind me to record transactions",
@@ -642,5 +678,80 @@
   },
   "dashboardInsightTrendBelowAvg": "Your spending is below the 3-month average. You're on the right track!",
   "dashboardInsightTrendAboveAvg": "Your spending is above the 3-month average. Watch your expenses.",
-  "dashboardInsightNoData": "Start recording transactions to see insights."
+  "dashboardInsightNoData": "Start recording transactions to see insights.",
+  "reportTitle": "Reports",
+  "reportNet": "Net Balance",
+  "reportIncome": "Income",
+  "reportExpense": "Expense",
+  "reportPeriodWeekly": "Weekly",
+  "reportPeriodMonthly": "Monthly",
+  "reportPeriodQuarterly": "Quarterly",
+  "reportPeriodYearly": "Yearly",
+  "reportAllWallets": "All Wallets",
+  "reportCategoryBreakdown": "Category Breakdown",
+  "reportDailyTrend": "Daily Trend",
+  "reportNoCategory": "No category data yet.",
+  "reportNoTrendData": "No trend data yet.",
+  "reportEmptyTitle": "No Data Yet",
+  "reportEmptyMessage": "Start recording transactions to see your full report.",
+  "reportErrorGeneric": "Failed to load report. Try again.",
+  "reportInsightExpenseDown": "Your spending decreased by {percent}% compared to last period. Great job!",
+  "@reportInsightExpenseDown": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "reportInsightExpenseUp": "Your spending increased by {percent}% compared to last period. Stay alert.",
+  "@reportInsightExpenseUp": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "reportInsightStable": "Your spending is relatively stable compared to the previous period.",
+  "reportInsightNoData": "Start recording transactions to see report insights.",
+  "reportSeeFullReport": "See Full Report",
+  "thisQuarter": "This Quarter",
+  "transactionDeleteConfirmTitle": "Delete Transaction?",
+  "transactionDeleteConfirmMessage": "This transaction will be permanently deleted and wallet balance will be adjusted.",
+  "transactionTransferToAsset": "Transfer to Asset",
+  "transactionItemCount": "{count} item",
+  "@transactionItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportOthersCategory": "Others",
+  "ocrBalanceItem": "Other items",
+  "ocrDiscountItem": "Discount/deduction",
+  "validationAmountPositive": "Amount must be greater than 0",
+  "validationTransferNeedsDest": "Transfer requires a destination wallet",
+  "validationMinOneItem": "Transaction must have at least 1 item",
+  "validationItemsTotalMismatch": "Items total ({itemsSum}) doesn't match transaction total ({totalAmount})",
+  "@validationItemsTotalMismatch": {
+    "placeholders": {
+      "itemsSum": {
+        "type": "String"
+      },
+      "totalAmount": {
+        "type": "String"
+      }
+    }
+  },
+  "validationCategoryRequired": "Category must be selected for each item",
+  "validationBudgetAmountPositive": "Budget amount must be greater than 0",
+  "validationEndBeforeStart": "End date cannot be before start date",
+  "validationBudgetDuplicate": "An active budget already exists for the same category and period",
+  "validationDeleteOldBudgetFailed": "Failed to delete old budget",
+  "validationWalletNameEmpty": "Wallet name cannot be empty",
+  "validationInitialBalanceNegative": "Initial balance cannot be negative",
+  "validationWalletNameDuplicate": "Wallet name already in use",
+  "validationWalletHasTransactions": "Cannot delete wallet with existing transactions. Delete transactions first.",
+  "investmentFormSymbol": "Symbol",
+  "investmentFormSymbolHint": "TSLA, AAPL, etc."
 }

@@ -1,11 +1,19 @@
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/login_page.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/splash_page.dart';
+import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
+import 'package:app_saku_rapi/features/budget/view/ui/budget_detail_page.dart';
 import 'package:app_saku_rapi/features/budget/view/ui/budget_page.dart';
+import 'package:app_saku_rapi/features/budget/view/ui/completed_budgets_page.dart';
+import 'package:app_saku_rapi/features/budget/view/widgets/budget_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/ui/category_management_page.dart';
 import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_page.dart';
 import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_form_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
+import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
+import 'package:app_saku_rapi/features/reports/view/ui/report_page.dart';
 import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/ui/transaction_detail_page.dart';
@@ -16,7 +24,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-BuildContext? get appContext => AppRouter.navigatorKey.currentContext;
+BuildContext? get appContext {
+  try {
+    return AppRouter.navigatorKey.currentContext;
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Provider untuk [GoRouter] yang di-cache oleh Riverpod.
 ///
@@ -54,6 +68,12 @@ class AppRouter {
   static const String transactionDetail = '/transaction/detail';
   static const String settings = '/settings';
   static const String categories = '/categories';
+  static const String budgetForm = '/budget/form';
+  static const String budgetDetail = '/budget/detail';
+  static const String budgetCompleted = '/budget/completed';
+  static const String reports = '/reports';
+  static const String notificationSettings = '/notification-settings';
+  static const String investmentForm = '/investment/form';
 
   // ───────────────── Shell Keys ─────────────────
 
@@ -194,6 +214,40 @@ class AppRouter {
           path: categories,
           parentNavigatorKey: navigatorKey,
           builder: (context, state) => const CategoryManagementPage(),
+        ),
+        GoRoute(
+          path: budgetForm,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) =>
+              BudgetFormSheet(existingBudget: state.extra as BudgetModel?),
+        ),
+        GoRoute(
+          path: budgetDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) =>
+              BudgetDetailPage(budget: state.extra! as BudgetModel),
+        ),
+        GoRoute(
+          path: budgetCompleted,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const CompletedBudgetsPage(),
+        ),
+        GoRoute(
+          path: reports,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const ReportPage(),
+        ),
+        GoRoute(
+          path: notificationSettings,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const NotificationSettingsPage(),
+        ),
+        GoRoute(
+          path: investmentForm,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => InvestmentFormPage(
+            existingInvestment: state.extra as InvestmentModel?,
+          ),
         ),
       ],
     );

@@ -1,5 +1,8 @@
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/datasource/wallet_local_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/datasource/wallet_remote_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -59,18 +62,32 @@ class WalletRepository {
   }) async {
     // Validasi: nama tidak boleh kosong
     if (name.trim().isEmpty) {
-      return const DataState.error(message: 'Nama dompet tidak boleh kosong');
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameEmpty ?? 'Nama dompet tidak boleh kosong',
+      );
     }
 
     // Validasi: initial_balance >= 0
     if (initialBalance < 0) {
-      return const DataState.error(message: 'Saldo awal tidak boleh negatif');
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationInitialBalanceNegative ??
+            'Saldo awal tidak boleh negatif',
+      );
     }
 
     // Validasi: nama unik per user
     final dupCheck = await _isDuplicateName(name, excludeId: null);
     if (dupCheck) {
-      return const DataState.error(message: 'Nama dompet sudah digunakan');
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameDuplicate ??
+            'Nama dompet sudah digunakan',
+      );
     }
 
     final wallet = WalletModel(
@@ -106,13 +123,22 @@ class WalletRepository {
     required WalletModel existing,
   }) async {
     if (name.trim().isEmpty) {
-      return const DataState.error(message: 'Nama dompet tidak boleh kosong');
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameEmpty ?? 'Nama dompet tidak boleh kosong',
+      );
     }
 
     // Validasi: nama unik, exclude self
     final dupCheck = await _isDuplicateName(name, excludeId: walletId);
     if (dupCheck) {
-      return const DataState.error(message: 'Nama dompet sudah digunakan');
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameDuplicate ??
+            'Nama dompet sudah digunakan',
+      );
     }
 
     final updated = existing.copyWith(
@@ -134,10 +160,12 @@ class WalletRepository {
     // Guard: cek apakah wallet punya transaksi
     final hasResult = await _remote.hasTransactions(walletId);
     if (hasResult.isSuccess() && hasResult.dataSuccess() == true) {
-      return const DataState.error(
+      final l10n = appContext?.l10n;
+      return DataState.error(
         message:
+            l10n?.validationWalletHasTransactions ??
             'Dompet tidak bisa dihapus karena masih memiliki transaksi. '
-            'Hapus transaksi terlebih dahulu.',
+                'Hapus transaksi terlebih dahulu.',
       );
     }
 
@@ -155,6 +183,22 @@ class WalletRepository {
     final result = await _remote.toggleExcludeFromTotal(
       walletId: walletId,
       exclude: exclude,
+    );
+    return result;
+  }
+
+  // ───────────────── ADJUST BALANCE ─────────────────
+
+  /// Sesuaikan saldo wallet ke nilai target via RPC adjustment.
+  Future<DataState<Map<String, dynamic>>> adjustBalance({
+    required String walletId,
+    required double targetBalance,
+    String? note,
+  }) async {
+    final result = await TransactionRemoteDataSource().createAdjustment(
+      walletId: walletId,
+      targetBalance: targetBalance,
+      note: note,
     );
     return result;
   }

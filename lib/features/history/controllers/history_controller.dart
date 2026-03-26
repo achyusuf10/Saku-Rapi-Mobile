@@ -1,8 +1,11 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/history/repositories/history_repository.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:intl/intl.dart';
 
 // ───────────────── Enums ─────────────────
 
@@ -198,7 +201,7 @@ class HistoryState {
       tabs.add(
         SubPeriodTab(
           label: cursor == today
-              ? 'Hari Ini'
+              ? (appContext?.l10n.today ?? 'Hari Ini')
               : '${cursor.day} ${_shortMonth(cursor.month)}',
           dateRange: (
             DateTime.utc(cursor.year, cursor.month, cursor.day),
@@ -231,7 +234,7 @@ class HistoryState {
       tabs.add(
         SubPeriodTab(
           label: isCurrentWeek
-              ? 'Minggu Ini'
+              ? (appContext?.l10n.thisWeek ?? 'Minggu Ini')
               : '${monday.day}-${sunday.day} ${_shortMonth(sunday.month)}',
           dateRange: (
             DateTime.utc(monday.year, monday.month, monday.day),
@@ -257,7 +260,7 @@ class HistoryState {
       tabs.add(
         SubPeriodTab(
           label: isCurrentMonth
-              ? 'Bulan Ini'
+              ? (appContext?.l10n.thisMonth ?? 'Bulan Ini')
               : '${_fullMonth(cursor.month)} ${cursor.year}',
           dateRange: (
             DateTime.utc(cursor.year, cursor.month, 1),
@@ -284,7 +287,9 @@ class HistoryState {
 
       tabs.add(
         SubPeriodTab(
-          label: isCurrentQ ? 'Kuartal Ini' : 'Q$qNum $year',
+          label: isCurrentQ
+              ? (appContext?.l10n.thisQuarter ?? 'Kuartal Ini')
+              : 'Q$qNum $year',
           dateRange: (
             DateTime.utc(year, qStart, 1),
             DateTime.utc(year, qStart + 3, 0, 23, 59, 59),
@@ -305,7 +310,9 @@ class HistoryState {
     for (var y = now.year - maxYears; y <= now.year; y++) {
       tabs.add(
         SubPeriodTab(
-          label: y == now.year ? 'Tahun Ini' : '$y',
+          label: y == now.year
+              ? (appContext?.l10n.thisYear ?? 'Tahun Ini')
+              : '$y',
           dateRange: (
             DateTime.utc(y, 1, 1),
             DateTime.utc(y, 12, 31, 23, 59, 59),
@@ -337,7 +344,7 @@ class HistoryState {
       tabs.add(
         SubPeriodTab(
           label: isToday
-              ? 'Hari Ini'
+              ? (appContext?.l10n.today ?? 'Hari Ini')
               : '${cursor.day} ${_shortMonth(cursor.month)}',
           dateRange: (
             DateTime.utc(cursor.year, cursor.month, cursor.day),
@@ -351,41 +358,32 @@ class HistoryState {
   }
 
   static String _shortMonth(int m) {
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    return months[m];
+    final locale = appContext?.locale.languageCode ?? 'id';
+    final date = DateTime(2024, m);
+    return DateFormat('MMM', locale).format(date);
   }
 
   static String _fullMonth(int m) {
-    const months = [
-      '',
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-    return months[m];
+    final locale = appContext?.locale.languageCode ?? 'id';
+    final date = DateTime(2024, m);
+    return DateFormat('MMMM', locale).format(date);
+  }
+
+  /// Hitung net total untuk sekumpulan transaksi.
+  /// Income/debt positif, expense/loan negatif, settlement di-skip.
+  static double groupNetTotal(List<TransactionModel> txs) {
+    double total = 0;
+    for (final tx in txs) {
+      if (tx.isSettlement) continue;
+      if (tx.type == TransactionTypeEnum.income ||
+          tx.type == TransactionTypeEnum.debt) {
+        total += tx.totalAmount;
+      } else if (tx.type == TransactionTypeEnum.expense ||
+          tx.type == TransactionTypeEnum.loan) {
+        total -= tx.totalAmount;
+      }
+    }
+    return total;
   }
 
   /// Filter transaksi berdasarkan type (lokal, tidak refetch).

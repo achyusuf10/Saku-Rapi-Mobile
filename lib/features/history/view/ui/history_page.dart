@@ -1,5 +1,4 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
-import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
@@ -309,18 +308,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   double _groupTotal(List<TransactionModel> txs) {
-    double total = 0;
-    for (final tx in txs) {
-      if (tx.isSettlement) continue;
-      if (tx.type == TransactionTypeEnum.income ||
-          tx.type == TransactionTypeEnum.debt) {
-        total += tx.totalAmount;
-      } else if (tx.type == TransactionTypeEnum.expense ||
-          tx.type == TransactionTypeEnum.loan) {
-        total -= tx.totalAmount;
-      }
-    }
-    return total;
+    return HistoryState.groupNetTotal(txs);
   }
 }
 

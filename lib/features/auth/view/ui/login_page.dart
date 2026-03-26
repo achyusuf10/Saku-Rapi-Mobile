@@ -2,12 +2,14 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 /// Halaman login SakuRapi.
 ///
@@ -141,6 +143,8 @@ class LoginPage extends ConsumerWidget {
           alertType: AlertTypeEnum.error,
         );
       }
+    } else {
+      context.go(AppRouter.dashboard);
     }
     // Jika success, GoRouter redirect otomatis via refreshListenable
   }

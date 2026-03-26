@@ -24,6 +24,8 @@ Implementasikan modul investasi / wealth management dasar.
 2. Pastikan flow potong dari wallet mengikuti rule ledger tunggal.
 3. Jika ada market price fetch, buat abstraction aman melalui backend/service sesuai rule.
 4. Jelaskan dengan tegas bagaimana kaitan investasi dengan transaksi ledger.
+5. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
+6. Atur state management sedemikian rupa, agar tidak semua widget terload/rebuild, tapi hanya widget yang dibutuhkan saja yang terebuild
 
 ## Output
 Berikan:

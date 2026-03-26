@@ -2,12 +2,14 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 /// Ringkasan periode (bulan/minggu ini) vs periode lalu.
 ///
@@ -106,7 +108,7 @@ class DashboardPeriodSummary extends ConsumerWidget {
                   Text(
                     expenseChange == 0
                         ? l10n.dashboardNoChange
-                        : '${expenseChange.abs().toStringAsFixed(1)}% ${l10n.dashboardVsPrevious(periodLabel)}',
+                        : '${expenseChange.abs().toPercentage(decimalDigits: 1)} ${l10n.dashboardVsPrevious(periodLabel)}',
                     style: TextStyleConstants.label2.copyWith(
                       color: expenseChange > 0
                           ? colors.expense
@@ -117,6 +119,33 @@ class DashboardPeriodSummary extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+
+            // ─── See Full Report ───
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () => context.push(AppRouter.reports),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.reportSeeFullReport,
+                      style: TextStyleConstants.label2.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    FaIcon(
+                      FontAwesomeIcons.arrowRight,
+                      size: 11.w,
+                      color: colors.primary,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

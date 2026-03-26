@@ -397,6 +397,40 @@
       }
     }
   },
+  "budgetFilterAll": "Semua Dompet",
+  "budgetCompletedTitle": "Anggaran Selesai",
+  "budgetCompletedEmpty": "Belum ada anggaran yang selesai",
+  "budgetCompleted": "Selesai",
+  "budgetDuplicateTitle": "Anggaran Sudah Ada",
+  "budgetDuplicateMessage": "Sudah ada anggaran aktif untuk kategori \"{category}\" di {wallet}. Ganti dengan yang baru?",
+  "@budgetDuplicateMessage": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetDuplicateReplace": "Ganti",
+  "budgetDuplicateKeep": "Batal",
+  "budgetTabWeekly": "Mingguan",
+  "budgetTabMonthly": "Bulanan",
+  "budgetTabQuarterly": "Kuartalan",
+  "budgetTabYearly": "Tahunan",
+  "budgetTabCustom": "Kustom",
+  "budgetDetailTitle": "Detail Anggaran",
+  "budgetDetailSpent": "Terpakai",
+  "budgetDetailRemaining": "Sisa",
+  "budgetDetailPeriod": "Periode",
+  "budgetDetailDaysLeft": "Sisa Hari",
+  "budgetDetailWallet": "Dompet",
+  "budgetDetailDailyRecommended": "Rekomendasi Harian",
+  "budgetDetailProjectedSpend": "Proyeksi Pengeluaran",
+  "budgetDetailActualDaily": "Rata-rata Harian",
+  "budgetDetailTransactions": "Transaksi",
+  "budgetDetailTransactionsEmpty": "Belum ada transaksi",
   "investmentTitle": "Investasi",
   "investmentAdd": "Tambah Investasi",
   "investmentEdit": "Edit Investasi",
@@ -451,6 +485,8 @@
       }
     }
   },
+  "investmentTotalUnits": "Total Kepemilikan",
+  "investmentGram": "gram",
   "notifTitle": "Notifikasi",
   "notifReminderTitle": "Pengingat Harian",
   "notifReminderSubtitle": "Ingatkan saya untuk catat transaksi",
@@ -642,5 +678,80 @@
   },
   "dashboardInsightTrendBelowAvg": "Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!",
   "dashboardInsightTrendAboveAvg": "Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.",
-  "dashboardInsightNoData": "Mulai catat transaksi untuk melihat insight."
+  "dashboardInsightNoData": "Mulai catat transaksi untuk melihat insight.",
+  "reportTitle": "Laporan",
+  "reportNet": "Selisih Bersih",
+  "reportIncome": "Pemasukan",
+  "reportExpense": "Pengeluaran",
+  "reportPeriodWeekly": "Mingguan",
+  "reportPeriodMonthly": "Bulanan",
+  "reportPeriodQuarterly": "Kuartal",
+  "reportPeriodYearly": "Tahunan",
+  "reportAllWallets": "Semua Dompet",
+  "reportCategoryBreakdown": "Breakdown Kategori",
+  "reportDailyTrend": "Tren Harian",
+  "reportNoCategory": "Belum ada data kategori.",
+  "reportNoTrendData": "Belum ada data tren.",
+  "reportEmptyTitle": "Belum Ada Data",
+  "reportEmptyMessage": "Mulai catat transaksi untuk melihat laporan lengkap.",
+  "reportErrorGeneric": "Gagal memuat laporan. Coba lagi.",
+  "reportInsightExpenseDown": "Pengeluaranmu turun {percent}% dari periode sebelumnya. Bagus!",
+  "@reportInsightExpenseDown": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "reportInsightExpenseUp": "Pengeluaranmu naik {percent}% dari periode sebelumnya. Perhatikan lebih.",
+  "@reportInsightExpenseUp": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "reportInsightStable": "Pengeluaranmu relatif stabil dibanding periode sebelumnya.",
+  "reportInsightNoData": "Mulai catat transaksi untuk melihat insight laporan.",
+  "reportSeeFullReport": "Lihat Laporan Lengkap",
+  "thisQuarter": "Kuartal Ini",
+  "transactionDeleteConfirmTitle": "Hapus Transaksi?",
+  "transactionDeleteConfirmMessage": "Transaksi ini akan dihapus permanen dan saldo dompet akan disesuaikan.",
+  "transactionTransferToAsset": "Transfer ke Aset",
+  "transactionItemCount": "{count} item",
+  "@transactionItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportOthersCategory": "Lainnya",
+  "ocrBalanceItem": "Item lainnya",
+  "ocrDiscountItem": "Diskon/potongan",
+  "validationAmountPositive": "Nominal harus lebih dari 0",
+  "validationTransferNeedsDest": "Transfer memerlukan dompet tujuan",
+  "validationMinOneItem": "Transaksi harus memiliki minimal 1 item",
+  "validationItemsTotalMismatch": "Total item ({itemsSum}) tidak sama dengan total transaksi ({totalAmount})",
+  "@validationItemsTotalMismatch": {
+    "placeholders": {
+      "itemsSum": {
+        "type": "String"
+      },
+      "totalAmount": {
+        "type": "String"
+      }
+    }
+  },
+  "validationCategoryRequired": "Kategori wajib dipilih untuk setiap item",
+  "validationBudgetAmountPositive": "Nominal anggaran harus lebih dari 0",
+  "validationEndBeforeStart": "Tanggal akhir tidak boleh sebelum tanggal mulai",
+  "validationBudgetDuplicate": "Sudah ada anggaran aktif untuk kategori dan periode yang sama",
+  "validationDeleteOldBudgetFailed": "Gagal menghapus anggaran lama",
+  "validationWalletNameEmpty": "Nama dompet tidak boleh kosong",
+  "validationInitialBalanceNegative": "Saldo awal tidak boleh negatif",
+  "validationWalletNameDuplicate": "Nama dompet sudah digunakan",
+  "validationWalletHasTransactions": "Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.",
+  "investmentFormSymbol": "Symbol",
+  "investmentFormSymbolHint": "TSLA, AAPL, etc."
 }

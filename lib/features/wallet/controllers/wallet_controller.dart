@@ -1,5 +1,4 @@
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/repositories/wallet_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -217,7 +216,7 @@ class WalletController extends StateNotifier<WalletState> {
     required double targetBalance,
     String? note,
   }) async {
-    final result = await TransactionRemoteDataSource().createAdjustment(
+    final result = await _repository.adjustBalance(
       walletId: walletId,
       targetBalance: targetBalance,
       note: note,

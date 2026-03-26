@@ -75,7 +75,7 @@ class TransactionMultiItemSection extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Text(
-                '${formState.items.length} item',
+                context.l10n.transactionItemCount(formState.items.length),
                 style: TextStyleConstants.label2.copyWith(
                   color: formState.isTotalMatched
                       ? colors.income

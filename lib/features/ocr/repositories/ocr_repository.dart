@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/ocr/datasource/ocr_remote_data_source.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/services/ocr_local_parser.dart';
@@ -73,7 +75,9 @@ class OcrRepository {
     // Jika selisih < 0, berarti items sum > total (mungkin ada diskon)
     // Tambahkan item selisih agar total match
     final balanceItem = OcrItemModel(
-      name: diff > 0 ? 'Item lainnya' : 'Diskon/potongan',
+      name: diff > 0
+          ? (appContext?.l10n.ocrBalanceItem ?? 'Item lainnya')
+          : (appContext?.l10n.ocrDiscountItem ?? 'Diskon/potongan'),
       qty: 1,
       subtotal: diff,
     );

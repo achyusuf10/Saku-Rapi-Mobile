@@ -886,6 +886,80 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get budgetFilterAll => 'All Wallets';
+
+  @override
+  String get budgetCompletedTitle => 'Completed Budgets';
+
+  @override
+  String get budgetCompletedEmpty => 'No completed budgets yet';
+
+  @override
+  String get budgetCompleted => 'Completed';
+
+  @override
+  String get budgetDuplicateTitle => 'Budget Already Exists';
+
+  @override
+  String budgetDuplicateMessage(String category, String wallet) {
+    return 'An active budget for \"$category\" in $wallet already exists. Replace with new one?';
+  }
+
+  @override
+  String get budgetDuplicateReplace => 'Replace';
+
+  @override
+  String get budgetDuplicateKeep => 'Cancel';
+
+  @override
+  String get budgetTabWeekly => 'Weekly';
+
+  @override
+  String get budgetTabMonthly => 'Monthly';
+
+  @override
+  String get budgetTabQuarterly => 'Quarterly';
+
+  @override
+  String get budgetTabYearly => 'Yearly';
+
+  @override
+  String get budgetTabCustom => 'Custom';
+
+  @override
+  String get budgetDetailTitle => 'Budget Detail';
+
+  @override
+  String get budgetDetailSpent => 'Spent';
+
+  @override
+  String get budgetDetailRemaining => 'Remaining';
+
+  @override
+  String get budgetDetailPeriod => 'Period';
+
+  @override
+  String get budgetDetailDaysLeft => 'Days Left';
+
+  @override
+  String get budgetDetailWallet => 'Wallet';
+
+  @override
+  String get budgetDetailDailyRecommended => 'Daily Recommended';
+
+  @override
+  String get budgetDetailProjectedSpend => 'Projected Spend';
+
+  @override
+  String get budgetDetailActualDaily => 'Actual Daily';
+
+  @override
+  String get budgetDetailTransactions => 'Transactions';
+
+  @override
+  String get budgetDetailTransactionsEmpty => 'No transactions yet';
+
+  @override
   String get investmentTitle => 'Investments';
 
   @override
@@ -1029,6 +1103,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String investmentDeleteConfirmMessage(String name) {
     return 'Asset \"$name\" will be permanently deleted.';
   }
+
+  @override
+  String get investmentTotalUnits => 'Total Holdings';
+
+  @override
+  String get investmentGram => 'gram';
 
   @override
   String get notifTitle => 'Notifications';
@@ -1414,4 +1494,154 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardInsightNoData =>
       'Start recording transactions to see insights.';
+
+  @override
+  String get reportTitle => 'Reports';
+
+  @override
+  String get reportNet => 'Net Balance';
+
+  @override
+  String get reportIncome => 'Income';
+
+  @override
+  String get reportExpense => 'Expense';
+
+  @override
+  String get reportPeriodWeekly => 'Weekly';
+
+  @override
+  String get reportPeriodMonthly => 'Monthly';
+
+  @override
+  String get reportPeriodQuarterly => 'Quarterly';
+
+  @override
+  String get reportPeriodYearly => 'Yearly';
+
+  @override
+  String get reportAllWallets => 'All Wallets';
+
+  @override
+  String get reportCategoryBreakdown => 'Category Breakdown';
+
+  @override
+  String get reportDailyTrend => 'Daily Trend';
+
+  @override
+  String get reportNoCategory => 'No category data yet.';
+
+  @override
+  String get reportNoTrendData => 'No trend data yet.';
+
+  @override
+  String get reportEmptyTitle => 'No Data Yet';
+
+  @override
+  String get reportEmptyMessage =>
+      'Start recording transactions to see your full report.';
+
+  @override
+  String get reportErrorGeneric => 'Failed to load report. Try again.';
+
+  @override
+  String reportInsightExpenseDown(String percent) {
+    return 'Your spending decreased by $percent% compared to last period. Great job!';
+  }
+
+  @override
+  String reportInsightExpenseUp(String percent) {
+    return 'Your spending increased by $percent% compared to last period. Stay alert.';
+  }
+
+  @override
+  String get reportInsightStable =>
+      'Your spending is relatively stable compared to the previous period.';
+
+  @override
+  String get reportInsightNoData =>
+      'Start recording transactions to see report insights.';
+
+  @override
+  String get reportSeeFullReport => 'See Full Report';
+
+  @override
+  String get thisQuarter => 'This Quarter';
+
+  @override
+  String get transactionDeleteConfirmTitle => 'Delete Transaction?';
+
+  @override
+  String get transactionDeleteConfirmMessage =>
+      'This transaction will be permanently deleted and wallet balance will be adjusted.';
+
+  @override
+  String get transactionTransferToAsset => 'Transfer to Asset';
+
+  @override
+  String transactionItemCount(int count) {
+    return '$count item';
+  }
+
+  @override
+  String get reportOthersCategory => 'Others';
+
+  @override
+  String get ocrBalanceItem => 'Other items';
+
+  @override
+  String get ocrDiscountItem => 'Discount/deduction';
+
+  @override
+  String get validationAmountPositive => 'Amount must be greater than 0';
+
+  @override
+  String get validationTransferNeedsDest =>
+      'Transfer requires a destination wallet';
+
+  @override
+  String get validationMinOneItem => 'Transaction must have at least 1 item';
+
+  @override
+  String validationItemsTotalMismatch(String itemsSum, String totalAmount) {
+    return 'Items total ($itemsSum) doesn\'t match transaction total ($totalAmount)';
+  }
+
+  @override
+  String get validationCategoryRequired =>
+      'Category must be selected for each item';
+
+  @override
+  String get validationBudgetAmountPositive =>
+      'Budget amount must be greater than 0';
+
+  @override
+  String get validationEndBeforeStart => 'End date cannot be before start date';
+
+  @override
+  String get validationBudgetDuplicate =>
+      'An active budget already exists for the same category and period';
+
+  @override
+  String get validationDeleteOldBudgetFailed => 'Failed to delete old budget';
+
+  @override
+  String get validationWalletNameEmpty => 'Wallet name cannot be empty';
+
+  @override
+  String get validationInitialBalanceNegative =>
+      'Initial balance cannot be negative';
+
+  @override
+  String get validationWalletNameDuplicate => 'Wallet name already in use';
+
+  @override
+  String get validationWalletHasTransactions =>
+      'Cannot delete wallet with existing transactions. Delete transactions first.';
+
+  @override
+  String get investmentFormSymbol => 'Symbol';
+
+  @override
+  String get investmentFormSymbolHint => 'TSLA, AAPL, etc.';
 }

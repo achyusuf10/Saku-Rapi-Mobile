@@ -2,22 +2,27 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+
+/// Provider yang menyimpan index tab bottom nav saat ini.
+final currentTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Scaffold utama dengan Bottom Navigation Bar.
 ///
 /// Digunakan oleh [StatefulShellRoute.indexedStack] untuk mempertahankan
 /// state tiap tab saat berpindah.
 /// 4 tab sesuai PRD: Dashboard, Riwayat, Anggaran, Investasi.
-class MainShellPage extends StatelessWidget {
+class MainShellPage extends ConsumerWidget {
   const MainShellPage({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
 
@@ -30,6 +35,7 @@ class MainShellPage extends StatelessWidget {
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
           onTap: (index) {
+            ref.read(currentTabIndexProvider.notifier).state = index;
             navigationShell.goBranch(
               index,
               initialLocation: index == navigationShell.currentIndex,

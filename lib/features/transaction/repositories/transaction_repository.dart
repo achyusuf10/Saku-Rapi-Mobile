@@ -1,5 +1,7 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/transaction/datasource/transaction_local_data_source.dart';
 import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
@@ -77,35 +79,49 @@ class TransactionRepository {
     String? destinationWalletId,
     String? withPerson,
   }) {
-    if (totalAmount <= 0) return 'Nominal harus lebih dari 0';
+    final l10n = appContext?.l10n;
+    if (totalAmount <= 0) {
+      return l10n?.validationAmountPositive ?? 'Nominal harus lebih dari 0';
+    }
 
     if (type == TransactionTypeEnum.transfer) {
       if (destinationWalletId == null || destinationWalletId.isEmpty) {
-        return 'Transfer memerlukan dompet tujuan';
+        return l10n?.validationTransferNeedsDest ??
+            'Transfer memerlukan dompet tujuan';
       }
       if (walletId == destinationWalletId) {
-        return 'Dompet asal dan tujuan tidak boleh sama';
+        return l10n?.transactionSameWalletError ??
+            'Dompet asal dan tujuan tidak boleh sama';
       }
     }
 
     if (type.requiresWithPerson) {
       if (withPerson == null || withPerson.trim().isEmpty) {
-        return 'Nama kontak wajib diisi untuk hutang/piutang';
+        return l10n?.transactionWithPersonRequired ??
+            'Nama kontak wajib diisi untuk hutang/piutang';
       }
     }
 
-    if (items.isEmpty) return 'Transaksi harus memiliki minimal 1 item';
+    if (items.isEmpty) {
+      return l10n?.validationMinOneItem ??
+          'Transaksi harus memiliki minimal 1 item';
+    }
 
     final itemsSum = items.fold(0.0, (sum, item) => sum + item.amount);
     if ((itemsSum - totalAmount).abs() > 0.01) {
-      return 'Total item ($itemsSum) tidak sama dengan total transaksi ($totalAmount)';
+      return l10n?.validationItemsTotalMismatch(
+            '$itemsSum',
+            '$totalAmount',
+          ) ??
+          'Total item ($itemsSum) tidak sama dengan total transaksi ($totalAmount)';
     }
 
     if (type == TransactionTypeEnum.income ||
         type == TransactionTypeEnum.expense) {
       for (final item in items) {
         if (item.categoryId == null || item.categoryId!.isEmpty) {
-          return 'Kategori wajib dipilih untuk setiap item';
+          return l10n?.validationCategoryRequired ??
+              'Kategori wajib dipilih untuk setiap item';
         }
       }
     }

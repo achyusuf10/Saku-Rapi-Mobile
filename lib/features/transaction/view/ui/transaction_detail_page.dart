@@ -127,7 +127,10 @@ class TransactionDetailPage extends ConsumerWidget {
           // ─── Items list ───
           if (transaction.items.isNotEmpty) ...[
             SizedBox(height: 20.h),
-            _ItemsSection(items: transaction.items),
+            _ItemsSection(
+              items: transaction.items,
+              totalAmount: transaction.totalAmount,
+            ),
           ],
         ],
       ),
@@ -138,8 +141,8 @@ class TransactionDetailPage extends ConsumerWidget {
     if (!context.mounted) return;
 
     final confirmed = await context.showConfirmDialog(
-      title: context.l10n.transactionDeleteConfirm,
-      message: context.l10n.transactionDeleteConfirm,
+      title: context.l10n.transactionDeleteConfirmTitle,
+      message: context.l10n.transactionDeleteConfirmMessage,
     );
 
     if (confirmed != true) return;
@@ -254,7 +257,7 @@ class _HeaderCard extends StatelessWidget {
       TransactionTypeEnum.debt => l10n.transactionDebt,
       TransactionTypeEnum.loan => l10n.transactionLoan,
       TransactionTypeEnum.adjustment => l10n.transactionAdjustment,
-      TransactionTypeEnum.transferToAsset => l10n.transactionTransfer,
+      TransactionTypeEnum.transferToAsset => l10n.transactionTransferToAsset,
     };
   }
 }
@@ -310,9 +313,10 @@ class _DetailSection extends StatelessWidget {
 
 /// Bagian daftar item transaksi.
 class _ItemsSection extends StatelessWidget {
-  const _ItemsSection({required this.items});
+  const _ItemsSection({required this.items, required this.totalAmount});
 
   final List<TransactionItemModel> items;
+  final double totalAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +346,7 @@ class _ItemsSection extends StatelessWidget {
               ),
             ),
             Text(
-              items.fold(0.0, (sum, i) => sum + i.amount).toCurrency(),
+              totalAmount.toCurrency(),
               style: TextStyleConstants.b1.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colors.expense,

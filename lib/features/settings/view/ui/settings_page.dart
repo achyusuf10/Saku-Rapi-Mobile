@@ -84,9 +84,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               SettingsTile(
                 icon: FontAwesomeIcons.bell,
                 label: l10n.profileNotifications,
-                subtitle: l10n.profileComingSoon,
-                onTap: null,
-                trailing: _comingSoonBadge(colors),
+                onTap: () => context.push(AppRouter.notificationSettings),
               ),
             ],
           ),
@@ -308,7 +306,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     context.showLoadingOverlay();
 
     try {
-      await ref.read(authControllerProvider.notifier).signOut();
+      var res = await ref.read(authControllerProvider.notifier).signOut();
+      if (!mounted) return;
+      if (res == true) {
+        context.go(AppRouter.login);
+      }
     } finally {
       if (context.mounted) {
         context.closeOverlay();

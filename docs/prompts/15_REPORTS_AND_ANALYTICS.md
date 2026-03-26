@@ -24,6 +24,8 @@ Implementasikan visual reports dan analytics dasar.
 3. Siapkan adapter data untuk chart/widget.
 4. Buat UI report yang modular dan mudah dibaca.
 5. Jangan letakkan kalkulasi report di widget.
+6. Buat UI yang elegan, modern, simpel, fancy dan mudah digunakan oleh user
+7. Pasang Rute/Widget ini di tempat yang seharusnya, agar bisa diakses
 
 ## Output
 Berikan:

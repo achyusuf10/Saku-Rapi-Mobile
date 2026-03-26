@@ -5,32 +5,79 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "app_saku_rapi",
+      "name": "dev (debug)",
       "request": "launch",
       "type": "dart",
+      "program": "lib/main_dev.dart",
       "args": [
-          "--dart-define-from-file",
-          ".env"
+        "--flavor",
+        "dev",
+        "--dart-define-from-file",
+        ".env.dev"
       ]
     },
     {
-      "name": "app_saku_rapi (profile mode)",
+      "name": "dev (profile mode)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile",
+      "program": "lib/main_dev.dart",
       "args": [
-          "--dart-define-from-file",
-          ".env"
+        "--flavor",
+        "dev",
+        "--dart-define-from-file",
+        ".env.dev"
       ]
     },
     {
-      "name": "app_saku_rapi (release mode)",
+      "name": "dev (release mode)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "release",
+      "program": "lib/main_dev.dart",
       "args": [
-          "--dart-define-from-file",
-          ".env"
+        "--flavor",
+        "dev",
+        "--dart-define-from-file",
+        ".env.dev"
+      ]
+    },
+    {
+      "name": "prod (debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_prod.dart",
+      "args": [
+        "--flavor",
+        "prod",
+        "--dart-define-from-file",
+        ".env.prod"
+      ]
+    },
+    {
+      "name": "prod (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main_prod.dart",
+      "args": [
+        "--flavor",
+        "prod",
+        "--dart-define-from-file",
+        ".env.prod"
+      ]
+    },
+    {
+      "name": "prod (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main_prod.dart",
+      "args": [
+        "--flavor",
+        "prod",
+        "--dart-define-from-file",
+        ".env.prod"
       ]
     }
   ]

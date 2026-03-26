@@ -1,8 +1,10 @@
+import 'package:app_saku_rapi/core/config/app_flavor.dart';
 import 'package:app_saku_rapi/core/localization/locale_controller.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
+import 'package:app_saku_rapi/features/notification/services/notification_service.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:app_saku_rapi/utils/services/screen_util_service.dart';
@@ -33,11 +35,17 @@ void _workmanagerCallbackDispatcher() {
     );
     // Re-inisialisasi timezone di isolate WorkManager.
     tz.initializeTimeZones();
+    tzLocal.setLocalLocation(tzLocal.getLocation('Asia/Jakarta'));
+
+    // Re-inisialisasi Hive dan notification untuk re-sync jadwal.
+    await HiveService.instance();
+    await NotificationService.instance.init();
+
     return Future.value(true);
   });
 }
 
-Future<void> main() async {
+Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inisialisasi timezone untuk scheduled notifications.
@@ -46,12 +54,16 @@ Future<void> main() async {
 
   // Inisialisasi Hive (encrypted box).
   await HiveService.instance();
+
+  // Inisialisasi notification service.
+  await NotificationService.instance.init();
+
   AppLogger.call(
-    'Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
+    'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
   );
   // Inisialisasi Supabase.
   await Supabase.initialize(
-    debug: true,
+    debug: AppFlavorConfig.isDev,
     url: const String.fromEnvironment('SUPABASE_URL'),
     anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
