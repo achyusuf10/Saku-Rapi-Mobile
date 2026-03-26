@@ -1644,4 +1644,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get investmentFormSymbolHint => 'TSLA, AAPL, etc.';
+
+  @override
+  String get assetTypeTitle => 'Manage Asset Types';
+
+  @override
+  String get assetTypeAdd => 'Add Asset Type';
+
+  @override
+  String get assetTypeEdit => 'Edit Asset Type';
+
+  @override
+  String get assetTypeEmpty => 'No asset types yet';
+
+  @override
+  String get assetTypeEmptyHint => 'Tap + to create your first asset type';
+
+  @override
+  String get assetTypeFormName => 'Asset Name';
+
+  @override
+  String get assetTypeFormNameHint => 'e.g., BCA Stock, Land, Bonds';
+
+  @override
+  String get assetTypeFormSymbol => 'Symbol';
+
+  @override
+  String get assetTypeFormSymbolHint => 'e.g., BBCA, OBL';
+
+  @override
+  String get assetTypeFormCurrentPrice => 'Current Price (IDR)';
+
+  @override
+  String get assetTypeFormCurrentPriceHint => 'Price per unit right now';
+
+  @override
+  String get assetTypeSave => 'Save Asset Type';
+
+  @override
+  String get assetTypeSuccessAdd => 'Asset type added successfully';
+
+  @override
+  String get assetTypeSuccessEdit => 'Asset type updated successfully';
+
+  @override
+  String get assetTypeSuccessDelete => 'Asset type deleted successfully';
+
+  @override
+  String get assetTypeErrorAdd => 'Failed to add asset type';
+
+  @override
+  String get assetTypeErrorEdit => 'Failed to update asset type';
+
+  @override
+  String get assetTypeErrorDelete => 'Failed to delete asset type';
+
+  @override
+  String get assetTypeDeleteConfirmTitle => 'Delete Asset Type?';
+
+  @override
+  String assetTypeDeleteConfirmMessage(String name) {
+    return '\"$name\" and all investments using this asset type will be hidden.';
+  }
+
+  @override
+  String assetTypeErrorDuplicateName(String name) {
+    return 'Asset type name \"$name\" already exists';
+  }
+
+  @override
+  String get investmentFormAssetType => 'Asset Type';
+
+  @override
+  String get investmentFormAssetTypeHint => 'Select asset type';
+
+  @override
+  String get investmentFormAssetTypeEmpty =>
+      'No asset types available. Create one first.';
+
+  @override
+  String get investmentManageAssetTypes => 'Manage Asset Types';
+
+  @override
+  String get investmentFormCreateAssetType => 'Create New Asset Type';
+
+  @override
+  String get investmentFilterTitle => 'Filter & Sort';
+
+  @override
+  String get investmentFilterSort => 'Sort By';
+
+  @override
+  String get investmentFilterSortNewest => 'Newest';
+
+  @override
+  String get investmentFilterSortOldest => 'Oldest';
+
+  @override
+  String get investmentFilterSortHighest => 'Highest Value';
+
+  @override
+  String get investmentFilterSortLowest => 'Lowest Value';
+
+  @override
+  String get investmentFilterType => 'Type';
+
+  @override
+  String get investmentFilterAll => 'All';
+
+  @override
+  String get investmentFilterSearch => 'Search by name...';
+
+  @override
+  String get investmentFilterApply => 'Apply Filter';
+
+  @override
+  String get investmentFilterReset => 'Reset';
 }

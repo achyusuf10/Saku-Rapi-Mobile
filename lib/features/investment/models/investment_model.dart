@@ -14,11 +14,15 @@ class InvestmentModel {
     required this.avgBuyPrice,
     this.customCurrentPrice,
     this.linkedWalletId,
+    this.assetTypeId,
     this.notes,
     this.createdAt,
     this.updatedAt,
     // Display-only joined fields
     this.walletName,
+    this.assetTypeName,
+    this.assetTypeCurrentPrice,
+    this.assetTypeIsDeleted,
     // Live price (fetched dari external source, tidak disimpan ke DB)
     this.livePricePerUnit,
   });
@@ -47,6 +51,9 @@ class InvestmentModel {
   /// Wallet referensi (bukan untuk deduction langsung).
   final String? linkedWalletId;
 
+  /// FK ke asset_types — hanya untuk tipe 'custom'.
+  final String? assetTypeId;
+
   final String? notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -54,15 +61,27 @@ class InvestmentModel {
   // ─── Display-only joined fields ───
   final String? walletName;
 
+  /// Nama jenis aset (dari join asset_types).
+  final String? assetTypeName;
+
+  /// Harga saat ini dari asset_type (dari join asset_types).
+  final double? assetTypeCurrentPrice;
+
+  /// Apakah asset_type sudah di-soft-delete (dari join asset_types).
+  final bool? assetTypeIsDeleted;
+
   /// Harga live dari sumber eksternal (CoinGecko/Edge Function).
   /// Tidak persisted ke DB — hanya untuk display.
   final double? livePricePerUnit;
 
   // ───────────────── Computed ─────────────────
 
-  /// Harga saat ini — prioritas: live > custom > avgBuyPrice.
+  /// Harga saat ini — prioritas: live > assetType > custom > avgBuyPrice.
   double get currentPrice =>
-      livePricePerUnit ?? customCurrentPrice ?? avgBuyPrice;
+      livePricePerUnit ??
+      assetTypeCurrentPrice ??
+      customCurrentPrice ??
+      avgBuyPrice;
 
   /// Apakah menggunakan harga live.
   bool get hasLivePrice => livePricePerUnit != null;
@@ -91,6 +110,7 @@ class InvestmentModel {
   // ───────────────── Factory ─────────────────
 
   factory InvestmentModel.fromMap(Map<String, dynamic> map) {
+    final assetTypeNested = map['asset_types'];
     return InvestmentModel(
       id: map['id'] as String,
       userId: map['user_id'] as String,
@@ -103,6 +123,7 @@ class InvestmentModel {
           ? _toDouble(map['custom_current_price'])
           : null,
       linkedWalletId: map['linked_wallet_id'] as String?,
+      assetTypeId: map['asset_type_id'] as String?,
       notes: map['notes'] as String?,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
@@ -111,6 +132,9 @@ class InvestmentModel {
           ? DateTime.parse(map['updated_at'] as String)
           : null,
       walletName: _nestedName(map['wallets']),
+      assetTypeName: _nestedString(assetTypeNested, 'name'),
+      assetTypeCurrentPrice: _nestedDouble(assetTypeNested, 'current_price'),
+      assetTypeIsDeleted: _nestedBool(assetTypeNested, 'is_deleted'),
     );
   }
 
@@ -118,6 +142,25 @@ class InvestmentModel {
     if (nested is Map<String, dynamic>) {
       return nested['name'] as String?;
     }
+    return null;
+  }
+
+  static String? _nestedString(dynamic nested, String key) {
+    if (nested is Map<String, dynamic>) {
+      return nested[key] as String?;
+    }
+    return null;
+  }
+
+  static double? _nestedDouble(dynamic nested, String key) {
+    if (nested is Map<String, dynamic> && nested[key] != null) {
+      return _toDouble(nested[key]);
+    }
+    return null;
+  }
+
+  static bool? _nestedBool(dynamic nested, String key) {
+    if (nested is Map<String, dynamic>) return nested[key] as bool?;
     return null;
   }
 
@@ -141,6 +184,7 @@ class InvestmentModel {
       'avg_buy_price': avgBuyPrice,
       'custom_current_price': customCurrentPrice,
       'linked_wallet_id': linkedWalletId,
+      'asset_type_id': assetTypeId,
       'notes': notes,
     };
   }
@@ -154,6 +198,7 @@ class InvestmentModel {
       'avg_buy_price': avgBuyPrice,
       'custom_current_price': customCurrentPrice,
       'linked_wallet_id': linkedWalletId,
+      'asset_type_id': assetTypeId,
       'notes': notes,
     };
   }
@@ -170,6 +215,7 @@ class InvestmentModel {
       'avg_buy_price': avgBuyPrice,
       'custom_current_price': customCurrentPrice,
       'linked_wallet_id': linkedWalletId,
+      'asset_type_id': assetTypeId,
       'notes': notes,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
@@ -190,11 +236,16 @@ class InvestmentModel {
     bool clearCustomCurrentPrice = false,
     String? linkedWalletId,
     bool clearLinkedWalletId = false,
+    String? assetTypeId,
+    bool clearAssetTypeId = false,
     String? notes,
     bool clearNotes = false,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? walletName,
+    String? assetTypeName,
+    double? assetTypeCurrentPrice,
+    bool? assetTypeIsDeleted,
     double? livePricePerUnit,
     bool clearLivePricePerUnit = false,
   }) {
@@ -215,10 +266,15 @@ class InvestmentModel {
       linkedWalletId: clearLinkedWalletId
           ? null
           : (linkedWalletId ?? this.linkedWalletId),
+      assetTypeId: clearAssetTypeId ? null : (assetTypeId ?? this.assetTypeId),
       notes: clearNotes ? null : (notes ?? this.notes),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       walletName: walletName ?? this.walletName,
+      assetTypeName: assetTypeName ?? this.assetTypeName,
+      assetTypeCurrentPrice:
+          assetTypeCurrentPrice ?? this.assetTypeCurrentPrice,
+      assetTypeIsDeleted: assetTypeIsDeleted ?? this.assetTypeIsDeleted,
     );
   }
 

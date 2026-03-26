@@ -2,9 +2,13 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/features/investment/controllers/asset_type_controller.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
+import 'package:app_saku_rapi/features/investment/models/asset_type_model.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/asset_type_form_page.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_type_selector.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
@@ -55,6 +59,8 @@ class _InvestmentFormPageState extends ConsumerState<InvestmentFormPage> {
             .read(investmentFormControllerProvider.notifier)
             .loadExisting(existing);
       }
+      // Load asset types for custom type picker
+      ref.read(assetTypeControllerProvider.notifier).loadAssetTypes();
     });
   }
 
@@ -195,34 +201,44 @@ class _InvestmentFormPageState extends ConsumerState<InvestmentFormPage> {
 
             SizedBox(height: 20.h),
 
-            // ─── Asset Name ───
-            _AutocompleteNameField(
-              controller: _nameCtrl,
-              label: l10n.investmentFormName,
-              hint: l10n.investmentFormNameHint,
-              suggestions: ref.watch(investmentSuggestionsProvider),
-              onChanged: (v) => formCtrl.setName(v),
-              onSuggestionSelected: (suggestion) {
-                _nameCtrl.text = suggestion.name;
-                formCtrl.setName(suggestion.name);
-                if (suggestion.symbol != null &&
-                    suggestion.symbol!.isNotEmpty) {
-                  _symbolCtrl.text = suggestion.symbol!;
-                  formCtrl.setSymbol(suggestion.symbol);
-                }
-              },
-            ),
-
-            SizedBox(height: 16.h),
-
-            // ─── Symbol (only for custom type) ───
+            // ─── Custom Type: Asset Type Picker ───
             if (formState.type == 'custom') ...[
-              _AutocompleteSymbolField(
-                controller: _symbolCtrl,
-                label: l10n.investmentFormSymbol,
-                hint: l10n.investmentFormSymbolHint,
+              _AssetTypePicker(
+                selectedAssetType: formState.assetType,
+                assetTypes: ref.watch(assetTypeListProvider),
+                onChanged: formCtrl.setAssetType,
+                onCreateNew: () async {
+                  final result = await Navigator.of(context)
+                      .push<AssetTypeModel>(
+                        MaterialPageRoute(
+                          builder: (_) => const AssetTypeFormPage(),
+                        ),
+                      );
+                  if (result != null) {
+                    formCtrl.setAssetType(result);
+                  }
+                },
+              ),
+              SizedBox(height: 16.h),
+            ],
+
+            // ─── Asset Name (hidden for custom — auto-populated from asset type) ───
+            if (formState.type != 'custom') ...[
+              _AutocompleteNameField(
+                controller: _nameCtrl,
+                label: l10n.investmentFormName,
+                hint: l10n.investmentFormNameHint,
                 suggestions: ref.watch(investmentSuggestionsProvider),
-                onChanged: (v) => formCtrl.setSymbol(v.isEmpty ? null : v),
+                onChanged: (v) => formCtrl.setName(v),
+                onSuggestionSelected: (suggestion) {
+                  _nameCtrl.text = suggestion.name;
+                  formCtrl.setName(suggestion.name);
+                  if (suggestion.symbol != null &&
+                      suggestion.symbol!.isNotEmpty) {
+                    _symbolCtrl.text = suggestion.symbol!;
+                    formCtrl.setSymbol(suggestion.symbol);
+                  }
+                },
               ),
               SizedBox(height: 16.h),
             ],
@@ -260,8 +276,8 @@ class _InvestmentFormPageState extends ConsumerState<InvestmentFormPage> {
 
             SizedBox(height: 16.h),
 
-            // ─── Current Price (only for custom type) ───
-            if (formState.type == 'custom') ...[
+            // ─── Current Price (only for custom type WITHOUT asset type) ───
+            if (formState.type == 'custom' && formState.assetType == null) ...[
               SakuCurrencyField(
                 key: ValueKey(
                   'currentPrice_${formState.existingInvestment?.id}',
@@ -339,7 +355,7 @@ class _DeductWalletSection extends StatelessWidget {
   });
 
   final bool isEnabled;
-  final dynamic wallet;
+  final WalletModel? wallet;
   final ValueChanged<bool> onToggle;
   final VoidCallback onPickWallet;
 
@@ -418,7 +434,7 @@ class _DeductWalletSection extends StatelessWidget {
                     Expanded(
                       child: Text(
                         wallet != null
-                            ? '${wallet.name} (${wallet.balance.toCurrency()})'
+                            ? '${wallet?.name} (${wallet?.balance.toCurrency()})'
                             : l10n.investmentFormWallet,
                         style: TextStyleConstants.b2.copyWith(
                           color: wallet != null
@@ -744,6 +760,256 @@ class _AutocompleteSymbolFieldState extends State<_AutocompleteSymbolField> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+}
+
+/// Dropdown picker untuk memilih jenis aset kustom.
+class _AssetTypePicker extends StatelessWidget {
+  const _AssetTypePicker({
+    required this.selectedAssetType,
+    required this.assetTypes,
+    required this.onChanged,
+    required this.onCreateNew,
+  });
+
+  final AssetTypeModel? selectedAssetType;
+  final List<AssetTypeModel> assetTypes;
+  final ValueChanged<AssetTypeModel?> onChanged;
+  final VoidCallback onCreateNew;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.investmentFormAssetType,
+          style: TextStyleConstants.label1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        // Picker button
+        GestureDetector(
+          onTap: () => _showAssetTypePicker(context),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: selectedAssetType != null
+                    ? colors.primary.withValues(alpha: 0.5)
+                    : colors.border.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36.w,
+                  height: 36.w,
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.layerGroup,
+                      size: 16.w,
+                      color: selectedAssetType != null
+                          ? colors.primary
+                          : colors.textSecondary,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: selectedAssetType != null
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              selectedAssetType!.name,
+                              style: TextStyleConstants.b2.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              selectedAssetType!.currentPrice.toCurrency(),
+                              style: TextStyleConstants.label3.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          l10n.investmentFormAssetTypeHint,
+                          style: TextStyleConstants.b2.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                ),
+                FaIcon(
+                  FontAwesomeIcons.chevronDown,
+                  size: 12.w,
+                  color: colors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAssetTypePicker(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 40.w,
+                height: 4.h,
+                margin: EdgeInsets.only(top: 12.h),
+                decoration: BoxDecoration(
+                  color: colors.border,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+
+              // Title
+              Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Text(
+                  l10n.investmentFormAssetType,
+                  style: TextStyleConstants.h6.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+
+              // Asset type list
+              if (assetTypes.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 24.h,
+                  ),
+                  child: Text(
+                    l10n.investmentFormAssetTypeEmpty,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 300.h),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    itemCount: assetTypes.length,
+                    itemBuilder: (_, index) {
+                      final at = assetTypes[index];
+                      final isSelected = selectedAssetType?.id == at.id;
+                      return ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        selected: isSelected,
+                        selectedTileColor: colors.primary.withValues(
+                          alpha: isDark ? 0.15 : 0.08,
+                        ),
+                        leading: Container(
+                          width: 36.w,
+                          height: 36.w,
+                          decoration: BoxDecoration(
+                            color: colors.primary.withValues(
+                              alpha: isDark ? 0.2 : 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Center(
+                            child: FaIcon(
+                              FontAwesomeIcons.chartLine,
+                              size: 14.w,
+                              color: colors.primary,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          at.name,
+                          style: TextStyleConstants.b2.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          at.currentPrice.toCurrency(),
+                          style: TextStyleConstants.label3.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? FaIcon(
+                                FontAwesomeIcons.circleCheck,
+                                size: 18.w,
+                                color: colors.primary,
+                              )
+                            : null,
+                        onTap: () {
+                          onChanged(at);
+                          Navigator.of(ctx).pop();
+                        },
+                      );
+                    },
+                  ),
+                ),
+
+              // Create new button
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+                child: SakuButton(
+                  text: l10n.investmentFormCreateAssetType,
+                  isOutlined: true,
+                  icon: FaIcon(
+                    FontAwesomeIcons.plus,
+                    size: 14.w,
+                    color: colors.primary,
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    onCreateNew();
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

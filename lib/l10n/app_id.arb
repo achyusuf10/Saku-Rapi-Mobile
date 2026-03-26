@@ -753,5 +753,56 @@
   "validationWalletNameDuplicate": "Nama dompet sudah digunakan",
   "validationWalletHasTransactions": "Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.",
   "investmentFormSymbol": "Symbol",
-  "investmentFormSymbolHint": "TSLA, AAPL, etc."
+  "investmentFormSymbolHint": "TSLA, AAPL, etc.",
+  "assetTypeTitle": "Kelola Jenis Aset",
+  "assetTypeAdd": "Tambah Jenis Aset",
+  "assetTypeEdit": "Edit Jenis Aset",
+  "assetTypeEmpty": "Belum ada jenis aset",
+  "assetTypeEmptyHint": "Ketuk + untuk membuat jenis aset pertama",
+  "assetTypeFormName": "Nama Aset",
+  "assetTypeFormNameHint": "misal: Saham BCA, Tanah, Obligasi",
+  "assetTypeFormSymbol": "Symbol",
+  "assetTypeFormSymbolHint": "misal: BBCA, OBL",
+  "assetTypeFormCurrentPrice": "Harga Saat Ini (IDR)",
+  "assetTypeFormCurrentPriceHint": "Harga per unit saat ini",
+  "assetTypeSave": "Simpan Jenis Aset",
+  "assetTypeSuccessAdd": "Jenis aset berhasil ditambahkan",
+  "assetTypeSuccessEdit": "Jenis aset berhasil diperbarui",
+  "assetTypeSuccessDelete": "Jenis aset berhasil dihapus",
+  "assetTypeErrorAdd": "Gagal menambahkan jenis aset",
+  "assetTypeErrorEdit": "Gagal memperbarui jenis aset",
+  "assetTypeErrorDelete": "Gagal menghapus jenis aset",
+  "assetTypeDeleteConfirmTitle": "Hapus Jenis Aset?",
+  "assetTypeDeleteConfirmMessage": "\"{name}\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.",
+  "@assetTypeDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "assetTypeErrorDuplicateName": "Nama jenis aset \"{name}\" sudah ada",
+  "@assetTypeErrorDuplicateName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentFormAssetType": "Jenis Aset",
+  "investmentFormAssetTypeHint": "Pilih jenis aset",
+  "investmentFormAssetTypeEmpty": "Belum ada jenis aset. Buat terlebih dahulu.",
+  "investmentManageAssetTypes": "Kelola Jenis Aset",
+  "investmentFormCreateAssetType": "Buat Jenis Aset Baru",
+  "investmentFilterTitle": "Filter & Urutkan",
+  "investmentFilterSort": "Urutkan",
+  "investmentFilterSortNewest": "Terbaru",
+  "investmentFilterSortOldest": "Terlama",
+  "investmentFilterSortHighest": "Nilai Terbesar",
+  "investmentFilterSortLowest": "Nilai Terendah",
+  "investmentFilterType": "Tipe",
+  "investmentFilterAll": "Semua",
+  "investmentFilterSearch": "Cari berdasarkan nama...",
+  "investmentFilterApply": "Terapkan Filter",
+  "investmentFilterReset": "Reset"
 }

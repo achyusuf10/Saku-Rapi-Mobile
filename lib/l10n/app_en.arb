@@ -753,5 +753,56 @@
   "validationWalletNameDuplicate": "Wallet name already in use",
   "validationWalletHasTransactions": "Cannot delete wallet with existing transactions. Delete transactions first.",
   "investmentFormSymbol": "Symbol",
-  "investmentFormSymbolHint": "TSLA, AAPL, etc."
+  "investmentFormSymbolHint": "TSLA, AAPL, etc.",
+  "assetTypeTitle": "Manage Asset Types",
+  "assetTypeAdd": "Add Asset Type",
+  "assetTypeEdit": "Edit Asset Type",
+  "assetTypeEmpty": "No asset types yet",
+  "assetTypeEmptyHint": "Tap + to create your first asset type",
+  "assetTypeFormName": "Asset Name",
+  "assetTypeFormNameHint": "e.g., BCA Stock, Land, Bonds",
+  "assetTypeFormSymbol": "Symbol",
+  "assetTypeFormSymbolHint": "e.g., BBCA, OBL",
+  "assetTypeFormCurrentPrice": "Current Price (IDR)",
+  "assetTypeFormCurrentPriceHint": "Price per unit right now",
+  "assetTypeSave": "Save Asset Type",
+  "assetTypeSuccessAdd": "Asset type added successfully",
+  "assetTypeSuccessEdit": "Asset type updated successfully",
+  "assetTypeSuccessDelete": "Asset type deleted successfully",
+  "assetTypeErrorAdd": "Failed to add asset type",
+  "assetTypeErrorEdit": "Failed to update asset type",
+  "assetTypeErrorDelete": "Failed to delete asset type",
+  "assetTypeDeleteConfirmTitle": "Delete Asset Type?",
+  "assetTypeDeleteConfirmMessage": "\"{name}\" and all investments using this asset type will be hidden.",
+  "@assetTypeDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "assetTypeErrorDuplicateName": "Asset type name \"{name}\" already exists",
+  "@assetTypeErrorDuplicateName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentFormAssetType": "Asset Type",
+  "investmentFormAssetTypeHint": "Select asset type",
+  "investmentFormAssetTypeEmpty": "No asset types available. Create one first.",
+  "investmentManageAssetTypes": "Manage Asset Types",
+  "investmentFormCreateAssetType": "Create New Asset Type",
+  "investmentFilterTitle": "Filter & Sort",
+  "investmentFilterSort": "Sort By",
+  "investmentFilterSortNewest": "Newest",
+  "investmentFilterSortOldest": "Oldest",
+  "investmentFilterSortHighest": "Highest Value",
+  "investmentFilterSortLowest": "Lowest Value",
+  "investmentFilterType": "Type",
+  "investmentFilterAll": "All",
+  "investmentFilterSearch": "Search by name...",
+  "investmentFilterApply": "Apply Filter",
+  "investmentFilterReset": "Reset"
 }

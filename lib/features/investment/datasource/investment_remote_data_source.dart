@@ -33,7 +33,8 @@ class InvestmentRemoteDataSource {
             .from(_table)
             .select('''
               *,
-              wallets!investments_linked_wallet_id_fkey(name)
+              wallets!investments_linked_wallet_id_fkey(name),
+              asset_types(name, current_price, is_deleted)
             ''')
             .eq('user_id', _userId)
             .order('created_at', ascending: false);
@@ -53,7 +54,8 @@ class InvestmentRemoteDataSource {
             .from(_table)
             .select('''
               *,
-              wallets!investments_linked_wallet_id_fkey(name)
+              wallets!investments_linked_wallet_id_fkey(name),
+              asset_types(name, current_price, is_deleted)
             ''')
             .eq('id', investmentId)
             .eq('user_id', _userId)
@@ -78,6 +80,7 @@ class InvestmentRemoteDataSource {
     required double avgBuyPrice,
     double? customCurrentPrice,
     String? linkedWalletId,
+    String? assetTypeId,
     String? notes,
     required bool deductFromWallet,
   }) {
@@ -98,6 +101,7 @@ class InvestmentRemoteDataSource {
             'p_avg_buy_price': avgBuyPrice,
             'p_custom_current_price': customCurrentPrice,
             'p_linked_wallet_id': linkedWalletId,
+            'p_asset_type_id': assetTypeId,
             'p_notes': notes,
             'p_deduct_from_wallet': deductFromWallet,
           },
@@ -126,7 +130,8 @@ class InvestmentRemoteDataSource {
             .eq('user_id', _userId)
             .select('''
               *,
-              wallets!investments_linked_wallet_id_fkey(name)
+              wallets!investments_linked_wallet_id_fkey(name),
+              asset_types(name, current_price, is_deleted)
             ''')
             .single();
 

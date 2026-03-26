@@ -3183,6 +3183,228 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'TSLA, AAPL, etc.'**
   String get investmentFormSymbolHint;
+
+  /// No description provided for @assetTypeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelola Jenis Aset'**
+  String get assetTypeTitle;
+
+  /// No description provided for @assetTypeAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Jenis Aset'**
+  String get assetTypeAdd;
+
+  /// No description provided for @assetTypeEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Jenis Aset'**
+  String get assetTypeEdit;
+
+  /// No description provided for @assetTypeEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada jenis aset'**
+  String get assetTypeEmpty;
+
+  /// No description provided for @assetTypeEmptyHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketuk + untuk membuat jenis aset pertama'**
+  String get assetTypeEmptyHint;
+
+  /// No description provided for @assetTypeFormName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Aset'**
+  String get assetTypeFormName;
+
+  /// No description provided for @assetTypeFormNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'misal: Saham BCA, Tanah, Obligasi'**
+  String get assetTypeFormNameHint;
+
+  /// No description provided for @assetTypeFormSymbol.
+  ///
+  /// In id, this message translates to:
+  /// **'Symbol'**
+  String get assetTypeFormSymbol;
+
+  /// No description provided for @assetTypeFormSymbolHint.
+  ///
+  /// In id, this message translates to:
+  /// **'misal: BBCA, OBL'**
+  String get assetTypeFormSymbolHint;
+
+  /// No description provided for @assetTypeFormCurrentPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Saat Ini (IDR)'**
+  String get assetTypeFormCurrentPrice;
+
+  /// No description provided for @assetTypeFormCurrentPriceHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga per unit saat ini'**
+  String get assetTypeFormCurrentPriceHint;
+
+  /// No description provided for @assetTypeSave.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan Jenis Aset'**
+  String get assetTypeSave;
+
+  /// No description provided for @assetTypeSuccessAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis aset berhasil ditambahkan'**
+  String get assetTypeSuccessAdd;
+
+  /// No description provided for @assetTypeSuccessEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis aset berhasil diperbarui'**
+  String get assetTypeSuccessEdit;
+
+  /// No description provided for @assetTypeSuccessDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis aset berhasil dihapus'**
+  String get assetTypeSuccessDelete;
+
+  /// No description provided for @assetTypeErrorAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menambahkan jenis aset'**
+  String get assetTypeErrorAdd;
+
+  /// No description provided for @assetTypeErrorEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memperbarui jenis aset'**
+  String get assetTypeErrorEdit;
+
+  /// No description provided for @assetTypeErrorDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menghapus jenis aset'**
+  String get assetTypeErrorDelete;
+
+  /// No description provided for @assetTypeDeleteConfirmTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Jenis Aset?'**
+  String get assetTypeDeleteConfirmTitle;
+
+  /// No description provided for @assetTypeDeleteConfirmMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'\"{name}\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.'**
+  String assetTypeDeleteConfirmMessage(String name);
+
+  /// No description provided for @assetTypeErrorDuplicateName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama jenis aset \"{name}\" sudah ada'**
+  String assetTypeErrorDuplicateName(String name);
+
+  /// No description provided for @investmentFormAssetType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis Aset'**
+  String get investmentFormAssetType;
+
+  /// No description provided for @investmentFormAssetTypeHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih jenis aset'**
+  String get investmentFormAssetTypeHint;
+
+  /// No description provided for @investmentFormAssetTypeEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada jenis aset. Buat terlebih dahulu.'**
+  String get investmentFormAssetTypeEmpty;
+
+  /// No description provided for @investmentManageAssetTypes.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelola Jenis Aset'**
+  String get investmentManageAssetTypes;
+
+  /// No description provided for @investmentFormCreateAssetType.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat Jenis Aset Baru'**
+  String get investmentFormCreateAssetType;
+
+  /// No description provided for @investmentFilterTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Filter & Urutkan'**
+  String get investmentFilterTitle;
+
+  /// No description provided for @investmentFilterSort.
+  ///
+  /// In id, this message translates to:
+  /// **'Urutkan'**
+  String get investmentFilterSort;
+
+  /// No description provided for @investmentFilterSortNewest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terbaru'**
+  String get investmentFilterSortNewest;
+
+  /// No description provided for @investmentFilterSortOldest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terlama'**
+  String get investmentFilterSortOldest;
+
+  /// No description provided for @investmentFilterSortHighest.
+  ///
+  /// In id, this message translates to:
+  /// **'Nilai Terbesar'**
+  String get investmentFilterSortHighest;
+
+  /// No description provided for @investmentFilterSortLowest.
+  ///
+  /// In id, this message translates to:
+  /// **'Nilai Terendah'**
+  String get investmentFilterSortLowest;
+
+  /// No description provided for @investmentFilterType.
+  ///
+  /// In id, this message translates to:
+  /// **'Tipe'**
+  String get investmentFilterType;
+
+  /// No description provided for @investmentFilterAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get investmentFilterAll;
+
+  /// No description provided for @investmentFilterSearch.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari berdasarkan nama...'**
+  String get investmentFilterSearch;
+
+  /// No description provided for @investmentFilterApply.
+  ///
+  /// In id, this message translates to:
+  /// **'Terapkan Filter'**
+  String get investmentFilterApply;
+
+  /// No description provided for @investmentFilterReset.
+  ///
+  /// In id, this message translates to:
+  /// **'Reset'**
+  String get investmentFilterReset;
 }
 
 class _AppLocalizationsDelegate

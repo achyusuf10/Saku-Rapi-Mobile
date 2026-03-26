@@ -224,7 +224,7 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
-                          '$amountStr ${entry.unit} ${entry.label}',
+                          '$amountStr [${entry.unit}] ${entry.label}',
                           style: TextStyleConstants.label2.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

@@ -86,7 +86,7 @@ android {
                 val variant = this
                 outputs.all {
                     val output = this
-                    val project = "MyLifte-"
+                    val project = "SakuRapi-"
                     val SEP = "_"
                     val PLUS = "+"
                     val buildType = variant.buildType.name

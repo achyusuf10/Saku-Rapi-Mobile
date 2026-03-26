@@ -7,12 +7,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// bukan apakah device punya Wi-Fi/data, tapi apakah Supabase **reachable**.
 /// Mengikuti prinsip Interface Segregation — hanya menyediakan 1 fungsi.
 class ConnectivityService {
+  // ignore: unused_field
   final SupabaseClient _client;
 
   ConnectivityService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
   /// Mengecek apakah Supabase server bisa dijangkau.
+  ///
+  /// TODO: implementasi ping ke Supabase REST endpoint.
   Future<bool> get isOnline async {
     return true;
   }

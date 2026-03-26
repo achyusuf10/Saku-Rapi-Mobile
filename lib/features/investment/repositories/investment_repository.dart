@@ -31,8 +31,15 @@ class InvestmentRepository {
     final result = await _remote.getInvestments();
 
     if (result.isSuccess()) {
-      _local.cacheInvestments(result.dataSuccess()!);
-      return result;
+      // Exclude investments whose custom asset type has been soft-deleted.
+      final filtered = result
+          .dataSuccess()!
+          .where(
+            (inv) => inv.assetTypeId == null || inv.assetTypeIsDeleted != true,
+          )
+          .toList();
+      _local.cacheInvestments(filtered);
+      return DataState.success(data: filtered);
     }
 
     // Offline fallback
@@ -92,6 +99,7 @@ class InvestmentRepository {
     required double avgBuyPrice,
     double? customCurrentPrice,
     String? linkedWalletId,
+    String? assetTypeId,
     String? notes,
     required bool deductFromWallet,
     double? walletBalance,
@@ -122,6 +130,7 @@ class InvestmentRepository {
       avgBuyPrice: avgBuyPrice,
       customCurrentPrice: customCurrentPrice,
       linkedWalletId: linkedWalletId,
+      assetTypeId: assetTypeId,
       notes: notes,
       deductFromWallet: deductFromWallet,
     );
@@ -139,6 +148,7 @@ class InvestmentRepository {
     required double avgBuyPrice,
     double? customCurrentPrice,
     String? linkedWalletId,
+    String? assetTypeId,
     String? notes,
   }) async {
     if (name.trim().isEmpty) {
@@ -162,6 +172,7 @@ class InvestmentRepository {
         'avg_buy_price': avgBuyPrice,
         'custom_current_price': customCurrentPrice,
         'linked_wallet_id': linkedWalletId,
+        'asset_type_id': assetTypeId,
         'notes': notes,
       },
     );

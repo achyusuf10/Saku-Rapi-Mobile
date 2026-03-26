@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/investment/datasource/investment_price_service.dart';
+import 'package:app_saku_rapi/features/investment/models/asset_type_model.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
 import 'package:app_saku_rapi/features/investment/repositories/investment_repository.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -267,6 +268,16 @@ class InvestmentController extends StateNotifier<InvestmentState> {
   /// Refresh daftar investasi.
   Future<void> refresh() => loadInvestments();
 
+  /// Hapus dari local state semua investasi yang menggunakan asset type ini.
+  /// Dipanggil setelah asset type di-soft-delete.
+  void removeByAssetTypeId(String assetTypeId) {
+    final updated = state.investments
+        .where((inv) => inv.assetTypeId != assetTypeId)
+        .toList();
+    state = state.copyWith(investments: updated);
+    _repository.cacheInvestmentList(updated);
+  }
+
   /// Hapus cache.
   void clearCache() {
     _repository.clearCache();
@@ -289,6 +300,7 @@ class InvestmentFormState {
     this.avgBuyPrice = 0,
     this.customCurrentPrice,
     this.linkedWallet,
+    this.assetType,
     this.notes,
     this.deductFromWallet = false,
     this.errorMessage,
@@ -303,6 +315,7 @@ class InvestmentFormState {
   final double avgBuyPrice;
   final double? customCurrentPrice;
   final WalletModel? linkedWallet;
+  final AssetTypeModel? assetType;
   final String? notes;
   final bool deductFromWallet;
   final String? errorMessage;
@@ -331,6 +344,8 @@ class InvestmentFormState {
     bool clearCustomCurrentPrice = false,
     WalletModel? linkedWallet,
     bool clearLinkedWallet = false,
+    AssetTypeModel? assetType,
+    bool clearAssetType = false,
     String? notes,
     bool clearNotes = false,
     bool? deductFromWallet,
@@ -351,6 +366,7 @@ class InvestmentFormState {
       linkedWallet: clearLinkedWallet
           ? null
           : (linkedWallet ?? this.linkedWallet),
+      assetType: clearAssetType ? null : (assetType ?? this.assetType),
       notes: clearNotes ? null : (notes ?? this.notes),
       deductFromWallet: deductFromWallet ?? this.deductFromWallet,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -399,7 +415,12 @@ class InvestmentFormController extends StateNotifier<InvestmentFormState> {
       // Switching to custom from gold/crypto: clear auto symbol
       symbol = null;
     }
-    state = state.copyWith(type: type, symbol: symbol, clearError: true);
+    state = state.copyWith(
+      type: type,
+      symbol: symbol,
+      clearAssetType: type != 'custom',
+      clearError: true,
+    );
   }
 
   void setName(String name) {
@@ -446,6 +467,19 @@ class InvestmentFormController extends StateNotifier<InvestmentFormState> {
     state = state.copyWith(deductFromWallet: value, clearError: true);
   }
 
+  /// Set jenis aset kustom. Auto-populate nama & symbol dari asset type.
+  void setAssetType(AssetTypeModel? assetType) {
+    if (assetType == null) {
+      state = state.copyWith(clearAssetType: true);
+    } else {
+      state = state.copyWith(
+        assetType: assetType,
+        name: assetType.name,
+        symbol: assetType.symbol,
+      );
+    }
+  }
+
   // ─── Submit ───
 
   /// Submit form (create atau update).
@@ -483,6 +517,7 @@ class InvestmentFormController extends StateNotifier<InvestmentFormState> {
       avgBuyPrice: state.avgBuyPrice,
       customCurrentPrice: state.customCurrentPrice,
       linkedWalletId: state.linkedWallet?.id,
+      assetTypeId: state.assetType?.id,
       notes: state.notes,
       deductFromWallet: state.deductFromWallet,
       walletBalance: state.linkedWallet?.balance,
@@ -512,6 +547,7 @@ class InvestmentFormController extends StateNotifier<InvestmentFormState> {
       avgBuyPrice: state.avgBuyPrice,
       customCurrentPrice: state.customCurrentPrice,
       linkedWalletId: state.linkedWallet?.id,
+      assetTypeId: state.assetType?.id,
       notes: state.notes,
     );
 

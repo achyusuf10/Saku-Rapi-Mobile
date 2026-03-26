@@ -1642,4 +1642,120 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get investmentFormSymbolHint => 'TSLA, AAPL, etc.';
+
+  @override
+  String get assetTypeTitle => 'Kelola Jenis Aset';
+
+  @override
+  String get assetTypeAdd => 'Tambah Jenis Aset';
+
+  @override
+  String get assetTypeEdit => 'Edit Jenis Aset';
+
+  @override
+  String get assetTypeEmpty => 'Belum ada jenis aset';
+
+  @override
+  String get assetTypeEmptyHint => 'Ketuk + untuk membuat jenis aset pertama';
+
+  @override
+  String get assetTypeFormName => 'Nama Aset';
+
+  @override
+  String get assetTypeFormNameHint => 'misal: Saham BCA, Tanah, Obligasi';
+
+  @override
+  String get assetTypeFormSymbol => 'Symbol';
+
+  @override
+  String get assetTypeFormSymbolHint => 'misal: BBCA, OBL';
+
+  @override
+  String get assetTypeFormCurrentPrice => 'Harga Saat Ini (IDR)';
+
+  @override
+  String get assetTypeFormCurrentPriceHint => 'Harga per unit saat ini';
+
+  @override
+  String get assetTypeSave => 'Simpan Jenis Aset';
+
+  @override
+  String get assetTypeSuccessAdd => 'Jenis aset berhasil ditambahkan';
+
+  @override
+  String get assetTypeSuccessEdit => 'Jenis aset berhasil diperbarui';
+
+  @override
+  String get assetTypeSuccessDelete => 'Jenis aset berhasil dihapus';
+
+  @override
+  String get assetTypeErrorAdd => 'Gagal menambahkan jenis aset';
+
+  @override
+  String get assetTypeErrorEdit => 'Gagal memperbarui jenis aset';
+
+  @override
+  String get assetTypeErrorDelete => 'Gagal menghapus jenis aset';
+
+  @override
+  String get assetTypeDeleteConfirmTitle => 'Hapus Jenis Aset?';
+
+  @override
+  String assetTypeDeleteConfirmMessage(String name) {
+    return '\"$name\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.';
+  }
+
+  @override
+  String assetTypeErrorDuplicateName(String name) {
+    return 'Nama jenis aset \"$name\" sudah ada';
+  }
+
+  @override
+  String get investmentFormAssetType => 'Jenis Aset';
+
+  @override
+  String get investmentFormAssetTypeHint => 'Pilih jenis aset';
+
+  @override
+  String get investmentFormAssetTypeEmpty =>
+      'Belum ada jenis aset. Buat terlebih dahulu.';
+
+  @override
+  String get investmentManageAssetTypes => 'Kelola Jenis Aset';
+
+  @override
+  String get investmentFormCreateAssetType => 'Buat Jenis Aset Baru';
+
+  @override
+  String get investmentFilterTitle => 'Filter & Urutkan';
+
+  @override
+  String get investmentFilterSort => 'Urutkan';
+
+  @override
+  String get investmentFilterSortNewest => 'Terbaru';
+
+  @override
+  String get investmentFilterSortOldest => 'Terlama';
+
+  @override
+  String get investmentFilterSortHighest => 'Nilai Terbesar';
+
+  @override
+  String get investmentFilterSortLowest => 'Nilai Terendah';
+
+  @override
+  String get investmentFilterType => 'Tipe';
+
+  @override
+  String get investmentFilterAll => 'Semua';
+
+  @override
+  String get investmentFilterSearch => 'Cari berdasarkan nama...';
+
+  @override
+  String get investmentFilterApply => 'Terapkan Filter';
+
+  @override
+  String get investmentFilterReset => 'Reset';
 }
