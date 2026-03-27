@@ -98,10 +98,7 @@ begin
     end if;
   end if;
 
-  -- ── Validate debt/loan requires with_person ──
-  if p_type in ('debt', 'loan') and (p_with_person is null or trim(p_with_person) = '') then
-    raise exception 'Debt/loan requires with_person';
-  end if;
+  -- with_person is now optional for debt/loan (nullable = "Seseorang")
 
   -- ── Validate settlement constraints ──
   if p_settlement_kind is not null then
@@ -239,10 +236,7 @@ begin
     end if;
   end if;
 
-  -- ── Validate debt/loan ──
-  if p_type in ('debt', 'loan') and (p_with_person is null or trim(p_with_person) = '') then
-    raise exception 'Debt/loan requires with_person';
-  end if;
+  -- with_person is now optional for debt/loan (nullable = "Seseorang")
 
   -- ── Validate settlement ──
   if p_settlement_kind is not null then

@@ -21,13 +21,13 @@ class SettlementHistoryPage extends ConsumerStatefulWidget {
     super.key,
     required this.referenceTransactionId,
     required this.originalAmount,
-    required this.withPerson,
+    this.withPerson,
     required this.type,
   });
 
   final String referenceTransactionId;
   final double originalAmount;
-  final String withPerson;
+  final String? withPerson;
   final String type; // 'debt' or 'loan'
 
   @override
@@ -284,8 +284,12 @@ class _SettlementTile extends StatelessWidget {
         : l10n.debtLoanCollection;
 
     final subtitle = isDebtPayment
-        ? l10n.debtLoanDebtPaymentDesc(settlement.withPerson ?? '')
-        : l10n.debtLoanLoanCollectionDesc(settlement.withPerson ?? '');
+        ? l10n.debtLoanDebtPaymentDesc(
+            settlement.withPerson ?? l10n.debtLoanSomeone,
+          )
+        : l10n.debtLoanLoanCollectionDesc(
+            settlement.withPerson ?? l10n.debtLoanSomeone,
+          );
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),

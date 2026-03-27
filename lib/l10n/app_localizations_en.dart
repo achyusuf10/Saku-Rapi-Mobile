@@ -1895,6 +1895,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtLoanEmptyPerson => 'No transactions found';
 
   @override
+  String get debtLoanSomeone => 'Someone';
+
+  @override
   String get debtLoanExcludedFromReport =>
       'This transaction is excluded from reports';
 

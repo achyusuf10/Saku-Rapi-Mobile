@@ -3652,6 +3652,12 @@ abstract class AppLocalizations {
   /// **'Belum ada transaksi'**
   String get debtLoanEmptyPerson;
 
+  /// No description provided for @debtLoanSomeone.
+  ///
+  /// In id, this message translates to:
+  /// **'Seseorang'**
+  String get debtLoanSomeone;
+
   /// No description provided for @debtLoanExcludedFromReport.
   ///
   /// In id, this message translates to:

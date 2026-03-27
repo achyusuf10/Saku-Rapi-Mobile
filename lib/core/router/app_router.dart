@@ -266,7 +266,7 @@ class AppRouter {
           builder: (context, state) {
             final extra = state.extra! as Map<String, dynamic>;
             return DebtLoanPersonPage(
-              withPerson: extra['withPerson'] as String,
+              withPerson: extra['withPerson'] as String?,
               type: extra['type'] as String,
             );
           },

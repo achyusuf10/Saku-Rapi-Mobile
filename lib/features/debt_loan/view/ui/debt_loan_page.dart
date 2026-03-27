@@ -280,8 +280,8 @@ class _DebtLoanPersonTile extends StatelessWidget {
               radius: 20.r,
               backgroundColor: typeColor.withValues(alpha: 0.12),
               child: Text(
-                summary.withPerson.isNotEmpty
-                    ? summary.withPerson[0].toUpperCase()
+                (summary.withPerson != null && summary.withPerson!.isNotEmpty)
+                    ? summary.withPerson![0].toUpperCase()
                     : '?',
                 style: TextStyleConstants.h7.copyWith(
                   color: typeColor,
@@ -297,7 +297,7 @@ class _DebtLoanPersonTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    summary.withPerson,
+                    summary.withPerson ?? l10n.debtLoanSomeone,
                     style: TextStyleConstants.b1.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

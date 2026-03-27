@@ -881,6 +881,7 @@
   "debtLoanCollection": "Penerimaan",
   "debtLoanEmpty": "Belum ada catatan hutang atau piutang",
   "debtLoanEmptyPerson": "Belum ada transaksi",
+  "debtLoanSomeone": "Seseorang",
   "debtLoanExcludedFromReport": "Transaksi ini dikecualikan dari laporan",
   "debtLoanSettlementHistoryTitle": "Riwayat Pelunasan",
   "debtLoanTitleDebt": "Hutang ke {person}",

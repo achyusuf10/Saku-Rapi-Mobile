@@ -56,7 +56,7 @@ class DebtLoanRemoteDataSource {
 
   /// Ambil semua transaksi hutang/piutang dengan satu orang.
   Future<DataState<List<DebtLoanTransactionModel>>> getTransactionsByPerson({
-    required String withPerson,
+    String? withPerson,
     required String type,
     String? walletId,
   }) {

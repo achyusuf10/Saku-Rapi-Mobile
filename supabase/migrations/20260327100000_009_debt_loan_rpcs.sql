@@ -135,7 +135,7 @@ BEGIN
   FROM public.transactions t
   JOIN public.wallets w ON w.id = t.wallet_id
   WHERE t.user_id = v_user_id
-    AND t.with_person = p_with_person
+    AND t.with_person IS NOT DISTINCT FROM p_with_person
     AND t.type = p_type
     AND t.settlement_kind IS NULL
     AND (p_wallet_id IS NULL OR t.wallet_id = p_wallet_id)

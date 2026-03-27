@@ -27,14 +27,14 @@ class DebtLoanSettlementSheet extends ConsumerStatefulWidget {
     super.key,
     required this.transactions,
     required this.type,
-    required this.withPerson,
+    this.withPerson,
     required this.onSettled,
   });
 
   /// Transaksi yang belum lunas (bisa > 1 jika dari person page).
   final List<DebtLoanTransactionModel> transactions;
   final String type;
-  final String withPerson;
+  final String? withPerson;
   final VoidCallback onSettled;
 
   @override
@@ -109,7 +109,7 @@ class _DebtLoanSettlementSheetState
             ),
             SizedBox(height: 4.h),
             Text(
-              widget.withPerson,
+              widget.withPerson ?? context.l10n.debtLoanSomeone,
               style: TextStyleConstants.b2.copyWith(color: typeColor),
             ),
             SizedBox(height: 16.h),

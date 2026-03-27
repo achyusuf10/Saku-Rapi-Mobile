@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/legacy.dart';
 ///
 /// Parameter: `(withPerson, type)`.
 final debtLoanPersonControllerProvider = StateNotifierProvider.autoDispose
-    .family<DebtLoanPersonController, DebtLoanPersonState, (String, String)>((
+    .family<DebtLoanPersonController, DebtLoanPersonState, (String?, String)>((
       ref,
       params,
     ) {
@@ -72,7 +72,7 @@ class DebtLoanPersonController extends StateNotifier<DebtLoanPersonState> {
        super(const DebtLoanPersonState());
 
   final DebtLoanRepository _repository;
-  final String withPerson;
+  final String? withPerson;
   final String type;
 
   /// Load semua transaksi hutang/piutang dengan orang ini.

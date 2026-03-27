@@ -21,13 +21,9 @@ import 'package:intl/intl.dart';
 /// - List transaksi grouped by date
 /// - Tombol pelunasan/penerimaan
 class DebtLoanPersonPage extends ConsumerStatefulWidget {
-  const DebtLoanPersonPage({
-    super.key,
-    required this.withPerson,
-    required this.type,
-  });
+  const DebtLoanPersonPage({super.key, this.withPerson, required this.type});
 
-  final String withPerson;
+  final String? withPerson;
   final String type;
 
   @override

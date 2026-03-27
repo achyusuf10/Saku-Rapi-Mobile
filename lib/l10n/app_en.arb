@@ -881,6 +881,7 @@
   "debtLoanCollection": "Collection",
   "debtLoanEmpty": "No debt or loan records",
   "debtLoanEmptyPerson": "No transactions found",
+  "debtLoanSomeone": "Someone",
   "debtLoanExcludedFromReport": "This transaction is excluded from reports",
   "debtLoanSettlementHistoryTitle": "Settlement History",
   "debtLoanTitleDebt": "Debt to {person}",

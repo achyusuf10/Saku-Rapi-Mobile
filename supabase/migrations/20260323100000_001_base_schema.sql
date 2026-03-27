@@ -104,10 +104,8 @@ create table if not exists public.transactions (
   constraint transactions_no_self_transfer check (
     wallet_id != destination_wallet_id
   ),
-  -- Debt/loan: with_person wajib
-  constraint transactions_debt_loan_person check (
-    type not in ('debt', 'loan') or with_person is not null
-  ),
+  -- Debt/loan: with_person optional (null = "Seseorang")
+  -- constraint transactions_debt_loan_person removed
   -- Status enum untuk debt/loan
   constraint transactions_status_check check (
     status is null or status in ('unpaid', 'paid', 'partial')

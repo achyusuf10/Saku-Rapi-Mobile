@@ -29,7 +29,7 @@ class DebtLoanRepository {
 
   /// Ambil transaksi per orang.
   Future<DataState<List<DebtLoanTransactionModel>>> getTransactionsByPerson({
-    required String withPerson,
+    String? withPerson,
     required String type,
     String? walletId,
   }) {

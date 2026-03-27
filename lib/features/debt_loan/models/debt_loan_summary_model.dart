@@ -5,7 +5,7 @@
 /// dengan satu orang/kontak tertentu.
 class DebtLoanSummaryModel {
   const DebtLoanSummaryModel({
-    required this.withPerson,
+    this.withPerson,
     this.contactId,
     required this.transactionCount,
     required this.totalPrincipal,
@@ -14,8 +14,8 @@ class DebtLoanSummaryModel {
     required this.hasUnpaid,
   });
 
-  /// Nama orang.
-  final String withPerson;
+  /// Nama orang (nullable — jika null berarti "Seseorang").
+  final String? withPerson;
 
   /// ID kontak (nullable — data lama mungkin tanpa contact).
   final String? contactId;
@@ -37,7 +37,7 @@ class DebtLoanSummaryModel {
 
   factory DebtLoanSummaryModel.fromMap(Map<String, dynamic> map) {
     return DebtLoanSummaryModel(
-      withPerson: map['with_person'] as String,
+      withPerson: map['with_person'] as String?,
       contactId: map['contact_id'] as String?,
       transactionCount: (map['transaction_count'] as num).toInt(),
       totalPrincipal: _toDouble(map['total_principal']),

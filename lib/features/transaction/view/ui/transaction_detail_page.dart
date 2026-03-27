@@ -484,7 +484,7 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
     final tx = widget.transaction;
     final isDebt = tx.type == TransactionTypeEnum.debt;
     final typeColor = isDebt ? colors.debt : colors.loan;
-    final personName = tx.contactName ?? tx.withPerson ?? '-';
+    final personName = tx.contactName ?? tx.withPerson ?? l10n.debtLoanSomeone;
 
     final historyState = ref.watch(settlementHistoryControllerProvider(tx.id));
     final totalSettled = historyState.totalSettled;
@@ -725,7 +725,7 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
       builder: (_) => DebtLoanSettlementSheet(
         transactions: [debtLoanTx],
         type: typeStr,
-        withPerson: tx.withPerson ?? tx.contactName ?? '-',
+        withPerson: tx.withPerson ?? tx.contactName,
         onSettled: () {
           // Reload settlement history after settlement.
           ref

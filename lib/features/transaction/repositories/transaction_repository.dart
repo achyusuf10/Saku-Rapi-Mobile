@@ -95,12 +95,7 @@ class TransactionRepository {
       }
     }
 
-    if (type.requiresWithPerson) {
-      if (withPerson == null || withPerson.trim().isEmpty) {
-        return l10n?.transactionWithPersonRequired ??
-            'Nama kontak wajib diisi untuk hutang/piutang';
-      }
-    }
+    // with_person is now optional for debt/loan (nullable = "Seseorang")
 
     if (items.isEmpty) {
       return l10n?.validationMinOneItem ??

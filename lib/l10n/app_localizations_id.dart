@@ -1893,6 +1893,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get debtLoanEmptyPerson => 'Belum ada transaksi';
 
   @override
+  String get debtLoanSomeone => 'Seseorang';
+
+  @override
   String get debtLoanExcludedFromReport =>
       'Transaksi ini dikecualikan dari laporan';
 

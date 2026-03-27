@@ -5,28 +5,30 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Tile untuk satu transaksi di history list.
+/// Tile untuk satu transaksi — dipakai di history list dan dashboard.
 ///
 /// Menampilkan icon kategori, nama, tanggal, dan jumlah.
-/// Tap untuk navigasi ke detail.
+/// Jika [showDate] = true, subtitle menampilkan tanggal + jam (untuk dashboard).
+/// Jika [showDate] = false (default), subtitle menampilkan wallet + jam saja.
 class HistoryTransactionTile extends StatelessWidget {
   const HistoryTransactionTile({
     super.key,
     required this.transaction,
     required this.onTap,
     this.onLongPress,
+    this.showDate = false,
   });
 
   final TransactionModel transaction;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
+  final bool showDate;
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +37,6 @@ class HistoryTransactionTile extends StatelessWidget {
     final isIncoming =
         transaction.type == TransactionTypeEnum.income ||
         transaction.type == TransactionTypeEnum.debt;
-    AppLogger.call(
-      'Building HistoryTransactionTile for transaction ${transaction.id} of type ${transaction.type} with isIncoming=$isIncoming',
-    );
 
     return InkWell(
       onTap: onTap,
@@ -80,36 +79,46 @@ class HistoryTransactionTile extends StatelessWidget {
                     maxLines: 1,
                   ),
                   SizedBox(height: 2.h),
-                  Row(
-                    children: [
-                      if (transaction.walletName != null) ...[
-                        FaIcon(
-                          FontAwesomeIcons.wallet,
-                          size: 9.w,
-                          color: colors.textSecondary.withValues(alpha: 0.6),
-                        ),
-                        SizedBox(width: 4.w),
-                        Flexible(
-                          child: Text(
-                            transaction.walletName!,
-                            style: TextStyleConstants.label3.copyWith(
-                              color: colors.textSecondary,
+                  if (showDate)
+                    Text(
+                      transaction.date.extToFormattedString(
+                        outputDateFormat: 'dd MMM yyyy, HH:mm',
+                      ),
+                      style: TextStyleConstants.label3.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        if (transaction.walletName != null) ...[
+                          FaIcon(
+                            FontAwesomeIcons.wallet,
+                            size: 9.w,
+                            color: colors.textSecondary.withValues(alpha: 0.6),
+                          ),
+                          SizedBox(width: 4.w),
+                          Flexible(
+                            child: Text(
+                              transaction.walletName!,
+                              style: TextStyleConstants.label3.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(width: 8.w),
+                        ],
+                        Text(
+                          transaction.date.extToFormattedString(
+                            outputDateFormat: 'HH:mm',
+                          ),
+                          style: TextStyleConstants.label3.copyWith(
+                            color: colors.textSecondary.withValues(alpha: 0.7),
                           ),
                         ),
-                        SizedBox(width: 8.w),
                       ],
-                      Text(
-                        transaction.date.extToFormattedString(
-                          outputDateFormat: 'HH:mm',
-                        ),
-                        style: TextStyleConstants.label3.copyWith(
-                          color: colors.textSecondary.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
             ),
@@ -164,22 +173,18 @@ class HistoryTransactionTile extends StatelessWidget {
 
     // Settlement transactions — show contextual title with person name.
     if (tx.settlementKind == SettlementKindEnum.debtPayment) {
-      return person != null
-          ? l10n.debtLoanTitlePayment(person)
-          : l10n.debtLoanRepayment;
+      return l10n.debtLoanTitlePayment(person ?? l10n.debtLoanSomeone);
     }
     if (tx.settlementKind == SettlementKindEnum.loanCollection) {
-      return person != null
-          ? l10n.debtLoanTitleReceipt(person)
-          : l10n.debtLoanCollection;
+      return l10n.debtLoanTitleReceipt(person ?? l10n.debtLoanSomeone);
     }
 
     // Original debt/loan transactions.
-    if (tx.type == TransactionTypeEnum.debt && person != null) {
-      return l10n.debtLoanTitleDebt(person);
+    if (tx.type == TransactionTypeEnum.debt) {
+      return l10n.debtLoanTitleDebt(person ?? l10n.debtLoanSomeone);
     }
-    if (tx.type == TransactionTypeEnum.loan && person != null) {
-      return l10n.debtLoanTitleLoan(person);
+    if (tx.type == TransactionTypeEnum.loan) {
+      return l10n.debtLoanTitleLoan(person ?? l10n.debtLoanSomeone);
     }
 
     // Fallback for other types.
