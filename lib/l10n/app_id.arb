@@ -127,6 +127,14 @@
   "transactionWalletRequired": "Pilih dompet terlebih dahulu",
   "transactionAmountRequired": "Nominal harus diisi",
   "transactionWithPersonRequired": "Nama kontak wajib diisi untuk hutang/piutang",
+  "contactPickerTitle": "Pilih Kontak",
+  "contactPickerFromPhonebook": "Dari Kontak HP",
+  "contactPickerSaved": "Kontak Tersimpan",
+  "contactPickerSearch": "Cari kontak...",
+  "contactPickerEmpty": "Belum ada kontak tersimpan",
+  "contactPickerPhonePermissionDenied": "Izin akses kontak ditolak",
+  "contactPickerNoPhone": "Tidak ada nomor HP",
+  "contactPickerSelected": "Kontak",
   "transactionDestWalletRequired": "Pilih dompet tujuan",
   "transactionSameWalletError": "Dompet asal dan tujuan tidak boleh sama",
   "transactionErrorSave": "Gagal menyimpan transaksi",
@@ -804,5 +812,76 @@
   "investmentFilterAll": "Semua",
   "investmentFilterSearch": "Cari berdasarkan nama...",
   "investmentFilterApply": "Terapkan Filter",
-  "investmentFilterReset": "Reset"
+  "investmentFilterReset": "Reset",
+  "debtLoanTitle": "Hutang & Piutang",
+  "debtLoanTabToPay": "Untuk Dibayar",
+  "debtLoanTabToReceive": "Untuk Diterima",
+  "debtLoanUnpaid": "BELUM LUNAS",
+  "debtLoanPaid": "LUNAS",
+  "debtLoanAllWallets": "Semua Dompet",
+  "debtLoanTransactionCount": "{count} transaksi",
+  "@debtLoanTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtLoanRemaining": "tersisa",
+  "debtLoanSettled": "terlunasi",
+  "debtLoanPersonTitle": "Daftar Transaksi",
+  "debtLoanPersonResult": "{count} hasil",
+  "@debtLoanPersonResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtLoanPersonIncome": "Pemasukan",
+  "debtLoanPersonExpense": "Pengeluaran",
+  "debtLoanSettlementTitle": "Pelunasan",
+  "debtLoanSettlementAmount": "Jumlah Pelunasan",
+  "debtLoanSettlementWallet": "Dompet Pembayaran",
+  "debtLoanSettlementNote": "Catatan (opsional)",
+  "debtLoanSettlementSubmit": "Simpan Pelunasan",
+  "debtLoanSettlementSuccess": "Pelunasan berhasil disimpan",
+  "debtLoanSettlementRemainder": "Sisa: {amount}",
+  "@debtLoanSettlementRemainder": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanPayDebt": "Lunasi Hutang",
+  "debtLoanCollectLoan": "Terima Pembayaran",
+  "debtLoanSettlementHistory": "DAFTAR TRANSAKSI",
+  "debtLoanLender": "Pemberi Pinjaman",
+  "debtLoanBorrower": "Peminjam",
+  "debtLoanStatusPaid": "Lunas",
+  "debtLoanStatusRemaining": "Tersisa",
+  "debtLoanDebtPaymentDesc": "Hutang dibayar ke {person}",
+  "@debtLoanDebtPaymentDesc": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanLoanCollectionDesc": "Piutang diterima dari {person}",
+  "@debtLoanLoanCollectionDesc": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanRepayment": "Pembayaran kembali",
+  "debtLoanCollection": "Penerimaan",
+  "debtLoanEmpty": "Belum ada catatan hutang atau piutang",
+  "debtLoanEmptyPerson": "Belum ada transaksi",
+  "debtLoanExcludedFromReport": "Transaksi ini dikecualikan dari laporan",
+  "debtLoanSettlementHistoryTitle": "Riwayat Pelunasan",
+  "profileDebtLoan": "Hutang & Piutang"
 }

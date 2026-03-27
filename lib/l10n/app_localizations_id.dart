@@ -315,6 +315,30 @@ class AppLocalizationsId extends AppLocalizations {
       'Nama kontak wajib diisi untuk hutang/piutang';
 
   @override
+  String get contactPickerTitle => 'Pilih Kontak';
+
+  @override
+  String get contactPickerFromPhonebook => 'Dari Kontak HP';
+
+  @override
+  String get contactPickerSaved => 'Kontak Tersimpan';
+
+  @override
+  String get contactPickerSearch => 'Cari kontak...';
+
+  @override
+  String get contactPickerEmpty => 'Belum ada kontak tersimpan';
+
+  @override
+  String get contactPickerPhonePermissionDenied => 'Izin akses kontak ditolak';
+
+  @override
+  String get contactPickerNoPhone => 'Tidak ada nomor HP';
+
+  @override
+  String get contactPickerSelected => 'Kontak';
+
+  @override
   String get transactionDestWalletRequired => 'Pilih dompet tujuan';
 
   @override
@@ -1758,4 +1782,123 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get investmentFilterReset => 'Reset';
+
+  @override
+  String get debtLoanTitle => 'Hutang & Piutang';
+
+  @override
+  String get debtLoanTabToPay => 'Untuk Dibayar';
+
+  @override
+  String get debtLoanTabToReceive => 'Untuk Diterima';
+
+  @override
+  String get debtLoanUnpaid => 'BELUM LUNAS';
+
+  @override
+  String get debtLoanPaid => 'LUNAS';
+
+  @override
+  String get debtLoanAllWallets => 'Semua Dompet';
+
+  @override
+  String debtLoanTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get debtLoanRemaining => 'tersisa';
+
+  @override
+  String get debtLoanSettled => 'terlunasi';
+
+  @override
+  String get debtLoanPersonTitle => 'Daftar Transaksi';
+
+  @override
+  String debtLoanPersonResult(int count) {
+    return '$count hasil';
+  }
+
+  @override
+  String get debtLoanPersonIncome => 'Pemasukan';
+
+  @override
+  String get debtLoanPersonExpense => 'Pengeluaran';
+
+  @override
+  String get debtLoanSettlementTitle => 'Pelunasan';
+
+  @override
+  String get debtLoanSettlementAmount => 'Jumlah Pelunasan';
+
+  @override
+  String get debtLoanSettlementWallet => 'Dompet Pembayaran';
+
+  @override
+  String get debtLoanSettlementNote => 'Catatan (opsional)';
+
+  @override
+  String get debtLoanSettlementSubmit => 'Simpan Pelunasan';
+
+  @override
+  String get debtLoanSettlementSuccess => 'Pelunasan berhasil disimpan';
+
+  @override
+  String debtLoanSettlementRemainder(String amount) {
+    return 'Sisa: $amount';
+  }
+
+  @override
+  String get debtLoanPayDebt => 'Lunasi Hutang';
+
+  @override
+  String get debtLoanCollectLoan => 'Terima Pembayaran';
+
+  @override
+  String get debtLoanSettlementHistory => 'DAFTAR TRANSAKSI';
+
+  @override
+  String get debtLoanLender => 'Pemberi Pinjaman';
+
+  @override
+  String get debtLoanBorrower => 'Peminjam';
+
+  @override
+  String get debtLoanStatusPaid => 'Lunas';
+
+  @override
+  String get debtLoanStatusRemaining => 'Tersisa';
+
+  @override
+  String debtLoanDebtPaymentDesc(String person) {
+    return 'Hutang dibayar ke $person';
+  }
+
+  @override
+  String debtLoanLoanCollectionDesc(String person) {
+    return 'Piutang diterima dari $person';
+  }
+
+  @override
+  String get debtLoanRepayment => 'Pembayaran kembali';
+
+  @override
+  String get debtLoanCollection => 'Penerimaan';
+
+  @override
+  String get debtLoanEmpty => 'Belum ada catatan hutang atau piutang';
+
+  @override
+  String get debtLoanEmptyPerson => 'Belum ada transaksi';
+
+  @override
+  String get debtLoanExcludedFromReport =>
+      'Transaksi ini dikecualikan dari laporan';
+
+  @override
+  String get debtLoanSettlementHistoryTitle => 'Riwayat Pelunasan';
+
+  @override
+  String get profileDebtLoan => 'Hutang & Piutang';
 }

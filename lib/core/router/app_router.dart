@@ -8,6 +8,9 @@ import 'package:app_saku_rapi/features/budget/view/ui/completed_budgets_page.dar
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/ui/category_management_page.dart';
 import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_person_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/settlement_history_page.dart';
 import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_form_page.dart';
@@ -74,6 +77,9 @@ class AppRouter {
   static const String reports = '/reports';
   static const String notificationSettings = '/notification-settings';
   static const String investmentForm = '/investment/form';
+  static const String debtLoan = '/debt-loan';
+  static const String debtLoanPerson = '/debt-loan/person';
+  static const String settlementHistory = '/debt-loan/settlement-history';
 
   // ───────────────── Shell Keys ─────────────────
 
@@ -248,6 +254,35 @@ class AppRouter {
           builder: (context, state) => InvestmentFormPage(
             existingInvestment: state.extra as InvestmentModel?,
           ),
+        ),
+        GoRoute(
+          path: debtLoan,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const DebtLoanPage(),
+        ),
+        GoRoute(
+          path: debtLoanPerson,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final extra = state.extra! as Map<String, dynamic>;
+            return DebtLoanPersonPage(
+              withPerson: extra['withPerson'] as String,
+              type: extra['type'] as String,
+            );
+          },
+        ),
+        GoRoute(
+          path: settlementHistory,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final extra = state.extra! as Map<String, dynamic>;
+            return SettlementHistoryPage(
+              referenceTransactionId: extra['referenceTransactionId'] as String,
+              originalAmount: extra['originalAmount'] as double,
+              withPerson: extra['withPerson'] as String,
+              type: extra['type'] as String,
+            );
+          },
         ),
       ],
     );

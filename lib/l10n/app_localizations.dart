@@ -692,6 +692,54 @@ abstract class AppLocalizations {
   /// **'Nama kontak wajib diisi untuk hutang/piutang'**
   String get transactionWithPersonRequired;
 
+  /// No description provided for @contactPickerTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Kontak'**
+  String get contactPickerTitle;
+
+  /// No description provided for @contactPickerFromPhonebook.
+  ///
+  /// In id, this message translates to:
+  /// **'Dari Kontak HP'**
+  String get contactPickerFromPhonebook;
+
+  /// No description provided for @contactPickerSaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Kontak Tersimpan'**
+  String get contactPickerSaved;
+
+  /// No description provided for @contactPickerSearch.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari kontak...'**
+  String get contactPickerSearch;
+
+  /// No description provided for @contactPickerEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada kontak tersimpan'**
+  String get contactPickerEmpty;
+
+  /// No description provided for @contactPickerPhonePermissionDenied.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin akses kontak ditolak'**
+  String get contactPickerPhonePermissionDenied;
+
+  /// No description provided for @contactPickerNoPhone.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada nomor HP'**
+  String get contactPickerNoPhone;
+
+  /// No description provided for @contactPickerSelected.
+  ///
+  /// In id, this message translates to:
+  /// **'Kontak'**
+  String get contactPickerSelected;
+
   /// No description provided for @transactionDestWalletRequired.
   ///
   /// In id, this message translates to:
@@ -3405,6 +3453,222 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Reset'**
   String get investmentFilterReset;
+
+  /// No description provided for @debtLoanTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang & Piutang'**
+  String get debtLoanTitle;
+
+  /// No description provided for @debtLoanTabToPay.
+  ///
+  /// In id, this message translates to:
+  /// **'Untuk Dibayar'**
+  String get debtLoanTabToPay;
+
+  /// No description provided for @debtLoanTabToReceive.
+  ///
+  /// In id, this message translates to:
+  /// **'Untuk Diterima'**
+  String get debtLoanTabToReceive;
+
+  /// No description provided for @debtLoanUnpaid.
+  ///
+  /// In id, this message translates to:
+  /// **'BELUM LUNAS'**
+  String get debtLoanUnpaid;
+
+  /// No description provided for @debtLoanPaid.
+  ///
+  /// In id, this message translates to:
+  /// **'LUNAS'**
+  String get debtLoanPaid;
+
+  /// No description provided for @debtLoanAllWallets.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua Dompet'**
+  String get debtLoanAllWallets;
+
+  /// No description provided for @debtLoanTransactionCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} transaksi'**
+  String debtLoanTransactionCount(int count);
+
+  /// No description provided for @debtLoanRemaining.
+  ///
+  /// In id, this message translates to:
+  /// **'tersisa'**
+  String get debtLoanRemaining;
+
+  /// No description provided for @debtLoanSettled.
+  ///
+  /// In id, this message translates to:
+  /// **'terlunasi'**
+  String get debtLoanSettled;
+
+  /// No description provided for @debtLoanPersonTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar Transaksi'**
+  String get debtLoanPersonTitle;
+
+  /// No description provided for @debtLoanPersonResult.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} hasil'**
+  String debtLoanPersonResult(int count);
+
+  /// No description provided for @debtLoanPersonIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan'**
+  String get debtLoanPersonIncome;
+
+  /// No description provided for @debtLoanPersonExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran'**
+  String get debtLoanPersonExpense;
+
+  /// No description provided for @debtLoanSettlementTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan'**
+  String get debtLoanSettlementTitle;
+
+  /// No description provided for @debtLoanSettlementAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah Pelunasan'**
+  String get debtLoanSettlementAmount;
+
+  /// No description provided for @debtLoanSettlementWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Pembayaran'**
+  String get debtLoanSettlementWallet;
+
+  /// No description provided for @debtLoanSettlementNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan (opsional)'**
+  String get debtLoanSettlementNote;
+
+  /// No description provided for @debtLoanSettlementSubmit.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan Pelunasan'**
+  String get debtLoanSettlementSubmit;
+
+  /// No description provided for @debtLoanSettlementSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan berhasil disimpan'**
+  String get debtLoanSettlementSuccess;
+
+  /// No description provided for @debtLoanSettlementRemainder.
+  ///
+  /// In id, this message translates to:
+  /// **'Sisa: {amount}'**
+  String debtLoanSettlementRemainder(String amount);
+
+  /// No description provided for @debtLoanPayDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Lunasi Hutang'**
+  String get debtLoanPayDebt;
+
+  /// No description provided for @debtLoanCollectLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Terima Pembayaran'**
+  String get debtLoanCollectLoan;
+
+  /// No description provided for @debtLoanSettlementHistory.
+  ///
+  /// In id, this message translates to:
+  /// **'DAFTAR TRANSAKSI'**
+  String get debtLoanSettlementHistory;
+
+  /// No description provided for @debtLoanLender.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemberi Pinjaman'**
+  String get debtLoanLender;
+
+  /// No description provided for @debtLoanBorrower.
+  ///
+  /// In id, this message translates to:
+  /// **'Peminjam'**
+  String get debtLoanBorrower;
+
+  /// No description provided for @debtLoanStatusPaid.
+  ///
+  /// In id, this message translates to:
+  /// **'Lunas'**
+  String get debtLoanStatusPaid;
+
+  /// No description provided for @debtLoanStatusRemaining.
+  ///
+  /// In id, this message translates to:
+  /// **'Tersisa'**
+  String get debtLoanStatusRemaining;
+
+  /// No description provided for @debtLoanDebtPaymentDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang dibayar ke {person}'**
+  String debtLoanDebtPaymentDesc(String person);
+
+  /// No description provided for @debtLoanLoanCollectionDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Piutang diterima dari {person}'**
+  String debtLoanLoanCollectionDesc(String person);
+
+  /// No description provided for @debtLoanRepayment.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembayaran kembali'**
+  String get debtLoanRepayment;
+
+  /// No description provided for @debtLoanCollection.
+  ///
+  /// In id, this message translates to:
+  /// **'Penerimaan'**
+  String get debtLoanCollection;
+
+  /// No description provided for @debtLoanEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada catatan hutang atau piutang'**
+  String get debtLoanEmpty;
+
+  /// No description provided for @debtLoanEmptyPerson.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada transaksi'**
+  String get debtLoanEmptyPerson;
+
+  /// No description provided for @debtLoanExcludedFromReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi ini dikecualikan dari laporan'**
+  String get debtLoanExcludedFromReport;
+
+  /// No description provided for @debtLoanSettlementHistoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Pelunasan'**
+  String get debtLoanSettlementHistoryTitle;
+
+  /// No description provided for @profileDebtLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang & Piutang'**
+  String get profileDebtLoan;
 }
 
 class _AppLocalizationsDelegate

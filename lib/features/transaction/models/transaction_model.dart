@@ -34,6 +34,10 @@ class TransactionModel {
     this.categoryName,
     this.categoryIcon,
     this.categoryColor,
+    // Contact (hutang/piutang)
+    this.contactId,
+    this.contactName,
+    this.contactPhone,
   });
 
   final String id;
@@ -64,6 +68,11 @@ class TransactionModel {
   final String? categoryName;
   final String? categoryIcon;
   final String? categoryColor;
+
+  // ─── Contact joined fields (hutang/piutang) ───
+  final String? contactId;
+  final String? contactName;
+  final String? contactPhone;
 
   // ───────────────── Factory ─────────────────
 
@@ -112,6 +121,10 @@ class TransactionModel {
       categoryName: items.isNotEmpty ? items.first.categoryName : null,
       categoryIcon: items.isNotEmpty ? items.first.categoryIcon : null,
       categoryColor: items.isNotEmpty ? items.first.categoryColor : null,
+      // Contact joined from contacts table
+      contactId: _nestedString(map['contacts'], 'id'),
+      contactName: _nestedString(map['contacts'], 'name'),
+      contactPhone: _nestedString(map['contacts'], 'phone'),
     );
   }
 
@@ -119,6 +132,14 @@ class TransactionModel {
   static String? _nestedName(dynamic nested) {
     if (nested is Map<String, dynamic>) {
       return nested['name'] as String?;
+    }
+    return null;
+  }
+
+  /// Extract an arbitrary string field from a joined Supabase relation.
+  static String? _nestedString(dynamic nested, String field) {
+    if (nested is Map<String, dynamic>) {
+      return nested[field] as String?;
     }
     return null;
   }
@@ -147,6 +168,7 @@ class TransactionModel {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'transaction_items': items.map((item) => item.toFullMap()).toList(),
+      'contact_id': contactId,
     };
   }
 
@@ -177,6 +199,9 @@ class TransactionModel {
     String? categoryName,
     String? categoryIcon,
     String? categoryColor,
+    String? contactId,
+    String? contactName,
+    String? contactPhone,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -205,6 +230,9 @@ class TransactionModel {
       categoryName: categoryName ?? this.categoryName,
       categoryIcon: categoryIcon ?? this.categoryIcon,
       categoryColor: categoryColor ?? this.categoryColor,
+      contactId: contactId ?? this.contactId,
+      contactName: contactName ?? this.contactName,
+      contactPhone: contactPhone ?? this.contactPhone,
     );
   }
 

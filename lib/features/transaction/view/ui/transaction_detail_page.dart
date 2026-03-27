@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
+import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
@@ -7,6 +8,9 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
@@ -130,6 +134,25 @@ class TransactionDetailPage extends ConsumerWidget {
             _ItemsSection(
               items: transaction.items,
               totalAmount: transaction.totalAmount,
+            ),
+          ],
+
+          // ─── Debt/Loan contact + settlement section ───
+          if (transaction.type == TransactionTypeEnum.debt ||
+              transaction.type == TransactionTypeEnum.loan)
+            _DebtLoanSection(transaction: transaction),
+
+          // ─── Excluded from report label ───
+          if (transaction.type == TransactionTypeEnum.debt ||
+              transaction.type == TransactionTypeEnum.loan ||
+              transaction.isSettlement) ...[
+            SizedBox(height: 16.h),
+            Text(
+              l10n.debtLoanExcludedFromReport,
+              style: TextStyleConstants.label2.copyWith(
+                color: colors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ],
@@ -424,5 +447,289 @@ class _ItemRow extends StatelessWidget {
   Color _parseColor(String hex) {
     final hexCode = hex.replaceAll('#', '');
     return Color(int.parse('FF$hexCode', radix: 16));
+  }
+}
+
+/// Section hutang/piutang pada detail transaksi.
+///
+/// Menampilkan info kontak (Pemberi Pinjaman / Peminjam), progress pelunasan,
+/// dan tombol aksi (PELUNASAN + DAFTAR TRANSAKSI).
+class _DebtLoanSection extends ConsumerStatefulWidget {
+  const _DebtLoanSection({required this.transaction});
+
+  final TransactionModel transaction;
+
+  @override
+  ConsumerState<_DebtLoanSection> createState() => _DebtLoanSectionState();
+}
+
+class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
+  @override
+  void initState() {
+    super.initState();
+    // Load settlement history for this transaction.
+    Future.microtask(() {
+      ref
+          .read(
+            settlementHistoryControllerProvider(widget.transaction.id).notifier,
+          )
+          .loadHistory();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+    final tx = widget.transaction;
+    final isDebt = tx.type == TransactionTypeEnum.debt;
+    final typeColor = isDebt ? colors.debt : colors.loan;
+    final personName = tx.contactName ?? tx.withPerson ?? '-';
+
+    final historyState = ref.watch(settlementHistoryControllerProvider(tx.id));
+    final totalSettled = historyState.totalSettled;
+    final remaining = (tx.totalAmount - totalSettled).clamp(
+      0.0,
+      tx.totalAmount,
+    );
+    final progress = tx.totalAmount > 0
+        ? (totalSettled / tx.totalAmount).clamp(0.0, 1.0)
+        : 0.0;
+    final isPaid = tx.status == DebtStatusEnum.paid || remaining <= 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 20.h),
+
+        // ─── Contact info ───
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 20.r,
+              backgroundColor: typeColor.withValues(alpha: 0.15),
+              child: Text(
+                personName.isNotEmpty ? personName[0].toUpperCase() : '?',
+                style: TextStyleConstants.h6.copyWith(
+                  color: typeColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isDebt ? l10n.debtLoanLender : l10n.debtLoanBorrower,
+                    style: TextStyleConstants.label2.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    personName,
+                    style: TextStyleConstants.b1.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        SizedBox(height: 16.h),
+
+        // ─── Settlement progress ───
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: colors.surfaceVariant,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Column(
+            children: [
+              // Labels row: Settled | Remaining
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.debtLoanStatusPaid,
+                        style: TextStyleConstants.label2.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        totalSettled.toCurrency(),
+                        style: TextStyleConstants.b2.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colors.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        l10n.debtLoanStatusRemaining,
+                        style: TextStyleConstants.label2.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        remaining.toCurrency(),
+                        style: TextStyleConstants.b2.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isPaid ? colors.success : colors.warning,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              // Progress bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4.r),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6.h,
+                  backgroundColor: colors.border.withValues(alpha: 0.3),
+                  valueColor: AlwaysStoppedAnimation<Color>(colors.success),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: 16.h),
+
+        // ─── Action buttons ───
+        Row(
+          children: [
+            // Settlement button (only if not fully paid)
+            if (!isPaid)
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _openSettlementSheet(
+                    context,
+                    tx,
+                    totalSettled,
+                    remaining,
+                  ),
+                  icon: FaIcon(
+                    isDebt
+                        ? FontAwesomeIcons.moneyBillTransfer
+                        : FontAwesomeIcons.handHoldingDollar,
+                    size: 14.w,
+                    color: typeColor,
+                  ),
+                  label: Text(
+                    isDebt ? l10n.debtLoanPayDebt : l10n.debtLoanCollectLoan,
+                    style: TextStyleConstants.label1.copyWith(
+                      color: typeColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: typeColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
+                  ),
+                ),
+              ),
+            if (!isPaid) SizedBox(width: 8.w),
+            // Transaction list button (always visible)
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => context.push(
+                  AppRouter.settlementHistory,
+                  extra: {
+                    'referenceTransactionId': tx.id,
+                    'originalAmount': tx.totalAmount,
+                    'withPerson': personName,
+                    'type': isDebt ? 'debt' : 'loan',
+                  },
+                ),
+                icon: FaIcon(
+                  FontAwesomeIcons.clockRotateLeft,
+                  size: 14.w,
+                  color: colors.textSecondary,
+                ),
+                label: Text(
+                  l10n.debtLoanSettlementHistory,
+                  style: TextStyleConstants.label1.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colors.border),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _openSettlementSheet(
+    BuildContext context,
+    TransactionModel tx,
+    double totalSettled,
+    double remaining,
+  ) {
+    final isDebt = tx.type == TransactionTypeEnum.debt;
+    final typeStr = isDebt ? 'debt' : 'loan';
+
+    // Convert TransactionModel to DebtLoanTransactionModel for the sheet.
+    final debtLoanTx = DebtLoanTransactionModel(
+      id: tx.id,
+      walletId: tx.walletId,
+      walletName: tx.walletName,
+      type: typeStr,
+      totalAmount: tx.totalAmount,
+      date: tx.date,
+      note: tx.note,
+      withPerson: tx.withPerson,
+      contactId: tx.contactId,
+      status: tx.status,
+      dueDate: tx.dueDate,
+      totalSettled: totalSettled,
+      remaining: remaining,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DebtLoanSettlementSheet(
+        transactions: [debtLoanTx],
+        type: typeStr,
+        withPerson: tx.withPerson ?? tx.contactName ?? '-',
+        onSettled: () {
+          // Reload settlement history after settlement.
+          ref
+              .read(settlementHistoryControllerProvider(tx.id).notifier)
+              .loadHistory();
+        },
+      ),
+    );
   }
 }

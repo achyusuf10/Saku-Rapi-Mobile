@@ -316,6 +316,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Contact name is required for debt/loan';
 
   @override
+  String get contactPickerTitle => 'Select Contact';
+
+  @override
+  String get contactPickerFromPhonebook => 'From Phonebook';
+
+  @override
+  String get contactPickerSaved => 'Saved Contacts';
+
+  @override
+  String get contactPickerSearch => 'Search contacts...';
+
+  @override
+  String get contactPickerEmpty => 'No saved contacts yet';
+
+  @override
+  String get contactPickerPhonePermissionDenied => 'Contacts permission denied';
+
+  @override
+  String get contactPickerNoPhone => 'No phone number';
+
+  @override
+  String get contactPickerSelected => 'Contact';
+
+  @override
   String get transactionDestWalletRequired =>
       'Please select a destination wallet';
 
@@ -1760,4 +1784,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get investmentFilterReset => 'Reset';
+
+  @override
+  String get debtLoanTitle => 'Debt & Loan';
+
+  @override
+  String get debtLoanTabToPay => 'To Pay';
+
+  @override
+  String get debtLoanTabToReceive => 'To Receive';
+
+  @override
+  String get debtLoanUnpaid => 'UNPAID';
+
+  @override
+  String get debtLoanPaid => 'PAID';
+
+  @override
+  String get debtLoanAllWallets => 'All Wallets';
+
+  @override
+  String debtLoanTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get debtLoanRemaining => 'remaining';
+
+  @override
+  String get debtLoanSettled => 'settled';
+
+  @override
+  String get debtLoanPersonTitle => 'Transaction List';
+
+  @override
+  String debtLoanPersonResult(int count) {
+    return '$count results';
+  }
+
+  @override
+  String get debtLoanPersonIncome => 'Income';
+
+  @override
+  String get debtLoanPersonExpense => 'Expense';
+
+  @override
+  String get debtLoanSettlementTitle => 'Settlement';
+
+  @override
+  String get debtLoanSettlementAmount => 'Settlement Amount';
+
+  @override
+  String get debtLoanSettlementWallet => 'Payment Wallet';
+
+  @override
+  String get debtLoanSettlementNote => 'Note (optional)';
+
+  @override
+  String get debtLoanSettlementSubmit => 'Submit Settlement';
+
+  @override
+  String get debtLoanSettlementSuccess => 'Settlement saved successfully';
+
+  @override
+  String debtLoanSettlementRemainder(String amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get debtLoanPayDebt => 'Pay Debt';
+
+  @override
+  String get debtLoanCollectLoan => 'Receive Payment';
+
+  @override
+  String get debtLoanSettlementHistory => 'TRANSACTION LIST';
+
+  @override
+  String get debtLoanLender => 'Lender';
+
+  @override
+  String get debtLoanBorrower => 'Borrower';
+
+  @override
+  String get debtLoanStatusPaid => 'Paid';
+
+  @override
+  String get debtLoanStatusRemaining => 'Remaining';
+
+  @override
+  String debtLoanDebtPaymentDesc(String person) {
+    return 'Debt paid to $person';
+  }
+
+  @override
+  String debtLoanLoanCollectionDesc(String person) {
+    return 'Loan received from $person';
+  }
+
+  @override
+  String get debtLoanRepayment => 'Repayment';
+
+  @override
+  String get debtLoanCollection => 'Collection';
+
+  @override
+  String get debtLoanEmpty => 'No debt or loan records';
+
+  @override
+  String get debtLoanEmptyPerson => 'No transactions found';
+
+  @override
+  String get debtLoanExcludedFromReport =>
+      'This transaction is excluded from reports';
+
+  @override
+  String get debtLoanSettlementHistoryTitle => 'Settlement History';
+
+  @override
+  String get profileDebtLoan => 'Debt & Loan';
 }

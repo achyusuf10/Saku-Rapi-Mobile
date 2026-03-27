@@ -127,6 +127,14 @@
   "transactionWalletRequired": "Please select a wallet",
   "transactionAmountRequired": "Amount is required",
   "transactionWithPersonRequired": "Contact name is required for debt/loan",
+  "contactPickerTitle": "Select Contact",
+  "contactPickerFromPhonebook": "From Phonebook",
+  "contactPickerSaved": "Saved Contacts",
+  "contactPickerSearch": "Search contacts...",
+  "contactPickerEmpty": "No saved contacts yet",
+  "contactPickerPhonePermissionDenied": "Contacts permission denied",
+  "contactPickerNoPhone": "No phone number",
+  "contactPickerSelected": "Contact",
   "transactionDestWalletRequired": "Please select a destination wallet",
   "transactionSameWalletError": "Source and destination wallets must be different",
   "transactionErrorSave": "Failed to save transaction",
@@ -804,5 +812,76 @@
   "investmentFilterAll": "All",
   "investmentFilterSearch": "Search by name...",
   "investmentFilterApply": "Apply Filter",
-  "investmentFilterReset": "Reset"
+  "investmentFilterReset": "Reset",
+  "debtLoanTitle": "Debt & Loan",
+  "debtLoanTabToPay": "To Pay",
+  "debtLoanTabToReceive": "To Receive",
+  "debtLoanUnpaid": "UNPAID",
+  "debtLoanPaid": "PAID",
+  "debtLoanAllWallets": "All Wallets",
+  "debtLoanTransactionCount": "{count} transactions",
+  "@debtLoanTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtLoanRemaining": "remaining",
+  "debtLoanSettled": "settled",
+  "debtLoanPersonTitle": "Transaction List",
+  "debtLoanPersonResult": "{count} results",
+  "@debtLoanPersonResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtLoanPersonIncome": "Income",
+  "debtLoanPersonExpense": "Expense",
+  "debtLoanSettlementTitle": "Settlement",
+  "debtLoanSettlementAmount": "Settlement Amount",
+  "debtLoanSettlementWallet": "Payment Wallet",
+  "debtLoanSettlementNote": "Note (optional)",
+  "debtLoanSettlementSubmit": "Submit Settlement",
+  "debtLoanSettlementSuccess": "Settlement saved successfully",
+  "debtLoanSettlementRemainder": "Remaining: {amount}",
+  "@debtLoanSettlementRemainder": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanPayDebt": "Pay Debt",
+  "debtLoanCollectLoan": "Receive Payment",
+  "debtLoanSettlementHistory": "TRANSACTION LIST",
+  "debtLoanLender": "Lender",
+  "debtLoanBorrower": "Borrower",
+  "debtLoanStatusPaid": "Paid",
+  "debtLoanStatusRemaining": "Remaining",
+  "debtLoanDebtPaymentDesc": "Debt paid to {person}",
+  "@debtLoanDebtPaymentDesc": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanLoanCollectionDesc": "Loan received from {person}",
+  "@debtLoanLoanCollectionDesc": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanRepayment": "Repayment",
+  "debtLoanCollection": "Collection",
+  "debtLoanEmpty": "No debt or loan records",
+  "debtLoanEmptyPerson": "No transactions found",
+  "debtLoanExcludedFromReport": "This transaction is excluded from reports",
+  "debtLoanSettlementHistoryTitle": "Settlement History",
+  "profileDebtLoan": "Debt & Loan"
 }

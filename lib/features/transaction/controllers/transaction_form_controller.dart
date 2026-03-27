@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
@@ -47,6 +48,7 @@ class TransactionFormState {
     this.note,
     this.attachmentUrl,
     this.withPerson,
+    this.contact,
     this.dueDate,
     this.category,
     this.items = const [],
@@ -65,6 +67,7 @@ class TransactionFormState {
   final String? note;
   final String? attachmentUrl;
   final String? withPerson;
+  final ContactModel? contact;
   final DateTime? dueDate;
   final CategoryModel? category;
   final List<TransactionItemModel> items;
@@ -98,6 +101,7 @@ class TransactionFormState {
     String? note,
     String? attachmentUrl,
     String? withPerson,
+    ContactModel? contact,
     DateTime? dueDate,
     CategoryModel? category,
     List<TransactionItemModel>? items,
@@ -116,6 +120,7 @@ class TransactionFormState {
       note: note ?? this.note,
       attachmentUrl: attachmentUrl ?? this.attachmentUrl,
       withPerson: withPerson ?? this.withPerson,
+      contact: contact ?? this.contact,
       dueDate: dueDate ?? this.dueDate,
       category: category ?? this.category,
       items: items ?? this.items,
@@ -129,6 +134,7 @@ class TransactionFormState {
   TransactionFormState clearFields({
     bool clearDestWallet = false,
     bool clearWithPerson = false,
+    bool clearContact = false,
     bool clearDueDate = false,
     bool clearCategory = false,
     bool clearMerchant = false,
@@ -147,6 +153,7 @@ class TransactionFormState {
       note: clearNote ? null : note,
       attachmentUrl: clearAttachment ? null : attachmentUrl,
       withPerson: clearWithPerson ? null : withPerson,
+      contact: clearContact ? null : contact,
       dueDate: clearDueDate ? null : dueDate,
       category: clearCategory ? null : category,
       items: clearCategory
@@ -184,6 +191,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         .clearFields(
           clearDestWallet: !type.requiresDestinationWallet,
           clearWithPerson: !type.requiresWithPerson,
+          clearContact: !type.requiresWithPerson,
           clearDueDate: !type.requiresWithPerson,
           clearCategory: true,
           clearError: true,
@@ -232,6 +240,15 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   void setWithPerson(String? person) {
     state = state.copyWith(withPerson: person);
+  }
+
+  /// Pilih kontak (dari picker sheet). Juga sync withPerson ke nama kontak.
+  void setContact(ContactModel? contact) {
+    if (contact == null) {
+      state = state.clearFields(clearWithPerson: true, clearContact: true);
+    } else {
+      state = state.copyWith(contact: contact, withPerson: contact.name);
+    }
   }
 
   void setDueDate(DateTime? dueDate) {
@@ -380,6 +397,14 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       note: txn.note,
       attachmentUrl: txn.attachmentUrl,
       withPerson: txn.withPerson,
+      contact: txn.contactId != null
+          ? ContactModel(
+              id: txn.contactId!,
+              userId: txn.userId,
+              name: txn.contactName ?? txn.withPerson ?? '',
+              phone: txn.contactPhone,
+            )
+          : null,
       dueDate: txn.dueDate,
       items: items,
       itemKeys: keys,
@@ -419,6 +444,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           note: state.note,
           attachmentUrl: state.attachmentUrl,
           withPerson: state.withPerson,
+          contactId: state.contact?.id,
           debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
           dueDate: state.dueDate,
           items: itemsWithOrder,
@@ -434,6 +460,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           note: state.note,
           attachmentUrl: state.attachmentUrl,
           withPerson: state.withPerson,
+          contactId: state.contact?.id,
           debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
           dueDate: state.dueDate,
           items: itemsWithOrder,

@@ -109,10 +109,7 @@ class TransactionRepository {
 
     final itemsSum = items.fold(0.0, (sum, item) => sum + item.amount);
     if ((itemsSum - totalAmount).abs() > 0.01) {
-      return l10n?.validationItemsTotalMismatch(
-            '$itemsSum',
-            '$totalAmount',
-          ) ??
+      return l10n?.validationItemsTotalMismatch('$itemsSum', '$totalAmount') ??
           'Total item ($itemsSum) tidak sama dengan total transaksi ($totalAmount)';
     }
 
@@ -149,6 +146,7 @@ class TransactionRepository {
     String? note,
     String? attachmentUrl,
     String? withPerson,
+    String? contactId,
     String? debtStatus,
     DateTime? dueDate,
     required List<TransactionItemModel> items,
@@ -184,6 +182,7 @@ class TransactionRepository {
       referenceTransactionId: referenceTransactionId,
       settlementKind: settlementKind,
       items: items,
+      contactId: contactId,
     );
   }
 
@@ -201,6 +200,7 @@ class TransactionRepository {
     String? note,
     String? attachmentUrl,
     String? withPerson,
+    String? contactId,
     String? debtStatus,
     DateTime? dueDate,
     required List<TransactionItemModel> items,
@@ -237,6 +237,7 @@ class TransactionRepository {
       referenceTransactionId: referenceTransactionId,
       settlementKind: settlementKind,
       items: items,
+      contactId: contactId,
     );
   }
 

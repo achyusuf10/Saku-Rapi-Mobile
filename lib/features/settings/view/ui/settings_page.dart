@@ -82,6 +82,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onTap: () => context.push(AppRouter.categories),
               ),
               SettingsTile(
+                icon: FontAwesomeIcons.handshake,
+                label: l10n.profileDebtLoan,
+                onTap: () => context.push(AppRouter.debtLoan),
+              ),
+              SettingsTile(
                 icon: FontAwesomeIcons.bell,
                 label: l10n.profileNotifications,
                 onTap: () => context.push(AppRouter.notificationSettings),

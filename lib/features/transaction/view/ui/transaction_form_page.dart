@@ -12,6 +12,8 @@ import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/contact_picker_sheet.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/contact_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_amount_section.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_category_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_date_picker_tile.dart';
@@ -26,7 +28,6 @@ import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
-import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:app_saku_rapi/utils/function/compress_image_func.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,7 +62,6 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _merchantController = TextEditingController();
   final _noteController = TextEditingController();
-  final _withPersonController = TextEditingController();
 
   @override
   void initState() {
@@ -76,8 +76,6 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
         _merchantController.text =
             widget.existingTransaction!.merchantName ?? '';
         _noteController.text = widget.existingTransaction!.note ?? '';
-        _withPersonController.text =
-            widget.existingTransaction!.withPerson ?? '';
       } else {
         // Single-item mode default
         ctrl.initSingleItem();
@@ -98,7 +96,6 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   void dispose() {
     _merchantController.dispose();
     _noteController.dispose();
-    _withPersonController.dispose();
     super.dispose();
   }
 
@@ -324,13 +321,20 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
                   // ─── With person (debt/loan) ───
                   if (formState.type.requiresWithPerson) ...[
-                    SakuTextField(
-                      controller: _withPersonController,
-                      label: l10n.transactionWithPerson,
-                      hint: l10n.transactionWithPersonHint,
-                      onChanged: (val) => ref
+                    ContactPickerTile(
+                      selected: formState.contact,
+                      iconColor: typeColor,
+                      onTap: () async {
+                        final contact = await ContactPickerSheet.show(context);
+                        if (contact != null && mounted) {
+                          ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setContact(contact);
+                        }
+                      },
+                      onClear: () => ref
                           .read(transactionFormControllerProvider.notifier)
-                          .setWithPerson(val),
+                          .setContact(null),
                     ),
                     SizedBox(height: 10.h),
                   ],

@@ -35,6 +35,7 @@ dependencies:
   crypto: ^3.0.7
   cupertino_icons: ^1.0.8
   fl_chart: ^1.2.0
+  flutter_contacts: ^1.1.7
   flick_video_player:
     git:
       url: https://github.com/achyusuf10/flick_video_player
