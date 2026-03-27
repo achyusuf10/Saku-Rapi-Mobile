@@ -916,5 +916,27 @@
       }
     }
   },
-  "profileDebtLoan": "Debt & Loan"
+  "profileDebtLoan": "Debt & Loan",
+  "debtLoanFormSubCategory": "Category",
+  "debtLoanFormPickTransaction": "Pick Transaction",
+  "debtLoanFormNoUnpaidDebt": "No outstanding debts found",
+  "debtLoanFormNoUnpaidLoan": "No outstanding loans found",
+  "debtLoanFormAmountExceedsRemaining": "Amount exceeds remaining {amount}",
+  "@debtLoanFormAmountExceedsRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanFormTabLabel": "Debt/Loan",
+  "debtLoanFormSelectedTransaction": "Selected Transaction",
+  "debtLoanFormRemainingAmount": "Remaining: {amount}",
+  "@debtLoanFormRemainingAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

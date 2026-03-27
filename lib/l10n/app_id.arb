@@ -916,5 +916,27 @@
       }
     }
   },
-  "profileDebtLoan": "Hutang & Piutang"
+  "profileDebtLoan": "Hutang & Piutang",
+  "debtLoanFormSubCategory": "Kategori",
+  "debtLoanFormPickTransaction": "Pilih Transaksi",
+  "debtLoanFormNoUnpaidDebt": "Tidak ada hutang yang belum lunas",
+  "debtLoanFormNoUnpaidLoan": "Tidak ada piutang yang belum lunas",
+  "debtLoanFormAmountExceedsRemaining": "Nominal melebihi sisa {amount}",
+  "@debtLoanFormAmountExceedsRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanFormTabLabel": "Hutang/Piutang",
+  "debtLoanFormSelectedTransaction": "Transaksi Terpilih",
+  "debtLoanFormRemainingAmount": "Sisa: {amount}",
+  "@debtLoanFormRemainingAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
-import 'package:app_saku_rapi/core/enums/settlement_kind_enum.dart';
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
@@ -172,10 +172,10 @@ class HistoryTransactionTile extends StatelessWidget {
     final person = tx.withPerson;
 
     // Settlement transactions — show contextual title with person name.
-    if (tx.settlementKind == SettlementKindEnum.debtPayment) {
+    if (tx.settlementKind == DebtLoanKindEnum.debtPayment) {
       return l10n.debtLoanTitlePayment(person ?? l10n.debtLoanSomeone);
     }
-    if (tx.settlementKind == SettlementKindEnum.loanCollection) {
+    if (tx.settlementKind == DebtLoanKindEnum.loanCollection) {
       return l10n.debtLoanTitleReceipt(person ?? l10n.debtLoanSomeone);
     }
 

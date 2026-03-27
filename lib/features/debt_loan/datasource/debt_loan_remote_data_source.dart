@@ -92,6 +92,34 @@ class DebtLoanRemoteDataSource {
     );
   }
 
+  // ───────────────── All Unpaid Transactions ─────────────────
+
+  /// Ambil semua transaksi hutang/piutang yang belum lunas.
+  Future<DataState<List<DebtLoanTransactionModel>>> getAllUnpaid({
+    required String type,
+  }) {
+    return SupabaseHandler.call<List<DebtLoanTransactionModel>>(
+      function: () async {
+        AppLogger.call('$_tag getAllUnpaid: type=$type');
+
+        final result = await _client.rpc(
+          'get_all_unpaid_debt_loan',
+          params: {'p_type': type},
+        );
+
+        final list = (result as List)
+            .map(
+              (e) => DebtLoanTransactionModel.fromMap(
+                Map<String, dynamic>.from(e),
+              ),
+            )
+            .toList();
+
+        return list;
+      },
+    );
+  }
+
   // ───────────────── Settlement History ─────────────────
 
   /// Ambil riwayat pelunasan untuk satu transaksi hutang/piutang.

@@ -1,5 +1,5 @@
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
-import 'package:app_saku_rapi/core/enums/settlement_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 
@@ -55,7 +55,7 @@ class TransactionModel {
   final DateTime? dueDate;
   final bool isMultiItem;
   final String? referenceTransactionId;
-  final SettlementKindEnum? settlementKind;
+  final DebtLoanKindEnum? settlementKind;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -106,7 +106,7 @@ class TransactionModel {
       isMultiItem: (map['is_multi_item'] as bool?) ?? false,
       referenceTransactionId: map['reference_transaction_id'] as String?,
       settlementKind: map['settlement_kind'] != null
-          ? SettlementKindEnum.fromString(map['settlement_kind'] as String)
+          ? DebtLoanKindEnum.fromString(map['settlement_kind'] as String)
           : null,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
@@ -190,7 +190,7 @@ class TransactionModel {
     DateTime? dueDate,
     bool? isMultiItem,
     String? referenceTransactionId,
-    SettlementKindEnum? settlementKind,
+    DebtLoanKindEnum? settlementKind,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<TransactionItemModel>? items,

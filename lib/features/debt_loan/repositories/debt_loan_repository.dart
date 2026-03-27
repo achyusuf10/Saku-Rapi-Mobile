@@ -40,6 +40,13 @@ class DebtLoanRepository {
     );
   }
 
+  /// Ambil semua transaksi hutang/piutang yang belum lunas.
+  Future<DataState<List<DebtLoanTransactionModel>>> getAllUnpaid({
+    required String type,
+  }) {
+    return _remote.getAllUnpaid(type: type);
+  }
+
   /// Ambil riwayat pelunasan per transaksi.
   Future<DataState<List<SettlementHistoryModel>>> getSettlementHistory({
     required String referenceTransactionId,

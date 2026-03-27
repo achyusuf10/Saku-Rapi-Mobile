@@ -1,7 +1,9 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/themes/app_colors.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
@@ -14,6 +16,8 @@ import 'package:app_saku_rapi/features/transaction/models/transaction_item_model
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/contact_picker_sheet.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/contact_picker_tile.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/debt_loan_kind_selector.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/debt_loan_transaction_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_amount_section.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_category_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_date_picker_tile.dart';
@@ -23,6 +27,7 @@ import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_opti
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_transfer_arrow.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_type_tabs.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_wallet_picker_tile.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/unpaid_transaction_picker_sheet.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
@@ -266,6 +271,27 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 120.h),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // ─── Debt/Loan sub-category selector ───
+                  if (formState.isDebtLoanTab && !isEditing) ...[
+                    DebtLoanKindSelector(
+                      selected: formState.debtLoanKind ?? DebtLoanKindEnum.debt,
+                      onChanged: (kind) => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .setDebtLoanKind(kind),
+                    ),
+                    SizedBox(height: 16.h),
+                  ],
+
+                  // ─── Settlement: reference transaction picker ───
+                  if (formState.isSettlementMode && !isEditing) ...[
+                    DebtLoanTransactionPickerTile(
+                      selected: formState.referenceTransaction,
+                      iconColor: typeColor,
+                      onTap: () => _pickReferenceTransaction(formState),
+                    ),
+                    SizedBox(height: 10.h),
+                  ],
+
                   // ─── Amount ───
                   if (!formState.isMultiItem) ...[
                     TransactionAmountSection(
@@ -277,6 +303,22 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                           .read(transactionFormControllerProvider.notifier)
                           .setTotalAmount(val),
                     ),
+                    // Settlement amount hint
+                    if (formState.isSettlementMode &&
+                        formState.referenceTransaction != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                        child: Text(
+                          l10n.debtLoanFormRemainingAmount(
+                            formState.referenceTransaction!.remaining
+                                .toCurrency(),
+                          ),
+                          style: TextStyleConstants.caption.copyWith(
+                            color: typeColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                     SizedBox(height: 16.h),
                   ],
 
@@ -305,7 +347,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   SizedBox(height: 10.h),
 
                   // ─── Category (income/expense single-item mode) ───
-                  if (!formState.isMultiItem &&
+                  if (!formState.isSettlementMode &&
+                      !formState.isMultiItem &&
                       (formState.type == TransactionTypeEnum.income ||
                           formState.type == TransactionTypeEnum.expense)) ...[
                     TransactionCategoryPickerTile(
@@ -319,8 +362,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                     SizedBox(height: 10.h),
                   ],
 
-                  // ─── With person (debt/loan) ───
-                  if (formState.type.requiresWithPerson) ...[
+                  // ─── With person (debt/loan — not in settlement mode) ───
+                  if (formState.type.requiresWithPerson &&
+                      !formState.isSettlementMode) ...[
                     ContactPickerTile(
                       selected: formState.contact,
                       iconColor: typeColor,
@@ -350,25 +394,60 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   SizedBox(height: 14.h),
 
                   // ─── Optional details (merchant, note, attachment) ───
-                  TransactionOptionalDetailsSection(
-                    merchantController: _merchantController,
-                    noteController: _noteController,
-                    attachmentUrl: formState.attachmentUrl,
-                    onMerchantChanged: (val) => ref
-                        .read(transactionFormControllerProvider.notifier)
-                        .setMerchant(val.isEmpty ? null : val),
-                    onNoteChanged: (val) => ref
-                        .read(transactionFormControllerProvider.notifier)
-                        .setNote(val.isEmpty ? null : val),
-                    onPickAttachment: _pickAndUploadAttachment,
-                    onRemoveAttachment: () => ref
-                        .read(transactionFormControllerProvider.notifier)
-                        .setAttachmentUrl(null),
-                  ),
+                  if (!formState.isSettlementMode)
+                    TransactionOptionalDetailsSection(
+                      merchantController: _merchantController,
+                      noteController: _noteController,
+                      attachmentUrl: formState.attachmentUrl,
+                      onMerchantChanged: (val) => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .setMerchant(val.isEmpty ? null : val),
+                      onNoteChanged: (val) => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .setNote(val.isEmpty ? null : val),
+                      onPickAttachment: _pickAndUploadAttachment,
+                      onRemoveAttachment: () => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .setAttachmentUrl(null),
+                    ),
 
-                  // ─── Multi-item section (expense & income) ───
-                  if (formState.type == TransactionTypeEnum.expense ||
-                      formState.type == TransactionTypeEnum.income) ...[
+                  // ─── Settlement note (simplified) ───
+                  if (formState.isSettlementMode) ...[
+                    SizedBox(height: 6.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(14.r),
+                      ),
+                      child: TextField(
+                        controller: _noteController,
+                        style: TextStyleConstants.b2.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: l10n.debtLoanSettlementNote,
+                          hintStyle: TextStyleConstants.b2.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: (val) => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setNote(val.isEmpty ? null : val),
+                      ),
+                    ),
+                  ],
+
+                  // ─── Multi-item section (expense & income, non-settlement) ───
+                  if (!formState.isSettlementMode &&
+                      (formState.type == TransactionTypeEnum.expense ||
+                          formState.type == TransactionTypeEnum.income)) ...[
                     SizedBox(height: 16.h),
                     const TransactionMultiItemSection(),
                   ],
@@ -434,6 +513,23 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     }
   }
 
+  Future<void> _pickReferenceTransaction(TransactionFormState formState) async {
+    final subCat = formState.debtLoanKind;
+    if (subCat == null || !subCat.isSettlement) return;
+
+    final result = await UnpaidTransactionPickerSheet.show(
+      context,
+      type: subCat.referenceType,
+      selectedId: formState.referenceTransaction?.id,
+    );
+
+    if (result != null && mounted) {
+      ref
+          .read(transactionFormControllerProvider.notifier)
+          .setReferenceTransaction(result);
+    }
+  }
+
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -458,6 +554,28 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
         alertType: AlertTypeEnum.error,
       );
       return;
+    }
+
+    // Settlement-specific validations
+    if (formState.isSettlementMode) {
+      if (formState.referenceTransaction == null) {
+        if (!mounted) return;
+        context.showAppAlert(
+          l10n.debtLoanFormPickTransaction,
+          alertType: AlertTypeEnum.error,
+        );
+        return;
+      }
+
+      final remaining = formState.referenceTransaction!.remaining;
+      if (formState.totalAmount > remaining) {
+        if (!mounted) return;
+        context.showAppAlert(
+          l10n.debtLoanFormAmountExceedsRemaining(remaining.toCurrency()),
+          alertType: AlertTypeEnum.error,
+        );
+        return;
+      }
     }
 
     final result = await ref

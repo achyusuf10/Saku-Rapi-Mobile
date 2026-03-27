@@ -33,27 +33,35 @@ class _TransactionTypeTabsState extends State<TransactionTypeTabs>
     TransactionTypeEnum.expense,
     TransactionTypeEnum.income,
     TransactionTypeEnum.transfer,
-    TransactionTypeEnum.debt,
-    TransactionTypeEnum.loan,
+    TransactionTypeEnum.debt, // represents combined "Hutang/Piutang" tab
   ];
 
   @override
   void initState() {
     super.initState();
-    final initialIdx = _types.indexOf(widget.selected);
+    final initialIdx = _resolveTabIndex(widget.selected);
     _tabController = TabController(
       length: _types.length,
       vsync: this,
-      initialIndex: initialIdx >= 0 ? initialIdx : 0,
+      initialIndex: initialIdx,
     );
+  }
+
+  /// Map TransactionTypeEnum to tab index. Loan maps to debt tab.
+  int _resolveTabIndex(TransactionTypeEnum type) {
+    if (type == TransactionTypeEnum.loan) {
+      return _types.indexOf(TransactionTypeEnum.debt);
+    }
+    final idx = _types.indexOf(type);
+    return idx >= 0 ? idx : 0;
   }
 
   @override
   void didUpdateWidget(covariant TransactionTypeTabs oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selected != oldWidget.selected) {
-      final idx = _types.indexOf(widget.selected);
-      if (idx >= 0 && _tabController.index != idx) {
+      final idx = _resolveTabIndex(widget.selected);
+      if (_tabController.index != idx) {
         _tabController.animateTo(idx);
       }
     }
@@ -118,7 +126,7 @@ class _TransactionTypeTabsState extends State<TransactionTypeTabs>
       TransactionTypeEnum.expense => l10n.transactionExpense,
       TransactionTypeEnum.income => l10n.transactionIncome,
       TransactionTypeEnum.transfer => l10n.transactionTransfer,
-      TransactionTypeEnum.debt => l10n.transactionDebt,
+      TransactionTypeEnum.debt => l10n.debtLoanFormTabLabel,
       TransactionTypeEnum.loan => l10n.transactionLoan,
       TransactionTypeEnum.adjustment => l10n.transactionAdjustment,
       TransactionTypeEnum.transferToAsset => l10n.transactionTransfer,

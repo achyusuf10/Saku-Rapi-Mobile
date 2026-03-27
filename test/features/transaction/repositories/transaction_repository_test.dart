@@ -1,5 +1,5 @@
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
-import 'package:app_saku_rapi/core/enums/settlement_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
@@ -29,7 +29,7 @@ TransactionModel _txn({
   String? destinationWalletId,
   String? withPerson,
   List<TransactionItemModel>? items,
-  SettlementKindEnum? settlementKind,
+  DebtLoanKindEnum? settlementKind,
   String? referenceTransactionId,
   String? status,
 }) => TransactionModel(
@@ -366,9 +366,7 @@ void main() {
     });
 
     test('isSettlement returns true when settlementKind is set', () {
-      final txn = _txn().copyWith(
-        settlementKind: SettlementKindEnum.debtPayment,
-      );
+      final txn = _txn().copyWith(settlementKind: DebtLoanKindEnum.debtPayment);
       expect(txn.isSettlement, true);
     });
 
@@ -641,7 +639,7 @@ void main() {
     test('settlement transactions are flagged correctly', () {
       final settlement = _txn(
         type: TransactionTypeEnum.expense,
-        settlementKind: SettlementKindEnum.debtPayment,
+        settlementKind: DebtLoanKindEnum.debtPayment,
         referenceTransactionId: 'ref-txn-1',
       );
       expect(settlement.isSettlement, true);
@@ -670,7 +668,7 @@ void main() {
     test('loan_collection settlement is not reportable', () {
       final settlement = _txn(
         type: TransactionTypeEnum.income,
-        settlementKind: SettlementKindEnum.loanCollection,
+        settlementKind: DebtLoanKindEnum.loanCollection,
         referenceTransactionId: 'ref-txn-2',
       );
       expect(settlement.isSettlement, true);
@@ -851,28 +849,43 @@ void main() {
     });
   });
 
-  // ─── SettlementKindEnum ───
+  // ─── DebtLoanKindEnum ───
 
-  group('SettlementKindEnum', () {
+  group('DebtLoanKindEnum', () {
     test('fromString round trips', () {
-      for (final kind in SettlementKindEnum.values) {
+      for (final kind in DebtLoanKindEnum.values) {
         final dbVal = kind.toDbValue();
-        final roundTripped = SettlementKindEnum.fromString(dbVal);
+        final roundTripped = DebtLoanKindEnum.fromString(dbVal);
         expect(roundTripped, kind);
       }
     });
 
+    test('debt maps to debt', () {
+      expect(DebtLoanKindEnum.debt.toDbValue(), 'debt');
+    });
+
+    test('loan maps to loan', () {
+      expect(DebtLoanKindEnum.loan.toDbValue(), 'loan');
+    });
+
     test('debtPayment maps to debt_payment', () {
-      expect(SettlementKindEnum.debtPayment.toDbValue(), 'debt_payment');
+      expect(DebtLoanKindEnum.debtPayment.toDbValue(), 'debt_payment');
     });
 
     test('loanCollection maps to loan_collection', () {
-      expect(SettlementKindEnum.loanCollection.toDbValue(), 'loan_collection');
+      expect(DebtLoanKindEnum.loanCollection.toDbValue(), 'loan_collection');
+    });
+
+    test('isSettlement returns true only for payment/collection', () {
+      expect(DebtLoanKindEnum.debt.isSettlement, false);
+      expect(DebtLoanKindEnum.loan.isSettlement, false);
+      expect(DebtLoanKindEnum.debtPayment.isSettlement, true);
+      expect(DebtLoanKindEnum.loanCollection.isSettlement, true);
     });
 
     test('fromString throws on invalid value', () {
       expect(
-        () => SettlementKindEnum.fromString('invalid'),
+        () => DebtLoanKindEnum.fromString('invalid'),
         throwsA(isA<ArgumentError>()),
       );
     });

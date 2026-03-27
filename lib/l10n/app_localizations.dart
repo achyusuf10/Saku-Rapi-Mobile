@@ -3699,6 +3699,54 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Hutang & Piutang'**
   String get profileDebtLoan;
+
+  /// No description provided for @debtLoanFormSubCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori'**
+  String get debtLoanFormSubCategory;
+
+  /// No description provided for @debtLoanFormPickTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Transaksi'**
+  String get debtLoanFormPickTransaction;
+
+  /// No description provided for @debtLoanFormNoUnpaidDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada hutang yang belum lunas'**
+  String get debtLoanFormNoUnpaidDebt;
+
+  /// No description provided for @debtLoanFormNoUnpaidLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada piutang yang belum lunas'**
+  String get debtLoanFormNoUnpaidLoan;
+
+  /// No description provided for @debtLoanFormAmountExceedsRemaining.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal melebihi sisa {amount}'**
+  String debtLoanFormAmountExceedsRemaining(String amount);
+
+  /// No description provided for @debtLoanFormTabLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang/Piutang'**
+  String get debtLoanFormTabLabel;
+
+  /// No description provided for @debtLoanFormSelectedTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi Terpilih'**
+  String get debtLoanFormSelectedTransaction;
+
+  /// No description provided for @debtLoanFormRemainingAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Sisa: {amount}'**
+  String debtLoanFormRemainingAmount(String amount);
 }
 
 class _AppLocalizationsDelegate

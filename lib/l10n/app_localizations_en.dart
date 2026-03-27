@@ -1926,4 +1926,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDebtLoan => 'Debt & Loan';
+
+  @override
+  String get debtLoanFormSubCategory => 'Category';
+
+  @override
+  String get debtLoanFormPickTransaction => 'Pick Transaction';
+
+  @override
+  String get debtLoanFormNoUnpaidDebt => 'No outstanding debts found';
+
+  @override
+  String get debtLoanFormNoUnpaidLoan => 'No outstanding loans found';
+
+  @override
+  String debtLoanFormAmountExceedsRemaining(String amount) {
+    return 'Amount exceeds remaining $amount';
+  }
+
+  @override
+  String get debtLoanFormTabLabel => 'Debt/Loan';
+
+  @override
+  String get debtLoanFormSelectedTransaction => 'Selected Transaction';
+
+  @override
+  String debtLoanFormRemainingAmount(String amount) {
+    return 'Remaining: $amount';
+  }
 }

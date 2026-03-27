@@ -1,4 +1,4 @@
-import 'package:app_saku_rapi/core/enums/settlement_kind_enum.dart';
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 
 /// Model untuk satu transaksi pelunasan/penerimaan.
 ///
@@ -26,7 +26,7 @@ class SettlementHistoryModel {
   final DateTime date;
   final String? note;
   final String? withPerson;
-  final SettlementKindEnum settlementKind;
+  final DebtLoanKindEnum settlementKind;
   final String referenceTransactionId;
   final DateTime? createdAt;
 
@@ -40,7 +40,7 @@ class SettlementHistoryModel {
       date: DateTime.parse(map['date'] as String),
       note: map['note'] as String?,
       withPerson: map['with_person'] as String?,
-      settlementKind: SettlementKindEnum.fromString(
+      settlementKind: DebtLoanKindEnum.fromString(
         map['settlement_kind'] as String,
       ),
       referenceTransactionId: map['reference_transaction_id'] as String,

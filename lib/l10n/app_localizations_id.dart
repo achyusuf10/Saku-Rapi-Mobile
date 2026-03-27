@@ -1924,4 +1924,32 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get profileDebtLoan => 'Hutang & Piutang';
+
+  @override
+  String get debtLoanFormSubCategory => 'Kategori';
+
+  @override
+  String get debtLoanFormPickTransaction => 'Pilih Transaksi';
+
+  @override
+  String get debtLoanFormNoUnpaidDebt => 'Tidak ada hutang yang belum lunas';
+
+  @override
+  String get debtLoanFormNoUnpaidLoan => 'Tidak ada piutang yang belum lunas';
+
+  @override
+  String debtLoanFormAmountExceedsRemaining(String amount) {
+    return 'Nominal melebihi sisa $amount';
+  }
+
+  @override
+  String get debtLoanFormTabLabel => 'Hutang/Piutang';
+
+  @override
+  String get debtLoanFormSelectedTransaction => 'Transaksi Terpilih';
+
+  @override
+  String debtLoanFormRemainingAmount(String amount) {
+    return 'Sisa: $amount';
+  }
 }

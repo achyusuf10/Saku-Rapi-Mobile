@@ -1,6 +1,8 @@
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
@@ -55,6 +57,8 @@ class TransactionFormState {
     this.itemKeys = const [],
     this.errorMessage,
     this.existingTransaction,
+    this.debtLoanKind,
+    this.referenceTransaction,
   });
 
   final TransactionFormStatus status;
@@ -80,9 +84,22 @@ class TransactionFormState {
   /// Jika ada, berarti mode edit.
   final TransactionModel? existingTransaction;
 
+  /// Jenis operasi untuk tab Hutang/Piutang (debt, loan, debtPayment, loanCollection).
+  final DebtLoanKindEnum? debtLoanKind;
+
+  /// Transaksi referensi yang dipilih untuk pelunasan/penerimaan.
+  final DebtLoanTransactionModel? referenceTransaction;
+
   bool get isEditing => existingTransaction != null;
   bool get isSaving => status == TransactionFormStatus.saving;
   bool get isMultiItem => items.length > 1;
+
+  /// Apakah sedang di tab Hutang/Piutang.
+  bool get isDebtLoanTab =>
+      type == TransactionTypeEnum.debt || type == TransactionTypeEnum.loan;
+
+  /// Apakah sedang mode pelunasan/penerimaan.
+  bool get isSettlementMode => debtLoanKind?.isSettlement ?? false;
 
   /// Hitung total dari items.
   double get itemsTotal => items.fold(0.0, (sum, i) => sum + i.amount);
@@ -108,6 +125,8 @@ class TransactionFormState {
     List<int>? itemKeys,
     String? errorMessage,
     TransactionModel? existingTransaction,
+    DebtLoanKindEnum? debtLoanKind,
+    DebtLoanTransactionModel? referenceTransaction,
   }) {
     return TransactionFormState(
       status: status ?? this.status,
@@ -127,6 +146,8 @@ class TransactionFormState {
       itemKeys: itemKeys ?? this.itemKeys,
       errorMessage: errorMessage ?? this.errorMessage,
       existingTransaction: existingTransaction ?? this.existingTransaction,
+      debtLoanKind: debtLoanKind ?? this.debtLoanKind,
+      referenceTransaction: referenceTransaction ?? this.referenceTransaction,
     );
   }
 
@@ -141,6 +162,8 @@ class TransactionFormState {
     bool clearNote = false,
     bool clearAttachment = false,
     bool clearError = false,
+    bool clearDebtLoanKind = false,
+    bool clearReferenceTransaction = false,
   }) {
     return TransactionFormState(
       status: status,
@@ -162,6 +185,10 @@ class TransactionFormState {
       itemKeys: itemKeys,
       errorMessage: clearError ? null : errorMessage,
       existingTransaction: existingTransaction,
+      debtLoanKind: clearDebtLoanKind ? null : debtLoanKind,
+      referenceTransaction: clearReferenceTransaction
+          ? null
+          : referenceTransaction,
     );
   }
 }
@@ -186,8 +213,14 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   void setType(TransactionTypeEnum type) {
     // Saat ganti type, clear field yang tidak relevan
+    final isDebtLoan =
+        type == TransactionTypeEnum.debt || type == TransactionTypeEnum.loan;
     state = state
-        .copyWith(type: type)
+        .copyWith(
+          type: type,
+          // Default sub-category saat masuk tab Hutang/Piutang
+          debtLoanKind: isDebtLoan ? DebtLoanKindEnum.debt : null,
+        )
         .clearFields(
           clearDestWallet: !type.requiresDestinationWallet,
           clearWithPerson: !type.requiresWithPerson,
@@ -195,7 +228,36 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           clearDueDate: !type.requiresWithPerson,
           clearCategory: true,
           clearError: true,
+          clearDebtLoanKind: !isDebtLoan,
+          clearReferenceTransaction: true,
         );
+  }
+
+  /// Set sub-kategori untuk tab Hutang/Piutang.
+  ///
+  /// Mengubah type sesuai sub-kategori:
+  /// - debt / debtPayment → TransactionTypeEnum.debt
+  /// - loan / loanCollection → TransactionTypeEnum.loan
+  /// Clear referenceTransaction saat ganti sub-kategori.
+  void setDebtLoanKind(DebtLoanKindEnum subCat) {
+    final newType =
+        (subCat == DebtLoanKindEnum.loan ||
+            subCat == DebtLoanKindEnum.loanCollection)
+        ? TransactionTypeEnum.loan
+        : TransactionTypeEnum.debt;
+
+    state = state
+        .copyWith(type: newType, debtLoanKind: subCat)
+        .clearFields(clearReferenceTransaction: true, clearError: true);
+  }
+
+  /// Set transaksi referensi untuk mode pelunasan/penerimaan.
+  void setReferenceTransaction(DebtLoanTransactionModel? txn) {
+    if (txn == null) {
+      state = state.clearFields(clearReferenceTransaction: true);
+    } else {
+      state = state.copyWith(referenceTransaction: txn);
+    }
   }
 
   void setWallet(WalletModel wallet) {
@@ -414,7 +476,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   // ─── Submit ───
 
-  /// Submit transaksi (create atau update). Anti duplicate-submit via status.
+  /// Submit transaksi (create, update, atau settle). Anti duplicate-submit via status.
   Future<DataState<Map<String, dynamic>>> submit() async {
     if (state.isSaving) {
       return const DataState.error(message: 'Sedang menyimpan...');
@@ -423,48 +485,60 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     state = state.copyWith(status: TransactionFormStatus.saving);
 
     try {
-      // Pastikan items memiliki sortOrder yang benar
-      final itemsWithOrder = state.items
-          .asMap()
-          .entries
-          .map((e) => e.value.copyWith(sortOrder: e.key))
-          .toList();
-
       DataState<Map<String, dynamic>> result;
 
-      if (state.isEditing) {
-        result = await _repository.updateTransaction(
-          transactionId: state.existingTransaction!.id,
+      // ── Settlement mode (Pelunasan / Penerimaan) ──
+      if (state.isSettlementMode) {
+        result = await _repository.settleDebtOrLoan(
+          referenceTransactionId: state.referenceTransaction!.id,
+          settlementKind: state.debtLoanKind!.toDbValue(),
+          amount: state.totalAmount,
           walletId: state.wallet!.id,
-          destinationWalletId: state.destinationWallet?.id,
-          type: state.type,
-          totalAmount: state.totalAmount,
-          date: state.date ?? DateTime.now(),
-          merchantName: state.merchantName,
+          date: state.date,
           note: state.note,
-          attachmentUrl: state.attachmentUrl,
-          withPerson: state.withPerson,
-          contactId: state.contact?.id,
-          debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
-          dueDate: state.dueDate,
-          items: itemsWithOrder,
         );
       } else {
-        result = await _repository.createTransaction(
-          walletId: state.wallet!.id,
-          destinationWalletId: state.destinationWallet?.id,
-          type: state.type,
-          totalAmount: state.totalAmount,
-          date: state.date ?? DateTime.now(),
-          merchantName: state.merchantName,
-          note: state.note,
-          attachmentUrl: state.attachmentUrl,
-          withPerson: state.withPerson,
-          contactId: state.contact?.id,
-          debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
-          dueDate: state.dueDate,
-          items: itemsWithOrder,
-        );
+        // Pastikan items memiliki sortOrder yang benar
+        final itemsWithOrder = state.items
+            .asMap()
+            .entries
+            .map((e) => e.value.copyWith(sortOrder: e.key))
+            .toList();
+
+        if (state.isEditing) {
+          result = await _repository.updateTransaction(
+            transactionId: state.existingTransaction!.id,
+            walletId: state.wallet!.id,
+            destinationWalletId: state.destinationWallet?.id,
+            type: state.type,
+            totalAmount: state.totalAmount,
+            date: state.date ?? DateTime.now(),
+            merchantName: state.merchantName,
+            note: state.note,
+            attachmentUrl: state.attachmentUrl,
+            withPerson: state.withPerson,
+            contactId: state.contact?.id,
+            debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
+            dueDate: state.dueDate,
+            items: itemsWithOrder,
+          );
+        } else {
+          result = await _repository.createTransaction(
+            walletId: state.wallet!.id,
+            destinationWalletId: state.destinationWallet?.id,
+            type: state.type,
+            totalAmount: state.totalAmount,
+            date: state.date ?? DateTime.now(),
+            merchantName: state.merchantName,
+            note: state.note,
+            attachmentUrl: state.attachmentUrl,
+            withPerson: state.withPerson,
+            contactId: state.contact?.id,
+            debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
+            dueDate: state.dueDate,
+            items: itemsWithOrder,
+          );
+        }
       }
 
       if (result.isSuccess()) {
