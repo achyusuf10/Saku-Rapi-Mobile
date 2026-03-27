@@ -1902,5 +1902,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtLoanSettlementHistoryTitle => 'Settlement History';
 
   @override
+  String debtLoanTitleDebt(String person) {
+    return 'Debt to $person';
+  }
+
+  @override
+  String debtLoanTitleLoan(String person) {
+    return 'Loan to $person';
+  }
+
+  @override
+  String debtLoanTitlePayment(String person) {
+    return 'Payment to $person';
+  }
+
+  @override
+  String debtLoanTitleReceipt(String person) {
+    return 'Receipt from $person';
+  }
+
+  @override
   String get profileDebtLoan => 'Debt & Loan';
 }

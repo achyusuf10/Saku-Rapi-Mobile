@@ -718,7 +718,10 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: context.colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
       builder: (_) => DebtLoanSettlementSheet(
         transactions: [debtLoanTx],
         type: typeStr,

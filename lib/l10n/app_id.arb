@@ -883,5 +883,37 @@
   "debtLoanEmptyPerson": "Belum ada transaksi",
   "debtLoanExcludedFromReport": "Transaksi ini dikecualikan dari laporan",
   "debtLoanSettlementHistoryTitle": "Riwayat Pelunasan",
+  "debtLoanTitleDebt": "Hutang ke {person}",
+  "@debtLoanTitleDebt": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitleLoan": "Piutang ke {person}",
+  "@debtLoanTitleLoan": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitlePayment": "Pelunasan ke {person}",
+  "@debtLoanTitlePayment": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitleReceipt": "Penerimaan dari {person}",
+  "@debtLoanTitleReceipt": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
   "profileDebtLoan": "Hutang & Piutang"
 }

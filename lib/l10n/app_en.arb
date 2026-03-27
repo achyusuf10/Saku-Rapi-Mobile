@@ -883,5 +883,37 @@
   "debtLoanEmptyPerson": "No transactions found",
   "debtLoanExcludedFromReport": "This transaction is excluded from reports",
   "debtLoanSettlementHistoryTitle": "Settlement History",
+  "debtLoanTitleDebt": "Debt to {person}",
+  "@debtLoanTitleDebt": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitleLoan": "Loan to {person}",
+  "@debtLoanTitleLoan": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitlePayment": "Payment to {person}",
+  "@debtLoanTitlePayment": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtLoanTitleReceipt": "Receipt from {person}",
+  "@debtLoanTitleReceipt": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
   "profileDebtLoan": "Debt & Loan"
 }

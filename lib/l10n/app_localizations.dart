@@ -3664,6 +3664,30 @@ abstract class AppLocalizations {
   /// **'Riwayat Pelunasan'**
   String get debtLoanSettlementHistoryTitle;
 
+  /// No description provided for @debtLoanTitleDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang ke {person}'**
+  String debtLoanTitleDebt(String person);
+
+  /// No description provided for @debtLoanTitleLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Piutang ke {person}'**
+  String debtLoanTitleLoan(String person);
+
+  /// No description provided for @debtLoanTitlePayment.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan ke {person}'**
+  String debtLoanTitlePayment(String person);
+
+  /// No description provided for @debtLoanTitleReceipt.
+  ///
+  /// In id, this message translates to:
+  /// **'Penerimaan dari {person}'**
+  String debtLoanTitleReceipt(String person);
+
   /// No description provided for @profileDebtLoan.
   ///
   /// In id, this message translates to:

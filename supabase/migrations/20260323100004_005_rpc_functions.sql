@@ -322,13 +322,14 @@ set search_path = public
 as $$
 declare
   v_user_id uuid := auth.uid();
-  v_txn record;
+  v_txn     record;
+  v_settle  record;
 begin
   if v_user_id is null then
     raise exception 'Not authenticated';
   end if;
 
-  -- Fetch transaction info before delete
+  -- Fetch transaction info before delete.
   select id, type, settlement_kind, reference_transaction_id
   into v_txn
   from public.transactions
@@ -338,15 +339,22 @@ begin
     raise exception 'Transaction not found or not owned by user';
   end if;
 
-  -- ── Guard: don't delete if this transaction has settlements referencing it ──
-  if exists (
+  -- If this is an original debt/loan, cascade-delete its settlement children
+  -- first so wallet triggers fire correctly for each one.
+  if v_txn.settlement_kind is null and exists (
     select 1 from public.transactions
-    where reference_transaction_id = p_transaction_id
+    where reference_transaction_id = p_transaction_id and user_id = v_user_id
   ) then
-    raise exception 'Cannot delete transaction that has settlement references. Delete settlements first.';
+    for v_settle in
+      select id from public.transactions
+      where reference_transaction_id = p_transaction_id and user_id = v_user_id
+    loop
+      delete from public.transactions
+      where id = v_settle.id and user_id = v_user_id;
+    end loop;
   end if;
 
-  -- ── Delete (cascade removes items, triggers fire for balance + budget) ──
+  -- Delete the main transaction (trigger fires for balance reversal).
   delete from public.transactions
   where id = p_transaction_id and user_id = v_user_id;
 
