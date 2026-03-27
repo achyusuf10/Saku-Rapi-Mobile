@@ -295,4 +295,74 @@ class TransactionRemoteDataSource {
       },
     );
   }
+
+  /// Edit settlement (jumlah, dompet, catatan) via RPC `update_settlement`.
+  ///
+  /// Trigger wallet balance fires otomatis pada UPDATE.
+  /// RPC juga menghitung ulang status parent debt/loan.
+  Future<DataState<Map<String, dynamic>>> updateSettlement({
+    required String settlementId,
+    required double amount,
+    required String walletId,
+    String? note,
+  }) {
+    return SupabaseHandler.call<Map<String, dynamic>>(
+      function: () async {
+        AppLogger.call(
+          '$_tag updateSettlement: id=$settlementId, '
+          'amount=$amount, wallet=$walletId',
+        );
+
+        final result = await _client.rpc(
+          'update_settlement',
+          params: {
+            'p_settlement_id': settlementId,
+            'p_amount': amount,
+            'p_wallet_id': walletId,
+            'p_note': note,
+          },
+        );
+
+        return Map<String, dynamic>.from(result as Map);
+      },
+    );
+  }
+
+  /// Hapus settlement dan hitung ulang status parent via RPC `delete_settlement`.
+  ///
+  /// Trigger wallet balance fires otomatis pada DELETE.
+  Future<DataState<Map<String, dynamic>>> deleteSettlement(
+    String settlementId,
+  ) {
+    return SupabaseHandler.call<Map<String, dynamic>>(
+      function: () async {
+        AppLogger.call('$_tag deleteSettlement: id=$settlementId');
+
+        final result = await _client.rpc(
+          'delete_settlement',
+          params: {'p_settlement_id': settlementId},
+        );
+
+        return Map<String, dynamic>.from(result as Map);
+      },
+    );
+  }
+
+  /// Ambil `total_amount` dari satu transaksi berdasarkan ID.
+  Future<DataState<double>> getTransactionAmount(String transactionId) {
+    return SupabaseHandler.call<double>(
+      function: () async {
+        final data = await _client
+            .from(_table)
+            .select('total_amount')
+            .eq('id', transactionId)
+            .single();
+        final raw = data['total_amount'];
+        if (raw is int) return raw.toDouble();
+        if (raw is double) return raw;
+        if (raw is String) return double.parse(raw);
+        return 0.0;
+      },
+    );
+  }
 }

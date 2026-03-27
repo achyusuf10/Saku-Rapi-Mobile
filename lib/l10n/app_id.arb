@@ -938,5 +938,18 @@
         "type": "String"
       }
     }
+  },
+  "debtLoanSettlementEditTitle": "Edit Pelunasan",
+  "debtLoanSettlementEditSuccess": "Pelunasan berhasil diperbarui",
+  "debtLoanSettlementDeleteConfirm": "Hapus pelunasan ini?",
+  "debtLoanSettlementDeleteMessage": "Saldo dompet akan dikembalikan dan status hutang/piutang akan dihitung ulang.",
+  "debtLoanSettlementDeleteSuccess": "Pelunasan berhasil dihapus",
+  "debtLoanSettlementMaxAmount": "Maks: {amount}",
+  "@debtLoanSettlementMaxAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

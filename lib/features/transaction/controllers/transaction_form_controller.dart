@@ -270,6 +270,14 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         .clearFields(clearError: true);
   }
 
+  /// Tukar dompet sumber dan dompet tujuan.
+  void swapWallets() {
+    final source = state.wallet;
+    final dest = state.destinationWallet;
+    if (source == null && dest == null) return;
+    state = state.copyWith(wallet: dest, destinationWallet: source);
+  }
+
   void setTotalAmount(double amount) {
     state = state.copyWith(totalAmount: amount);
     // Jika single item, juga update item amount agar match

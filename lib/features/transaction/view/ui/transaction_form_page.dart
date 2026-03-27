@@ -334,7 +334,12 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
                   // Destination wallet (transfer only)
                   if (formState.type == TransactionTypeEnum.transfer) ...[
-                    TransactionTransferArrow(color: colors.transfer),
+                    TransactionTransferArrow(
+                      color: colors.transfer,
+                      onSwap: () => ref
+                          .read(transactionFormControllerProvider.notifier)
+                          .swapWallets(),
+                    ),
                     TransactionWalletPickerTile(
                       label: l10n.transactionDestWallet,
                       selected: formState.destinationWallet,

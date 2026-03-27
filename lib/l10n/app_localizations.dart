@@ -3747,6 +3747,42 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Sisa: {amount}'**
   String debtLoanFormRemainingAmount(String amount);
+
+  /// No description provided for @debtLoanSettlementEditTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Pelunasan'**
+  String get debtLoanSettlementEditTitle;
+
+  /// No description provided for @debtLoanSettlementEditSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan berhasil diperbarui'**
+  String get debtLoanSettlementEditSuccess;
+
+  /// No description provided for @debtLoanSettlementDeleteConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus pelunasan ini?'**
+  String get debtLoanSettlementDeleteConfirm;
+
+  /// No description provided for @debtLoanSettlementDeleteMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet akan dikembalikan dan status hutang/piutang akan dihitung ulang.'**
+  String get debtLoanSettlementDeleteMessage;
+
+  /// No description provided for @debtLoanSettlementDeleteSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelunasan berhasil dihapus'**
+  String get debtLoanSettlementDeleteSuccess;
+
+  /// No description provided for @debtLoanSettlementMaxAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Maks: {amount}'**
+  String debtLoanSettlementMaxAmount(String amount);
 }
 
 class _AppLocalizationsDelegate

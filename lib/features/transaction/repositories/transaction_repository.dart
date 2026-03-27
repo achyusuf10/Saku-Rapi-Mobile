@@ -295,6 +295,41 @@ class TransactionRepository {
     );
   }
 
+  /// Edit settlement (jumlah, dompet, catatan).
+  ///
+  /// Validasi amount > 0 di sisi client; sisa validasi oleh RPC.
+  Future<DataState<Map<String, dynamic>>> updateSettlement({
+    required String settlementId,
+    required double amount,
+    required String walletId,
+    String? note,
+  }) {
+    if (amount <= 0) {
+      return Future.value(
+        const DataState.error(message: 'Nominal pelunasan harus lebih dari 0'),
+      );
+    }
+
+    return _remote.updateSettlement(
+      settlementId: settlementId,
+      amount: amount,
+      walletId: walletId,
+      note: note,
+    );
+  }
+
+  /// Hapus settlement dan hitung ulang status parent.
+  Future<DataState<Map<String, dynamic>>> deleteSettlement(
+    String settlementId,
+  ) {
+    return _remote.deleteSettlement(settlementId);
+  }
+
+  /// Ambil `total_amount` transaksi berdasarkan ID.
+  Future<DataState<double>> getTransactionAmount(String transactionId) {
+    return _remote.getTransactionAmount(transactionId);
+  }
+
   // ───────────────── CACHE ─────────────────
 
   void clearCache() {

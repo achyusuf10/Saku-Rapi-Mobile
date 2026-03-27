@@ -30,6 +30,7 @@ class SakuCurrencyField extends StatefulWidget {
     this.focusNode,
     this.validator,
     this.showPrefix = true,
+    this.suffixIcon,
   });
 
   /// Controller untuk text field. Jika null, dibuat internal.
@@ -67,6 +68,8 @@ class SakuCurrencyField extends StatefulWidget {
 
   /// Tampilkan prefix simbol mata uang.
   final bool showPrefix;
+
+  final Widget? suffixIcon;
 
   @override
   State<SakuCurrencyField> createState() => _SakuCurrencyFieldState();
@@ -144,6 +147,13 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
             ),
             errorText: widget.errorText,
             errorStyle: TextStyleConstants.label3.copyWith(color: colors.error),
+            suffixIcon: widget.suffixIcon == null
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [widget.suffixIcon!],
+                  ),
+            suffixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
             prefixIcon: widget.showPrefix
                 ? Row(
                     mainAxisSize: MainAxisSize.min,

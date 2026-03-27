@@ -938,5 +938,18 @@
         "type": "String"
       }
     }
+  },
+  "debtLoanSettlementEditTitle": "Edit Settlement",
+  "debtLoanSettlementEditSuccess": "Settlement updated successfully",
+  "debtLoanSettlementDeleteConfirm": "Delete this settlement?",
+  "debtLoanSettlementDeleteMessage": "Wallet balance will be reversed and debt/loan status will be recalculated.",
+  "debtLoanSettlementDeleteSuccess": "Settlement deleted successfully",
+  "debtLoanSettlementMaxAmount": "Max: {amount}",
+  "@debtLoanSettlementMaxAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

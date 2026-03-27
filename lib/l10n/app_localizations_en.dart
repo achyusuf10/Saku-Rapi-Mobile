@@ -1954,4 +1954,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String debtLoanFormRemainingAmount(String amount) {
     return 'Remaining: $amount';
   }
+
+  @override
+  String get debtLoanSettlementEditTitle => 'Edit Settlement';
+
+  @override
+  String get debtLoanSettlementEditSuccess => 'Settlement updated successfully';
+
+  @override
+  String get debtLoanSettlementDeleteConfirm => 'Delete this settlement?';
+
+  @override
+  String get debtLoanSettlementDeleteMessage =>
+      'Wallet balance will be reversed and debt/loan status will be recalculated.';
+
+  @override
+  String get debtLoanSettlementDeleteSuccess =>
+      'Settlement deleted successfully';
+
+  @override
+  String debtLoanSettlementMaxAmount(String amount) {
+    return 'Max: $amount';
+  }
 }

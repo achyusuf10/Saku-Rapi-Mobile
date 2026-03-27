@@ -10,10 +10,13 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/settlement_edit_sheet.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,23 +48,37 @@ class TransactionDetailPage extends ConsumerWidget {
         ),
         centerTitle: false,
         actions: [
-          // Edit button (disabled for adjustments and settlement)
-          if (transaction.type != TransactionTypeEnum.adjustment &&
-              !transaction.isSettlement)
+          // Edit button — regular transactions open form, settlements open edit sheet
+          if (transaction.type != TransactionTypeEnum.adjustment)
+            if (transaction.isSettlement)
+              IconButton(
+                icon: FaIcon(FontAwesomeIcons.penToSquare, size: 18.w),
+                onPressed: () => _openSettlementEdit(context, ref),
+              )
+            else
+              IconButton(
+                icon: FaIcon(FontAwesomeIcons.penToSquare, size: 18.w),
+                onPressed: () async {
+                  final edited = await context.push<bool>(
+                    AppRouter.transactionForm,
+                    extra: transaction,
+                  );
+                  if (edited == true && context.mounted) {
+                    context.pop(true);
+                  }
+                },
+              ),
+          // Delete button — settlements use dedicated RPC
+          if (transaction.isSettlement)
             IconButton(
-              icon: FaIcon(FontAwesomeIcons.penToSquare, size: 18.w),
-              onPressed: () async {
-                final edited = await context.push<bool>(
-                  AppRouter.transactionForm,
-                  extra: transaction,
-                );
-                if (edited == true && context.mounted) {
-                  context.pop(true);
-                }
-              },
-            ),
-          // Delete button (disabled for settlements)
-          if (!transaction.isSettlement)
+              icon: FaIcon(
+                FontAwesomeIcons.trashCan,
+                size: 18.w,
+                color: colors.error,
+              ),
+              onPressed: () => _confirmDeleteSettlement(context, ref),
+            )
+          else
             IconButton(
               icon: FaIcon(
                 FontAwesomeIcons.trashCan,
@@ -184,6 +201,97 @@ class TransactionDetailPage extends ConsumerWidget {
         context.closeOverlay();
         context.showAppAlert(
           context.l10n.transactionDeleteSuccess,
+          alertType: AlertTypeEnum.success,
+        );
+        context.pop(true);
+      } else {
+        context.closeOverlay();
+        final (message, _, _, _) = result.dataError()!;
+        context.showAppAlert(message, alertType: AlertTypeEnum.error);
+      }
+    } finally {
+      if (context.mounted) {
+        context.closeOverlay();
+      }
+    }
+  }
+
+  /// Buka SettlementEditSheet — ambil `totalAmount` parent terlebih dahulu.
+  Future<void> _openSettlementEdit(BuildContext context, WidgetRef ref) async {
+    if (!context.mounted) return;
+
+    context.showLoadingOverlay();
+
+    final amountResult = await ref
+        .read(transactionRepositoryProvider)
+        .getTransactionAmount(transaction.referenceTransactionId!);
+
+    if (!context.mounted) return;
+    context.closeOverlay();
+
+    if (!amountResult.isSuccess()) {
+      final (message, _, _, _) = amountResult.dataError()!;
+      context.showAppAlert(message, alertType: AlertTypeEnum.error);
+      return;
+    }
+
+    final parentAmount = amountResult.dataSuccess()!;
+
+    final settlementModel = SettlementHistoryModel(
+      id: transaction.id,
+      walletId: transaction.walletId,
+      walletName: transaction.walletName,
+      type: transaction.type.toDbValue(),
+      totalAmount: transaction.totalAmount,
+      date: transaction.date,
+      note: transaction.note,
+      settlementKind: transaction.settlementKind!,
+      referenceTransactionId: transaction.referenceTransactionId!,
+    );
+
+    if (!context.mounted) return;
+
+    SettlementEditSheet.show(
+      context: context,
+      settlement: settlementModel,
+      originalAmount: parentAmount,
+      onChanged: () {
+        if (context.mounted) context.pop(true);
+      },
+    );
+  }
+
+  /// Hapus settlement dengan RPC khusus yang menghitung ulang status parent.
+  Future<void> _confirmDeleteSettlement(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    if (!context.mounted) return;
+
+    final l10n = context.l10n;
+
+    final confirmed = await context.showConfirmDialog(
+      title: l10n.debtLoanSettlementDeleteConfirm,
+      message: l10n.debtLoanSettlementDeleteMessage,
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    context.showLoadingOverlay();
+
+    try {
+      final result = await ref
+          .read(transactionRepositoryProvider)
+          .deleteSettlement(transaction.id);
+
+      if (!context.mounted) return;
+
+      if (result.isSuccess()) {
+        ref.read(walletControllerProvider.notifier).loadWallets();
+        context.closeOverlay();
+        context.showAppAlert(
+          l10n.debtLoanSettlementDeleteSuccess,
           alertType: AlertTypeEnum.success,
         );
         context.pop(true);

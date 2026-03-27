@@ -1952,4 +1952,25 @@ class AppLocalizationsId extends AppLocalizations {
   String debtLoanFormRemainingAmount(String amount) {
     return 'Sisa: $amount';
   }
+
+  @override
+  String get debtLoanSettlementEditTitle => 'Edit Pelunasan';
+
+  @override
+  String get debtLoanSettlementEditSuccess => 'Pelunasan berhasil diperbarui';
+
+  @override
+  String get debtLoanSettlementDeleteConfirm => 'Hapus pelunasan ini?';
+
+  @override
+  String get debtLoanSettlementDeleteMessage =>
+      'Saldo dompet akan dikembalikan dan status hutang/piutang akan dihitung ulang.';
+
+  @override
+  String get debtLoanSettlementDeleteSuccess => 'Pelunasan berhasil dihapus';
+
+  @override
+  String debtLoanSettlementMaxAmount(String amount) {
+    return 'Maks: $amount';
+  }
 }

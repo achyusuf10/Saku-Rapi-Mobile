@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_person_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 /// Halaman daftar transaksi hutang/piutang dengan satu orang tertentu.
@@ -162,6 +164,11 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
             onSettlement: tx.remaining > 0
                 ? () => _showSettlementForTransaction(context, tx)
                 : null,
+            onTap:
+                tx.status == DebtStatusEnum.paid ||
+                    tx.status == DebtStatusEnum.partial
+                ? () => _navigateToSettlementHistory(context, tx)
+                : null,
           ),
         );
       }
@@ -198,6 +205,33 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
         },
       ),
     );
+  }
+
+  void _navigateToSettlementHistory(
+    BuildContext context,
+    DebtLoanTransactionModel tx,
+  ) {
+    context
+        .push(
+          AppRouter.settlementHistory,
+          extra: {
+            'referenceTransactionId': tx.id,
+            'originalAmount': tx.totalAmount,
+            'withPerson': tx.withPerson ?? '',
+            'type': widget.type,
+          },
+        )
+        .then((_) {
+          // Reload after returning — settlements may have been edited/deleted.
+          ref
+              .read(
+                debtLoanPersonControllerProvider((
+                  widget.withPerson,
+                  widget.type,
+                )).notifier,
+              )
+              .loadTransactions();
+        });
   }
 
   void _showSettlementForTransaction(
@@ -379,11 +413,13 @@ class _DebtLoanTransactionTile extends StatelessWidget {
     required this.transaction,
     required this.type,
     this.onSettlement,
+    this.onTap,
   });
 
   final DebtLoanTransactionModel transaction;
   final String type;
   final VoidCallback? onSettlement;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +442,7 @@ class _DebtLoanTransactionTile extends StatelessWidget {
     };
 
     return InkWell(
-      onTap: onSettlement,
+      onTap: onTap ?? onSettlement,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         child: Row(

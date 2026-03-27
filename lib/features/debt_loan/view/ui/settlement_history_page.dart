@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/settlement_edit_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -257,20 +258,53 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
 
       // Settlement tiles
       for (final settlement in entry.value) {
-        widgets.add(_SettlementTile(settlement: settlement, type: widget.type));
+        widgets.add(
+          _SettlementTile(
+            settlement: settlement,
+            type: widget.type,
+            onTap: () => _openEditSheet(settlement),
+          ),
+        );
       }
     }
     return widgets;
+  }
+
+  void _openEditSheet(SettlementHistoryModel settlement) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SettlementEditSheet(
+        settlement: settlement,
+        originalAmount: widget.originalAmount,
+        onChanged: () {
+          // Reload history after edit/delete.
+          ref
+              .read(
+                settlementHistoryControllerProvider(
+                  widget.referenceTransactionId,
+                ).notifier,
+              )
+              .loadHistory();
+        },
+      ),
+    );
   }
 }
 
 // ───────────────── Settlement Tile ─────────────────
 
 class _SettlementTile extends StatelessWidget {
-  const _SettlementTile({required this.settlement, required this.type});
+  const _SettlementTile({
+    required this.settlement,
+    required this.type,
+    this.onTap,
+  });
 
   final SettlementHistoryModel settlement;
   final String type;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -291,74 +325,77 @@ class _SettlementTile extends StatelessWidget {
             settlement.withPerson ?? l10n.debtLoanSomeone,
           );
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-      child: Row(
-        children: [
-          // Icon
-          CircleAvatar(
-            radius: 18.r,
-            backgroundColor: color.withValues(alpha: 0.12),
-            child: FaIcon(
-              isDebtPayment
-                  ? FontAwesomeIcons.arrowRight
-                  : FontAwesomeIcons.arrowLeft,
-              size: 14.w,
-              color: color,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        child: Row(
+          children: [
+            // Icon
+            CircleAvatar(
+              radius: 18.r,
+              backgroundColor: color.withValues(alpha: 0.12),
+              child: FaIcon(
+                isDebtPayment
+                    ? FontAwesomeIcons.arrowRight
+                    : FontAwesomeIcons.arrowLeft,
+                size: 14.w,
+                color: color,
+              ),
             ),
-          ),
-          SizedBox(width: 12.w),
+            SizedBox(width: 12.w),
 
-          // Title + subtitle
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyleConstants.b2.copyWith(
-                    fontWeight: FontWeight.w500,
+            // Title + subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyleConstants.b2.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  subtitle,
-                  style: TextStyleConstants.label2.copyWith(
-                    color: colors.textSecondary,
-                  ),
-                ),
-                if (settlement.walletName != null) ...[
                   SizedBox(height: 2.h),
-                  Row(
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.wallet,
-                        size: 10.w,
-                        color: colors.textSecondary,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        settlement.walletName!,
-                        style: TextStyleConstants.label2.copyWith(
+                  Text(
+                    subtitle,
+                    style: TextStyleConstants.label2.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  if (settlement.walletName != null) ...[
+                    SizedBox(height: 2.h),
+                    Row(
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.wallet,
+                          size: 10.w,
                           color: colors.textSecondary,
                         ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          settlement.walletName!,
+                          style: TextStyleConstants.label2.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
 
-          // Amount
-          Text(
-            '-${settlement.totalAmount.toCurrency()}',
-            style: TextStyleConstants.b2.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
+            // Amount
+            Text(
+              '-${settlement.totalAmount.toCurrency()}',
+              style: TextStyleConstants.b2.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
