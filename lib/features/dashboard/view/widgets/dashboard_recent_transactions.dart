@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,10 +80,20 @@ class DashboardRecentTransactions extends ConsumerWidget {
                     HistoryTransactionTile(
                       transaction: transactions[i],
                       showDate: true,
-                      onTap: () => context.push(
-                        AppRouter.transactionDetail,
-                        extra: transactions[i],
-                      ),
+                      onTap: () async {
+                        final result = await context.push<bool>(
+                          AppRouter.transactionDetail,
+                          extra: transactions[i],
+                        );
+                        if (result == true) {
+                          ref
+                              .read(dashboardControllerProvider.notifier)
+                              .loadDashboard();
+                          ref
+                              .read(walletControllerProvider.notifier)
+                              .loadWallets();
+                        }
+                      },
                     ),
                     if (i < transactions.length - 1)
                       Divider(

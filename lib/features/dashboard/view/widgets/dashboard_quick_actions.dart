@@ -2,10 +2,12 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/view/ui/ocr_result_sheet.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/voice/view/ui/voice_input_sheet.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,7 +30,13 @@ class DashboardQuickActions extends ConsumerWidget {
         icon: FontAwesomeIcons.penToSquare,
         label: l10n.fabManualInput,
         color: colors.primary,
-        onTap: () => context.push(AppRouter.transactionForm),
+        onTap: () async {
+          final result = await context.push<bool>(AppRouter.transactionForm);
+          if (result == true) {
+            ref.read(dashboardControllerProvider.notifier).loadDashboard();
+            ref.read(walletControllerProvider.notifier).loadWallets();
+          }
+        },
       ),
       _QuickAction(
         icon: FontAwesomeIcons.microphone,
@@ -73,7 +81,11 @@ class DashboardQuickActions extends ConsumerWidget {
     final result = await VoiceInputSheet.show(context: context);
     if (result != null && context.mounted) {
       ref.read(pendingVoicePrefillProvider.notifier).state = result;
-      context.push(AppRouter.transactionForm);
+      final navResult = await context.push<bool>(AppRouter.transactionForm);
+      if (navResult == true && context.mounted) {
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(walletControllerProvider.notifier).loadWallets();
+      }
     }
   }
 
@@ -82,7 +94,11 @@ class DashboardQuickActions extends ConsumerWidget {
     final result = await OcrResultSheet.show(context: context);
     if (result != null && context.mounted) {
       ref.read(pendingOcrPrefillProvider.notifier).state = result;
-      context.push(AppRouter.transactionForm);
+      final navResult = await context.push<bool>(AppRouter.transactionForm);
+      if (navResult == true && context.mounted) {
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(walletControllerProvider.notifier).loadWallets();
+      }
     }
   }
 }

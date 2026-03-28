@@ -9,6 +9,8 @@ import 'package:app_saku_rapi/core/themes/app_colors.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
@@ -590,6 +592,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     if (!mounted) return;
 
     if (result.isSuccess()) {
+      ref.read(walletControllerProvider.notifier).loadWallets();
+      ref.read(dashboardControllerProvider.notifier).loadDashboard();
+      ref.read(historyControllerProvider.notifier).loadTransactions();
       context.showAppAlert(
         l10n.transactionSaveSuccess,
         alertType: AlertTypeEnum.success,
@@ -624,6 +629,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       if (!mounted) return;
 
       if (result.isSuccess()) {
+        ref.read(walletControllerProvider.notifier).loadWallets();
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(historyControllerProvider.notifier).loadTransactions();
         context.closeOverlay();
         context.showAppAlert(
           l10n.transactionDeleteSuccess,

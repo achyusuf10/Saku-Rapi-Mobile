@@ -4,12 +4,14 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_period_selector.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_sub_period_tabs.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -95,6 +97,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     // Refresh if detail page signaled a change (edit/delete)
     if (result == true && mounted) {
       await ref.read(historyControllerProvider.notifier).refresh();
+      ref.read(dashboardControllerProvider.notifier).loadDashboard();
+      ref.read(walletControllerProvider.notifier).loadWallets();
     }
   }
 

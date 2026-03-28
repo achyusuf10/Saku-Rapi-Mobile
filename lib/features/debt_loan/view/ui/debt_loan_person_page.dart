@@ -192,7 +192,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
         transactions: unpaidTxs,
         type: widget.type,
         withPerson: widget.withPerson,
-        onSettled: () {
+        onSuccess: () {
           // Reload after settlement.
           ref
               .read(
@@ -249,7 +249,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
         transactions: [tx],
         type: widget.type,
         withPerson: widget.withPerson,
-        onSettled: () {
+        onSuccess: () {
           ref
               .read(
                 debtLoanPersonControllerProvider((

@@ -3,39 +3,85 @@ import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
+import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Bottom sheet untuk melakukan pelunasan hutang / penerimaan piutang.
+/// Bottom sheet untuk pelunasan hutang / penerimaan piutang.
 ///
-/// Menampilkan:
-/// - Pilih transaksi yang mau dilunasi (jika > 1 unpaid)
-/// - Input nominal pelunasan
-/// - Pilihan dompet pembayaran
-/// - Note opsional
+/// Mendukung dua mode:
+/// - **Create** (default constructor): buat settlement baru untuk transaksi unpaid.
+/// - **Edit** (`.edit()` constructor): edit/hapus settlement yang sudah ada.
 class DebtLoanSettlementSheet extends ConsumerStatefulWidget {
+  /// Create mode: buat settlement baru.
   const DebtLoanSettlementSheet({
     super.key,
     required this.transactions,
     required this.type,
     this.withPerson,
-    required this.onSettled,
-  });
+    required this.onSuccess,
+  }) : settlement = null,
+       originalAmount = null;
 
-  /// Transaksi yang belum lunas (bisa > 1 jika dari person page).
+  /// Edit mode: edit/hapus settlement yang sudah ada.
+  const DebtLoanSettlementSheet.edit({
+    super.key,
+    required SettlementHistoryModel this.settlement,
+    required double this.originalAmount,
+    required this.onSuccess,
+  }) : transactions = const [],
+       type = '',
+       withPerson = null;
+
+  /// Transaksi yang belum lunas (create mode).
   final List<DebtLoanTransactionModel> transactions;
   final String type;
   final String? withPerson;
-  final VoidCallback onSettled;
+
+  /// Settlement yang akan diedit (edit mode).
+  final SettlementHistoryModel? settlement;
+
+  /// Total amount dari transaksi hutang/piutang asal (edit mode).
+  final double? originalAmount;
+
+  /// Callback setelah berhasil create/edit/delete.
+  final VoidCallback onSuccess;
+
+  bool get isEditMode => settlement != null;
+
+  /// Tampilkan bottom sheet edit settlement.
+  static Future<void> showEdit({
+    required BuildContext context,
+    required SettlementHistoryModel settlement,
+    required double originalAmount,
+    required VoidCallback onSuccess,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (_) => DebtLoanSettlementSheet.edit(
+        settlement: settlement,
+        originalAmount: originalAmount,
+        onSuccess: onSuccess,
+      ),
+    );
+  }
 
   @override
   ConsumerState<DebtLoanSettlementSheet> createState() =>
@@ -46,14 +92,22 @@ class _DebtLoanSettlementSheetState
     extends ConsumerState<DebtLoanSettlementSheet> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  late DebtLoanTransactionModel _selectedTransaction;
+  DebtLoanTransactionModel? _selectedTransaction;
   WalletModel? _selectedWallet;
   bool _isSubmitting = false;
+  bool _isDeleting = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedTransaction = widget.transactions.first;
+    if (widget.isEditMode) {
+      _amountController.text = widget.settlement!.totalAmount
+          .toInt()
+          .toString();
+      _noteController.text = widget.settlement!.note ?? '';
+    } else {
+      _selectedTransaction = widget.transactions.first;
+    }
   }
 
   @override
@@ -63,17 +117,34 @@ class _DebtLoanSettlementSheetState
     super.dispose();
   }
 
-  double get _maxAmount => _selectedTransaction.remaining;
+  double get _maxAmount => widget.isEditMode
+      ? widget.originalAmount!
+      : _selectedTransaction!.remaining;
+
+  Color _typeColor(BuildContext context) {
+    final colors = context.colors;
+    if (widget.isEditMode) {
+      return widget.settlement!.type == 'expense' ? colors.debt : colors.loan;
+    }
+    return widget.type == 'debt' ? colors.debt : colors.loan;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
     final wallets = ref.watch(walletListProvider);
-    final typeColor = widget.type == 'debt' ? colors.debt : colors.loan;
+    final typeColor = _typeColor(context);
 
-    // Default to first wallet if not selected.
-    _selectedWallet ??= wallets.isNotEmpty ? wallets.first : null;
+    // Default wallet.
+    if (widget.isEditMode) {
+      _selectedWallet ??= wallets.firstWhere(
+        (w) => w.id == widget.settlement!.walletId,
+        orElse: () => wallets.first,
+      );
+    } else {
+      _selectedWallet ??= wallets.isNotEmpty ? wallets.first : null;
+    }
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -101,21 +172,48 @@ class _DebtLoanSettlementSheetState
             SizedBox(height: 16.h),
 
             // ─── Title ───
-            Text(
-              l10n.debtLoanSettlementTitle,
-              style: TextStyleConstants.h7.copyWith(
-                fontWeight: FontWeight.bold,
+            if (widget.isEditMode)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.debtLoanSettlementEditTitle,
+                      style: TextStyleConstants.h7.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _isDeleting || _isSubmitting
+                        ? null
+                        : _confirmDelete,
+                    icon: FaIcon(
+                      FontAwesomeIcons.trashCan,
+                      size: 16.w,
+                      color: _isDeleting
+                          ? colors.textSecondary
+                          : colors.expense,
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              Text(
+                l10n.debtLoanSettlementTitle,
+                style: TextStyleConstants.h7.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              widget.withPerson ?? context.l10n.debtLoanSomeone,
-              style: TextStyleConstants.b2.copyWith(color: typeColor),
-            ),
+              SizedBox(height: 4.h),
+              Text(
+                widget.withPerson ?? context.l10n.debtLoanSomeone,
+                style: TextStyleConstants.b2.copyWith(color: typeColor),
+              ),
+            ],
             SizedBox(height: 16.h),
 
-            // ─── Transaction selector (if multiple) ───
-            if (widget.transactions.length > 1) ...[
+            // ─── Transaction selector (create mode, if multiple) ───
+            if (!widget.isEditMode && widget.transactions.length > 1) ...[
               Text(
                 'Pilih transaksi:',
                 style: TextStyleConstants.label1.copyWith(
@@ -127,7 +225,7 @@ class _DebtLoanSettlementSheetState
                 (tx) => _TransactionOption(
                   transaction: tx,
                   type: widget.type,
-                  isSelected: tx.id == _selectedTransaction.id,
+                  isSelected: tx.id == _selectedTransaction!.id,
                   onTap: () {
                     setState(() {
                       _selectedTransaction = tx;
@@ -169,15 +267,18 @@ class _DebtLoanSettlementSheetState
             SizedBox(height: 16.h),
 
             // ─── Amount input ───
-            SakuTextField(
+            SakuCurrencyField(
               controller: _amountController,
+              initialValue: widget.isEditMode
+                  ? widget.settlement!.totalAmount
+                  : null,
               label: l10n.debtLoanSettlementAmount,
               hint: '0',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               suffixIcon: GestureDetector(
                 onTap: () {
-                  _amountController.text = _maxAmount.toInt().toString();
+                  _amountController.text = _maxAmount.toCurrency(
+                    withPrefix: false,
+                  );
                 },
                 child: Padding(
                   padding: EdgeInsets.only(right: 8.w),
@@ -241,6 +342,7 @@ class _DebtLoanSettlementSheetState
             SakuButton(
               text: l10n.debtLoanSettlementSubmit,
               isLoading: _isSubmitting,
+              isEnabled: !_isDeleting,
               onPressed: _submit,
               icon: FaIcon(
                 FontAwesomeIcons.check,
@@ -256,7 +358,7 @@ class _DebtLoanSettlementSheetState
 
   Future<void> _submit() async {
     final l10n = context.l10n;
-    final amount = double.tryParse(_amountController.text) ?? 0;
+    final amount = ThousandInputFormatter.parseNumber(_amountController.text);
 
     if (amount <= 0) {
       context.showAppAlert(
@@ -278,35 +380,89 @@ class _DebtLoanSettlementSheetState
 
     setState(() => _isSubmitting = true);
 
-    final settlementKind = widget.type == 'debt'
-        ? 'debt_payment'
-        : 'loan_collection';
+    final DataState<Map<String, dynamic>> result;
 
-    final result = await ref
-        .read(transactionRepositoryProvider)
-        .settleDebtOrLoan(
-          referenceTransactionId: _selectedTransaction.id,
-          settlementKind: settlementKind,
-          amount: amount,
-          walletId: _selectedWallet!.id,
-          note: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
-        );
+    if (widget.isEditMode) {
+      result = await ref
+          .read(transactionRepositoryProvider)
+          .updateSettlement(
+            settlementId: widget.settlement!.id,
+            amount: amount,
+            walletId: _selectedWallet!.id,
+            note: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+          );
+    } else {
+      final settlementKind = widget.type == 'debt'
+          ? 'debt_payment'
+          : 'loan_collection';
+
+      result = await ref
+          .read(transactionRepositoryProvider)
+          .settleDebtOrLoan(
+            referenceTransactionId: _selectedTransaction!.id,
+            settlementKind: settlementKind,
+            amount: amount,
+            walletId: _selectedWallet!.id,
+            note: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+          );
+    }
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     if (result.isSuccess()) {
-      // Reload wallets to reflect balance changes.
       ref.read(walletControllerProvider.notifier).loadWallets();
+      ref.read(dashboardControllerProvider.notifier).loadDashboard();
+      ref.read(historyControllerProvider.notifier).loadTransactions();
 
       Navigator.pop(context);
       context.showAppAlert(
-        l10n.debtLoanSettlementSuccess,
+        widget.isEditMode
+            ? l10n.debtLoanSettlementEditSuccess
+            : l10n.debtLoanSettlementSuccess,
         alertType: AlertTypeEnum.success,
       );
-      widget.onSettled();
+      widget.onSuccess();
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      context.showAppAlert(message, alertType: AlertTypeEnum.error);
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final l10n = context.l10n;
+
+    final confirmed = await context.showConfirmDialog(
+      title: l10n.debtLoanSettlementDeleteConfirm,
+      message: l10n.debtLoanSettlementDeleteMessage,
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+
+    final result = await ref
+        .read(transactionRepositoryProvider)
+        .deleteSettlement(widget.settlement!.id);
+
+    if (!mounted) return;
+    setState(() => _isDeleting = false);
+
+    if (result.isSuccess()) {
+      ref.read(walletControllerProvider.notifier).loadWallets();
+      ref.read(dashboardControllerProvider.notifier).loadDashboard();
+      ref.read(historyControllerProvider.notifier).loadTransactions();
+
+      Navigator.pop(context);
+      context.showAppAlert(
+        l10n.debtLoanSettlementDeleteSuccess,
+        alertType: AlertTypeEnum.success,
+      );
+      widget.onSuccess();
     } else {
       final (message, _, _, _) = result.dataError()!;
       context.showAppAlert(message, alertType: AlertTypeEnum.error);

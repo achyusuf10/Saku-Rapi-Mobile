@@ -8,11 +8,12 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
-import 'package:app_saku_rapi/features/debt_loan/view/widgets/settlement_edit_sheet.dart';
+import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
@@ -198,6 +199,9 @@ class TransactionDetailPage extends ConsumerWidget {
       if (!context.mounted) return;
 
       if (result.isSuccess()) {
+        ref.read(walletControllerProvider.notifier).loadWallets();
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(historyControllerProvider.notifier).loadTransactions();
         context.closeOverlay();
         context.showAppAlert(
           context.l10n.transactionDeleteSuccess,
@@ -251,11 +255,11 @@ class TransactionDetailPage extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    SettlementEditSheet.show(
+    DebtLoanSettlementSheet.showEdit(
       context: context,
       settlement: settlementModel,
       originalAmount: parentAmount,
-      onChanged: () {
+      onSuccess: () {
         if (context.mounted) context.pop(true);
       },
     );
@@ -289,6 +293,8 @@ class TransactionDetailPage extends ConsumerWidget {
 
       if (result.isSuccess()) {
         ref.read(walletControllerProvider.notifier).loadWallets();
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(historyControllerProvider.notifier).loadTransactions();
         context.closeOverlay();
         context.showAppAlert(
           l10n.debtLoanSettlementDeleteSuccess,
@@ -834,7 +840,7 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
         transactions: [debtLoanTx],
         type: typeStr,
         withPerson: tx.withPerson ?? tx.contactName,
-        onSettled: () {
+        onSuccess: () {
           // Reload settlement history after settlement.
           ref
               .read(settlementHistoryControllerProvider(tx.id).notifier)

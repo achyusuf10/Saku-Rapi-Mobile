@@ -4,7 +4,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
-import 'package:app_saku_rapi/features/debt_loan/view/widgets/settlement_edit_sheet.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -271,24 +271,20 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
   }
 
   void _openEditSheet(SettlementHistoryModel settlement) {
-    showModalBottomSheet(
+    DebtLoanSettlementSheet.showEdit(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => SettlementEditSheet(
-        settlement: settlement,
-        originalAmount: widget.originalAmount,
-        onChanged: () {
-          // Reload history after edit/delete.
-          ref
-              .read(
-                settlementHistoryControllerProvider(
-                  widget.referenceTransactionId,
-                ).notifier,
-              )
-              .loadHistory();
-        },
-      ),
+      settlement: settlement,
+      originalAmount: widget.originalAmount,
+      onSuccess: () {
+        // Reload history after edit/delete.
+        ref
+            .read(
+              settlementHistoryControllerProvider(
+                widget.referenceTransactionId,
+              ).notifier,
+            )
+            .loadHistory();
+      },
     );
   }
 }
