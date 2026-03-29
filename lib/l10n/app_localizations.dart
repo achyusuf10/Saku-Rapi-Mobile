@@ -869,8 +869,8 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardSnapshotTitle.
   ///
   /// In id, this message translates to:
-  /// **'Ringkasan Bulan Ini'**
-  String get dashboardSnapshotTitle;
+  /// **'Ringkasan {period}'**
+  String dashboardSnapshotTitle(String period);
 
   /// No description provided for @dashboardTopExpenses.
   ///
@@ -997,6 +997,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Mingguan'**
   String get dashboardWeeklyMode;
+
+  /// No description provided for @dashboardDailyMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Harian'**
+  String get dashboardDailyMode;
+
+  /// No description provided for @dashboardToday.
+  ///
+  /// In id, this message translates to:
+  /// **'Hari Ini'**
+  String get dashboardToday;
+
+  /// No description provided for @dashboardYesterday.
+  ///
+  /// In id, this message translates to:
+  /// **'Kemarin'**
+  String get dashboardYesterday;
 
   /// No description provided for @dashboardQuickAdd.
   ///
@@ -3019,6 +3037,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Bulan lalu'**
   String get dashboardPrevMonthLabel;
+
+  /// No description provided for @dashboardAvg3WeekLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata 3 minggu lalu'**
+  String get dashboardAvg3WeekLabel;
+
+  /// No description provided for @dashboardAvg3DayLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata 3 hari lalu'**
+  String get dashboardAvg3DayLabel;
 
   /// No description provided for @dashboardInsightExpenseDown.
   ///

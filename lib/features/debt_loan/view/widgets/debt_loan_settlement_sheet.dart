@@ -3,12 +3,9 @@ import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_settlement_form_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
-import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
-import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
@@ -94,8 +91,6 @@ class _DebtLoanSettlementSheetState
   final _noteController = TextEditingController();
   DebtLoanTransactionModel? _selectedTransaction;
   WalletModel? _selectedWallet;
-  bool _isSubmitting = false;
-  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -134,6 +129,7 @@ class _DebtLoanSettlementSheetState
     final colors = context.colors;
     final l10n = context.l10n;
     final wallets = ref.watch(walletListProvider);
+    final formState = ref.watch(debtLoanSettlementFormProvider);
     final typeColor = _typeColor(context);
 
     // Default wallet.
@@ -184,13 +180,13 @@ class _DebtLoanSettlementSheetState
                     ),
                   ),
                   IconButton(
-                    onPressed: _isDeleting || _isSubmitting
+                    onPressed: formState.isDeleting || formState.isSubmitting
                         ? null
                         : _confirmDelete,
                     icon: FaIcon(
                       FontAwesomeIcons.trashCan,
                       size: 16.w,
-                      color: _isDeleting
+                      color: formState.isDeleting
                           ? colors.textSecondary
                           : colors.expense,
                     ),
@@ -341,8 +337,8 @@ class _DebtLoanSettlementSheetState
             // ─── Submit ───
             SakuButton(
               text: l10n.debtLoanSettlementSubmit,
-              isLoading: _isSubmitting,
-              isEnabled: !_isDeleting,
+              isLoading: formState.isSubmitting,
+              isEnabled: !formState.isDeleting,
               onPressed: _submit,
               icon: FaIcon(
                 FontAwesomeIcons.check,
@@ -378,47 +374,31 @@ class _DebtLoanSettlementSheetState
 
     if (_selectedWallet == null) return;
 
-    setState(() => _isSubmitting = true);
+    final controller = ref.read(debtLoanSettlementFormProvider.notifier);
+    final note = _noteController.text.trim().isEmpty
+        ? null
+        : _noteController.text.trim();
 
-    final DataState<Map<String, dynamic>> result;
-
-    if (widget.isEditMode) {
-      result = await ref
-          .read(transactionRepositoryProvider)
-          .updateSettlement(
+    final result = widget.isEditMode
+        ? await controller.update(
             settlementId: widget.settlement!.id,
             amount: amount,
             walletId: _selectedWallet!.id,
-            note: _noteController.text.trim().isEmpty
-                ? null
-                : _noteController.text.trim(),
-          );
-    } else {
-      final settlementKind = widget.type == 'debt'
-          ? 'debt_payment'
-          : 'loan_collection';
-
-      result = await ref
-          .read(transactionRepositoryProvider)
-          .settleDebtOrLoan(
+            note: note,
+          )
+        : await controller.settle(
             referenceTransactionId: _selectedTransaction!.id,
-            settlementKind: settlementKind,
+            settlementKind: widget.type == 'debt'
+                ? 'debt_payment'
+                : 'loan_collection',
             amount: amount,
             walletId: _selectedWallet!.id,
-            note: _noteController.text.trim().isEmpty
-                ? null
-                : _noteController.text.trim(),
+            note: note,
           );
-    }
 
     if (!mounted) return;
-    setState(() => _isSubmitting = false);
 
     if (result.isSuccess()) {
-      ref.read(walletControllerProvider.notifier).loadWallets();
-      ref.read(dashboardControllerProvider.notifier).loadDashboard();
-      ref.read(historyControllerProvider.notifier).loadTransactions();
-
       Navigator.pop(context);
       context.showAppAlert(
         widget.isEditMode
@@ -443,20 +423,13 @@ class _DebtLoanSettlementSheetState
 
     if (confirmed != true || !mounted) return;
 
-    setState(() => _isDeleting = true);
-
     final result = await ref
-        .read(transactionRepositoryProvider)
-        .deleteSettlement(widget.settlement!.id);
+        .read(debtLoanSettlementFormProvider.notifier)
+        .delete(widget.settlement!.id);
 
     if (!mounted) return;
-    setState(() => _isDeleting = false);
 
     if (result.isSuccess()) {
-      ref.read(walletControllerProvider.notifier).loadWallets();
-      ref.read(dashboardControllerProvider.notifier).loadDashboard();
-      ref.read(historyControllerProvider.notifier).loadTransactions();
-
       Navigator.pop(context);
       context.showAppAlert(
         l10n.debtLoanSettlementDeleteSuccess,

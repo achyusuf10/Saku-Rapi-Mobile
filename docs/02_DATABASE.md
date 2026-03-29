@@ -1,4 +1,4 @@
-# SakuRapi — Database Final v6.1
+# SakuRapi — Database Final v6.4
 ## Schema, Constraint, Trigger, RPC, dan Indexing
 
 > Dokumen ini adalah sumber kebenaran untuk struktur database Supabase/Postgres.
@@ -96,6 +96,7 @@
 | is_multi_item | boolean not null default false | |
 | reference_transaction_id | uuid nullable FK self | untuk settlement |
 | settlement_kind | text nullable | `debt_payment`, `loan_collection` |
+| contact_id | uuid nullable FK | referensi ke `contacts.id` untuk debt/loan |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
@@ -107,6 +108,7 @@
 - `settlement_kind is not null` -> `reference_transaction_id is not null`
 - `settlement_kind = 'debt_payment'` -> `type = 'expense'`
 - `settlement_kind = 'loan_collection'` -> `type = 'income'`
+- `status` nullable CHECK: `NULL` atau salah satu dari `unpaid`, `paid`, `partial`
 
 ## 2.5 `transaction_items`
 | Kolom | Tipe | Keterangan |
@@ -124,6 +126,7 @@
 ### Constraint
 - setiap transaksi minimal punya 1 item.
 - `amount > 0`
+- `qty > 0`
 - jika `qty` dan `unit_price` ada, maka `amount = qty * unit_price` pada level aplikasi/DB validation.
 - `sum(amount)` untuk semua item harus sama dengan `transactions.total_amount`.
 
@@ -141,12 +144,15 @@
 | is_recurring | boolean not null default false | auto clone |
 | notification_sent_80 | boolean not null default false | |
 | notification_sent_100 | boolean not null default false | |
+| period_type | text not null default 'monthly' | `weekly`, `monthly`, `quarterly`, `yearly`, `custom` |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
 ### Constraint
 - hanya boleh menunjuk category `type = 'expense'`
+- `amount > 0`
 - `end_date >= start_date`
+- `period_type` CHECK: salah satu dari `weekly`, `monthly`, `quarterly`, `yearly`, `custom`
 - tidak boleh ada duplikasi budget aktif dengan scope identik tanpa keputusan merge.
 
 ## 2.7 `investments`
@@ -162,6 +168,7 @@
 | custom_current_price | numeric nullable | fallback manual |
 | linked_wallet_id | uuid nullable FK | wallet referensi |
 | notes | text nullable | |
+| asset_type_id | uuid nullable FK | referensi ke `asset_types.id` untuk custom type |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
@@ -187,6 +194,38 @@
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
+## 2.10 `contacts`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| user_id | uuid FK | owner |
+| name | text not null | nama kontak |
+| phone | text nullable | nomor telepon |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | auto update |
+
+### Constraint
+- `name` wajib tidak kosong.
+- Digunakan sebagai referensi `transactions.contact_id` untuk hutang/piutang.
+- Data di-upsert dari phonebook device via RPC `upsert_contact`.
+
+## 2.11 `asset_types`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| user_id | uuid FK | owner |
+| name | text not null | nama jenis aset |
+| symbol | text nullable | simbol/ticker |
+| current_price | numeric not null default 0 | harga terkini, CHECK >= 0 |
+| is_deleted | boolean not null default false | soft delete |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | auto update |
+
+### Constraint
+- `current_price >= 0`.
+- Soft delete via `is_deleted` flag.
+- Direferensi oleh `investments.asset_type_id`.
+
 ---
 
 ## 3. Trigger, Function, RPC, dan Job
@@ -202,13 +241,31 @@
 | `set_updated_at()` | before update on all mutable tables | update timestamp |
 | `auto_renew_budgets()` | pg_cron daily | clone recurring budgets |
 
-## 3.2 RPC yang disarankan
+## 3.2 RPC yang sudah diimplementasi
 Agar write atomik dan Copilot tidak menyebar logika:
-- `create_transaction_with_items(...)`
-- `update_transaction_with_items(...)`
-- `create_adjustment_transaction(...)`
-- `create_investment_with_optional_wallet_deduction(...)`
-- `settle_debt_or_loan(...)`
+
+### Transaction RPCs
+- `create_transaction_with_items(p_wallet_id, p_destination_wallet_id?, p_type, p_total_amount, p_date, p_merchant_name?, p_note?, p_attachment_url?, p_with_person?, p_status?, p_due_date?, p_is_multi_item, p_reference_transaction_id?, p_settlement_kind?, p_items jsonb, p_contact_id?)` → jsonb
+- `update_transaction_with_items(p_transaction_id, p_wallet_id, p_destination_wallet_id?, p_type, p_total_amount, p_date, p_merchant_name?, p_note?, p_attachment_url?, p_with_person?, p_status?, p_due_date?, p_is_multi_item, p_reference_transaction_id?, p_settlement_kind?, p_items jsonb, p_contact_id?)` → jsonb
+- `delete_transaction(p_transaction_id)` → jsonb
+- `create_adjustment_transaction(p_wallet_id, p_target_balance, p_date?, p_note?)` → jsonb
+
+### Settlement RPCs
+- `settle_debt_or_loan(p_reference_transaction_id, p_settlement_kind, p_amount, p_wallet_id, p_date?, p_note?)` → jsonb
+- `update_settlement(p_settlement_id, p_amount, p_wallet_id, p_note?)` → jsonb
+- `delete_settlement(p_settlement_id)` → jsonb
+
+### Debt/Loan Query RPCs
+- `get_debt_loan_summary(p_type, p_wallet_id?)` → TABLE(with_person, contact_id, transaction_count, total_principal, total_settled, remaining, has_unpaid)
+- `get_debt_loan_transactions_by_person(p_with_person, p_type, p_wallet_id?)` → TABLE(id, wallet_id, wallet_name, type, total_amount, date, note, with_person, contact_id, status, due_date, settlement_kind, reference_transaction_id, total_settled, remaining, created_at)
+- `get_all_unpaid_debt_loan(p_type)` → TABLE(id, wallet_id, wallet_name, type, total_amount, date, note, with_person, contact_id, status, due_date, total_settled, remaining, created_at)
+- `get_settlement_history(p_reference_transaction_id)` → TABLE(id, wallet_id, wallet_name, type, total_amount, date, note, with_person, settlement_kind, reference_transaction_id, created_at)
+
+### Contact RPC
+- `upsert_contact(p_name, p_phone?)` → uuid
+
+### Investment RPC
+- `create_investment_with_optional_wallet_deduction(p_type, p_name, p_amount, p_avg_buy_price, p_symbol?, p_custom_current_price?, p_linked_wallet_id?, p_deduct_from_wallet?, p_notes?, p_date?, p_asset_type_id?)` → jsonb
 
 ### Rule
 Flutter boleh memanggil RPC ini melalui RemoteDataSource.  
@@ -218,7 +275,7 @@ Jangan membangun multi-step write yang rentan race condition langsung dari clien
 
 ## 4. RLS Policy
 
-Semua tabel business wajib mengaktifkan RLS.
+Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categories, transactions, transaction_items, budgets, investments, parsing_dictionaries, notification_settings, contacts, asset_types).
 
 ### Prinsip umum
 - user hanya boleh membaca/menulis data miliknya sendiri.
@@ -234,17 +291,20 @@ Semua tabel business wajib mengaktifkan RLS.
 - `transactions(user_id, date desc)`
 - `transactions(wallet_id, date desc)`
 - `transactions(reference_transaction_id)`
+- `transactions(contact_id)`
 - `transaction_items(transaction_id, sort_order)`
 - `budgets(user_id, start_date, end_date)`
 - `categories(user_id, type, parent_id)`
 - `wallets(user_id, sort_order)`
+- `contacts(user_id, name)`
+- `asset_types(user_id)`
 
 ### Performance rules
 - History list wajib pagination / infinite scroll.
 - Jangan fetch semua transaksi sepanjang masa untuk dashboard.
 - Grouping history dilakukan lokal dari satu fetch source.
 - Cache dictionary 24 jam.
-- Cache harga investasi 1 jam.
+- Cache harga investasi 12 jam (TTL-based di Hive, keys: `investment_btc_price`, `investment_gold_price`).
 - Upload attachment dilakukan async dengan UI progress state.
 
 ---
@@ -254,13 +314,16 @@ Semua tabel business wajib mengaktifkan RLS.
 - Transfer wajib punya `destination_wallet_id`.
 - Transfer tidak boleh pakai wallet yang sama sebagai source dan destination.
 - `debt` dan `loan` wajib punya `with_person`.
+- `debt` dan `loan` boleh punya `contact_id` (FK ke `contacts`).
 - `transaction_items` minimal 1 row per transaksi.
 - Total item wajib sama dengan total header transaksi.
-- Settlement wajib merefer ke transaksi asal.
-- Settlement `debt_payment` hanya valid sebagai `expense`.
-- Settlement `loan_collection` hanya valid sebagai `income`.
+- Settlement wajib merefer ke transaksi asal via `reference_transaction_id`.
+- Settlement `debt_payment` hanya valid sebagai `type = 'expense'`.
+- Settlement `loan_collection` hanya valid sebagai `type = 'income'`.
+- Settlement amount tidak boleh melebihi remaining dari transaksi referensi.
 - Budget hanya boleh terkait category `expense`.
 - Investasi tidak boleh memotong saldo wallet langsung tanpa ledger transaksi.
+- `contacts` di-upsert dari phonebook, referensi aman meskipun kontak diedit.
 
 ---
 
@@ -320,4 +383,8 @@ Jika ada konflik implementasi:
 - `transaction_items` adalah detail authoritative untuk item breakdown,
 - budget hanya untuk category expense,
 - settlement tidak masuk report/budget,
-- investasi yang memotong wallet harus membuat `transfer_to_asset`.
+- investasi yang memotong wallet harus membuat `transfer_to_asset`,
+- `contacts` menyimpan referensi kontak untuk hutang/piutang, diakses via `contact_id`,
+- `asset_types` menyimpan jenis aset kustom untuk investasi, diakses via `asset_type_id`,
+- settlement memiliki RPC terpisah (`settle_debt_or_loan`, `update_settlement`, `delete_settlement`),
+- debt/loan query memiliki RPC khusus grouped by contact.

@@ -9,7 +9,6 @@ import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,43 +29,7 @@ class BudgetDetailPage extends ConsumerStatefulWidget {
 }
 
 class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
-  List<TransactionModel> _transactions = [];
-  bool _isLoadingTransactions = true;
-
   BudgetModel get _budget => widget.budget;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTransactions();
-  }
-
-  Future<void> _loadTransactions() async {
-    final controller = ref.read(budgetControllerProvider.notifier);
-
-    // Collect category IDs: budget's category + children if parent
-    final categoryIds = <String>[_budget.categoryId];
-    final category = _budget.category;
-    if (category != null && category.children.isNotEmpty) {
-      categoryIds.addAll(category.children.map((c) => c.id));
-    }
-
-    final result = await controller.getTransactionsForBudget(
-      categoryIds: categoryIds,
-      startDate: _budget.startDate,
-      endDate: _budget.endDate,
-      walletId: _budget.walletId,
-    );
-
-    if (mounted) {
-      setState(() {
-        _isLoadingTransactions = false;
-        if (result.isSuccess()) {
-          _transactions = result.dataSuccess()!;
-        }
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,6 +350,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
   // ───────────────── Transaction list ─────────────────
 
   Widget _buildTransactionSection(BuildContext context) {
+    final detailState = ref.watch(budgetDetailControllerProvider(_budget));
     final colors = context.colors;
     final l10n = context.l10n;
 
@@ -401,14 +365,14 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
           ),
         ),
         SizedBox(height: 12.h),
-        if (_isLoadingTransactions)
+        if (detailState.isLoading)
           Center(
             child: Padding(
               padding: EdgeInsets.all(24.w),
               child: const CircularProgressIndicator(),
             ),
           )
-        else if (_transactions.isEmpty)
+        else if (detailState.transactions.isEmpty)
           Center(
             child: Padding(
               padding: EdgeInsets.all(24.w),
@@ -424,10 +388,10 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _transactions.length,
-            separatorBuilder: (_, _) => SizedBox(height: 4.h),
+            itemCount: detailState.transactions.length,
+            separatorBuilder: (_, __) => SizedBox(height: 4.h),
             itemBuilder: (_, i) {
-              final tx = _transactions[i];
+              final tx = detailState.transactions[i];
               return HistoryTransactionTile(
                 transaction: tx,
                 onTap: () =>

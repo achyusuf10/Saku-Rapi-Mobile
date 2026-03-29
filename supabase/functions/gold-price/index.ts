@@ -1,8 +1,13 @@
 /// Supabase Edge Function: gold-price
 ///
-/// Mengambil harga emas terkini menggunakan AI:
-/// - Gemini (primary): Google Search grounding — AI cari sendiri harga emas terbaru
-/// - Groq/OpenRouter (fallback): fetch HTML page → kirim ke AI
+/// Mengambil harga emas Antam (Logam Mulia) terkini menggunakan AI,
+/// dilengkapi 1-Day On-Demand Cache di tabel `gold_prices_cache`.
+///
+/// Flow:
+/// 1. Cek cache Supabase (gold_prices_cache) — jika hari ini sudah ada → return langsung
+/// 2. Gemini (primary): Google Search grounding + systemInstruction
+/// 3. Groq/OpenRouter (fallback): fetch HTML page → optimize → kirim ke AI
+/// 4. Setelah AI berhasil → upsert ke cache
 ///
 /// Environment variables:
 /// - GOLD_PRICE_URL: URL target untuk fallback scrape (opsional)
@@ -25,73 +30,93 @@ function jsonResponse(body: Record<string, unknown>, status = 200): Response {
 // ─────────────────────────────────────────────────────
 
 const DEFAULT_GOLD_URL = 'https://www.logammulia.com/id/harga-emas-hari-ini';
-const GEMINI_TIMEOUT_MS = 15000;
-const GROQ_TIMEOUT_MS = 10000;
-const OPENROUTER_TIMEOUT_MS = 12000;
-const FETCH_URL_TIMEOUT_MS = 15000;
+const GEMINI_TIMEOUT_MS = 8_000;
+const GROQ_TIMEOUT_MS = 10_000;
+const OPENROUTER_TIMEOUT_MS = 12_000;
+const FETCH_URL_TIMEOUT_MS = 10_000;
+
+/// Max karakter page content yang dikirim ke Groq/OpenRouter (hemat token).
+const MAX_PAGE_CONTENT_LENGTH = 4_000;
 
 // ─────────────────────────────────────────────────────
-// Prompts
+// Helpers: tanggal hari ini WIB (UTC+7)
 // ─────────────────────────────────────────────────────
 
-/// Prompt untuk Gemini (dengan Google Search grounding, tanpa perlu page content).
-function buildSearchPrompt(targetUrl: string): string {
-  return `You are a gold price extractor. Find the CURRENT buyback gold price per gram in Indonesian Rupiah (IDR) today.
+/// Return tanggal hari ini dalam format `yyyy-MM-dd` (zona WIB / UTC+7).
+function getTodayDateWIB(): string {
+  const now = new Date();
+  const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  return wib.toISOString().split('T')[0];
+}
 
-You can reference this URL for the source: ${targetUrl}
+// ─────────────────────────────────────────────────────
+// Prompts — System + User dipisah
+// ─────────────────────────────────────────────────────
 
-Return a JSON object with these exact fields:
+/// System prompt (shared rules + JSON template) — dipakai oleh semua provider.
+const GOLD_SYSTEM_PROMPT = `You are a gold price extractor specializing in Indonesian gold market data.
+Your ONLY task is to find the CURRENT DAILY price for "Emas Antam" (produced by PT Aneka Tambang / Logam Mulia).
+
+IMPORTANT DISTINCTIONS:
+- You MUST find the BUYBACK price (harga beli kembali / buyback Antam), NOT the selling price.
+- "Emas Antam" is a specific Indonesian gold product, NOT the global XAU/USD spot price.
+- The buyback price is the price at which Antam will repurchase 1 gram of their certified gold bar.
+- Common source: logammulia.com, harga-emas.org, or major Indonesian financial news.
+
+OUTPUT — return a JSON object with exactly these fields:
 {
-  "price_per_gram_idr": <number — gold price per gram in IDR, no thousand separators>,
-  "source_description": "<where the price was found>",
+  "price_per_gram_idr": <number — Antam buyback price per gram in IDR, plain number without thousand separators>,
+  "source_description": "<brief description of the source>",
   "confidence": "<high or low>"
 }
 
-Rules:
-- Find the CURRENT, LATEST buyback gold price per gram in IDR.
-- Prefer the SELL price for 24 karat gold per gram.
-- Convert formatted numbers (e.g., "1.850.000") to plain number (1850000).
-- If you cannot find it, return {"price_per_gram_idr": null, "source_description": null, "confidence": "low"}.
+RULES:
+1. Find TODAY's Antam buyback price per gram in IDR.
+2. Convert formatted numbers (e.g., "1.850.000" or "Rp1.850.000") to plain number (1850000).
+3. If you cannot find the Antam buyback price, return {"price_per_gram_idr": null, "source_description": null, "confidence": "low"}.
+4. Return ONLY the JSON object, no explanation or markdown.`;
 
-Return ONLY the JSON object, no explanation or markdown.`;
+/// User prompt untuk Gemini (search grounding — AI cari sendiri).
+function buildGeminiUserPrompt(targetUrl: string): string {
+  const today = getTodayDateWIB();
+  return `Find today's (${today}) Emas Antam buyback price per gram in IDR. You may reference: ${targetUrl}`;
 }
 
-/// Prompt untuk Groq/OpenRouter (dengan page content).
-function buildPageContentPrompt(pageContent: string): string {
-  return `You are a gold price extractor. From the following webpage content, extract the current buyback gold price per gram in Indonesian Rupiah (IDR).
-
-Return a JSON object with these exact fields:
-{
-  "price_per_gram_idr": <number — gold price per gram in IDR, without thousand separators>,
-  "source_description": "<brief description of where the price was found>",
-  "confidence": "<high or low>"
-}
-
-Rules:
-- Look for buyback gold price per gram in IDR (Rupiah). Common patterns: "Rp", "IDR", "/gram".
-- If multiple prices exist (buy/sell/24k/etc), prefer the SELL price for 24 karat gold per gram.
-- Convert any formatted number (e.g., "1.850.000" or "1,850,000") to a plain number (1850000).
-- If you cannot find a buyback gold price in IDR, return {"price_per_gram_idr": null, "source_description": null, "confidence": "low"}.
-
-Webpage content:
-${pageContent.substring(0, 8000)}
-
-Return ONLY the JSON object, no explanation or markdown.`;
+/// User prompt untuk Groq/OpenRouter (dengan page content).
+function buildFallbackUserPrompt(pageContent: string): string {
+  const today = getTodayDateWIB();
+  return `Extract today's (${today}) Emas Antam buyback price per gram in IDR from this webpage content:\n\n${pageContent.substring(0, MAX_PAGE_CONTENT_LENGTH)}`;
 }
 
 // ─────────────────────────────────────────────────────
-// HTML → text stripper
+// HTML → text stripper (optimized: extract body, strip nav/header/footer)
 // ─────────────────────────────────────────────────────
 
 function stripHtml(html: string): string {
-  let text = html.replace(/<script[\s\S]*?<\/script>/gi, ' ');
+  // 1. Coba ekstrak isi <body> saja
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  let text = bodyMatch ? bodyMatch[1] : html;
+
+  // 2. Hapus blok non-konten: header, nav, footer, script, style, noscript
+  text = text.replace(/<header[\s\S]*?<\/header>/gi, ' ');
+  text = text.replace(/<nav[\s\S]*?<\/nav>/gi, ' ');
+  text = text.replace(/<footer[\s\S]*?<\/footer>/gi, ' ');
+  text = text.replace(/<script[\s\S]*?<\/script>/gi, ' ');
   text = text.replace(/<style[\s\S]*?<\/style>/gi, ' ');
+  text = text.replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
+
+  // 3. Hapus sisa tag HTML
   text = text.replace(/<[^>]+>/g, ' ');
+
+  // 4. Decode HTML entities
   text = text.replace(/&nbsp;/g, ' ');
   text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
   text = text.replace(/&gt;/g, '>');
   text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#\d+;/g, ' ');
+
+  // 5. Collapse whitespace
   text = text.replace(/\s+/g, ' ').trim();
   return text;
 }
@@ -115,8 +140,11 @@ function sanitizeJson(raw: string): string {
 // AI Provider calls
 // ─────────────────────────────────────────────────────
 
-/// Gemini with Google Search grounding — AI searches the web itself.
-async function callGeminiWithSearch(prompt: string): Promise<{ data: unknown; provider: string }> {
+/// Gemini with Google Search grounding + systemInstruction.
+async function callGeminiWithSearch(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ data: unknown; provider: string }> {
   const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
   if (!apiKey) throw new Error('GEMINI_API_KEY not set');
 
@@ -131,9 +159,13 @@ async function callGeminiWithSearch(prompt: string): Promise<{ data: unknown; pr
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ parts: [{ text: userPrompt }] }],
           tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.1 },
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.1,
+          },
         }),
       },
     );
@@ -152,7 +184,11 @@ async function callGeminiWithSearch(prompt: string): Promise<{ data: unknown; pr
   }
 }
 
-async function callGroq(prompt: string): Promise<{ data: unknown; provider: string }> {
+/// Groq — system/user prompt split + response_format json_object.
+async function callGroq(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ data: unknown; provider: string }> {
   const apiKey = Deno.env.get('GROQ_API_KEY') ?? '';
   if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
@@ -169,7 +205,10 @@ async function callGroq(prompt: string): Promise<{ data: unknown; provider: stri
       signal: controller.signal,
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
         temperature: 0.1,
         response_format: { type: 'json_object' },
       }),
@@ -188,7 +227,11 @@ async function callGroq(prompt: string): Promise<{ data: unknown; provider: stri
   }
 }
 
-async function callOpenRouter(prompt: string): Promise<{ data: unknown; provider: string }> {
+/// OpenRouter — system/user prompt split.
+async function callOpenRouter(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ data: unknown; provider: string }> {
   const apiKey = Deno.env.get('OPENROUTER_API_KEY') ?? '';
   if (!apiKey) throw new Error('OPENROUTER_API_KEY not set');
 
@@ -205,7 +248,10 @@ async function callOpenRouter(prompt: string): Promise<{ data: unknown; provider
       signal: controller.signal,
       body: JSON.stringify({
         model: 'google/gemma-3-27b-it:free',
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
         temperature: 0.1,
       }),
     });
@@ -255,6 +301,17 @@ async function fetchPageContent(url: string): Promise<string | null> {
 }
 
 // ─────────────────────────────────────────────────────
+// Validation helper
+// ─────────────────────────────────────────────────────
+
+/// Cek apakah result AI valid (ada price > 0).
+function isValidResult(data: unknown): boolean {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return typeof d.price_per_gram_idr === 'number' && d.price_per_gram_idr > 0;
+}
+
+// ─────────────────────────────────────────────────────
 // Main handler
 // ─────────────────────────────────────────────────────
 
@@ -291,6 +348,32 @@ Deno.serve(async (req) => {
 
     console.log('[gold-price] Auth OK, user:', user.id);
 
+    // ══════════════════════════════════════════════════
+    // Step 1: Cek cache 1-day di gold_prices_cache
+    // ══════════════════════════════════════════════════
+    const todayDate = getTodayDateWIB();
+    console.log('[gold-price] Checking cache for date:', todayDate);
+
+    const { data: cached } = await supabase
+      .from('gold_prices_cache')
+      .select('price_per_gram_idr, provider, source')
+      .eq('date', todayDate)
+      .maybeSingle();
+
+    if (cached && cached.price_per_gram_idr > 0) {
+      console.log('[gold-price] Cache HIT:', cached.price_per_gram_idr);
+      return jsonResponse({
+        success: true,
+        price_per_gram_idr: cached.price_per_gram_idr,
+        provider: cached.provider ?? 'cache',
+        source: cached.source ?? 'gold_prices_cache',
+        confidence: 'high',
+        cached: true,
+      });
+    }
+
+    console.log('[gold-price] Cache MISS — calling AI providers');
+
     // ── Tentukan URL target ──
     let body: Record<string, unknown> = {};
     try {
@@ -305,22 +388,22 @@ Deno.serve(async (req) => {
     console.log('[gold-price] Target URL:', targetUrl);
 
     // ══════════════════════════════════════════════════
-    // Strategy 1: Gemini + Google Search grounding
+    // Step 2: Gemini + Google Search grounding
     //   → AI langsung cari di web, tidak perlu fetch URL
     // ══════════════════════════════════════════════════
     let result: { data: unknown; provider: string } | null = null;
 
     try {
-      const searchPrompt = buildSearchPrompt(targetUrl);
-      result = await callGeminiWithSearch(searchPrompt);
+      const userPrompt = buildGeminiUserPrompt(targetUrl);
+      result = await callGeminiWithSearch(GOLD_SYSTEM_PROMPT, userPrompt);
       console.log('[gold-price] Gemini+Search OK');
     } catch (geminiErr: unknown) {
       console.error('[gold-price] Gemini+Search failed:', geminiErr);
     }
 
     // ══════════════════════════════════════════════════
-    // Strategy 2: Fetch page → Groq / OpenRouter
-    //   → Fallback, ambil HTML dan kirim text ke AI
+    // Step 3: Fallback → Fetch page → Groq / OpenRouter
+    //   → Ambil HTML, strip & optimize, kirim ke AI
     // ══════════════════════════════════════════════════
     if (!result || !isValidResult(result.data)) {
       console.log('[gold-price] Trying fallback: fetch page + Groq/OpenRouter');
@@ -328,15 +411,15 @@ Deno.serve(async (req) => {
       const pageContent = await fetchPageContent(targetUrl);
       if (pageContent) {
         console.log('[gold-price] Page fetched, length:', pageContent.length);
-        const contentPrompt = buildPageContentPrompt(pageContent);
+        const userPrompt = buildFallbackUserPrompt(pageContent);
 
         try {
-          result = await callGroq(contentPrompt);
+          result = await callGroq(GOLD_SYSTEM_PROMPT, userPrompt);
           console.log('[gold-price] Groq OK');
         } catch (groqErr: unknown) {
           console.error('[gold-price] Groq failed:', groqErr);
           try {
-            result = await callOpenRouter(contentPrompt);
+            result = await callOpenRouter(GOLD_SYSTEM_PROMPT, userPrompt);
             console.log('[gold-price] OpenRouter OK');
           } catch (openrouterErr: unknown) {
             console.error('[gold-price] OpenRouter failed:', openrouterErr);
@@ -367,6 +450,28 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ══════════════════════════════════════════════════
+    // Step 4: Upsert ke cache gold_prices_cache
+    // ══════════════════════════════════════════════════
+    const { error: upsertError } = await supabase
+      .from('gold_prices_cache')
+      .upsert(
+        {
+          date: todayDate,
+          price_per_gram_idr: pricePerGram,
+          provider: result.provider,
+          source: (aiResult.source_description as string) ?? null,
+        },
+        { onConflict: 'date' },
+      );
+
+    if (upsertError) {
+      console.error('[gold-price] Cache upsert failed:', upsertError.message);
+      // Non-blocking — tetap return response meskipun cache gagal
+    } else {
+      console.log('[gold-price] Cache stored for', todayDate);
+    }
+
     console.log('[gold-price] Success:', pricePerGram, 'via', result.provider);
     return jsonResponse({
       success: true,
@@ -374,6 +479,7 @@ Deno.serve(async (req) => {
       provider: result.provider,
       source: aiResult.source_description ?? null,
       confidence: aiResult.confidence ?? 'unknown',
+      cached: false,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -381,10 +487,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ success: false, error: `Internal server error: ${msg}` }, 500);
   }
 });
-
-/// Cek apakah result AI valid (ada price > 0).
-function isValidResult(data: unknown): boolean {
-  if (!data || typeof data !== 'object') return false;
-  const d = data as Record<string, unknown>;
-  return typeof d.price_per_gram_idr === 'number' && d.price_per_gram_idr > 0;
-}

@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/ocr/services/ocr_image_service.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -138,7 +139,7 @@ class OcrScanController extends StateNotifier<OcrScanState> {
   static const _tag = '[OcrScanController]';
 
   /// Mulai flow OCR dari kamera.
-  Future<void> startFromCamera() async {
+  Future<void> startFromCamera(BuildContext context) async {
     // Check permission
     final perm = await _imageService.requestCameraPermission();
     if (perm == CameraPermissionResult.denied) {
@@ -163,11 +164,11 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       return;
     }
 
-    await _processImage(imageFile);
+    await _processImage(context, imageFile);
   }
 
   /// Mulai flow OCR dari galeri.
-  Future<void> startFromGallery() async {
+  Future<void> startFromGallery(BuildContext context) async {
     state = state.copyWith(status: OcrScanStatus.pickingImage);
 
     final imageFile = await _imageService.pickFromGallery();
@@ -176,14 +177,14 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       return;
     }
 
-    await _processImage(imageFile);
+    await _processImage(context, imageFile);
   }
 
   /// Proses gambar: crop → compress → AI Vision → (fallback) ML Kit → local parser.
-  Future<void> _processImage(File imageFile) async {
+  Future<void> _processImage(BuildContext context, File imageFile) async {
     // Crop
     state = state.copyWith(status: OcrScanStatus.cropping);
-    final cropped = await _imageService.cropImage(imageFile);
+    final cropped = await _imageService.cropImage(context, imageFile);
     if (cropped == null) {
       // User cancelled crop
       state = const OcrScanState(status: OcrScanStatus.idle);

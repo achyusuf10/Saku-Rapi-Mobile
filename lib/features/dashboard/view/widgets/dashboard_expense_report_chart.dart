@@ -2,7 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/controller/graphify_controller.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/view/graphify_view.dart';
 import 'package:flutter/material.dart';
@@ -64,22 +64,22 @@ class _DashboardExpenseReportChartState
     final ref = this.ref;
     final colors = context.colors;
     final l10n = context.l10n;
-    final dashState = ref.watch(dashboardControllerProvider);
-    final isMonthly = dashState.chartMode == DashboardChartMode.monthly;
+    final chartState = ref.watch(dashboardChartControllerProvider);
+    final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final now = DateTime.now();
     final (currentStart, currentEnd, prevStart, _) =
-        DashboardController.periodRanges(now, dashState.chartMode);
+        DashboardChartController.periodRanges(now, chartState.chartMode);
 
     // Gap-fill daily data
     final currentFilled = _fillGaps(
-      dashState.currentPeriodDaily,
+      chartState.currentPeriodDaily,
       currentStart,
       currentEnd,
     );
     final previousFilled = _fillGaps(
-      dashState.previousPeriodDaily,
+      chartState.previousPeriodDaily,
       prevStart,
       // For previous period, use same length as current
       prevStart.add(currentEnd.difference(currentStart)),
@@ -99,9 +99,9 @@ class _DashboardExpenseReportChartState
     );
 
     // Calculate totals & percentage change
-    final currentExpense = dashState.currentPeriodExpense;
-    final previousExpense = dashState.previousPeriodExpense;
-    final currentIncome = dashState.currentPeriodIncome;
+    final currentExpense = chartState.currentPeriodExpense;
+    final previousExpense = chartState.previousPeriodExpense;
+    final currentIncome = chartState.currentPeriodIncome;
 
     final expenseChange = previousExpense > 0
         ? ((currentExpense - previousExpense) / previousExpense * 100)

@@ -1,8 +1,10 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/contact_repository.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // ═══════════════ Providers ═══════════════
 
@@ -28,11 +30,23 @@ class ContactState {
     this.status = ContactStatus.initial,
     this.contacts = const [],
     this.errorMessage,
+    this.phonebookContacts,
+    this.phonebookLoading = false,
+    this.phonebookDenied = false,
   });
 
   final ContactStatus status;
   final List<ContactModel> contacts;
   final String? errorMessage;
+
+  /// Kontak dari phonebook HP. Null = belum dimuat.
+  final List<Contact>? phonebookContacts;
+
+  /// Sedang memuat kontak phonebook.
+  final bool phonebookLoading;
+
+  /// Izin akses kontak ditolak user.
+  final bool phonebookDenied;
 
   bool get isLoading => status == ContactStatus.loading;
 
@@ -40,11 +54,17 @@ class ContactState {
     ContactStatus? status,
     List<ContactModel>? contacts,
     String? errorMessage,
+    List<Contact>? phonebookContacts,
+    bool? phonebookLoading,
+    bool? phonebookDenied,
   }) {
     return ContactState(
       status: status ?? this.status,
       contacts: contacts ?? this.contacts,
       errorMessage: errorMessage ?? this.errorMessage,
+      phonebookContacts: phonebookContacts ?? this.phonebookContacts,
+      phonebookLoading: phonebookLoading ?? this.phonebookLoading,
+      phonebookDenied: phonebookDenied ?? this.phonebookDenied,
     );
   }
 }
@@ -115,5 +135,31 @@ class ContactController extends StateNotifier<ContactState> {
       AppLogger.call('$_tag upsertContact error: $message');
       return null;
     }
+  }
+
+  // ─── Phonebook ───
+
+  /// Muat kontak dari phonebook HP via [flutter_contacts].
+  ///
+  /// Minta izin [Permission.contacts] terlebih dahulu.
+  Future<void> loadPhonebook() async {
+    if (state.phonebookLoading) return;
+
+    state = state.copyWith(phonebookLoading: true);
+
+    final status = await Permission.contacts.request();
+
+    if (!status.isGranted) {
+      state = state.copyWith(phonebookLoading: false, phonebookDenied: true);
+      return;
+    }
+
+    final contacts = await FlutterContacts.getContacts(withProperties: true);
+    contacts.sort((a, b) => a.displayName.compareTo(b.displayName));
+
+    state = state.copyWith(
+      phonebookContacts: contacts,
+      phonebookLoading: false,
+    );
   }
 }

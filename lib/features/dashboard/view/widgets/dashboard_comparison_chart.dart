@@ -2,7 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/controller/graphify_controller.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/view/graphify_view.dart';
@@ -21,22 +21,29 @@ class DashboardComparisonChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final dashState = ref.watch(dashboardControllerProvider);
-    final isMonthly = dashState.chartMode == DashboardChartMode.monthly;
+    final chartState = ref.watch(dashboardChartControllerProvider);
+    final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
+    final isDaily = chartState.chartMode == DashboardChartMode.daily;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final currentLabel = isMonthly
-        ? l10n.dashboardThisMonth
-        : l10n.dashboardThisWeek;
-    final previousLabel = isMonthly
-        ? l10n.dashboardLastMonth
-        : l10n.dashboardLastWeek;
+    final String currentLabel;
+    final String previousLabel;
+    if (isMonthly) {
+      currentLabel = l10n.dashboardThisMonth;
+      previousLabel = l10n.dashboardLastMonth;
+    } else if (isDaily) {
+      currentLabel = l10n.dashboardToday;
+      previousLabel = l10n.dashboardYesterday;
+    } else {
+      currentLabel = l10n.dashboardThisWeek;
+      previousLabel = l10n.dashboardLastWeek;
+    }
 
     // Sum totals per period
-    final curIncome = dashState.currentPeriodIncome;
-    final curExpense = dashState.currentPeriodExpense;
-    final prevIncome = dashState.previousPeriodIncome;
-    final prevExpense = dashState.previousPeriodExpense;
+    final curIncome = chartState.currentPeriodIncome;
+    final curExpense = chartState.currentPeriodExpense;
+    final prevIncome = chartState.previousPeriodIncome;
+    final prevExpense = chartState.previousPeriodExpense;
 
     final incomeHex =
         '#${colors.income.toARGB32().toRadixString(16).substring(2)}';
@@ -63,12 +70,18 @@ class DashboardComparisonChart extends ConsumerWidget {
         ? ((curExpense - prevExpense) / prevExpense * 100)
         : 0.0;
 
-    final periodLabel =
-        (isMonthly ? l10n.dashboardThisMonth : l10n.dashboardThisWeek)
-            .toLowerCase();
-    final prevPeriodLabel =
-        (isMonthly ? l10n.dashboardLastMonth : l10n.dashboardLastWeek)
-            .toLowerCase();
+    final String periodLabel;
+    final String prevPeriodLabel;
+    if (isMonthly) {
+      periodLabel = l10n.dashboardThisMonth.toLowerCase();
+      prevPeriodLabel = l10n.dashboardLastMonth.toLowerCase();
+    } else if (isDaily) {
+      periodLabel = l10n.dashboardToday.toLowerCase();
+      prevPeriodLabel = l10n.dashboardYesterday.toLowerCase();
+    } else {
+      periodLabel = l10n.dashboardThisWeek.toLowerCase();
+      prevPeriodLabel = l10n.dashboardLastWeek.toLowerCase();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +135,9 @@ class DashboardComparisonChart extends ConsumerWidget {
         SizedBox(
           height: 200.h,
           child: GraphifyView(
-            key: ValueKey(dashState.chartMode),
+            key: ValueKey(
+              '${chartState.chartMode}_${curIncome}_${curExpense}_${prevIncome}_$prevExpense',
+            ),
             initialOptions: chartOptions,
             isDarkMode: isDark,
           ),

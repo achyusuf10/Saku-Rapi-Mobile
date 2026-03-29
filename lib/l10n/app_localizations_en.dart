@@ -405,7 +405,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardSeeAll => 'See All';
 
   @override
-  String get dashboardSnapshotTitle => 'This Month\'s Summary';
+  String dashboardSnapshotTitle(String period) {
+    return 'This $period\'s Summary';
+  }
 
   @override
   String get dashboardTopExpenses => 'Top Expenses';
@@ -473,6 +475,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardWeeklyMode => 'Weekly';
+
+  @override
+  String get dashboardDailyMode => 'Daily';
+
+  @override
+  String get dashboardToday => 'Today';
+
+  @override
+  String get dashboardYesterday => 'Yesterday';
 
   @override
   String get dashboardQuickAdd => 'Quick Add';
@@ -1533,6 +1544,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardPrevMonthLabel => 'Last month';
+
+  @override
+  String get dashboardAvg3WeekLabel => 'Avg. last 3 weeks';
+
+  @override
+  String get dashboardAvg3DayLabel => 'Avg. last 3 days';
 
   @override
   String dashboardInsightExpenseDown(

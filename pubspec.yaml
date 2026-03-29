@@ -36,9 +36,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   fl_chart: ^1.2.0
   flutter_contacts: ^1.1.7
-  flick_video_player:
-    git:
-      url: https://github.com/achyusuf10/flick_video_player
   flutter:
     sdk: flutter
   flutter_html: ^3.0.0
@@ -57,7 +54,6 @@ dependencies:
   http: ^1.4.0
   google_sign_in: ^7.2.0
   hive_flutter: ^1.1.0
-  image_cropper: ^8.0.2
   image_picker: ^1.2.0
   intl: ^0.20.2
   logging: ^1.3.0

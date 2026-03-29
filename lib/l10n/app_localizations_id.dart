@@ -403,7 +403,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashboardSeeAll => 'Lihat Semua';
 
   @override
-  String get dashboardSnapshotTitle => 'Ringkasan Bulan Ini';
+  String dashboardSnapshotTitle(String period) {
+    return 'Ringkasan $period';
+  }
 
   @override
   String get dashboardTopExpenses => 'Pengeluaran Terbesar';
@@ -471,6 +473,15 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dashboardWeeklyMode => 'Mingguan';
+
+  @override
+  String get dashboardDailyMode => 'Harian';
+
+  @override
+  String get dashboardToday => 'Hari Ini';
+
+  @override
+  String get dashboardYesterday => 'Kemarin';
 
   @override
   String get dashboardQuickAdd => 'Tambah Cepat';
@@ -1531,6 +1542,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dashboardPrevMonthLabel => 'Bulan lalu';
+
+  @override
+  String get dashboardAvg3WeekLabel => 'Rata-rata 3 minggu lalu';
+
+  @override
+  String get dashboardAvg3DayLabel => 'Rata-rata 3 hari lalu';
 
   @override
   String dashboardInsightExpenseDown(

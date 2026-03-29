@@ -7,9 +7,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Service untuk mengambil harga live investasi (Bitcoin & Emas).
 ///
-/// - Bitcoin: CoinGecko free API (IDR)
-/// - Emas: Supabase Edge Function `gold-price` (AI scraping)
-/// - TTL cache 12 jam di Hive
+/// - Bitcoin: CoinGecko free API (IDR) + TTL cache 12 jam di Hive
+/// - Emas: Supabase Edge Function `gold-price` (server-side 1-day cache)
+///   Flutter hanya menyimpan Hive fallback untuk offline.
 class InvestmentPriceService {
   InvestmentPriceService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
@@ -18,14 +18,13 @@ class InvestmentPriceService {
 
   static const _tag = '[Investment] [PriceService]';
 
-  /// TTL cache: 12 jam.
-  static const _ttlMs = 12 * 60 * 60 * 1000; // 43_200_000
+  /// TTL cache BTC: 12 jam.
+  static const _btcTtlMs = 12 * 60 * 60 * 1000; // 43_200_000
 
   // ─── Hive cache keys ───
   static const _btcPriceKey = 'investment_btc_price';
   static const _btcTimestampKey = 'investment_btc_timestamp';
   static const _goldPriceKey = 'investment_gold_price';
-  static const _goldTimestampKey = 'investment_gold_timestamp';
 
   // ─── CoinGecko ───
   static const _coinGeckoUrl =
@@ -41,7 +40,7 @@ class InvestmentPriceService {
   /// Jika gagal, return harga terakhir dari cache (atau null).
   Future<double?> getBitcoinPriceIDR({bool forceRefresh = false}) async {
     if (!forceRefresh) {
-      final cached = _getCachedPrice(_btcPriceKey, _btcTimestampKey);
+      final cached = _getCachedBtcPrice();
       if (cached != null) {
         AppLogger.call('$_tag BTC price from cache: $cached');
         return cached;
@@ -60,7 +59,7 @@ class InvestmentPriceService {
         final price = _toDouble(btcData?['idr']);
 
         if (price > 0) {
-          _cachePrice(_btcPriceKey, _btcTimestampKey, price);
+          _cacheBtcPrice(price);
           AppLogger.call('$_tag BTC price fetched: $price');
           return price;
         }
@@ -71,23 +70,17 @@ class InvestmentPriceService {
       AppLogger.call('$_tag CoinGecko error: $e');
     }
 
-    // Fallback ke cache terakhir (tanpa TTL check)
-    return _getLastCachedPrice(_btcPriceKey);
+    // Fallback: harga terakhir dari Hive (offline)
+    return HiveService.get<double>(key: _btcPriceKey);
   }
 
-  /// Ambil harga Emas per gram dalam IDR.
+  /// Ambil harga Emas Antam (buyback) per gram dalam IDR.
   ///
-  /// Cek cache dulu (TTL 12 jam), jika expired fetch dari Edge Function.
-  /// Jika gagal, return harga terakhir dari cache (atau null).
+  /// Edge Function `gold-price` sudah menerapkan server-side 1-day cache
+  /// di tabel `gold_prices_cache`. Flutter TIDAK perlu TTL sendiri —
+  /// cukup panggil Edge Function, dan simpan hasilnya di Hive sebagai
+  /// fallback offline.
   Future<double?> getGoldPriceIDR({bool forceRefresh = false}) async {
-    if (!forceRefresh) {
-      final cached = _getCachedPrice(_goldPriceKey, _goldTimestampKey);
-      if (cached != null) {
-        AppLogger.call('$_tag Gold price from cache: $cached');
-        return cached;
-      }
-    }
-
     try {
       AppLogger.call('$_tag Fetching gold price from Edge Function...');
       final response = await _client.functions.invoke('gold-price', body: {});
@@ -96,10 +89,15 @@ class InvestmentPriceService {
         final data = response.data as Map<String, dynamic>?;
         if (data != null && data['success'] == true) {
           final price = _toDouble(data['price_per_gram_idr']);
+          final cached = data['cached'] == true;
 
           if (price > 0) {
-            _cachePrice(_goldPriceKey, _goldTimestampKey, price);
-            AppLogger.call('$_tag Gold price fetched: $price');
+            // Simpan ke Hive untuk fallback offline
+            HiveService.set<double>(key: _goldPriceKey, data: price);
+            AppLogger.call(
+              '$_tag Gold price fetched: $price'
+              '${cached ? ' (server cache)' : ' (fresh from AI)'}',
+            );
             return price;
           }
         }
@@ -110,8 +108,12 @@ class InvestmentPriceService {
       AppLogger.call('$_tag Gold Edge Function error: $e');
     }
 
-    // Fallback ke cache terakhir (tanpa TTL check)
-    return _getLastCachedPrice(_goldPriceKey);
+    // Fallback: harga terakhir dari Hive (offline)
+    final fallback = HiveService.get<double>(key: _goldPriceKey);
+    if (fallback != null) {
+      AppLogger.call('$_tag Gold price from offline cache: $fallback');
+    }
+    return fallback;
   }
 
   /// Ambil semua harga live sekaligus.
@@ -130,31 +132,25 @@ class InvestmentPriceService {
   }
 
   // ═══════════════════════════════════════════════════
-  // CACHE HELPERS
+  // CACHE HELPERS (BTC only — gold cache is server-side)
   // ═══════════════════════════════════════════════════
 
-  /// Ambil harga dari cache jika belum expired (TTL 12 jam).
-  double? _getCachedPrice(String priceKey, String timestampKey) {
-    final cachedTimestamp = HiveService.get<int>(key: timestampKey);
+  /// Ambil harga BTC dari cache jika belum expired (TTL 12 jam).
+  double? _getCachedBtcPrice() {
+    final cachedTimestamp = HiveService.get<int>(key: _btcTimestampKey);
     if (cachedTimestamp == null) return null;
 
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - cachedTimestamp > _ttlMs) return null; // Expired
+    if (now - cachedTimestamp > _btcTtlMs) return null; // Expired
 
-    final cachedPrice = HiveService.get<double>(key: priceKey);
-    return cachedPrice;
+    return HiveService.get<double>(key: _btcPriceKey);
   }
 
-  /// Ambil harga terakhir dari cache (ignoring TTL) — fallback.
-  double? _getLastCachedPrice(String priceKey) {
-    return HiveService.get<double>(key: priceKey);
-  }
-
-  /// Simpan harga ke cache beserta timestamp.
-  void _cachePrice(String priceKey, String timestampKey, double price) {
-    HiveService.set<double>(key: priceKey, data: price);
+  /// Simpan harga BTC ke cache beserta timestamp.
+  void _cacheBtcPrice(double price) {
+    HiveService.set<double>(key: _btcPriceKey, data: price);
     HiveService.set<int>(
-      key: timestampKey,
+      key: _btcTimestampKey,
       data: DateTime.now().millisecondsSinceEpoch,
     );
   }

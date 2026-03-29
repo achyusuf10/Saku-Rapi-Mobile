@@ -156,7 +156,14 @@
   "dashboardTotalBalance": "Total Saldo",
   "dashboardMyWallets": "Dompet Saya",
   "dashboardSeeAll": "Lihat Semua",
-  "dashboardSnapshotTitle": "Ringkasan Bulan Ini",
+  "dashboardSnapshotTitle": "Ringkasan {period}",
+  "@dashboardSnapshotTitle": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardTopExpenses": "Pengeluaran Terbesar",
   "dashboardRecentTransactions": "Transaksi Terkini",
   "dashboardIncomeLabel": "Pemasukan",
@@ -185,6 +192,9 @@
   "dashboardLastWeek": "Minggu Lalu",
   "dashboardMonthlyMode": "Bulanan",
   "dashboardWeeklyMode": "Mingguan",
+  "dashboardDailyMode": "Harian",
+  "dashboardToday": "Hari Ini",
+  "dashboardYesterday": "Kemarin",
   "dashboardQuickAdd": "Tambah Cepat",
   "dashboardNetFlow": "Netto",
   "dashboardNoChange": "Tidak berubah",
@@ -664,6 +674,8 @@
   "dashboardThisMonthCumulative": "Bulan ini",
   "dashboardAvg3MonthLabel": "Rata-rata 3 bulan lalu",
   "dashboardPrevMonthLabel": "Bulan lalu",
+  "dashboardAvg3WeekLabel": "Rata-rata 3 minggu lalu",
+  "dashboardAvg3DayLabel": "Rata-rata 3 hari lalu",
   "dashboardInsightExpenseDown": "Pengeluaranmu {period} ini {percent}% lebih rendah dari {prevPeriod}. Bagus, terus pertahankan!",
   "@dashboardInsightExpenseDown": {
     "placeholders": {

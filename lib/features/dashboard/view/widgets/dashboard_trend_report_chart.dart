@@ -1,7 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/controller/graphify_controller.dart';
 import 'package:app_saku_rapi/utils/packages/graphify/view/graphify_view.dart';
@@ -23,32 +23,33 @@ class DashboardTrendReportChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final dashState = ref.watch(dashboardControllerProvider);
+    final chartState = ref.watch(dashboardChartControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isMonthly = dashState.chartMode == DashboardChartMode.monthly;
+    final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
+    final isDaily = chartState.chartMode == DashboardChartMode.daily;
 
     final now = DateTime.now();
     final (currentStart, currentEnd, prevStart, _) =
-        DashboardController.periodRanges(now, dashState.chartMode);
+        DashboardChartController.periodRanges(now, chartState.chartMode);
 
     // Gap-fill all periods
     final periodLength = currentEnd.difference(currentStart).inDays + 1;
     final currentFilled = _fillGaps(
-      dashState.currentPeriodDaily,
+      chartState.currentPeriodDaily,
       currentStart,
       currentEnd,
     );
     final previousFilled = _fillGaps(
-      dashState.previousPeriodDaily,
+      chartState.previousPeriodDaily,
       prevStart,
       prevStart.add(Duration(days: periodLength - 1)),
     );
 
     final (m2Start, m2End, m3Start, m3End) =
-        DashboardController.extraPeriodRanges(now, dashState.chartMode);
+        DashboardChartController.extraPeriodRanges(now, chartState.chartMode);
 
-    final month2Filled = _fillGaps(dashState.month2Daily, m2Start, m2End);
-    final month3Filled = _fillGaps(dashState.month3Daily, m3Start, m3End);
+    final month2Filled = _fillGaps(chartState.month2Daily, m2Start, m2End);
+    final month3Filled = _fillGaps(chartState.month3Daily, m3Start, m3End);
 
     // Compute cumulative data
     final currentCumulative = _toCumulative(currentFilled);
@@ -59,12 +60,25 @@ class DashboardTrendReportChart extends ConsumerWidget {
       month3Filled,
     );
 
-    // X-axis labels from current period dates
-    final dateFormat = DateFormat('dd/MM');
-    final xLabels = currentFilled.map((e) {
-      final d = DateTime.tryParse(e['date'] as String);
-      return d != null ? dateFormat.format(d) : '';
-    }).toList();
+    // X-axis labels adapted per mode
+    final List<String> xLabels;
+    if (isDaily) {
+      // For daily mode, show hour labels (00:00 - 23:00)
+      xLabels = List.generate(24, (i) => '${i.toString().padLeft(2, '0')}:00');
+    } else if (isMonthly) {
+      final dateFormat = DateFormat('dd/MM');
+      xLabels = currentFilled.map((e) {
+        final d = DateTime.tryParse(e['date'] as String);
+        return d != null ? dateFormat.format(d) : '';
+      }).toList();
+    } else {
+      // Weekly: show day names (Sen, Sel, Rab...)
+      final dayFormat = DateFormat('EEE', 'id_ID');
+      xLabels = currentFilled.map((e) {
+        final d = DateTime.tryParse(e['date'] as String);
+        return d != null ? dayFormat.format(d) : '';
+      }).toList();
+    }
 
     // Build ECharts options
     final expenseHex =
@@ -89,7 +103,25 @@ class DashboardTrendReportChart extends ConsumerWidget {
         : 0.0;
     final avg3Total = avg3Cumulative.isNotEmpty ? avg3Cumulative.last : 0.0;
 
-    final hasData = dashState.currentPeriodExpense > 0 || avg3Total > 0;
+    final hasData = chartState.currentPeriodExpense > 0 || avg3Total > 0;
+
+    // Determine legend labels per mode
+    final String currentLegend;
+    final String previousLegend;
+    final String avgLegend;
+    if (isMonthly) {
+      currentLegend = l10n.dashboardThisMonthCumulative;
+      previousLegend = l10n.dashboardPrevMonthLabel;
+      avgLegend = l10n.dashboardAvg3MonthLabel;
+    } else if (isDaily) {
+      currentLegend = l10n.dashboardToday;
+      previousLegend = l10n.dashboardYesterday;
+      avgLegend = l10n.dashboardAvg3DayLabel;
+    } else {
+      currentLegend = l10n.dashboardThisWeek;
+      previousLegend = l10n.dashboardLastWeek;
+      avgLegend = l10n.dashboardAvg3WeekLabel;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,19 +136,17 @@ class DashboardTrendReportChart extends ConsumerWidget {
                 children: [
                   _LegendItem(
                     color: colors.expense,
-                    label: l10n.dashboardThisMonthCumulative,
+                    label: currentLegend,
                     isDashed: false,
                   ),
                   _LegendItem(
                     color: colors.expense.withValues(alpha: 0.5),
-                    label: isMonthly
-                        ? l10n.dashboardPrevMonthLabel
-                        : l10n.dashboardLastWeek,
+                    label: previousLegend,
                     isDashed: true,
                   ),
                   _LegendItem(
                     color: colors.textSecondary.withValues(alpha: 0.5),
-                    label: l10n.dashboardAvg3MonthLabel,
+                    label: avgLegend,
                     isDashed: true,
                   ),
                 ],
@@ -137,7 +167,13 @@ class DashboardTrendReportChart extends ConsumerWidget {
         // ─── ECharts Line ───
         SizedBox(
           height: 220.h,
-          child: GraphifyView(initialOptions: chartOptions, isDarkMode: isDark),
+          child: GraphifyView(
+            key: ValueKey(
+              '${chartState.chartMode}_${currentTotal.toStringAsFixed(0)}_${avg3Total.toStringAsFixed(0)}',
+            ),
+            initialOptions: chartOptions,
+            isDarkMode: isDark,
+          ),
         ),
         SizedBox(height: 12.h),
 
@@ -336,10 +372,12 @@ class DashboardTrendReportChart extends ConsumerWidget {
     final String text;
     if (!hasData) {
       text = l10n.dashboardInsightNoData;
-    } else if (avg3Total > 0 && currentTotal < avg3Total) {
-      text = l10n.dashboardInsightTrendBelowAvg;
-    } else {
+    } else if (avg3Total > 0 && currentTotal > avg3Total) {
+      // Current spending exceeds average → warning
       text = l10n.dashboardInsightTrendAboveAvg;
+    } else {
+      // Current spending is below or equal to average → praise
+      text = l10n.dashboardInsightTrendBelowAvg;
     }
 
     return Container(

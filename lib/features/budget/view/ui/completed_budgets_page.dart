@@ -3,7 +3,6 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
-import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_card_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,40 +10,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 /// Halaman terpisah untuk anggaran yang sudah selesai (expired).
-class CompletedBudgetsPage extends ConsumerStatefulWidget {
+class CompletedBudgetsPage extends ConsumerWidget {
   const CompletedBudgetsPage({super.key});
 
   @override
-  ConsumerState<CompletedBudgetsPage> createState() =>
-      _CompletedBudgetsPageState();
-}
-
-class _CompletedBudgetsPageState extends ConsumerState<CompletedBudgetsPage> {
-  List<BudgetModel> _budgets = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCompleted();
-  }
-
-  Future<void> _loadCompleted() async {
-    final controller = ref.read(budgetControllerProvider.notifier);
-    final result = await controller.loadCompletedBudgets();
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        if (result.isSuccess()) {
-          _budgets = result.dataSuccess()!;
-        }
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(completedBudgetsControllerProvider);
     final colors = context.colors;
     final l10n = context.l10n;
 
@@ -62,9 +33,9 @@ class _CompletedBudgetsPageState extends ConsumerState<CompletedBudgetsPage> {
         ),
         centerTitle: false,
       ),
-      body: _isLoading
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _budgets.isEmpty
+          : state.budgets.isEmpty
           ? Center(
               child: Padding(
                 padding: EdgeInsets.all(32.w),
@@ -79,10 +50,10 @@ class _CompletedBudgetsPageState extends ConsumerState<CompletedBudgetsPage> {
             )
           : ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-              itemCount: _budgets.length,
-              separatorBuilder: (_, _) => SizedBox(height: 12.h),
+              itemCount: state.budgets.length,
+              separatorBuilder: (_, __) => SizedBox(height: 12.h),
               itemBuilder: (_, i) {
-                final budget = _budgets[i];
+                final budget = state.budgets[i];
                 return BudgetCardTile(
                   budget: budget,
                   onTap: () =>

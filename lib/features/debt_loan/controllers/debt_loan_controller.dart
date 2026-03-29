@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_summary_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/repositories/debt_loan_repository.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -100,5 +101,75 @@ class DebtLoanController extends StateNotifier<DebtLoanState> {
       clearWalletId: walletId == null,
     );
     loadSummary(type);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UnpaidTransactionsController — state untuk picker transaksi unpaid.
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provider autoDispose.family untuk [UnpaidTransactionsController].
+///
+/// Parameter: type ('debt' | 'loan').
+final unpaidTransactionsControllerProvider = StateNotifierProvider.autoDispose
+    .family<UnpaidTransactionsController, UnpaidTransactionsState, String>((
+      ref,
+      type,
+    ) {
+      final repository = ref.watch(debtLoanRepositoryProvider);
+      final controller = UnpaidTransactionsController(repository);
+      controller.load(type);
+      return controller;
+    });
+
+/// State untuk daftar transaksi hutang/piutang yang belum lunas.
+class UnpaidTransactionsState {
+  const UnpaidTransactionsState({
+    this.transactions = const [],
+    this.isLoading = true,
+    this.errorMessage,
+  });
+
+  final List<DebtLoanTransactionModel> transactions;
+  final bool isLoading;
+  final String? errorMessage;
+
+  UnpaidTransactionsState copyWith({
+    List<DebtLoanTransactionModel>? transactions,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return UnpaidTransactionsState(
+      transactions: transactions ?? this.transactions,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Controller untuk memuat daftar transaksi unpaid.
+class UnpaidTransactionsController
+    extends StateNotifier<UnpaidTransactionsState> {
+  UnpaidTransactionsController(this._repository)
+    : super(const UnpaidTransactionsState());
+
+  final DebtLoanRepository _repository;
+
+  /// Load daftar transaksi belum lunas.
+  Future<void> load(String type) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.getAllUnpaid(type: type);
+
+    if (result.isSuccess()) {
+      state = state.copyWith(
+        transactions: result.dataSuccess()!,
+        isLoading: false,
+      );
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      AppLogger.call('[DebtLoan] loadUnpaid error: $message');
+      state = state.copyWith(errorMessage: message, isLoading: false);
+    }
   }
 }

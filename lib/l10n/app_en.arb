@@ -156,7 +156,14 @@
   "dashboardTotalBalance": "Total Balance",
   "dashboardMyWallets": "My Wallets",
   "dashboardSeeAll": "See All",
-  "dashboardSnapshotTitle": "This Month's Summary",
+  "dashboardSnapshotTitle": "This {period}'s Summary",
+  "@dashboardSnapshotTitle": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardTopExpenses": "Top Expenses",
   "dashboardRecentTransactions": "Recent Transactions",
   "dashboardIncomeLabel": "Income",
@@ -185,6 +192,9 @@
   "dashboardLastWeek": "Last Week",
   "dashboardMonthlyMode": "Monthly",
   "dashboardWeeklyMode": "Weekly",
+  "dashboardDailyMode": "Daily",
+  "dashboardToday": "Today",
+  "dashboardYesterday": "Yesterday",
   "dashboardQuickAdd": "Quick Add",
   "dashboardNetFlow": "Net",
   "dashboardNoChange": "No change",
@@ -664,6 +674,8 @@
   "dashboardThisMonthCumulative": "This month",
   "dashboardAvg3MonthLabel": "Avg. last 3 months",
   "dashboardPrevMonthLabel": "Last month",
+  "dashboardAvg3WeekLabel": "Avg. last 3 weeks",
+  "dashboardAvg3DayLabel": "Avg. last 3 days",
   "dashboardInsightExpenseDown": "Your spending this {period} is {percent}% lower than {prevPeriod}. Great, keep it up!",
   "@dashboardInsightExpenseDown": {
     "placeholders": {

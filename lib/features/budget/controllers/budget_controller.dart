@@ -339,3 +339,148 @@ class BudgetController extends StateNotifier<BudgetState> {
     state = const BudgetState();
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// CompletedBudgetsController — state untuk halaman budget selesai.
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provider autoDispose untuk [CompletedBudgetsController].
+///
+/// Otomatis load saat pertama kali di-watch/read.
+final completedBudgetsControllerProvider =
+    StateNotifierProvider.autoDispose<
+      CompletedBudgetsController,
+      CompletedBudgetsState
+    >((ref) {
+      final repository = ref.watch(budgetRepositoryProvider);
+      final controller = CompletedBudgetsController(repository);
+      controller.load();
+      return controller;
+    });
+
+/// State untuk halaman completed budgets.
+class CompletedBudgetsState {
+  const CompletedBudgetsState({
+    this.budgets = const [],
+    this.isLoading = true,
+    this.errorMessage,
+  });
+
+  final List<BudgetModel> budgets;
+  final bool isLoading;
+  final String? errorMessage;
+
+  CompletedBudgetsState copyWith({
+    List<BudgetModel>? budgets,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return CompletedBudgetsState(
+      budgets: budgets ?? this.budgets,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Controller untuk daftar budget yang sudah selesai (expired).
+class CompletedBudgetsController extends StateNotifier<CompletedBudgetsState> {
+  CompletedBudgetsController(this._repository)
+    : super(const CompletedBudgetsState());
+
+  final BudgetRepository _repository;
+
+  /// Load daftar budget yang sudah selesai.
+  Future<void> load() async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.getCompletedBudgets();
+
+    if (result.isSuccess()) {
+      state = state.copyWith(budgets: result.dataSuccess()!, isLoading: false);
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      state = state.copyWith(errorMessage: message, isLoading: false);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BudgetDetailController — state untuk halaman detail budget.
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provider autoDispose.family untuk [BudgetDetailController].
+///
+/// Parameter: budget ID. Otomatis load transaksi terkait budget.
+final budgetDetailControllerProvider = StateNotifierProvider.autoDispose
+    .family<BudgetDetailController, BudgetDetailState, BudgetModel>((
+      ref,
+      budget,
+    ) {
+      final repository = ref.watch(budgetRepositoryProvider);
+      final controller = BudgetDetailController(repository, budget);
+      controller.loadTransactions();
+      return controller;
+    });
+
+/// State untuk halaman detail budget.
+class BudgetDetailState {
+  const BudgetDetailState({
+    this.transactions = const [],
+    this.isLoading = true,
+    this.errorMessage,
+  });
+
+  final List<TransactionModel> transactions;
+  final bool isLoading;
+  final String? errorMessage;
+
+  BudgetDetailState copyWith({
+    List<TransactionModel>? transactions,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return BudgetDetailState(
+      transactions: transactions ?? this.transactions,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Controller untuk memuat transaksi terkait satu budget.
+class BudgetDetailController extends StateNotifier<BudgetDetailState> {
+  BudgetDetailController(this._repository, this._budget)
+    : super(const BudgetDetailState());
+
+  final BudgetRepository _repository;
+  final BudgetModel _budget;
+
+  /// Load daftar transaksi untuk budget ini.
+  Future<void> loadTransactions() async {
+    state = state.copyWith(isLoading: true);
+
+    final categoryIds = <String>[_budget.categoryId];
+    final category = _budget.category;
+    if (category != null && category.children.isNotEmpty) {
+      categoryIds.addAll(category.children.map((c) => c.id));
+    }
+
+    final result = await _repository.getTransactionsForBudget(
+      categoryIds: categoryIds,
+      startDate: _budget.startDate,
+      endDate: _budget.endDate,
+      walletId: _budget.walletId,
+    );
+
+    if (result.isSuccess()) {
+      state = state.copyWith(
+        transactions: result.dataSuccess()!,
+        isLoading: false,
+      );
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      state = state.copyWith(errorMessage: message, isLoading: false);
+    }
+  }
+}

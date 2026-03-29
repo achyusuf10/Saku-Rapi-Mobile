@@ -1,4 +1,4 @@
-import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/repositories/dashboard_repository.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
@@ -14,10 +14,17 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 });
 
 /// Provider utama untuk [DashboardController].
+///
+/// Mengelola state inti dashboard: status loading, recent transactions,
+/// error message, dan visibility saldo.
+///
+/// **Tidak** mengelola data chart/period — tanggung jawab tersebut
+/// didelegasikan ke [dashboardChartControllerProvider] agar widget chart
+/// bisa di-rebuild secara independen tanpa mempengaruhi widget lain.
 final dashboardControllerProvider =
     StateNotifierProvider<DashboardController, DashboardState>((ref) {
       final repository = ref.watch(dashboardRepositoryProvider);
-      return DashboardController(repository);
+      return DashboardController(repository, ref);
     });
 
 /// Provider computed: wallet included in total (reuses wallet state).
@@ -39,87 +46,47 @@ final dashboardTotalBalanceProvider = Provider<double>((ref) {
 /// Status loading dashboard.
 enum DashboardStatus { initial, loading, loaded, error }
 
-/// Mode chart perbandingan.
-enum DashboardChartMode { monthly, weekly }
-
 // ───────────────── State ─────────────────
 
-/// Immutable state untuk dashboard.
+/// Immutable state inti dashboard.
+///
+/// Hanya menyimpan data yang dibutuhkan oleh widget non-chart:
+/// - Status loading halaman
+/// - Recent transactions preview (5 terbaru)
+/// - Error message
+/// - Balance visibility toggle
+///
+/// Data chart (period summary, daily aggregation, chart mode) dikelola
+/// terpisah oleh [DashboardChartState] untuk optimasi rebuild.
 class DashboardState {
   const DashboardState({
     this.status = DashboardStatus.initial,
     this.recentTransactions = const [],
-    this.currentPeriodIncome = 0,
-    this.currentPeriodExpense = 0,
-    this.previousPeriodIncome = 0,
-    this.previousPeriodExpense = 0,
-    this.chartMode = DashboardChartMode.monthly,
-    this.currentPeriodDaily = const [],
-    this.previousPeriodDaily = const [],
-    this.month2Daily = const [],
-    this.month3Daily = const [],
     this.errorMessage,
     this.isBalanceHidden = false,
   });
 
+  /// Status loading halaman dashboard secara keseluruhan.
   final DashboardStatus status;
 
   /// 5 transaksi terbaru untuk preview.
   final List<TransactionModel> recentTransactions;
 
-  /// Income/expense periode ini (bulan/minggu tergantung chartMode).
-  final double currentPeriodIncome;
-  final double currentPeriodExpense;
-
-  /// Income/expense periode lalu untuk perbandingan.
-  final double previousPeriodIncome;
-  final double previousPeriodExpense;
-
-  /// Mode chart: bulanan vs mingguan.
-  final DashboardChartMode chartMode;
-
-  /// Daily aggregation untuk chart bar.
-  final List<Map<String, dynamic>> currentPeriodDaily;
-  final List<Map<String, dynamic>> previousPeriodDaily;
-
-  /// Daily aggregation 2 & 3 bulan/minggu lalu untuk rata-rata tren.
-  final List<Map<String, dynamic>> month2Daily;
-  final List<Map<String, dynamic>> month3Daily;
-
-  /// Error message jika gagal load.
+  /// Error message jika gagal load data inti.
   final String? errorMessage;
 
-  /// User toggle: sembunyikan saldo.
+  /// User toggle: sembunyikan saldo di balance card.
   final bool isBalanceHidden;
 
   DashboardState copyWith({
     DashboardStatus? status,
     List<TransactionModel>? recentTransactions,
-    double? currentPeriodIncome,
-    double? currentPeriodExpense,
-    double? previousPeriodIncome,
-    double? previousPeriodExpense,
-    DashboardChartMode? chartMode,
-    List<Map<String, dynamic>>? currentPeriodDaily,
-    List<Map<String, dynamic>>? previousPeriodDaily,
-    List<Map<String, dynamic>>? month2Daily,
-    List<Map<String, dynamic>>? month3Daily,
     String? errorMessage,
     bool? isBalanceHidden,
   }) {
     return DashboardState(
       status: status ?? this.status,
       recentTransactions: recentTransactions ?? this.recentTransactions,
-      currentPeriodIncome: currentPeriodIncome ?? this.currentPeriodIncome,
-      currentPeriodExpense: currentPeriodExpense ?? this.currentPeriodExpense,
-      previousPeriodIncome: previousPeriodIncome ?? this.previousPeriodIncome,
-      previousPeriodExpense:
-          previousPeriodExpense ?? this.previousPeriodExpense,
-      chartMode: chartMode ?? this.chartMode,
-      currentPeriodDaily: currentPeriodDaily ?? this.currentPeriodDaily,
-      previousPeriodDaily: previousPeriodDaily ?? this.previousPeriodDaily,
-      month2Daily: month2Daily ?? this.month2Daily,
-      month3Daily: month3Daily ?? this.month3Daily,
       errorMessage: errorMessage,
       isBalanceHidden: isBalanceHidden ?? this.isBalanceHidden,
     );
@@ -128,63 +95,56 @@ class DashboardState {
 
 // ───────────────── Controller ─────────────────
 
-/// Controller untuk dashboard state.
+/// Controller inti (parent) untuk dashboard.
 ///
-/// Mengelola:
-/// - Recent transactions preview
-/// - Period income/expense summary
-/// - Chart comparison data (month vs last month, week vs last week)
-/// - Balance visibility toggle
+/// Bertanggung jawab atas:
+/// - Load recent transactions preview
+/// - Orchestrate chart data loading via [DashboardChartController]
+/// - Toggle balance visibility
+///
+/// Saat `loadDashboard()` dipanggil (termasuk dari fitur lain seperti
+/// TransactionFormPage, HistoryPage, dll.), controller ini secara otomatis
+/// juga men-trigger reload data chart melalui
+/// [dashboardChartControllerProvider].
+///
+/// **Arsitektur rebuild:**
+/// ```
+/// DashboardController (core)
+///   → DashboardPage (status, loading/error)
+///   → DashboardBalanceCard (isBalanceHidden)
+///   → DashboardWalletSection (isBalanceHidden)
+///   → DashboardRecentTransactions (recentTransactions)
+///
+/// DashboardChartController (chart)
+///   → DashboardChartCarousel (chartMode)
+///   → DashboardComparisonChart (chartMode, income/expense)
+///   → DashboardTrendReportChart (chartMode, daily data)
+///   → DashboardPeriodSummary (chartMode, income/expense)
+/// ```
 class DashboardController extends StateNotifier<DashboardState> {
-  DashboardController(this._repository) : super(const DashboardState());
+  DashboardController(this._repository, this._ref)
+    : super(const DashboardState());
 
   final DashboardRepository _repository;
 
-  /// Load semua data dashboard secara paralel.
+  /// Riverpod ref untuk mengakses chart controller.
+  final Ref _ref;
+
+  /// Load semua data dashboard.
+  ///
+  /// Fetch recent transactions dan secara paralel trigger chart data loading.
+  /// External callers (TransactionFormPage, HistoryPage, dll.) cukup
+  /// memanggil method ini — chart data otomatis ikut di-refresh.
   Future<void> loadDashboard() async {
     state = state.copyWith(status: DashboardStatus.loading);
 
-    final now = DateTime.now();
+    // Trigger chart data loading secara paralel (non-blocking)
+    _ref.read(dashboardChartControllerProvider.notifier).loadChartData();
 
-    // Determine current & previous period ranges based on chart mode
-    final (currentStart, currentEnd, prevStart, prevEnd) = periodRanges(
-      now,
-      state.chartMode,
-    );
+    // Fetch recent transactions
+    final recentResult = await _repository.getRecentTransactions(limit: 5);
 
-    // Extra ranges for 3-month average trend
-    final (m2Start, m2End, m3Start, m3End) = extraPeriodRanges(
-      now,
-      state.chartMode,
-    );
-
-    // Fetch all in parallel
-    final results = await Future.wait([
-      _repository.getRecentTransactions(limit: 5),
-      _repository.getPeriodSummary(
-        startDate: currentStart,
-        endDate: currentEnd,
-      ),
-      _repository.getPeriodSummary(startDate: prevStart, endDate: prevEnd),
-      _repository.getDailyAggregation(
-        startDate: currentStart,
-        endDate: currentEnd,
-      ),
-      _repository.getDailyAggregation(startDate: prevStart, endDate: prevEnd),
-      _repository.getDailyAggregation(startDate: m2Start, endDate: m2End),
-      _repository.getDailyAggregation(startDate: m3Start, endDate: m3End),
-    ]);
-
-    final recentResult = results[0] as DataState<List<TransactionModel>>;
-    final currentSummary = results[1] as DataState<Map<String, double>>;
-    final previousSummary = results[2] as DataState<Map<String, double>>;
-    final currentDaily = results[3] as DataState<List<Map<String, dynamic>>>;
-    final previousDaily = results[4] as DataState<List<Map<String, dynamic>>>;
-    final m2Daily = results[5] as DataState<List<Map<String, dynamic>>>;
-    final m3Daily = results[6] as DataState<List<Map<String, dynamic>>>;
-
-    // Check for critical errors
-    if (recentResult.isError() && currentSummary.isError()) {
+    if (recentResult.isError()) {
       final (message, _, _, _) = recentResult.dataError()!;
       state = state.copyWith(
         status: DashboardStatus.error,
@@ -196,140 +156,11 @@ class DashboardController extends StateNotifier<DashboardState> {
     state = state.copyWith(
       status: DashboardStatus.loaded,
       recentTransactions: recentResult.dataSuccess() ?? [],
-      currentPeriodIncome: currentSummary.dataSuccess()?['income'] ?? 0,
-      currentPeriodExpense: currentSummary.dataSuccess()?['expense'] ?? 0,
-      previousPeriodIncome: previousSummary.dataSuccess()?['income'] ?? 0,
-      previousPeriodExpense: previousSummary.dataSuccess()?['expense'] ?? 0,
-      currentPeriodDaily: currentDaily.dataSuccess() ?? [],
-      previousPeriodDaily: previousDaily.dataSuccess() ?? [],
-      month2Daily: m2Daily.dataSuccess() ?? [],
-      month3Daily: m3Daily.dataSuccess() ?? [],
     );
   }
 
-  /// Ganti mode chart dan reload data perbandingan.
-  Future<void> toggleChartMode() async {
-    final newMode = state.chartMode == DashboardChartMode.monthly
-        ? DashboardChartMode.weekly
-        : DashboardChartMode.monthly;
-
-    state = state.copyWith(chartMode: newMode);
-
-    final now = DateTime.now();
-    final (currentStart, currentEnd, prevStart, prevEnd) = periodRanges(
-      now,
-      newMode,
-    );
-    final (m2Start, m2End, m3Start, m3End) = extraPeriodRanges(now, newMode);
-
-    final results = await Future.wait([
-      _repository.getPeriodSummary(
-        startDate: currentStart,
-        endDate: currentEnd,
-      ),
-      _repository.getPeriodSummary(startDate: prevStart, endDate: prevEnd),
-      _repository.getDailyAggregation(
-        startDate: currentStart,
-        endDate: currentEnd,
-      ),
-      _repository.getDailyAggregation(startDate: prevStart, endDate: prevEnd),
-      _repository.getDailyAggregation(startDate: m2Start, endDate: m2End),
-      _repository.getDailyAggregation(startDate: m3Start, endDate: m3End),
-    ]);
-
-    final currentSummary = results[0] as DataState<Map<String, double>>;
-    final previousSummary = results[1] as DataState<Map<String, double>>;
-    final currentDaily = results[2] as DataState<List<Map<String, dynamic>>>;
-    final previousDaily = results[3] as DataState<List<Map<String, dynamic>>>;
-    final m2Daily = results[4] as DataState<List<Map<String, dynamic>>>;
-    final m3Daily = results[5] as DataState<List<Map<String, dynamic>>>;
-
-    state = state.copyWith(
-      currentPeriodIncome: currentSummary.dataSuccess()?['income'] ?? 0,
-      currentPeriodExpense: currentSummary.dataSuccess()?['expense'] ?? 0,
-      previousPeriodIncome: previousSummary.dataSuccess()?['income'] ?? 0,
-      previousPeriodExpense: previousSummary.dataSuccess()?['expense'] ?? 0,
-      currentPeriodDaily: currentDaily.dataSuccess() ?? [],
-      previousPeriodDaily: previousDaily.dataSuccess() ?? [],
-      month2Daily: m2Daily.dataSuccess() ?? [],
-      month3Daily: m3Daily.dataSuccess() ?? [],
-    );
-  }
-
-  /// Toggle visibility saldo.
+  /// Toggle visibility saldo di balance card.
   void toggleBalanceVisibility() {
     state = state.copyWith(isBalanceHidden: !state.isBalanceHidden);
-  }
-
-  /// Hitung ranges untuk current & previous period.
-  ///
-  /// Returns `(currentStart, currentEnd, prevStart, prevEnd)`.
-  /// Exposed as static for testability.
-  static (DateTime, DateTime, DateTime, DateTime) periodRanges(
-    DateTime now,
-    DashboardChartMode mode,
-  ) {
-    if (mode == DashboardChartMode.monthly) {
-      final currentStart = DateTime(now.year, now.month);
-      final currentEnd = DateTime(
-        now.year,
-        now.month + 1,
-      ).subtract(const Duration(milliseconds: 1));
-      final prevStart = DateTime(now.year, now.month - 1);
-      final prevEnd = currentStart.subtract(const Duration(milliseconds: 1));
-      return (currentStart, currentEnd, prevStart, prevEnd);
-    } else {
-      // Weekly: Monday-Sunday
-      final weekday = now.weekday; // 1 = Monday
-      final currentStart = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: weekday - 1));
-      final currentEnd = currentStart
-          .add(const Duration(days: 7))
-          .subtract(const Duration(milliseconds: 1));
-      final prevStart = currentStart.subtract(const Duration(days: 7));
-      final prevEnd = currentStart.subtract(const Duration(milliseconds: 1));
-      return (currentStart, currentEnd, prevStart, prevEnd);
-    }
-  }
-
-  /// Hitung ranges untuk periode-2 dan periode-3 (untuk rata-rata tren).
-  ///
-  /// Returns `(month2Start, month2End, month3Start, month3End)`.
-  static (DateTime, DateTime, DateTime, DateTime) extraPeriodRanges(
-    DateTime now,
-    DashboardChartMode mode,
-  ) {
-    if (mode == DashboardChartMode.monthly) {
-      final m2Start = DateTime(now.year, now.month - 2);
-      final m2End = DateTime(
-        now.year,
-        now.month - 1,
-      ).subtract(const Duration(milliseconds: 1));
-      final m3Start = DateTime(now.year, now.month - 3);
-      final m3End = DateTime(
-        now.year,
-        now.month - 2,
-      ).subtract(const Duration(milliseconds: 1));
-      return (m2Start, m2End, m3Start, m3End);
-    } else {
-      final weekday = now.weekday;
-      final thisWeekStart = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: weekday - 1));
-      final w2Start = thisWeekStart.subtract(const Duration(days: 14));
-      final w2End = thisWeekStart
-          .subtract(const Duration(days: 7))
-          .subtract(const Duration(milliseconds: 1));
-      final w3Start = thisWeekStart.subtract(const Duration(days: 21));
-      final w3End = thisWeekStart
-          .subtract(const Duration(days: 14))
-          .subtract(const Duration(milliseconds: 1));
-      return (w2Start, w2End, w3Start, w3End);
-    }
   }
 }

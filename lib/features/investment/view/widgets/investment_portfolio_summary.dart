@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
@@ -9,14 +10,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Widget ringkasan portfolio investasi di bagian atas halaman.
 ///
-/// Menampilkan total nilai portfolio, total modal, P/L absolut & persentase.
-/// Menggunakan granular providers agar hanya rebuild saat data portfolio berubah.
+/// Menampilkan total nilai portfolio, total modal, P/L absolut & persentase,
+/// dan unit summary. Menggunakan gradient emerald konsisten dengan
+/// card-card lain (Dashboard, Wallet).
 class InvestmentPortfolioSummary extends ConsumerWidget {
   const InvestmentPortfolioSummary({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final totalValue = ref.watch(investmentTotalValueProvider);
     final totalInvested = ref.watch(investmentTotalInvestedProvider);
     final totalPL = ref.watch(investmentTotalPLProvider);
@@ -31,27 +36,28 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
         ? FontAwesomeIcons.arrowTrendUp
         : FontAwesomeIcons.arrowTrendDown;
 
-    // Warna P/L yang kontras di atas gradient primary
-    final plBadgeColor = isProfit
-        ? const Color(0xFF34D399) // Emerald 400
-        : const Color(0xFFF87171); // Red 400
+    // Warna P/L — kontras di atas gradient emerald
+    final plColor = isProfit
+        ? const Color.fromARGB(255, 88, 255, 188) // Emerald
+        : const Color(0xFFFCA5A5); // Red 300
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF065F46), // Emerald 800
-            const Color(0xFF047857), // Emerald 700
-          ],
+          colors: isDark
+              ? [const Color(0xFF065F46), const Color(0xFF047857)]
+              : [colors.primaryDark, colors.primary],
         ),
-        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF065F46).withValues(alpha: 0.35),
+            color: isDark
+                ? const Color(0xFF065F46).withValues(alpha: 0.4)
+                : colors.primary.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -66,15 +72,14 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
               FaIcon(
                 FontAwesomeIcons.briefcase,
                 size: 14.w,
-                color: const Color(0xFFA7F3D0), // Emerald 200
+                color: colors.onPrimary.withValues(alpha: 0.85),
               ),
               SizedBox(width: 8.w),
               Text(
                 l10n.investmentPortfolio,
                 style: TextStyleConstants.label1.copyWith(
-                  color: const Color(0xFFA7F3D0), // Emerald 200
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
+                  color: colors.onPrimary.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -84,40 +89,39 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
                   height: 14.w,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: const Color(0xFFA7F3D0),
+                    color: colors.onPrimary.withValues(alpha: 0.75),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 14.h),
+          SizedBox(height: 10.h),
 
           // ─── Total Value ───
           Text(
             totalValue.toCurrency(),
             style: TextStyleConstants.h4.copyWith(
-              color: Colors.white,
+              color: colors.onPrimary,
               fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: 8.h),
 
           // ─── P/L Badge ───
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
             decoration: BoxDecoration(
-              color: plBadgeColor.withValues(alpha: 0.2),
+              color: plColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                FaIcon(plIcon, size: 11.w, color: plBadgeColor),
+                FaIcon(plIcon, size: 11.w, color: plColor),
                 SizedBox(width: 6.w),
                 Text(
                   '${isProfit ? '+' : ''}${totalPL.toCurrency()}',
                   style: TextStyleConstants.label1.copyWith(
-                    color: plBadgeColor,
+                    color: plColor,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -125,7 +129,7 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
                 Text(
                   '(${totalPLPercent.toPercentage()})',
                   style: TextStyleConstants.label2.copyWith(
-                    color: plBadgeColor.withValues(alpha: 0.85),
+                    color: plColor.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -135,108 +139,103 @@ class InvestmentPortfolioSummary extends ConsumerWidget {
 
           SizedBox(height: 16.h),
 
-          // ─── Invested Row ───
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Row(
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.coins,
-                  size: 13.w,
-                  color: const Color(0xFFA7F3D0),
+          // ─── Invested + Holdings Row ───
+          Row(
+            children: [
+              // Modal
+              Expanded(
+                child: _InfoChip(
+                  icon: FontAwesomeIcons.coins,
+                  label: l10n.investmentBuyPrice,
+                  value: totalInvested.toCurrency(withPrefix: false),
                 ),
+              ),
+              if (unitSummary.isNotEmpty) ...[
                 SizedBox(width: 10.w),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.investmentBuyPrice,
-                      style: TextStyleConstants.label2.copyWith(
-                        color: const Color(0xFF6EE7B7), // Emerald 300
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      totalInvested.toCurrency(),
-                      style: TextStyleConstants.b1.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                // Holdings ringkas
+                Expanded(
+                  child: _InfoChip(
+                    icon: FontAwesomeIcons.layerGroup,
+                    label: l10n.investmentTotalUnits,
+                    value: _buildUnitString(unitSummary),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Gabungkan unit summary jadi string ringkas, e.g. "5 gr • 0.01 BTC".
+  String _buildUnitString(
+    List<({String label, double amount, String unit})> summary,
+  ) {
+    return summary
+        .map((e) {
+          final amountStr = e.amount.truncateToDouble() == e.amount
+              ? e.amount.toInt().toString()
+              : e.amount.toStringAsFixed(2);
+          return '$amountStr ${e.unit}';
+        })
+        .join(' • ');
+  }
+}
+
+/// Sub-section chip untuk informasi sekunder (modal, holdings).
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        color: colors.onPrimary.withValues(alpha: 0.15),
+      ),
+      child: Row(
+        children: [
+          FaIcon(
+            icon,
+            size: 12.w,
+            color: Color.fromARGB(255, 88, 255, 188), // Emerald 300
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyleConstants.label3.copyWith(
+                    color: colors.onPrimary.withValues(alpha: 0.85),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  value,
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.onPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-
-          // ─── Unit Summary (Total Holdings) ───
-          if (unitSummary.isNotEmpty) ...[
-            SizedBox(height: 12.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.layerGroup,
-                        size: 13.w,
-                        color: const Color(0xFFA7F3D0),
-                      ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        l10n.investmentTotalUnits,
-                        style: TextStyleConstants.label2.copyWith(
-                          color: const Color(0xFF6EE7B7),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 6.h,
-                    children: unitSummary.map((entry) {
-                      final amountStr =
-                          entry.amount.truncateToDouble() == entry.amount
-                          ? entry.amount.toInt().toString()
-                          : entry.amount.toStringAsFixed(2);
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 5.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Text(
-                          '$amountStr [${entry.unit}] ${entry.label}',
-                          style: TextStyleConstants.label2.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

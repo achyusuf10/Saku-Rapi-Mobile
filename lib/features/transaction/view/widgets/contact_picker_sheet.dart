@@ -9,7 +9,6 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 /// Bottom sheet untuk memilih kontak hutang/piutang.
 ///
@@ -34,18 +33,12 @@ class ContactPickerSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<ContactPickerSheet> createState() =>
-      _ContactPickerSheetState();
+  ConsumerState<ContactPickerSheet> createState() => _ContactPickerSheetState();
 }
 
 class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   final _searchController = TextEditingController();
   String _query = '';
-
-  /// Daftar kontak phonebook, null = belum dimuat / izin ditolak.
-  List<Contact>? _phonebookContacts;
-  bool _phonebookLoading = false;
-  bool _phonebookDenied = false;
 
   @override
   void initState() {
@@ -60,35 +53,6 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  // ─── Phonebook ───
-
-  Future<void> _loadPhonebook() async {
-    if (_phonebookLoading) return;
-
-    setState(() => _phonebookLoading = true);
-
-    final status = await Permission.contacts.request();
-
-    if (!status.isGranted) {
-      setState(() {
-        _phonebookLoading = false;
-        _phonebookDenied = true;
-      });
-      return;
-    }
-
-    final contacts = await FlutterContacts.getContacts(withProperties: true);
-    // Sort by display name
-    contacts.sort((a, b) => a.displayName.compareTo(b.displayName));
-
-    if (mounted) {
-      setState(() {
-        _phonebookContacts = contacts;
-        _phonebookLoading = false;
-      });
-    }
   }
 
   // ─── Selection ───
@@ -140,17 +104,15 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
               .toList();
 
     // Filter phonebook
-    final phonebookFiltered = _phonebookContacts == null
+    final phonebookFiltered = contactState.phonebookContacts == null
         ? null
         : normalizedQuery.isEmpty
-        ? _phonebookContacts!
-        : _phonebookContacts!
+        ? contactState.phonebookContacts!
+        : contactState.phonebookContacts!
               .where(
                 (c) =>
                     c.displayName.toLowerCase().contains(normalizedQuery) ||
-                    c.phones.any(
-                      (p) => p.number.contains(normalizedQuery),
-                    ),
+                    c.phones.any((p) => p.number.contains(normalizedQuery)),
               )
               .toList();
 
@@ -203,8 +165,9 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
               style: TextStyleConstants.b2.copyWith(color: colors.textPrimary),
               decoration: InputDecoration(
                 hintText: l10n.contactPickerSearch,
-                hintStyle:
-                    TextStyleConstants.b2.copyWith(color: colors.textSecondary),
+                hintStyle: TextStyleConstants.b2.copyWith(
+                  color: colors.textSecondary,
+                ),
                 prefixIcon: Icon(
                   Icons.search,
                   size: 18.w,
@@ -245,9 +208,9 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
               padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 24.h),
               children: [
                 // ─── From Phonebook button ───
-                if (_phonebookContacts == null) ...[
+                if (contactState.phonebookContacts == null) ...[
                   _SectionHeader(label: l10n.contactPickerFromPhonebook),
-                  if (_phonebookDenied)
+                  if (contactState.phonebookDenied)
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.h),
                       child: Text(
@@ -258,15 +221,15 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
                       ),
                     )
                   else
-                    _phonebookLoading
+                    contactState.phonebookLoading
                         ? Padding(
                             padding: EdgeInsets.symmetric(vertical: 12.h),
-                            child: const Center(
-                              child: SakuLoadingIndicator(),
-                            ),
+                            child: const Center(child: SakuLoadingIndicator()),
                           )
                         : GestureDetector(
-                            onTap: _loadPhonebook,
+                            onTap: () => ref
+                                .read(contactControllerProvider.notifier)
+                                .loadPhonebook(),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 14.w,
@@ -412,9 +375,7 @@ class _SavedContactItem extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  contact.name.isNotEmpty
-                      ? contact.name[0].toUpperCase()
-                      : '?',
+                  contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
                   style: TextStyleConstants.b1.copyWith(
                     color: colors.primary,
                     fontWeight: FontWeight.bold,

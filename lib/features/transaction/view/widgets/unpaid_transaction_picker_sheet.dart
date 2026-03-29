@@ -3,8 +3,8 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
-import 'package:app_saku_rapi/features/debt_loan/repositories/debt_loan_repository.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 ///
 /// Memuat daftar dari RPC `get_all_unpaid_debt_loan` dan mengembalikan
 /// [DebtLoanTransactionModel] yang dipilih.
-class UnpaidTransactionPickerSheet extends ConsumerStatefulWidget {
+class UnpaidTransactionPickerSheet extends ConsumerWidget {
   const UnpaidTransactionPickerSheet({
     super.key,
     required this.type,
@@ -46,47 +46,11 @@ class UnpaidTransactionPickerSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<UnpaidTransactionPickerSheet> createState() =>
-      _UnpaidTransactionPickerSheetState();
-}
-
-class _UnpaidTransactionPickerSheetState
-    extends ConsumerState<UnpaidTransactionPickerSheet> {
-  List<DebtLoanTransactionModel>? _transactions;
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTransactions();
-  }
-
-  Future<void> _loadTransactions() async {
-    final repo = ref.read(debtLoanRepositoryProvider);
-    final result = await repo.getAllUnpaid(type: widget.type);
-
-    if (!mounted) return;
-
-    if (result.isSuccess()) {
-      setState(() {
-        _transactions = result.dataSuccess()!;
-        _isLoading = false;
-      });
-    } else {
-      final (message, _, _, _) = result.dataError()!;
-      setState(() {
-        _errorMessage = message;
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(unpaidTransactionsControllerProvider(type));
     final colors = context.colors;
     final l10n = context.l10n;
-    final isDebt = widget.type == 'debt';
+    final isDebt = type == 'debt';
 
     return Container(
       decoration: BoxDecoration(
@@ -125,21 +89,21 @@ class _UnpaidTransactionPickerSheetState
           Divider(height: 1, color: colors.border),
 
           // Content
-          if (_isLoading)
+          if (state.isLoading)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 40.h),
               child: const SakuLoadingIndicator(),
             )
-          else if (_errorMessage != null)
+          else if (state.errorMessage != null)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 40.h, horizontal: 16.w),
               child: Text(
-                _errorMessage!,
+                state.errorMessage!,
                 style: TextStyleConstants.b2.copyWith(color: colors.error),
                 textAlign: TextAlign.center,
               ),
             )
-          else if (_transactions == null || _transactions!.isEmpty)
+          else if (state.transactions.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 40.h),
               child: SakuEmptyState(
@@ -153,11 +117,11 @@ class _UnpaidTransactionPickerSheetState
               child: ListView.separated(
                 shrinkWrap: true,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                itemCount: _transactions!.length,
-                separatorBuilder: (_, _) => SizedBox(height: 8.h),
+                itemCount: state.transactions.length,
+                separatorBuilder: (_, __) => SizedBox(height: 8.h),
                 itemBuilder: (context, index) {
-                  final txn = _transactions![index];
-                  final isSelected = txn.id == widget.selectedId;
+                  final txn = state.transactions[index];
+                  final isSelected = txn.id == selectedId;
                   final accentColor = isDebt ? colors.debt : colors.loan;
 
                   return _TransactionItem(

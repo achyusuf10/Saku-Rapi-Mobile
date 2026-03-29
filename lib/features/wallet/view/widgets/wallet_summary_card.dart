@@ -8,8 +8,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Card ringkasan total saldo semua wallet (yang termasuk dalam total).
 ///
-/// Ditampilkan di bagian atas halaman Wallet dan bisa dipakai
-/// di Dashboard sebagai widget reusable.
+/// Menampilkan total balance, jumlah wallet, dan label deskriptif.
+/// Menggunakan gradient emerald yang konsisten dengan card-card lain.
 class WalletSummaryCard extends StatelessWidget {
   const WalletSummaryCard({
     super.key,
@@ -27,58 +27,87 @@ class WalletSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
-          colors: [colors.primary, colors.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF065F46), const Color(0xFF047857)]
+              : [colors.primaryDark, colors.primary],
         ),
-        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: colors.primary.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: isDark
+                ? const Color(0xFF065F46).withValues(alpha: 0.4)
+                : colors.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ─── Header ───
           Row(
             children: [
               FaIcon(
                 FontAwesomeIcons.wallet,
-                size: 16.w,
-                color: Colors.white.withValues(alpha: 0.8),
+                size: 14.w,
+                color: colors.onPrimary.withValues(alpha: 0.85),
               ),
               SizedBox(width: 8.w),
               Text(
                 l10n.walletTotalBalance,
                 style: TextStyleConstants.label1.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: colors.onPrimary.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 10.h),
+
+          // ─── Balance ───
           Text(
             totalBalance.toCurrency(),
-            style: TextStyleConstants.h5.copyWith(
-              color: Colors.white,
+            style: TextStyleConstants.h4.copyWith(
+              color: colors.onPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            '$walletCount ${l10n.walletTitle.toLowerCase()}',
-            style: TextStyleConstants.label2.copyWith(
-              color: Colors.white.withValues(alpha: 0.7),
+          SizedBox(height: 16.h),
+
+          // ─── Wallet count chip ───
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+              color: colors.onPrimary.withValues(alpha: 0.15),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.creditCard,
+                  size: 12.w,
+                  color: Color.fromARGB(255, 88, 255, 188), // Emerald
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  '$walletCount ${l10n.walletTitle.toLowerCase()}',
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.onPrimary.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

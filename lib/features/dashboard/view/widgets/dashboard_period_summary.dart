@@ -3,7 +3,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,12 +21,13 @@ class DashboardPeriodSummary extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final dashState = ref.watch(dashboardControllerProvider);
-    final isMonthly = dashState.chartMode == DashboardChartMode.monthly;
+    final chartState = ref.watch(dashboardChartControllerProvider);
+    final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
+    final isDaily = chartState.chartMode == DashboardChartMode.daily;
 
-    final currentIncome = dashState.currentPeriodIncome;
-    final currentExpense = dashState.currentPeriodExpense;
-    final previousExpense = dashState.previousPeriodExpense;
+    final currentIncome = chartState.currentPeriodIncome;
+    final currentExpense = chartState.currentPeriodExpense;
+    final previousExpense = chartState.previousPeriodExpense;
     final net = currentIncome - currentExpense;
 
     // Expense change percentage
@@ -34,9 +35,14 @@ class DashboardPeriodSummary extends ConsumerWidget {
         ? ((currentExpense - previousExpense) / previousExpense * 100)
         : 0.0;
 
-    final periodLabel = isMonthly
-        ? l10n.dashboardLastMonth
-        : l10n.dashboardLastWeek;
+    final String periodLabel;
+    if (isMonthly) {
+      periodLabel = l10n.dashboardLastMonth;
+    } else if (isDaily) {
+      periodLabel = l10n.dashboardYesterday;
+    } else {
+      periodLabel = l10n.dashboardLastWeek;
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -45,7 +51,11 @@ class DashboardPeriodSummary extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.dashboardSnapshotTitle,
+              l10n.dashboardSnapshotTitle(switch (chartState.chartMode) {
+                DashboardChartMode.monthly => l10n.dashboardMonthlyMode,
+                DashboardChartMode.weekly => l10n.dashboardWeeklyMode,
+                DashboardChartMode.daily => l10n.dashboardDailyMode,
+              }),
               style: TextStyleConstants.b2.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colors.textPrimary,

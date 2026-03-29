@@ -465,263 +465,278 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     final isSaving = formState.isSaving;
     final typeColor = _colorForType(formState.type, colors);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: Form(
-        key: _formKey,
-        child: CustomScrollView(
-          slivers: [
-            // ─── Simple AppBar ───
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: colors.surface,
-              foregroundColor: colors.textPrimary,
-              elevation: 0,
-              scrolledUnderElevation: 0.5,
-              leading: IconButton(
-                icon: FaIcon(FontAwesomeIcons.arrowLeft, size: 18.w),
-                onPressed: () => context.pop(),
-              ),
-              title: Text(
-                isEditing
-                    ? l10n.transactionEditTitle
-                    : l10n.transactionNewTitle,
-                style: TextStyleConstants.h7.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: colors.background,
+        body: Form(
+          key: _formKey,
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              // ─── Simple AppBar ───
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: colors.surface,
+                foregroundColor: colors.textPrimary,
+                elevation: 0,
+                scrolledUnderElevation: 0.5,
+                leading: IconButton(
+                  icon: FaIcon(FontAwesomeIcons.arrowLeft, size: 18.w),
+                  onPressed: () => context.pop(),
                 ),
-              ),
-              centerTitle: false,
-              actions: isEditing
-                  ? [
-                      IconButton(
-                        icon: FaIcon(
-                          FontAwesomeIcons.trashCan,
-                          size: 16.w,
-                          color: colors.expense,
-                        ),
-                        onPressed: isSaving ? null : _confirmDelete,
-                      ),
-                    ]
-                  : null,
-            ),
-
-            // ─── Type selector tabs ───
-            if (!isEditing)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
-                  child: TransactionTypeTabs(
-                    selected: formState.type,
-                    onChanged: (t) => ref
-                        .read(transactionFormControllerProvider.notifier)
-                        .setType(t),
+                title: Text(
+                  isEditing
+                      ? l10n.transactionEditTitle
+                      : l10n.transactionNewTitle,
+                  style: TextStyleConstants.h7.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
                   ),
                 ),
+                centerTitle: false,
+                actions: isEditing
+                    ? [
+                        IconButton(
+                          icon: FaIcon(
+                            FontAwesomeIcons.trashCan,
+                            size: 16.w,
+                            color: colors.expense,
+                          ),
+                          onPressed: isSaving ? null : _confirmDelete,
+                        ),
+                      ]
+                    : null,
               ),
 
-            // ─── Form content ───
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 120.h),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // ─── Debt/Loan sub-category selector ───
-                  if (formState.isDebtLoanTab && !isEditing) ...[
-                    DebtLoanKindSelector(
-                      selected: formState.debtLoanKind ?? DebtLoanKindEnum.debt,
-                      onChanged: (kind) => ref
+              // ─── Type selector tabs ───
+              if (!isEditing)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+                    child: TransactionTypeTabs(
+                      selected: formState.type,
+                      onChanged: (t) => ref
                           .read(transactionFormControllerProvider.notifier)
-                          .setDebtLoanKind(kind),
+                          .setType(t),
                     ),
-                    SizedBox(height: 16.h),
-                  ],
-
-                  // ─── Settlement: reference transaction picker ───
-                  if (formState.isSettlementMode && !isEditing) ...[
-                    DebtLoanTransactionPickerTile(
-                      selected: formState.referenceTransaction,
-                      iconColor: typeColor,
-                      onTap: () => _pickReferenceTransaction(formState),
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
-
-                  // ─── Amount ───
-                  if (!formState.isMultiItem) ...[
-                    TransactionAmountSection(
-                      typeColor: typeColor,
-                      initialValue: formState.totalAmount > 0
-                          ? formState.totalAmount
-                          : null,
-                      onChanged: (val) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setTotalAmount(val),
-                    ),
-                    // Settlement amount hint
-                    if (formState.isSettlementMode &&
-                        formState.referenceTransaction != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.h, left: 4.w),
-                        child: Text(
-                          l10n.debtLoanFormRemainingAmount(
-                            formState.referenceTransaction!.remaining
-                                .toCurrency(),
-                          ),
-                          style: TextStyleConstants.caption.copyWith(
-                            color: typeColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 16.h),
-                  ],
-
-                  // ─── Wallet ───
-                  TransactionWalletPickerTile(
-                    label: formState.type == TransactionTypeEnum.transfer
-                        ? l10n.transactionSourceWallet
-                        : l10n.transactionWallet,
-                    selected: formState.wallet,
-                    onTap: () => _pickWallet(isSource: true),
-                    iconColor: colors.primary,
                   ),
+                ),
 
-                  // Destination wallet (transfer only)
-                  if (formState.type == TransactionTypeEnum.transfer) ...[
-                    TransactionTransferArrow(
-                      color: colors.transfer,
-                      onSwap: () => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .swapWallets(),
-                    ),
-                    TransactionWalletPickerTile(
-                      label: l10n.transactionDestWallet,
-                      selected: formState.destinationWallet,
-                      onTap: () => _pickWallet(isSource: false),
-                      excludeWalletId: formState.wallet?.id,
-                      iconColor: colors.transfer,
-                    ),
-                  ],
-
-                  SizedBox(height: 10.h),
-
-                  // ─── Category (income/expense single-item mode) ───
-                  if (!formState.isSettlementMode &&
-                      !formState.isMultiItem &&
-                      (formState.type == TransactionTypeEnum.income ||
-                          formState.type == TransactionTypeEnum.expense)) ...[
-                    TransactionCategoryPickerTile(
-                      type: formState.type,
-                      item: formState.items.isNotEmpty
-                          ? formState.items.first
-                          : null,
-                      onTap: _pickCategory,
-                      iconColor: typeColor,
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
-
-                  // ─── With person (debt/loan — not in settlement mode) ───
-                  if (formState.type.requiresWithPerson &&
-                      !formState.isSettlementMode) ...[
-                    ContactPickerTile(
-                      selected: formState.contact,
-                      iconColor: typeColor,
-                      onTap: () async {
-                        final contact = await ContactPickerSheet.show(context);
-                        if (contact != null && mounted) {
-                          ref
-                              .read(transactionFormControllerProvider.notifier)
-                              .setContact(contact);
-                        }
-                      },
-                      onClear: () => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setContact(null),
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
-
-                  // ─── Date ───
-                  TransactionDatePickerTile(
-                    date: formState.date,
-                    onChanged: (date) => ref
-                        .read(transactionFormControllerProvider.notifier)
-                        .setDate(date),
-                  ),
-
-                  SizedBox(height: 14.h),
-
-                  // ─── Optional details (merchant, note, attachment) ───
-                  if (!formState.isSettlementMode)
-                    TransactionOptionalDetailsSection(
-                      merchantController: _merchantController,
-                      noteController: _noteController,
-                      attachmentUrl: formState.attachmentUrl,
-                      onMerchantChanged: (val) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setMerchant(val.isEmpty ? null : val),
-                      onNoteChanged: (val) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setNote(val.isEmpty ? null : val),
-                      onPickAttachment: _pickAndUploadAttachment,
-                      onRemoveAttachment: () => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setAttachmentUrl(null),
-                    ),
-
-                  // ─── Settlement note (simplified) ───
-                  if (formState.isSettlementMode) ...[
-                    SizedBox(height: 6.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 14.w,
-                        vertical: 8.h,
+              // ─── Form content ───
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 120.h),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    // ─── Debt/Loan sub-category selector ───
+                    if (formState.isDebtLoanTab && !isEditing) ...[
+                      DebtLoanKindSelector(
+                        selected:
+                            formState.debtLoanKind ?? DebtLoanKindEnum.debt,
+                        onChanged: (kind) => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setDebtLoanKind(kind),
                       ),
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(14.r),
+                      SizedBox(height: 16.h),
+                    ],
+
+                    // ─── Settlement: reference transaction picker ───
+                    if (formState.isSettlementMode && !isEditing) ...[
+                      DebtLoanTransactionPickerTile(
+                        selected: formState.referenceTransaction,
+                        iconColor: typeColor,
+                        onTap: () => _pickReferenceTransaction(formState),
                       ),
-                      child: TextField(
-                        controller: _noteController,
-                        style: TextStyleConstants.b2.copyWith(
-                          color: colors.textPrimary,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: l10n.debtLoanSettlementNote,
-                          hintStyle: TextStyleConstants.b2.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                      SizedBox(height: 10.h),
+                    ],
+
+                    // ─── Amount ───
+                    if (!formState.isMultiItem) ...[
+                      TransactionAmountSection(
+                        typeColor: typeColor,
+                        initialValue: formState.totalAmount > 0
+                            ? formState.totalAmount
+                            : null,
                         onChanged: (val) => ref
                             .read(transactionFormControllerProvider.notifier)
-                            .setNote(val.isEmpty ? null : val),
+                            .setTotalAmount(val),
                       ),
+                      // Settlement amount hint
+                      if (formState.isSettlementMode &&
+                          formState.referenceTransaction != null)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                          child: Text(
+                            l10n.debtLoanFormRemainingAmount(
+                              formState.referenceTransaction!.remaining
+                                  .toCurrency(),
+                            ),
+                            style: TextStyleConstants.caption.copyWith(
+                              color: typeColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 16.h),
+                    ],
+
+                    // ─── Wallet ───
+                    TransactionWalletPickerTile(
+                      label: formState.type == TransactionTypeEnum.transfer
+                          ? l10n.transactionSourceWallet
+                          : l10n.transactionWallet,
+                      selected: formState.wallet,
+                      onTap: () => _pickWallet(isSource: true),
+                      iconColor: colors.primary,
                     ),
-                  ],
 
-                  // ─── Multi-item section (expense & income, non-settlement) ───
-                  if (!formState.isSettlementMode &&
-                      (formState.type == TransactionTypeEnum.expense ||
-                          formState.type == TransactionTypeEnum.income)) ...[
-                    SizedBox(height: 16.h),
-                    const TransactionMultiItemSection(),
-                  ],
-                ]),
+                    // Destination wallet (transfer only)
+                    if (formState.type == TransactionTypeEnum.transfer) ...[
+                      TransactionTransferArrow(
+                        color: colors.transfer,
+                        onSwap: () => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .swapWallets(),
+                      ),
+                      TransactionWalletPickerTile(
+                        label: l10n.transactionDestWallet,
+                        selected: formState.destinationWallet,
+                        onTap: () => _pickWallet(isSource: false),
+                        excludeWalletId: formState.wallet?.id,
+                        iconColor: colors.transfer,
+                      ),
+                    ],
+
+                    SizedBox(height: 10.h),
+
+                    // ─── Category (income/expense single-item mode) ───
+                    if (!formState.isSettlementMode &&
+                        !formState.isMultiItem &&
+                        (formState.type == TransactionTypeEnum.income ||
+                            formState.type == TransactionTypeEnum.expense)) ...[
+                      TransactionCategoryPickerTile(
+                        type: formState.type,
+                        item: formState.items.isNotEmpty
+                            ? formState.items.first
+                            : null,
+                        onTap: _pickCategory,
+                        iconColor: typeColor,
+                      ),
+                      SizedBox(height: 10.h),
+                    ],
+
+                    // ─── With person (debt/loan — not in settlement mode) ───
+                    if (formState.type.requiresWithPerson &&
+                        !formState.isSettlementMode) ...[
+                      ContactPickerTile(
+                        selected: formState.contact,
+                        iconColor: typeColor,
+                        onTap: () async {
+                          final contact = await ContactPickerSheet.show(
+                            context,
+                          );
+                          if (contact != null && mounted) {
+                            ref
+                                .read(
+                                  transactionFormControllerProvider.notifier,
+                                )
+                                .setContact(contact);
+                          }
+                        },
+                        onClear: () {
+                          FocusScope.of(context).unfocus();
+                          ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setContact(null);
+                        },
+                      ),
+                      SizedBox(height: 10.h),
+                    ],
+
+                    // ─── Date ───
+                    TransactionDatePickerTile(
+                      date: formState.date,
+                      onChanged: (date) {
+                        FocusScope.of(context).unfocus();
+                        ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setDate(date);
+                      },
+                    ),
+
+                    SizedBox(height: 14.h),
+
+                    // ─── Optional details (merchant, note, attachment) ───
+                    if (!formState.isSettlementMode)
+                      TransactionOptionalDetailsSection(
+                        merchantController: _merchantController,
+                        noteController: _noteController,
+                        attachmentUrl: formState.attachmentUrl,
+                        onMerchantChanged: (val) => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setMerchant(val.isEmpty ? null : val),
+                        onNoteChanged: (val) => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setNote(val.isEmpty ? null : val),
+                        onPickAttachment: _pickAndUploadAttachment,
+                        onRemoveAttachment: () => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setAttachmentUrl(null),
+                      ),
+
+                    // ─── Settlement note (simplified) ───
+                    if (formState.isSettlementMode) ...[
+                      SizedBox(height: 6.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: TextField(
+                          controller: _noteController,
+                          style: TextStyleConstants.b2.copyWith(
+                            color: colors.textPrimary,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: l10n.debtLoanSettlementNote,
+                            hintStyle: TextStyleConstants.b2.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: (val) => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setNote(val.isEmpty ? null : val),
+                        ),
+                      ),
+                    ],
+
+                    // ─── Multi-item section (expense & income, non-settlement) ───
+                    if (!formState.isSettlementMode &&
+                        (formState.type == TransactionTypeEnum.expense ||
+                            formState.type == TransactionTypeEnum.income)) ...[
+                      SizedBox(height: 16.h),
+                      const TransactionMultiItemSection(),
+                    ],
+                  ]),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
 
-      // ─── Save button ───
-      bottomNavigationBar: TransactionFormSaveBar(
-        formState: formState,
-        onSave: _onSave,
-        typeColor: typeColor,
+        // ─── Save button ───
+        bottomNavigationBar: TransactionFormSaveBar(
+          formState: formState,
+          onSave: _onSave,
+          typeColor: typeColor,
+        ),
       ),
     );
   }
@@ -729,6 +744,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   // ─── Actions ───
 
   Future<void> _pickWallet({required bool isSource}) async {
+    FocusScope.of(context).unfocus();
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
@@ -750,6 +766,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   }
 
   Future<void> _pickCategory() async {
+    FocusScope.of(context).unfocus();
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
@@ -773,6 +790,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   }
 
   Future<void> _pickReferenceTransaction(TransactionFormState formState) async {
+    FocusScope.of(context).unfocus();
     final subCat = formState.debtLoanKind;
     if (subCat == null || !subCat.isSettlement) return;
 
@@ -904,6 +922,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
   /// Pick image → compress → upload → set attachment URL.
   Future<void> _pickAndUploadAttachment() async {
+    FocusScope.of(context).unfocus();
     final file = await ImageSourcePickerSheet.show(context);
     if (file == null || !mounted) return;
 
