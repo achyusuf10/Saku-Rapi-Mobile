@@ -20,6 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 /// Halaman riwayat transaksi (tab kedua bottom nav).
 ///
@@ -193,28 +194,19 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   Widget _buildPage(HistoryState historyState) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification.metrics.pixels >=
-            notification.metrics.maxScrollExtent - 200) {
-          ref.read(historyControllerProvider.notifier).loadMore();
-        }
-        return false;
-      },
-      child: Column(
-        children: [
-          // ─── Summary Card ───
-          if (historyState.status == HistoryStatus.loaded)
-            _SummaryCard(
-              income: historyState.totalIncome,
-              expense: historyState.totalExpense,
-              transactionCount: historyState.filteredTransactions.length,
-            ),
+    return Column(
+      children: [
+        // ─── Summary Card ───
+        if (historyState.status == HistoryStatus.loaded)
+          _SummaryCard(
+            income: historyState.totalIncome,
+            expense: historyState.totalExpense,
+            transactionCount: historyState.filteredTransactions.length,
+          ),
 
-          // ─── Body ───
-          Expanded(child: _buildBody(historyState)),
-        ],
-      ),
+        // ─── Body ───
+        Expanded(child: _buildBody(historyState)),
+      ],
     );
   }
 
@@ -270,13 +262,29 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: 80.h),
-        itemCount: items.length + (historyState.isLoadingMore ? 1 : 0),
+        itemCount: items.length + 1,
         itemBuilder: (context, index) {
-          // Loading more indicator
+          // Last slot: load-more trigger or loading indicator
           if (index == items.length) {
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              child: const Center(child: SakuLoadingIndicator()),
+            if (historyState.isLoadingMore) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: const Center(child: SakuLoadingIndicator()),
+              );
+            }
+            if (!historyState.hasMore) {
+              return Center(
+                child: Text('No more data'),
+              ); // No more data, no trigger
+            }
+            return VisibilityDetector(
+              key: const Key('history_load_more_trigger'),
+              onVisibilityChanged: (info) {
+                if (info.visibleFraction > 0) {
+                  ref.read(historyControllerProvider.notifier).loadMore();
+                }
+              },
+              child: const SizedBox(height: 1),
             );
           }
 

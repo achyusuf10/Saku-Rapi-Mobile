@@ -1338,6 +1338,25 @@ class AppLocalizationsId extends AppLocalizations {
   String get voiceTranscript => 'Teks terdengar';
 
   @override
+  String get voiceNotTransaction =>
+      'Input tidak terdeteksi sebagai transaksi. Coba ucapkan ulang dengan menyebutkan nominal atau jenis transaksi.';
+
+  @override
+  String get voiceContinueButton => 'Lanjutkan';
+
+  @override
+  String get voiceRetryButton => 'Ulangi';
+
+  @override
+  String get voicePreviewTitle => 'Preview Transaksi';
+
+  @override
+  String get voicePreviewType => 'Tipe';
+
+  @override
+  String get voicePreviewDestWallet => 'Wallet Tujuan';
+
+  @override
   String get ocrExtractingText => 'Membaca teks dari struk...';
 
   @override
@@ -1381,6 +1400,37 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get ocrImageBlurry => 'Gambar tidak terbaca, coba foto ulang';
+
+  @override
+  String get ocrNotTransaction =>
+      'Gambar ini bukan dokumen transaksi keuangan. Coba foto struk, bukti transfer, atau nota lainnya.';
+
+  @override
+  String get ocrTypeExpense => 'Pengeluaran';
+
+  @override
+  String get ocrTypeIncome => 'Pemasukan';
+
+  @override
+  String get ocrTypeTransfer => 'Transfer';
+
+  @override
+  String get ocrTypeDebt => 'Hutang';
+
+  @override
+  String get ocrTypeLoan => 'Piutang';
+
+  @override
+  String get ocrSourceWallet => 'Dari';
+
+  @override
+  String get ocrDestWallet => 'Ke';
+
+  @override
+  String get ocrWithPerson => 'Orang';
+
+  @override
+  String get ocrPaymentMethod => 'Pembayaran';
 
   @override
   String get ocrUseResult => 'Gunakan Hasil';

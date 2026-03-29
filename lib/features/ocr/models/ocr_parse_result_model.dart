@@ -1,25 +1,48 @@
 /// Model hasil parsing OCR struk dari AI (Edge Function) atau local fallback.
 ///
+/// Mendukung semua jenis transaksi: expense (multi-item), income, transfer,
+/// debt, dan loan. Untuk expense → items detail, lainnya → grandTotal + type.
+///
 /// Kontrak JSON OCR dari Edge Function:
 /// ```json
 /// {
+///   "isTransaction": <boolean>,
+///   "type": "<expense | income | transfer | debt | loan>",
 ///   "merchantName": "<string | null>",
 ///   "date": "<yyyy-MM-dd | null>",
 ///   "grandTotal": <number | null>,
-///   "items": [
-///     { "name": "<string>", "qty": <number>, "unitPrice": <number|null>, "subtotal": <number> }
-///   ]
+///   "items": [...],
+///   "categoryId": "<UUID | null>",
+///   "categoryKeyword": "<string | null>",
+///   "suggestedWallet": "<string | null>",
+///   "destinationWallet": "<string | null>",
+///   "withPerson": "<string | null>",
+///   "note": "<string | null>"
 /// }
 /// ```
 class OcrParseResultModel {
   const OcrParseResultModel({
+    this.isTransaction = true,
+    this.type = 'expense',
     this.merchantName,
     this.date,
     this.grandTotal,
     this.items = const [],
+    this.categoryId,
+    this.categoryKeyword,
+    this.suggestedWallet,
+    this.destinationWallet,
+    this.withPerson,
+    this.note,
     this.provider,
     this.rawOcrText,
   });
+
+  /// Apakah gambar berisi transaksi keuangan yang valid.
+  final bool isTransaction;
+
+  /// Jenis transaksi: expense, income, transfer, debt, loan.
+  final String type;
 
   /// Nama toko/merchant dari struk.
   final String? merchantName;
@@ -30,8 +53,26 @@ class OcrParseResultModel {
   /// Total belanja (grand total) dari struk.
   final double? grandTotal;
 
-  /// Daftar item yang berhasil di-parse.
+  /// Daftar item yang berhasil di-parse (hanya untuk expense).
   final List<OcrItemModel> items;
+
+  /// UUID kategori yang di-assign oleh AI (untuk non-expense single category).
+  final String? categoryId;
+
+  /// Keyword kategori sebagai fallback jika categoryId null.
+  final String? categoryKeyword;
+
+  /// Nama wallet/payment method yang terdeteksi.
+  final String? suggestedWallet;
+
+  /// Wallet tujuan (khusus transfer).
+  final String? destinationWallet;
+
+  /// Nama orang terkait (khusus debt/loan).
+  final String? withPerson;
+
+  /// Catatan/deskripsi tambahan.
+  final String? note;
 
   /// Provider AI yang digunakan: 'gemini', 'groq', atau 'local'.
   final String? provider;
@@ -48,7 +89,8 @@ class OcrParseResultModel {
 
   /// Apakah hasil parsing memiliki data berguna.
   bool get hasUsableData =>
-      (grandTotal != null && grandTotal! > 0) || items.isNotEmpty;
+      isTransaction &&
+      ((grandTotal != null && grandTotal! > 0) || items.isNotEmpty);
 
   /// Parse dari response Edge Function OCR mode.
   ///
@@ -60,6 +102,12 @@ class OcrParseResultModel {
   }) {
     final data = json['data'] as Map<String, dynamic>? ?? json;
 
+    // Parse isTransaction
+    final isTransaction = data['isTransaction'] as bool? ?? true;
+
+    // Parse type
+    final rawType = data['type'] as String? ?? 'expense';
+
     // Parse date
     DateTime? parsedDate;
     final rawDate = data['date'] as String?;
@@ -67,7 +115,7 @@ class OcrParseResultModel {
       parsedDate = DateTime.tryParse(rawDate);
     }
 
-    // Parse items — handle kedua format (lama: name+amount, baru: name+qty+unitPrice+subtotal)
+    // Parse items — hanya untuk expense
     final rawItems = data['items'] as List<dynamic>? ?? [];
     final items = rawItems.map((e) {
       final itemMap = e as Map<String, dynamic>;
@@ -75,10 +123,18 @@ class OcrParseResultModel {
     }).toList();
 
     return OcrParseResultModel(
+      isTransaction: isTransaction,
+      type: rawType.toLowerCase(),
       merchantName: data['merchantName'] as String?,
       date: parsedDate,
       grandTotal: _toDoubleOrNull(data['grandTotal']),
       items: items,
+      categoryId: data['categoryId'] as String?,
+      categoryKeyword: data['categoryKeyword'] as String?,
+      suggestedWallet: data['suggestedWallet'] as String?,
+      destinationWallet: data['destinationWallet'] as String?,
+      withPerson: data['withPerson'] as String?,
+      note: data['note'] as String?,
       provider: provider ?? json['provider'] as String?,
       rawOcrText: rawOcrText,
     );
@@ -86,6 +142,8 @@ class OcrParseResultModel {
 
   /// Buat dari local fallback parser.
   factory OcrParseResultModel.fromLocal({
+    bool isTransaction = true,
+    String type = 'expense',
     String? merchantName,
     DateTime? date,
     double? grandTotal,
@@ -93,6 +151,8 @@ class OcrParseResultModel {
     String? rawOcrText,
   }) {
     return OcrParseResultModel(
+      isTransaction: isTransaction,
+      type: type,
       merchantName: merchantName,
       date: date,
       grandTotal: grandTotal,
@@ -104,28 +164,52 @@ class OcrParseResultModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'isTransaction': isTransaction,
+      'type': type,
       'merchantName': merchantName,
       'date': date?.toIso8601String(),
       'grandTotal': grandTotal,
       'items': items.map((i) => i.toMap()).toList(),
+      'categoryId': categoryId,
+      'categoryKeyword': categoryKeyword,
+      'suggestedWallet': suggestedWallet,
+      'destinationWallet': destinationWallet,
+      'withPerson': withPerson,
+      'note': note,
       'provider': provider,
       'rawOcrText': rawOcrText,
     };
   }
 
   OcrParseResultModel copyWith({
+    bool? isTransaction,
+    String? type,
     String? merchantName,
     DateTime? date,
     double? grandTotal,
     List<OcrItemModel>? items,
+    String? categoryId,
+    String? categoryKeyword,
+    String? suggestedWallet,
+    String? destinationWallet,
+    String? withPerson,
+    String? note,
     String? provider,
     String? rawOcrText,
   }) {
     return OcrParseResultModel(
+      isTransaction: isTransaction ?? this.isTransaction,
+      type: type ?? this.type,
       merchantName: merchantName ?? this.merchantName,
       date: date ?? this.date,
       grandTotal: grandTotal ?? this.grandTotal,
       items: items ?? this.items,
+      categoryId: categoryId ?? this.categoryId,
+      categoryKeyword: categoryKeyword ?? this.categoryKeyword,
+      suggestedWallet: suggestedWallet ?? this.suggestedWallet,
+      destinationWallet: destinationWallet ?? this.destinationWallet,
+      withPerson: withPerson ?? this.withPerson,
+      note: note ?? this.note,
       provider: provider ?? this.provider,
       rawOcrText: rawOcrText ?? this.rawOcrText,
     );
@@ -141,7 +225,8 @@ class OcrParseResultModel {
 
   @override
   String toString() =>
-      'OcrParseResultModel(merchant: $merchantName, date: $date, '
+      'OcrParseResultModel(isTransaction: $isTransaction, type: $type, '
+      'merchant: $merchantName, date: $date, '
       'grandTotal: $grandTotal, items: ${items.length}, provider: $provider)';
 }
 

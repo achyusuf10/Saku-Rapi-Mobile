@@ -18,9 +18,13 @@ class VoiceRemoteDataSource {
 
   /// Kirim teks hasil STT ke Edge Function `ai-parse` mode voice.
   ///
+  /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
   /// Returns raw response map: `{ success, mode, provider, data }`.
   /// Caller bertanggung jawab parse `data` ke [VoiceParseResultModel].
-  Future<DataState<Map<String, dynamic>>> callAiParse(String text) async {
+  Future<DataState<Map<String, dynamic>>> callAiParse(
+    String text, {
+    List<Map<String, String>> categories = const [],
+  }) {
     return SupabaseHandler.call<Map<String, dynamic>>(
       function: () async {
         AppLogger.call(
@@ -30,10 +34,12 @@ class VoiceRemoteDataSource {
 
         // Pastikan session masih valid sebelum invoke Edge Function
 
-        final response = await _client.functions.invoke(
-          'ai-parse',
-          body: {'mode': 'voice', 'text': text},
-        );
+        final body = <String, dynamic>{'mode': 'voice', 'text': text};
+        if (categories.isNotEmpty) {
+          body['categories'] = categories;
+        }
+
+        final response = await _client.functions.invoke('ai-parse', body: body);
 
         final data = response.data as Map<String, dynamic>;
 

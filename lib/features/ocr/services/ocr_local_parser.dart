@@ -21,18 +21,59 @@ class OcrLocalParser {
       return OcrParseResultModel.fromLocal(rawOcrText: rawText);
     }
 
+    final type = _detectType(rawText);
     final merchantName = _extractMerchant(lines);
     final date = _extractDate(rawText);
     final grandTotal = _extractGrandTotal(lines);
-    final items = _extractItems(lines);
+    final items = type == 'expense' ? _extractItems(lines) : <OcrItemModel>[];
 
     return OcrParseResultModel.fromLocal(
+      type: type,
       merchantName: merchantName,
       date: date,
       grandTotal: grandTotal,
       items: items,
       rawOcrText: rawText,
     );
+  }
+
+  /// Deteksi tipe transaksi dari keyword dalam teks OCR.
+  static String _detectType(String text) {
+    final upper = text.toUpperCase();
+
+    // Transfer patterns
+    if (RegExp(
+      r'TRANSFER|KIRIM\s*(KE|UANG)|PINDAH\s*SALDO',
+      caseSensitive: false,
+    ).hasMatch(upper)) {
+      return 'transfer';
+    }
+
+    // Income patterns
+    if (RegExp(
+      r'GAJI|SALARY|PEMBAYARAN\s*DITERIMA|PENDAPATAN|INVOICE.*(LUNAS|PAID)',
+      caseSensitive: false,
+    ).hasMatch(upper)) {
+      return 'income';
+    }
+
+    // Debt patterns
+    if (RegExp(
+      r'HUTANG|PINJAM(AN)?|IOU|NGUTANG',
+      caseSensitive: false,
+    ).hasMatch(upper)) {
+      return 'debt';
+    }
+
+    // Loan patterns
+    if (RegExp(
+      r'PIUTANG|DIPINJAM|KASIH\s*PINJAM',
+      caseSensitive: false,
+    ).hasMatch(upper)) {
+      return 'loan';
+    }
+
+    return 'expense';
   }
 
   /// Ekstrak merchant name — biasanya baris awal yang bukan tanggal/angka.

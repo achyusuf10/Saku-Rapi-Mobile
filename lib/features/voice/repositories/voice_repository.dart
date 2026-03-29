@@ -28,14 +28,18 @@ class VoiceRepository {
 
   /// Parse teks voice melalui AI pipeline dengan local fallback.
   ///
+  /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
   /// 1. Coba Edge Function AI
   /// 2. Jika gagal → local fallback parser
   /// 3. Return success dengan provider info
-  Future<DataState<VoiceParseResultModel>> parseVoiceText(String text) async {
+  Future<DataState<VoiceParseResultModel>> parseVoiceText(
+    String text, {
+    List<Map<String, String>> categories = const [],
+  }) async {
     AppLogger.call('$_tag parseVoiceText: "$text"');
 
     // ── Try AI (Edge Function) ──
-    final aiResult = await _remote.callAiParse(text);
+    final aiResult = await _remote.callAiParse(text, categories: categories);
 
     if (aiResult.isSuccess()) {
       try {

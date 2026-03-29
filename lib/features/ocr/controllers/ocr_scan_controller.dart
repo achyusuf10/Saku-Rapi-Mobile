@@ -27,10 +27,10 @@ final ocrScanControllerProvider =
       (ref) => OcrScanController(
         repository: ref.watch(ocrRepositoryProvider),
         imageService: ref.watch(ocrImageServiceProvider),
-        expenseCategories: ref
+        categories: ref
             .read(categoryControllerProvider)
             .categories
-            .where((c) => c.type == CategoryType.expense && !c.isHidden)
+            .where((c) => !c.isHidden && c.type != CategoryType.system)
             .toList(),
       ),
     );
@@ -126,15 +126,15 @@ class OcrScanController extends StateNotifier<OcrScanState> {
   OcrScanController({
     required OcrRepository repository,
     required OcrImageService imageService,
-    List<CategoryModel> expenseCategories = const [],
+    List<CategoryModel> categories = const [],
   }) : _repository = repository,
        _imageService = imageService,
-       _expenseCategories = expenseCategories,
+       _categories = categories,
        super(const OcrScanState());
 
   final OcrRepository _repository;
   final OcrImageService _imageService;
-  final List<CategoryModel> _expenseCategories;
+  final List<CategoryModel> _categories;
   static const _tag = '[OcrScanController]';
 
   /// Mulai flow OCR dari kamera.
@@ -143,6 +143,7 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     final perm = await _imageService.requestCameraPermission();
     if (perm == CameraPermissionResult.denied) {
       state = const OcrScanState(status: OcrScanStatus.permissionDenied);
+
       return;
     }
     if (perm == CameraPermissionResult.permanentlyDenied) {
@@ -198,9 +199,15 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     state = state.copyWith(status: OcrScanStatus.analyzingAi);
     OcrParseResultModel result;
 
-    // Siapkan daftar kategori expense untuk AI categorization
-    final categoryMaps = _expenseCategories
-        .map((c) => {'id': c.id, 'name': c.name})
+    // Siapkan daftar kategori (expense + income) untuk AI categorization
+    final categoryMaps = _categories
+        .map(
+          (c) => {
+            'id': c.id,
+            'name': c.name,
+            'type': c.type == CategoryType.income ? 'income' : 'expense',
+          },
+        )
         .toList();
 
     try {
@@ -229,6 +236,16 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       result = _repository.parseTextLocally(rawText);
     }
 
+    // Handle gambar bukan transaksi
+    if (!result.isTransaction) {
+      state = state.copyWith(
+        status: OcrScanStatus.error,
+        parseResult: result,
+        errorMessage: 'NOT_TRANSACTION',
+      );
+      return;
+    }
+
     if (!result.hasUsableData) {
       state = state.copyWith(
         status: OcrScanStatus.error,
@@ -239,7 +256,7 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     }
 
     AppLogger.logSuccess(
-      'OCR pipeline complete: ${result.items.length} items, '
+      'OCR pipeline complete: type=${result.type}, ${result.items.length} items, '
       'total: ${result.grandTotal}, provider: ${result.provider}',
       runtimeType: OcrScanController,
     );

@@ -11,6 +11,7 @@ import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart'
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
@@ -34,6 +35,11 @@ class TransactionDetailPage extends ConsumerWidget {
   const TransactionDetailPage({super.key, required this.transaction});
 
   final TransactionModel transaction;
+
+  static Color _parseHexColor(String hex) {
+    final hexCode = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -146,8 +152,30 @@ class TransactionDetailPage extends ConsumerWidget {
               icon: FontAwesomeIcons.clockRotateLeft,
             ),
 
-          // ─── Items list ───
-          if (transaction.items.isNotEmpty) ...[
+          // ─── Single item: show category inline ───
+          if (transaction.items.length == 1) ...[
+            _DetailSection(
+              label: l10n.transactionCategory,
+              value: transaction.items.first.categoryName ?? '-',
+              icon: transaction.items.first.categoryIcon != null
+                  ? CategoryIconMapper.getIcon(
+                      transaction.items.first.categoryIcon!,
+                    )
+                  : FontAwesomeIcons.layerGroup,
+              iconColor: transaction.items.first.categoryColor != null
+                  ? _parseHexColor(transaction.items.first.categoryColor!)
+                  : null,
+            ),
+            if (transaction.items.first.itemName != null)
+              _DetailSection(
+                label: l10n.transactionItemName,
+                value: transaction.items.first.itemName!,
+                icon: FontAwesomeIcons.tag,
+              ),
+          ],
+
+          // ─── Multi-item list ───
+          if (transaction.items.length > 1) ...[
             SizedBox(height: 20.h),
             _ItemsSection(
               items: transaction.items,
@@ -405,11 +433,13 @@ class _DetailSection extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    this.iconColor,
   });
 
   final String label;
   final String value;
   final IconData icon;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +450,7 @@ class _DetailSection extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FaIcon(icon, size: 14.w, color: colors.textSecondary),
+          FaIcon(icon, size: 14.w, color: iconColor ?? colors.textSecondary),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -769,12 +799,12 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
               child: OutlinedButton.icon(
                 onPressed: () => context.push(
                   AppRouter.settlementHistory,
-                  extra: {
-                    'referenceTransactionId': tx.id,
-                    'originalAmount': tx.totalAmount,
-                    'withPerson': personName,
-                    'type': isDebt ? 'debt' : 'loan',
-                  },
+                  extra: SettlementHistoryArgument(
+                    referenceTransactionId: tx.id,
+                    originalAmount: tx.totalAmount,
+                    withPerson: personName,
+                    type: isDebt ? 'debt' : 'loan',
+                  ),
                 ),
                 icon: FaIcon(
                   FontAwesomeIcons.clockRotateLeft,

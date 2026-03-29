@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
+import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_balance_card.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_chart_carousel.dart';
@@ -36,6 +37,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(walletControllerProvider.notifier).loadWallets();
       ref.read(dashboardControllerProvider.notifier).loadDashboard();
+
+      // Eager-load kategori agar tersedia untuk Voice Input & OCR
+      final catState = ref.read(categoryControllerProvider);
+      if (catState.status == CategoryStatus.initial) {
+        ref.read(categoryControllerProvider.notifier).loadCategories();
+      }
     });
   }
 

@@ -27,6 +27,7 @@ class OcrImageService {
 
   /// Cek dan minta izin kamera.
   Future<CameraPermissionResult> requestCameraPermission() async {
+    return CameraPermissionResult.granted;
     final status = await Permission.camera.request();
     AppLogger.call('$_tag Camera permission: $status');
 

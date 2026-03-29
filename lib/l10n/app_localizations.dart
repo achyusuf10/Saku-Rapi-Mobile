@@ -2642,6 +2642,42 @@ abstract class AppLocalizations {
   /// **'Teks terdengar'**
   String get voiceTranscript;
 
+  /// No description provided for @voiceNotTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Input tidak terdeteksi sebagai transaksi. Coba ucapkan ulang dengan menyebutkan nominal atau jenis transaksi.'**
+  String get voiceNotTransaction;
+
+  /// No description provided for @voiceContinueButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjutkan'**
+  String get voiceContinueButton;
+
+  /// No description provided for @voiceRetryButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Ulangi'**
+  String get voiceRetryButton;
+
+  /// No description provided for @voicePreviewTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Preview Transaksi'**
+  String get voicePreviewTitle;
+
+  /// No description provided for @voicePreviewType.
+  ///
+  /// In id, this message translates to:
+  /// **'Tipe'**
+  String get voicePreviewType;
+
+  /// No description provided for @voicePreviewDestWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Wallet Tujuan'**
+  String get voicePreviewDestWallet;
+
   /// No description provided for @ocrExtractingText.
   ///
   /// In id, this message translates to:
@@ -2725,6 +2761,66 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Gambar tidak terbaca, coba foto ulang'**
   String get ocrImageBlurry;
+
+  /// No description provided for @ocrNotTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Gambar ini bukan dokumen transaksi keuangan. Coba foto struk, bukti transfer, atau nota lainnya.'**
+  String get ocrNotTransaction;
+
+  /// No description provided for @ocrTypeExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran'**
+  String get ocrTypeExpense;
+
+  /// No description provided for @ocrTypeIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan'**
+  String get ocrTypeIncome;
+
+  /// No description provided for @ocrTypeTransfer.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer'**
+  String get ocrTypeTransfer;
+
+  /// No description provided for @ocrTypeDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang'**
+  String get ocrTypeDebt;
+
+  /// No description provided for @ocrTypeLoan.
+  ///
+  /// In id, this message translates to:
+  /// **'Piutang'**
+  String get ocrTypeLoan;
+
+  /// No description provided for @ocrSourceWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Dari'**
+  String get ocrSourceWallet;
+
+  /// No description provided for @ocrDestWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Ke'**
+  String get ocrDestWallet;
+
+  /// No description provided for @ocrWithPerson.
+  ///
+  /// In id, this message translates to:
+  /// **'Orang'**
+  String get ocrWithPerson;
+
+  /// No description provided for @ocrPaymentMethod.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembayaran'**
+  String get ocrPaymentMethod;
 
   /// No description provided for @ocrUseResult.
   ///

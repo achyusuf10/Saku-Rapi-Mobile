@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_person_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -214,12 +215,12 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
     context
         .push(
           AppRouter.settlementHistory,
-          extra: {
-            'referenceTransactionId': tx.id,
-            'originalAmount': tx.totalAmount,
-            'withPerson': tx.withPerson ?? '',
-            'type': widget.type,
-          },
+          extra: SettlementHistoryArgument(
+            referenceTransactionId: tx.id,
+            originalAmount: tx.totalAmount,
+            withPerson: tx.withPerson ?? '',
+            type: widget.type,
+          ),
         )
         .then((_) {
           // Reload after returning — settlements may have been edited/deleted.

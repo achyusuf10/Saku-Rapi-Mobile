@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -64,7 +65,9 @@ class TransactionDatePickerTile extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    _formatDate(displayDate),
+                    displayDate.extToFormattedString(
+                      outputDateFormat: 'EEE, dd MMMM yyyy HH:mm',
+                    ),
                     style: TextStyleConstants.b2.copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w500,
@@ -85,15 +88,34 @@ class TransactionDatePickerTile extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context, DateTime current) async {
-    final picked = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: current,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) {
-      onChanged(picked);
-    }
+    if (pickedDate == null) return;
+    if (!context.mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
+    );
+
+    final combined = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime?.hour ?? current.hour,
+      pickedTime?.minute ?? current.minute,
+    );
+    onChanged(combined);
+  }
+
+  String _formatTime(DateTime date) {
+    final h = date.hour.toString().padLeft(2, '0');
+    final m = date.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 
   String _formatDate(DateTime date) {

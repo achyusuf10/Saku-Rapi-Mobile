@@ -1340,6 +1340,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceTranscript => 'Heard text';
 
   @override
+  String get voiceNotTransaction =>
+      'Input not detected as a transaction. Try again by mentioning the amount or transaction type.';
+
+  @override
+  String get voiceContinueButton => 'Continue';
+
+  @override
+  String get voiceRetryButton => 'Retry';
+
+  @override
+  String get voicePreviewTitle => 'Transaction Preview';
+
+  @override
+  String get voicePreviewType => 'Type';
+
+  @override
+  String get voicePreviewDestWallet => 'Destination Wallet';
+
+  @override
   String get ocrExtractingText => 'Reading text from receipt...';
 
   @override
@@ -1383,6 +1402,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ocrImageBlurry => 'Image is unreadable, try taking another photo';
+
+  @override
+  String get ocrNotTransaction =>
+      'This image is not a financial document. Try taking a photo of a receipt, transfer proof, or invoice.';
+
+  @override
+  String get ocrTypeExpense => 'Expense';
+
+  @override
+  String get ocrTypeIncome => 'Income';
+
+  @override
+  String get ocrTypeTransfer => 'Transfer';
+
+  @override
+  String get ocrTypeDebt => 'Debt';
+
+  @override
+  String get ocrTypeLoan => 'Loan';
+
+  @override
+  String get ocrSourceWallet => 'From';
+
+  @override
+  String get ocrDestWallet => 'To';
+
+  @override
+  String get ocrWithPerson => 'Person';
+
+  @override
+  String get ocrPaymentMethod => 'Payment';
 
   @override
   String get ocrUseResult => 'Use Result';

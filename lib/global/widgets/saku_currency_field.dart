@@ -98,6 +98,23 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
   }
 
   @override
+  void didUpdateWidget(covariant SakuCurrencyField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Jika initialValue berubah dari null/0 ke nilai baru (prefill dari OCR/Voice)
+    // dan user belum mengetik manual → update text controller setelah build selesai.
+    final oldVal = oldWidget.initialValue ?? 0;
+    final newVal = widget.initialValue ?? 0;
+    if (newVal > 0 && oldVal != newVal && _controller.text.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.text.isEmpty) {
+          _controller.text = ThousandInputFormatter.formatNumber(newVal);
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     if (_isInternalController) {
       _controller.dispose();

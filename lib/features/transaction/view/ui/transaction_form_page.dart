@@ -12,6 +12,7 @@ import 'package:app_saku_rapi/features/category/view/widgets/category_picker_she
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
+import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
@@ -109,9 +110,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   /// Terapkan data voice parse ke form (prefill only, bukan auto-save).
   ///
   /// Membaca [pendingVoicePrefillProvider], jika ada data:
-  /// - Set type (expense/income)
+  /// - Set type (expense/income/transfer/debt/loan)
   /// - Set total amount
   /// - Set note
+  /// - Set date
+  /// - Set merchant
+  /// - Set wallet (match by name)
+  /// - Set destination wallet (transfer)
+  /// - Set withPerson (debt/loan)
+  /// - Set category (lookup via categoryKeyword)
   /// - Clear provider setelah dibaca
   void _applyVoicePrefill(TransactionFormController ctrl) {
     final voiceResult = ref.read(pendingVoicePrefillProvider);
@@ -128,24 +135,114 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       ctrl.setTotalAmount(voiceResult.amount!);
     }
 
-    // Set note (gabungkan rawTranscript + note dari AI)
+    // Set note (prefer note > rawTranscript)
     final note = voiceResult.note ?? voiceResult.rawTranscript;
     if (note != null && note.isNotEmpty) {
       ctrl.setNote(note);
       _noteController.text = note;
+    }
+
+    // Set date
+    if (voiceResult.date != null) {
+      ctrl.setDate(voiceResult.date!);
+    }
+
+    // Set merchant
+    if (voiceResult.merchantName != null &&
+        voiceResult.merchantName!.isNotEmpty) {
+      ctrl.setMerchant(voiceResult.merchantName);
+      _merchantController.text = voiceResult.merchantName!;
+    }
+
+    // Set wallet (match by name, case-insensitive)
+    final wallets = ref.read(walletListProvider);
+    if (voiceResult.suggestedWallet != null &&
+        voiceResult.suggestedWallet!.isNotEmpty) {
+      final walletName = voiceResult.suggestedWallet!.toLowerCase();
+      final matched = wallets.where((w) => w.name.toLowerCase() == walletName);
+      if (matched.isNotEmpty) {
+        ctrl.setWallet(matched.first);
+      }
+    }
+
+    // Set destination wallet (transfer)
+    if (voiceResult.type == TransactionTypeEnum.transfer &&
+        voiceResult.destinationWallet != null &&
+        voiceResult.destinationWallet!.isNotEmpty) {
+      final destName = voiceResult.destinationWallet!.toLowerCase();
+      final matched = wallets.where((w) => w.name.toLowerCase() == destName);
+      if (matched.isNotEmpty) {
+        ctrl.setDestinationWallet(matched.first);
+      }
+    }
+
+    // Set withPerson (debt/loan)
+    if (voiceResult.withPerson != null && voiceResult.withPerson!.isNotEmpty) {
+      ctrl.setWithPerson(voiceResult.withPerson);
+    }
+
+    // Set category (prefer categoryId exact match → fallback categoryKeyword)
+    if (voiceResult.type == TransactionTypeEnum.expense ||
+        voiceResult.type == TransactionTypeEnum.income) {
+      final categoryType = voiceResult.type == TransactionTypeEnum.income
+          ? CategoryType.income
+          : CategoryType.expense;
+      final allCategories = ref
+          .read(categoryControllerProvider)
+          .categories
+          .where((c) => c.type == categoryType)
+          .toList();
+
+      CategoryModel? matched;
+
+      // 1) Exact match by categoryId (dari AI)
+      if (voiceResult.categoryId != null &&
+          voiceResult.categoryId!.isNotEmpty) {
+        matched = allCategories
+            .where((c) => c.id == voiceResult.categoryId)
+            .firstOrNull;
+      }
+
+      // 2) Fallback: fuzzy match by categoryKeyword
+      if (matched == null &&
+          voiceResult.categoryKeyword != null &&
+          voiceResult.categoryKeyword!.isNotEmpty) {
+        final kw = voiceResult.categoryKeyword!.toLowerCase();
+        for (final cat in allCategories) {
+          if (cat.name.toLowerCase() == kw) {
+            matched = cat;
+            break;
+          }
+        }
+        // Partial match jika exact name tidak ditemukan
+        if (matched == null) {
+          for (final cat in allCategories) {
+            if (cat.name.toLowerCase().contains(kw) ||
+                kw.contains(cat.name.toLowerCase())) {
+              matched = cat;
+              break;
+            }
+          }
+        }
+      }
+
+      if (matched != null) {
+        ctrl.setCategory(matched);
+      }
     }
   }
 
   /// Terapkan data OCR parse ke form (prefill only, bukan auto-save).
   ///
   /// Membaca [pendingOcrPrefillProvider], jika ada data:
-  /// - Set type expense (OCR selalu expense)
+  /// - Set type sesuai hasil AI (expense/income/transfer/debt/loan)
   /// - Set merchant name
   /// - Set date
   /// - Set total amount
-  /// - Prefill items (multi-item mode jika > 1 item)
+  /// - Prefill items (multi-item mode jika expense > 1 item)
   /// - Auto-assign kategori per item dari AI
-  /// - Balance items jika total mismatch
+  /// - Match wallet/person sesuai tipe transaksi
+  /// - Balance items jika total mismatch (expense only)
   /// - Clear provider setelah dibaca
   void _applyOcrPrefill(TransactionFormController ctrl) {
     final ocrResult = ref.read(pendingOcrPrefillProvider);
@@ -154,13 +251,18 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     // Clear provider agar tidak ke-apply ulang
     ref.read(pendingOcrPrefillProvider.notifier).state = null;
 
-    // OCR selalu expense
-    ctrl.setType(TransactionTypeEnum.expense);
+    // Set type dari OCR result
+    final type = _parseOcrType(ocrResult.type);
+    ctrl.setType(type);
 
-    // Merchant
+    // Merchant / note
     if (ocrResult.merchantName != null && ocrResult.merchantName!.isNotEmpty) {
       ctrl.setMerchant(ocrResult.merchantName);
       _merchantController.text = ocrResult.merchantName!;
+    }
+    if (ocrResult.note != null && ocrResult.note!.isNotEmpty) {
+      _noteController.text = ocrResult.note!;
+      ctrl.setNote(ocrResult.note);
     }
 
     // Date
@@ -168,40 +270,190 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       ctrl.setDate(ocrResult.date!);
     }
 
-    // Build lookup map kategori expense (flat, termasuk children)
-    final allCategories = ref
-        .read(categoryControllerProvider)
-        .categories
-        .where((c) => c.type == CategoryType.expense)
-        .toList();
-    final categoryMap = {for (final c in allCategories) c.id: c};
-
-    // Items & total
-    final balanced = OcrRepository.balanceResult(ocrResult);
-    if (balanced.items.isNotEmpty) {
-      final txItems = balanced.items.asMap().entries.map((e) {
-        final ocrItem = e.value;
-        // Lookup kategori dari AI-assigned categoryId
-        final cat = ocrItem.categoryId != null
-            ? categoryMap[ocrItem.categoryId]
-            : null;
-
-        return TransactionItemModel(
-          itemName: ocrItem.name,
-          qty: ocrItem.qty,
-          unitPrice: ocrItem.unitPrice,
-          amount: ocrItem.subtotal,
-          sortOrder: e.key,
-          categoryId: cat?.id,
-          categoryName: cat?.name,
-          categoryIcon: cat?.icon,
-          categoryColor: cat?.color,
-        );
-      }).toList();
-      ctrl.prefillItems(txItems);
-    } else if (balanced.grandTotal != null && balanced.grandTotal! > 0) {
-      ctrl.setTotalAmount(balanced.grandTotal!);
+    // Wallet matching (by name, case-insensitive)
+    final wallets = ref.read(walletListProvider);
+    if (ocrResult.suggestedWallet != null &&
+        ocrResult.suggestedWallet!.isNotEmpty) {
+      final walletName = ocrResult.suggestedWallet!.toLowerCase();
+      final matched = wallets.where((w) => w.name.toLowerCase() == walletName);
+      if (matched.isNotEmpty) {
+        ctrl.setWallet(matched.first);
+      }
     }
+
+    // Destination wallet (transfer only)
+    if (type == TransactionTypeEnum.transfer &&
+        ocrResult.destinationWallet != null &&
+        ocrResult.destinationWallet!.isNotEmpty) {
+      final destName = ocrResult.destinationWallet!.toLowerCase();
+      final matched = wallets.where((w) => w.name.toLowerCase() == destName);
+      if (matched.isNotEmpty) {
+        ctrl.setDestinationWallet(matched.first);
+      }
+    }
+
+    // Person (debt/loan only)
+    if (ocrResult.withPerson != null && ocrResult.withPerson!.isNotEmpty) {
+      ctrl.setWithPerson(ocrResult.withPerson);
+    }
+
+    // Category matching for expense/income
+    if (type == TransactionTypeEnum.expense ||
+        type == TransactionTypeEnum.income) {
+      final categoryType = type == TransactionTypeEnum.income
+          ? CategoryType.income
+          : CategoryType.expense;
+      final allCategories = ref
+          .read(categoryControllerProvider)
+          .categories
+          .where((c) => c.type == categoryType)
+          .toList();
+      final categoryLookup = {for (final c in allCategories) c.id: c};
+
+      // Expense: per-item categories + items + balancing
+      if (type == TransactionTypeEnum.expense) {
+        if (ocrResult.items.length == 1) {
+          // ── Single item → single-item mode ──
+          // Cek SEBELUM balanceResult agar balance item tidak
+          // membuat 1 item receipt menjadi multi-item.
+          final item = ocrResult.items.first;
+
+          // Pakai grandTotal jika ada (lebih akurat, termasuk tax/tip)
+          final amount =
+              (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0)
+              ? ocrResult.grandTotal!
+              : item.subtotal;
+          if (amount > 0) ctrl.setTotalAmount(amount);
+
+          // Nama item → note (gabungkan dengan note AI jika ada)
+          final parts = <String>[];
+          if (item.name != null && item.name!.isNotEmpty) {
+            parts.add(item.name!);
+          }
+          if (ocrResult.note != null && ocrResult.note!.isNotEmpty) {
+            parts.add(ocrResult.note!);
+          }
+          if (parts.isNotEmpty) {
+            final combinedNote = parts.join(' — ');
+            ctrl.setNote(combinedNote);
+            _noteController.text = combinedNote;
+          }
+
+          // Kategori dari item jika ada
+          if (item.categoryId != null) {
+            final cat = categoryLookup[item.categoryId];
+            if (cat != null) {
+              ctrl.setCategory(cat);
+            }
+          }
+        } else if (ocrResult.items.length > 1) {
+          // ── Multi-item → balance dulu, lalu prefill ──
+          final balanced = OcrRepository.balanceResult(ocrResult);
+          final txItems = balanced.items.asMap().entries.map((e) {
+            final ocrItem = e.value;
+            final cat = ocrItem.categoryId != null
+                ? categoryLookup[ocrItem.categoryId]
+                : null;
+
+            return TransactionItemModel(
+              itemName: ocrItem.name,
+              qty: ocrItem.qty,
+              unitPrice: ocrItem.unitPrice,
+              amount: ocrItem.subtotal,
+              sortOrder: e.key,
+              categoryId: cat?.id,
+              categoryName: cat?.name,
+              categoryIcon: cat?.icon,
+              categoryColor: cat?.color,
+            );
+          }).toList();
+          ctrl.prefillItems(txItems);
+        } else if (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0) {
+          // Tidak ada items tapi ada total → single-item mode
+          ctrl.setTotalAmount(ocrResult.grandTotal!);
+        }
+
+        // Top-level category for expense (from categoryId or keyword)
+        _matchOcrTopLevelCategory(
+          ctrl,
+          ocrResult,
+          allCategories,
+          categoryLookup,
+        );
+      }
+
+      // Income: just total + top-level category
+      if (type == TransactionTypeEnum.income) {
+        if (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0) {
+          ctrl.setTotalAmount(ocrResult.grandTotal!);
+        }
+        _matchOcrTopLevelCategory(
+          ctrl,
+          ocrResult,
+          allCategories,
+          categoryLookup,
+        );
+      }
+    } else {
+      // Transfer/Debt/Loan: just total
+      if (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0) {
+        ctrl.setTotalAmount(ocrResult.grandTotal!);
+      }
+    }
+  }
+
+  /// Match top-level categoryId/categoryKeyword ke kategori user.
+  void _matchOcrTopLevelCategory(
+    TransactionFormController ctrl,
+    OcrParseResultModel ocrResult,
+    List<CategoryModel> allCategories,
+    Map<String, CategoryModel> categoryLookup,
+  ) {
+    CategoryModel? matched;
+
+    // 1) Exact match by categoryId
+    if (ocrResult.categoryId != null && ocrResult.categoryId!.isNotEmpty) {
+      matched = categoryLookup[ocrResult.categoryId];
+    }
+
+    // 2) Fallback: match by categoryKeyword
+    if (matched == null &&
+        ocrResult.categoryKeyword != null &&
+        ocrResult.categoryKeyword!.isNotEmpty) {
+      final kw = ocrResult.categoryKeyword!.toLowerCase();
+      for (final cat in allCategories) {
+        if (cat.name.toLowerCase() == kw) {
+          matched = cat;
+          break;
+        }
+      }
+      // Partial match
+      if (matched == null) {
+        for (final cat in allCategories) {
+          if (cat.name.toLowerCase().contains(kw) ||
+              kw.contains(cat.name.toLowerCase())) {
+            matched = cat;
+            break;
+          }
+        }
+      }
+    }
+
+    if (matched != null) {
+      ctrl.setCategory(matched);
+    }
+  }
+
+  /// Parse OCR type string ke [TransactionTypeEnum].
+  TransactionTypeEnum _parseOcrType(String rawType) {
+    return switch (rawType.toLowerCase()) {
+      'income' => TransactionTypeEnum.income,
+      'expense' => TransactionTypeEnum.expense,
+      'transfer' => TransactionTypeEnum.transfer,
+      'debt' => TransactionTypeEnum.debt,
+      'loan' => TransactionTypeEnum.loan,
+      _ => TransactionTypeEnum.expense,
+    };
   }
 
   @override

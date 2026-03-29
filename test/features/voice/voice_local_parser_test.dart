@@ -72,7 +72,7 @@ void main() {
     });
 
     test('detects income from "terima"', () {
-      final result = VoiceLocalParser.parse('terima transfer 500rb');
+      final result = VoiceLocalParser.parse('terima uang 500rb');
       expect(result.type, TransactionTypeEnum.income);
     });
 

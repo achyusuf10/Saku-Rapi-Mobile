@@ -8,6 +8,8 @@ import 'package:app_saku_rapi/features/budget/view/ui/completed_budgets_page.dar
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/ui/category_management_page.dart';
 import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_page.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_person_page.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/ui/settlement_history_page.dart';
@@ -264,10 +266,10 @@ class AppRouter {
           path: debtLoanPerson,
           parentNavigatorKey: navigatorKey,
           builder: (context, state) {
-            final extra = state.extra! as Map<String, dynamic>;
+            final extra = state.extra! as DebtLoanPersonArgument;
             return DebtLoanPersonPage(
-              withPerson: extra['withPerson'] as String?,
-              type: extra['type'] as String,
+              withPerson: extra.withPerson,
+              type: extra.type,
             );
           },
         ),
@@ -275,12 +277,12 @@ class AppRouter {
           path: settlementHistory,
           parentNavigatorKey: navigatorKey,
           builder: (context, state) {
-            final extra = state.extra! as Map<String, dynamic>;
+            final extra = state.extra! as SettlementHistoryArgument;
             return SettlementHistoryPage(
-              referenceTransactionId: extra['referenceTransactionId'] as String,
-              originalAmount: extra['originalAmount'] as double,
-              withPerson: extra['withPerson'] as String,
-              type: extra['type'] as String,
+              referenceTransactionId: extra.referenceTransactionId,
+              originalAmount: extra.originalAmount,
+              withPerson: extra.withPerson,
+              type: extra.type,
             );
           },
         ),

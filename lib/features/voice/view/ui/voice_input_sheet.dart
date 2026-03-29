@@ -1,5 +1,8 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/voice/controllers/voice_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
@@ -132,12 +135,20 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
             ),
 
           // ── Transcript display ──
-          if (state.transcript.isNotEmpty) ...[
+          if (state.transcript.isNotEmpty &&
+              state.status != VoiceInputStatus.done) ...[
             SizedBox(height: 16.h),
             _VoiceTranscriptDisplay(
               transcript: state.transcript,
               isProcessing: state.status == VoiceInputStatus.processing,
             ),
+          ],
+
+          // ── Preview hasil parsing ──
+          if (state.status == VoiceInputStatus.done &&
+              state.parseResult != null) ...[
+            SizedBox(height: 16.h),
+            _VoicePreviewCard(result: state.parseResult!),
           ],
 
           // ── Error / Permission denied ──
@@ -193,7 +204,7 @@ class _VoiceStatusText extends StatelessWidget {
       ),
       VoiceInputStatus.listening => (l10n.voiceListening, colors.info),
       VoiceInputStatus.processing => (l10n.voiceAnalyzingAi, colors.primary),
-      VoiceInputStatus.done => (l10n.voiceDoneButton, colors.success),
+      VoiceInputStatus.done => (l10n.voicePreviewTitle, colors.success),
       VoiceInputStatus.error => (l10n.voiceError, colors.expense),
       VoiceInputStatus.permissionDenied => (
         l10n.voicePermissionDenied,
@@ -346,6 +357,8 @@ class _VoiceErrorDisplay extends StatelessWidget {
         ? l10n.voicePermissionExplainer
         : state.errorMessage == 'no_speech'
         ? l10n.voiceNoSpeech
+        : state.errorMessage == 'not_transaction'
+        ? l10n.voiceNotTransaction
         : l10n.voiceError;
 
     return Container(
@@ -398,10 +411,12 @@ class _VoiceActionButtons extends StatelessWidget {
 
     return Row(
       children: [
-        // Cancel button (selalu tampil)
+        // Cancel / Ulangi button
         Expanded(
           child: OutlinedButton(
-            onPressed: onCancel,
+            onPressed: state.status == VoiceInputStatus.done
+                ? onRetry
+                : onCancel,
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12.h),
               side: BorderSide(
@@ -412,7 +427,9 @@ class _VoiceActionButtons extends StatelessWidget {
               ),
             ),
             child: Text(
-              l10n.confirmCancel,
+              state.status == VoiceInputStatus.done
+                  ? l10n.voiceRetryButton
+                  : l10n.confirmCancel,
               style: TextStyleConstants.b2.copyWith(
                 color: colors.textSecondary,
               ),
@@ -465,7 +482,7 @@ class _VoiceActionButtons extends StatelessWidget {
       );
     }
 
-    // Done → "Selesai"
+    // Done → "Lanjutkan"
     if (state.status == VoiceInputStatus.done) {
       return ElevatedButton(
         onPressed: onDone,
@@ -477,7 +494,7 @@ class _VoiceActionButtons extends StatelessWidget {
           ),
         ),
         child: Text(
-          l10n.voiceDoneButton,
+          l10n.voiceContinueButton,
           style: TextStyleConstants.b2.copyWith(color: Colors.white),
         ),
       );
@@ -496,6 +513,260 @@ class _VoiceActionButtons extends StatelessWidget {
         l10n.voicePleaseWait,
         style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
       ),
+    );
+  }
+}
+
+/// Preview card yang menampilkan hasil parsing voice.
+///
+/// Menampilkan: tipe transaksi, nominal, kategori, catatan, tanggal,
+/// wallet, merchant, dan info orang (jika hutang/piutang).
+class _VoicePreviewCard extends StatelessWidget {
+  const _VoicePreviewCard({required this.result});
+
+  final VoiceParseResultModel result;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colors.success.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.success.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Transcript asli ──
+          if (result.rawTranscript != null &&
+              result.rawTranscript!.isNotEmpty) ...[
+            Text(
+              l10n.voiceTranscript,
+              style: TextStyleConstants.label2.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              '"${result.rawTranscript}"',
+              style: TextStyleConstants.b2.copyWith(
+                color: colors.textPrimary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
+            SizedBox(height: 12.h),
+          ],
+
+          // ── Tipe transaksi ──
+          _PreviewRow(
+            icon: _typeIcon(result.type),
+            iconColor: _typeColor(result.type, colors),
+            label: l10n.voicePreviewType,
+            value: _typeLabel(result.type, l10n),
+          ),
+
+          // ── Nominal ──
+          if (result.amount != null && result.amount! > 0) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.moneyBill,
+              iconColor: colors.primary,
+              label: l10n.transactionAmount,
+              value: result.amount!.toCurrency(),
+            ),
+          ],
+
+          // ── Kategori ──
+          if (result.categoryKeyword != null &&
+              result.categoryKeyword!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.tag,
+              iconColor: colors.accent,
+              label: l10n.transactionCategory,
+              value: result.categoryKeyword!,
+            ),
+          ],
+
+          // ── Merchant ──
+          if (result.merchantName != null &&
+              result.merchantName!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.store,
+              iconColor: colors.info,
+              label: l10n.transactionMerchant,
+              value: result.merchantName!,
+            ),
+          ],
+
+          // ── Wallet ──
+          if (result.suggestedWallet != null &&
+              result.suggestedWallet!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.wallet,
+              iconColor: colors.transfer,
+              label: l10n.transactionWallet,
+              value: result.suggestedWallet!,
+            ),
+          ],
+
+          // ── Destination wallet (transfer) ──
+          if (result.type == TransactionTypeEnum.transfer &&
+              result.destinationWallet != null &&
+              result.destinationWallet!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.arrowRight,
+              iconColor: colors.transfer,
+              label: l10n.voicePreviewDestWallet,
+              value: result.destinationWallet!,
+            ),
+          ],
+
+          // ── Nama orang (hutang/piutang) ──
+          if (result.withPerson != null && result.withPerson!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.userTag,
+              iconColor: colors.expense,
+              label: l10n.transactionWithPerson,
+              value: result.withPerson!,
+            ),
+          ],
+
+          // ── Tanggal ──
+          if (result.date != null) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.calendar,
+              iconColor: colors.textSecondary,
+              label: l10n.transactionDate,
+              value: result.date!.extToFormattedString(),
+            ),
+          ],
+
+          // ── Catatan ──
+          if (result.note != null && result.note!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _PreviewRow(
+              icon: FontAwesomeIcons.noteSticky,
+              iconColor: colors.textSecondary,
+              label: l10n.transactionNote,
+              value: result.note!,
+            ),
+          ],
+
+          // ── Provider badge ──
+          SizedBox(height: 12.h),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Text(
+                result.provider ?? 'AI',
+                style: TextStyleConstants.label3.copyWith(
+                  color: colors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _typeIcon(TransactionTypeEnum type) {
+    return switch (type) {
+      TransactionTypeEnum.income => FontAwesomeIcons.arrowDown,
+      TransactionTypeEnum.expense => FontAwesomeIcons.arrowUp,
+      TransactionTypeEnum.transfer => FontAwesomeIcons.arrowRightArrowLeft,
+      TransactionTypeEnum.debt => FontAwesomeIcons.handHoldingDollar,
+      TransactionTypeEnum.loan => FontAwesomeIcons.handHoldingHand,
+      _ => FontAwesomeIcons.circleQuestion,
+    };
+  }
+
+  Color _typeColor(TransactionTypeEnum type, dynamic colors) {
+    return switch (type) {
+      TransactionTypeEnum.income => colors.income as Color,
+      TransactionTypeEnum.expense => colors.expense as Color,
+      TransactionTypeEnum.transfer => colors.transfer as Color,
+      TransactionTypeEnum.debt => colors.expense as Color,
+      TransactionTypeEnum.loan => colors.income as Color,
+      _ => colors.textSecondary as Color,
+    };
+  }
+
+  String _typeLabel(TransactionTypeEnum type, dynamic l10n) {
+    return switch (type) {
+      TransactionTypeEnum.income => l10n.transactionIncome as String,
+      TransactionTypeEnum.expense => l10n.transactionExpense as String,
+      TransactionTypeEnum.transfer => l10n.transactionTransfer as String,
+      TransactionTypeEnum.debt => l10n.transactionDebt as String,
+      TransactionTypeEnum.loan => l10n.transactionLoan as String,
+      _ => type.toDbValue(),
+    };
+  }
+}
+
+/// Baris tunggal dalam preview card.
+class _PreviewRow extends StatelessWidget {
+  const _PreviewRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 20.w,
+          child: FaIcon(icon, size: 14.w, color: iconColor),
+        ),
+        SizedBox(width: 8.w),
+        SizedBox(
+          width: 80.w,
+          child: Text(
+            label,
+            style: TextStyleConstants.label2.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyleConstants.b2.copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

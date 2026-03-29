@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/repositories/voice_repository.dart';
 import 'package:app_saku_rapi/features/voice/services/voice_input_service.dart';
@@ -25,6 +27,11 @@ final voiceInputControllerProvider =
       (ref) => VoiceInputController(
         repository: ref.watch(voiceRepositoryProvider),
         service: ref.watch(voiceInputServiceProvider),
+        categories: ref
+            .read(categoryControllerProvider)
+            .categories
+            .where((c) => c.type != CategoryType.system && !c.isHidden)
+            .toList(),
       ),
     );
 
@@ -115,12 +122,15 @@ class VoiceInputController extends StateNotifier<VoiceInputState> {
   VoiceInputController({
     required VoiceRepository repository,
     required VoiceInputService service,
+    List<CategoryModel> categories = const [],
   }) : _repository = repository,
        _service = service,
+       _categories = categories,
        super(const VoiceInputState());
 
   final VoiceRepository _repository;
   final VoiceInputService _service;
+  final List<CategoryModel> _categories;
 
   static const _tag = '[Voice] [VoiceInputController]';
 
@@ -241,14 +251,33 @@ class VoiceInputController extends StateNotifier<VoiceInputState> {
     AppLogger.call('$_tag _processTranscript: "$transcript"');
     state = state.copyWith(status: VoiceInputStatus.processing);
 
-    final result = await _repository.parseVoiceText(transcript);
+    // Siapkan daftar kategori untuk AI categorization (termasuk type)
+    final categoryMaps = _categories
+        .map((c) => {'id': c.id, 'name': c.name, 'type': c.type.name})
+        .toList();
+
+    final result = await _repository.parseVoiceText(
+      transcript,
+      categories: categoryMaps,
+    );
 
     if (!mounted) return;
 
     if (result.isSuccess()) {
+      final parsed = result.dataSuccess()!;
+
+      // Edge case: AI menentukan ini bukan transaksi
+      if (!parsed.isTransaction) {
+        state = state.copyWith(
+          status: VoiceInputStatus.error,
+          errorMessage: 'not_transaction',
+        );
+        return;
+      }
+
       state = state.copyWith(
         status: VoiceInputStatus.done,
-        parseResult: result.dataSuccess(),
+        parseResult: parsed,
       );
     } else {
       final (msg, _, _, _) = result.dataError()!;

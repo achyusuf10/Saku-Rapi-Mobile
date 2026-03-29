@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_controller.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_summary_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
@@ -268,7 +269,10 @@ class _DebtLoanPersonTile extends StatelessWidget {
       onTap: () {
         context.push(
           AppRouter.debtLoanPerson,
-          extra: {'withPerson': summary.withPerson, 'type': type},
+          extra: DebtLoanPersonArgument(
+            withPerson: summary.withPerson,
+            type: type,
+          ),
         );
       },
       child: Padding(

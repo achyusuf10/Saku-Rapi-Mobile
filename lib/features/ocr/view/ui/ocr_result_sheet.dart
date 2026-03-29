@@ -231,12 +231,19 @@ class OcrResultSheet extends ConsumerWidget {
     final l10n = context.l10n;
 
     String message;
-    if (state.errorMessage == 'NO_TEXT') {
+    IconData icon;
+    if (state.errorMessage == 'NOT_TRANSACTION') {
+      message = l10n.ocrNotTransaction;
+      icon = FontAwesomeIcons.imagePortrait;
+    } else if (state.errorMessage == 'NO_TEXT') {
       message = l10n.ocrNoText;
+      icon = FontAwesomeIcons.triangleExclamation;
     } else if (state.errorMessage == 'PARSE_FAILED') {
       message = l10n.ocrImageBlurry;
+      icon = FontAwesomeIcons.triangleExclamation;
     } else {
       message = l10n.ocrErrorGeneric;
+      icon = FontAwesomeIcons.triangleExclamation;
     }
 
     return Padding(
@@ -244,11 +251,7 @@ class OcrResultSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FaIcon(
-            FontAwesomeIcons.triangleExclamation,
-            size: 48.w,
-            color: colors.expense,
-          ),
+          FaIcon(icon, size: 48.w, color: colors.expense),
           SizedBox(height: 16.h),
           Text(
             message,
@@ -322,6 +325,11 @@ class OcrResultSheet extends ConsumerWidget {
 
           SizedBox(height: 12.h),
 
+          // Transaction type badge
+          _buildTypeBadge(result.type, colors, l10n),
+
+          SizedBox(height: 12.h),
+
           // Merchant & Date
           if (result.merchantName != null) ...[
             _InfoRow(
@@ -337,6 +345,51 @@ class OcrResultSheet extends ConsumerWidget {
               icon: FontAwesomeIcons.calendar,
               label: l10n.ocrDate,
               value: result.date!.extToDateStringDDMMMMYYYY(),
+              colors: colors,
+            ),
+            SizedBox(height: 8.h),
+          ],
+
+          // Transfer: wallet info
+          if (result.type == 'transfer') ...[
+            if (result.suggestedWallet != null) ...[
+              _InfoRow(
+                icon: FontAwesomeIcons.wallet,
+                label: l10n.ocrSourceWallet,
+                value: result.suggestedWallet!,
+                colors: colors,
+              ),
+              SizedBox(height: 8.h),
+            ],
+            if (result.destinationWallet != null) ...[
+              _InfoRow(
+                icon: FontAwesomeIcons.arrowRight,
+                label: l10n.ocrDestWallet,
+                value: result.destinationWallet!,
+                colors: colors,
+              ),
+              SizedBox(height: 8.h),
+            ],
+          ],
+
+          // Debt/Loan: person info
+          if ((result.type == 'debt' || result.type == 'loan') &&
+              result.withPerson != null) ...[
+            _InfoRow(
+              icon: FontAwesomeIcons.user,
+              label: l10n.ocrWithPerson,
+              value: result.withPerson!,
+              colors: colors,
+            ),
+            SizedBox(height: 8.h),
+          ],
+
+          // Payment method (non-transfer)
+          if (result.type != 'transfer' && result.suggestedWallet != null) ...[
+            _InfoRow(
+              icon: FontAwesomeIcons.creditCard,
+              label: l10n.ocrPaymentMethod,
+              value: result.suggestedWallet!,
               colors: colors,
             ),
             SizedBox(height: 8.h),
@@ -470,6 +523,62 @@ class OcrResultSheet extends ConsumerWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.r),
         child: Image.file(imageFile, height: 120.h, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  /// Badge tipe transaksi (expense/income/transfer/debt/loan).
+  Widget _buildTypeBadge(String type, dynamic colors, dynamic l10n) {
+    final (String label, Color color, IconData icon) = switch (type) {
+      'income' => (
+        l10n.ocrTypeIncome as String,
+        colors.income as Color,
+        FontAwesomeIcons.arrowDown,
+      ),
+      'transfer' => (
+        l10n.ocrTypeTransfer as String,
+        colors.info as Color,
+        FontAwesomeIcons.rightLeft,
+      ),
+      'debt' => (
+        l10n.ocrTypeDebt as String,
+        colors.expense as Color,
+        FontAwesomeIcons.handHoldingDollar,
+      ),
+      'loan' => (
+        l10n.ocrTypeLoan as String,
+        colors.accent as Color,
+        FontAwesomeIcons.handHoldingDollar,
+      ),
+      _ => (
+        l10n.ocrTypeExpense as String,
+        colors.expense as Color,
+        FontAwesomeIcons.arrowUp,
+      ),
+    };
+
+    return Center(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FaIcon(icon, size: 14.w, color: color),
+            SizedBox(width: 8.w),
+            Text(
+              label,
+              style: TextStyleConstants.label1.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

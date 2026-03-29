@@ -62,9 +62,12 @@ class OcrRepository {
 
   /// Balancing: jika total items != grandTotal, tambahkan item selisih.
   ///
+  /// Hanya berlaku untuk expense type (yang punya items).
   /// Ini sesuai PRD edge case: subtotal dan total tidak sinkron.
   /// Return [OcrParseResultModel] yang sudah balanced.
   static OcrParseResultModel balanceResult(OcrParseResultModel result) {
+    // Hanya balance untuk expense yang punya items
+    if (result.type != 'expense') return result;
     if (result.grandTotal == null || result.grandTotal! <= 0) return result;
     if (result.items.isEmpty) return result;
 
