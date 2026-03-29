@@ -49,6 +49,7 @@ class TransactionFormState {
     this.merchantName,
     this.note,
     this.attachmentUrl,
+    this.localAttachmentPath,
     this.withPerson,
     this.contact,
     this.dueDate,
@@ -70,6 +71,11 @@ class TransactionFormState {
   final String? merchantName;
   final String? note;
   final String? attachmentUrl;
+
+  /// Path lokal file lampiran yang belum di-upload.
+  /// Diisi saat user pilih foto; di-upload saat simpan transaksi.
+  final String? localAttachmentPath;
+
   final String? withPerson;
   final ContactModel? contact;
   final DateTime? dueDate;
@@ -117,6 +123,7 @@ class TransactionFormState {
     String? merchantName,
     String? note,
     String? attachmentUrl,
+    String? localAttachmentPath,
     String? withPerson,
     ContactModel? contact,
     DateTime? dueDate,
@@ -138,6 +145,7 @@ class TransactionFormState {
       merchantName: merchantName ?? this.merchantName,
       note: note ?? this.note,
       attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      localAttachmentPath: localAttachmentPath ?? this.localAttachmentPath,
       withPerson: withPerson ?? this.withPerson,
       contact: contact ?? this.contact,
       dueDate: dueDate ?? this.dueDate,
@@ -175,6 +183,7 @@ class TransactionFormState {
       merchantName: clearMerchant ? null : merchantName,
       note: clearNote ? null : note,
       attachmentUrl: clearAttachment ? null : attachmentUrl,
+      localAttachmentPath: clearAttachment ? null : localAttachmentPath,
       withPerson: clearWithPerson ? null : withPerson,
       contact: clearContact ? null : contact,
       dueDate: clearDueDate ? null : dueDate,
@@ -305,6 +314,37 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       state = state.clearFields(clearAttachment: true);
     } else {
       state = state.copyWith(attachmentUrl: url);
+    }
+  }
+
+  /// Simpan path lokal lampiran (belum upload).
+  void setLocalAttachment(String? path) {
+    if (path == null) {
+      state = state.clearFields(clearAttachment: true);
+    } else {
+      // Simpan path lokal, hapus URL lama (akan di-upload saat simpan)
+      state = TransactionFormState(
+        status: state.status,
+        type: state.type,
+        wallet: state.wallet,
+        destinationWallet: state.destinationWallet,
+        totalAmount: state.totalAmount,
+        date: state.date,
+        merchantName: state.merchantName,
+        note: state.note,
+        attachmentUrl: null,
+        localAttachmentPath: path,
+        withPerson: state.withPerson,
+        contact: state.contact,
+        dueDate: state.dueDate,
+        category: state.category,
+        items: state.items,
+        itemKeys: state.itemKeys,
+        errorMessage: state.errorMessage,
+        existingTransaction: state.existingTransaction,
+        debtLoanKind: state.debtLoanKind,
+        referenceTransaction: state.referenceTransaction,
+      );
     }
   }
 

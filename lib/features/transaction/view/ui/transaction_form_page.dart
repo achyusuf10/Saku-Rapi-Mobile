@@ -93,6 +93,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
         // ── OCR prefill (jika ada) ──
         _applyOcrPrefill(ctrl);
+        _applyOcrImagePrefill(ctrl);
       }
 
       // Ensure wallets are loaded
@@ -402,6 +403,19 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     }
   }
 
+  /// Set lampiran dari file OCR (jika ada) ke local attachment.
+  ///
+  /// Membaca [pendingOcrImageFileProvider], jika ada file:
+  /// - Set sebagai localAttachmentPath di form state
+  /// - Clear provider setelah dibaca
+  void _applyOcrImagePrefill(TransactionFormController ctrl) {
+    final imageFile = ref.read(pendingOcrImageFileProvider);
+    if (imageFile == null) return;
+
+    ref.read(pendingOcrImageFileProvider.notifier).state = null;
+    ctrl.setLocalAttachment(imageFile.path);
+  }
+
   /// Match top-level categoryId/categoryKeyword ke kategori user.
   void _matchOcrTopLevelCategory(
     TransactionFormController ctrl,
@@ -672,16 +686,17 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                         merchantController: _merchantController,
                         noteController: _noteController,
                         attachmentUrl: formState.attachmentUrl,
+                        localAttachmentPath: formState.localAttachmentPath,
                         onMerchantChanged: (val) => ref
                             .read(transactionFormControllerProvider.notifier)
                             .setMerchant(val.isEmpty ? null : val),
                         onNoteChanged: (val) => ref
                             .read(transactionFormControllerProvider.notifier)
                             .setNote(val.isEmpty ? null : val),
-                        onPickAttachment: _pickAndUploadAttachment,
+                        onPickAttachment: _pickAttachment,
                         onRemoveAttachment: () => ref
                             .read(transactionFormControllerProvider.notifier)
-                            .setAttachmentUrl(null),
+                            .setLocalAttachment(null),
                       ),
 
                     // ─── Settlement note (simplified) ───
@@ -855,24 +870,45 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       }
     }
 
-    final result = await ref
-        .read(transactionFormControllerProvider.notifier)
-        .submit();
+    context.showLoadingOverlay();
 
-    if (!mounted) return;
+    try {
+      // Upload lampiran lokal jika ada (lazy upload)
+      if (formState.localAttachmentPath != null) {
+        final url = await _uploadLocalAttachment(
+          formState.localAttachmentPath!,
+        );
+        if (!mounted) return;
+        if (url != null) {
+          ref
+              .read(transactionFormControllerProvider.notifier)
+              .setAttachmentUrl(url);
+        }
+        // Jika upload gagal, tetap lanjut simpan tanpa lampiran
+      }
 
-    if (result.isSuccess()) {
-      ref.read(walletControllerProvider.notifier).loadWallets();
-      ref.read(dashboardControllerProvider.notifier).loadDashboard();
-      ref.read(historyControllerProvider.notifier).loadTransactions();
-      context.showAppAlert(
-        l10n.transactionSaveSuccess,
-        alertType: AlertTypeEnum.success,
-      );
-      context.pop(true);
-    } else {
-      final (message, _, _, _) = result.dataError()!;
-      context.showAppAlert(message, alertType: AlertTypeEnum.error);
+      final result = await ref
+          .read(transactionFormControllerProvider.notifier)
+          .submit();
+
+      if (!mounted) return;
+      context.closeOverlay();
+
+      if (result.isSuccess()) {
+        ref.read(walletControllerProvider.notifier).loadWallets();
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(historyControllerProvider.notifier).loadTransactions();
+        context.showAppAlert(
+          l10n.transactionSaveSuccess,
+          alertType: AlertTypeEnum.success,
+        );
+        context.pop(true);
+      } else {
+        final (message, _, _, _) = result.dataError()!;
+        context.showAppAlert(message, alertType: AlertTypeEnum.error);
+      }
+    } finally {
+      if (mounted) context.closeOverlay();
     }
   }
 
@@ -920,44 +956,31 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     }
   }
 
-  /// Pick image → compress → upload → set attachment URL.
-  Future<void> _pickAndUploadAttachment() async {
+  /// Pick image → simpan path local → upload terjadi saat simpan.
+  Future<void> _pickAttachment() async {
     FocusScope.of(context).unfocus();
     final file = await ImageSourcePickerSheet.show(context);
     if (file == null || !mounted) return;
 
-    context.showLoadingOverlay();
+    ref
+        .read(transactionFormControllerProvider.notifier)
+        .setLocalAttachment(file.path);
+  }
 
-    try {
-      // Compress image
-      final compressed = await CompressImageFunc.call(filePath: file.path);
-      if (compressed == null || !mounted) {
-        if (mounted) context.closeOverlay();
-        return;
-      }
+  /// Upload attachment lokal (compress → Supabase) dan return URL.
+  /// Dipanggil dari [_onSave] sebelum submit ke DB.
+  Future<String?> _uploadLocalAttachment(String localPath) async {
+    final compressed = await CompressImageFunc.call(filePath: localPath);
+    if (compressed == null) return null;
 
-      // Upload
-      final service = ImageUploadService();
-      final result = await service.uploadImage(
-        imageBytes: compressed,
-        fileName: 'attachment.jpg',
-      );
+    final service = ImageUploadService();
+    final result = await service.uploadImage(
+      imageBytes: compressed,
+      fileName: 'attachment.jpg',
+    );
 
-      if (!mounted) return;
-      context.closeOverlay();
-
-      if (result.isSuccess()) {
-        final url = result.dataSuccess()!;
-        ref
-            .read(transactionFormControllerProvider.notifier)
-            .setAttachmentUrl(url);
-      } else {
-        final (message, _, _, _) = result.dataError()!;
-        context.showAppAlert(message, alertType: AlertTypeEnum.error);
-      }
-    } catch (_) {
-      if (mounted) context.closeOverlay();
-    }
+    if (result.isSuccess()) return result.dataSuccess()!;
+    return null;
   }
 
   Color _colorForType(TransactionTypeEnum type, AppColorScheme colors) {

@@ -84,6 +84,7 @@ class InvestmentFilterSheet extends StatefulWidget {
   }) {
     return showModalBottomSheet<InvestmentFilterState>(
       context: context,
+      useSafeArea: true,
       backgroundColor: context.colors.surface,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(

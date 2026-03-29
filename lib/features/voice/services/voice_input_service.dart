@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/constants/app_constants.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -37,10 +38,14 @@ class VoiceInputService {
   static const _tag = '[Voice] [VoiceInputService]';
 
   /// Maksimum durasi rekaman (PRD §7.5: 10 detik).
-  static const maxListenDuration = Duration(seconds: 10);
+  static final maxListenDuration = Duration(
+    seconds: AppConstants.voiceMaxDurationSeconds,
+  );
 
   /// Pause threshold sebelum finalizing.
-  static const pauseForDuration = Duration(seconds: 2);
+  static final pauseForDuration = Duration(
+    seconds: AppConstants.voicePauseDurationSeconds,
+  );
 
   bool _isInitialized = false;
 
@@ -73,6 +78,9 @@ class VoiceInputService {
       onError: (error) {
         AppLogger.logError('$_tag STT Error: ${error.errorMsg}');
       },
+      onStatus: (status) {
+        AppLogger.call('$_tag STT Status: $status');
+      },
     );
     AppLogger.call('$_tag initialized: $_isInitialized');
     return _isInitialized;
@@ -81,9 +89,11 @@ class VoiceInputService {
   /// Mulai mendengarkan suara.
   ///
   /// [onResult] dipanggil setiap ada partial/final result.
+  /// [onSoundLevelChange] dipanggil saat level suara berubah.
   /// Otomatis berhenti setelah [maxListenDuration].
   Future<void> startListening({
     required void Function(SpeechRecognitionResult result) onResult,
+    void Function(double level)? onSoundLevelChange,
     String localeId = 'id_ID',
   }) async {
     if (!_isInitialized) {
@@ -94,11 +104,14 @@ class VoiceInputService {
     AppLogger.call('$_tag startListening (locale: $localeId)');
     await _speech.listen(
       onResult: onResult,
+      onSoundLevelChange: onSoundLevelChange,
       listenFor: maxListenDuration,
       pauseFor: pauseForDuration,
       localeId: localeId,
       listenOptions: SpeechListenOptions(
-        cancelOnError: true,
+        cancelOnError: false,
+        partialResults: true,
+        autoPunctuation: true,
         listenMode: ListenMode.dictation,
       ),
     );

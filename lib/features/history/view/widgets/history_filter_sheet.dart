@@ -412,6 +412,7 @@ Future<void> showHistoryFilterSheet(BuildContext context, WidgetRef ref) async {
   final result = await showModalBottomSheet<_FilterResult>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (_) => HistoryFilterSheet(
       currentWalletId: historyState.walletId,

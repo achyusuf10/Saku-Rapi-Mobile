@@ -55,75 +55,77 @@ class WalletPickerSheet extends ConsumerWidget {
         .where((w) => w.id != excludeWalletId)
         .toList();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Padding(
-            padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: colors.border,
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-          ),
-
-          // Title
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l10n.transactionSelectWallet,
-                style: TextStyleConstants.h6.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          // List
-          if (wallets.isEmpty)
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.6,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 32.h),
-              child: Text(
-                l10n.walletEmpty,
-                style: TextStyleConstants.b2.copyWith(
-                  color: colors.textSecondary,
+              padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: colors.border,
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
-            )
-          else
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
-                itemCount: wallets.length,
-                separatorBuilder: (_, __) => SizedBox(height: 4.h),
-                itemBuilder: (context, index) {
-                  final wallet = wallets[index];
-                  final isSelected = wallet.id == selectedWalletId;
+            ),
 
-                  return _WalletPickerItem(
-                    wallet: wallet,
-                    isSelected: isSelected,
-                    onTap: () => Navigator.pop(context, wallet),
-                  );
-                },
+            // Title
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.transactionSelectWallet,
+                  style: TextStyleConstants.h6.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-        ],
+
+            // List
+            if (wallets.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 32.h),
+                child: Text(
+                  l10n.walletEmpty,
+                  style: TextStyleConstants.b2.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                  itemCount: wallets.length,
+                  separatorBuilder: (_, __) => SizedBox(height: 4.h),
+                  itemBuilder: (context, index) {
+                    final wallet = wallets[index];
+                    final isSelected = wallet.id == selectedWalletId;
+
+                    return _WalletPickerItem(
+                      wallet: wallet,
+                      isSelected: isSelected,
+                      onTap: () => Navigator.pop(context, wallet),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

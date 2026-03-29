@@ -575,11 +575,6 @@
   "profileLanguageIndonesian": "Indonesia",
   "profileLanguageEnglish": "English",
   "profileLanguageTitle": "Select Language",
-  "profileEntryPoint": "Default Transaction Entry",
-  "profileEntryManual": "Manual Form",
-  "profileEntryVoice": "Voice Input",
-  "profileEntryScan": "Scan Receipt",
-  "profileEntryPointTitle": "Default Transaction Entry",
   "profileExportImport": "Export / Import",
   "profileComingSoon": "Coming Soon",
   "profileAppVersion": "App Version",
@@ -979,5 +974,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "fabTextInput": "Text Input",
+  "textInputTitle": "Input by Text",
+  "textInputHint": "e.g. Lunch at warteg 15k",
+  "textInputSubmit": "Analyze",
+  "textInputAnalyzing": "Analyzing with AI...",
+  "textInputError": "Failed to analyze text",
+  "textInputEmpty": "Please enter a transaction description"
 }

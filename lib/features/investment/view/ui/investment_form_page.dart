@@ -880,6 +880,7 @@ class _AssetTypePicker extends StatelessWidget {
 
     showModalBottomSheet<void>(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),

@@ -24,6 +24,7 @@ class ImageSourcePickerSheet extends StatelessWidget {
   static Future<File?> show(BuildContext context) {
     return showModalBottomSheet<File>(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const ImageSourcePickerSheet(),
     );

@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/ocr_scan_controller.dart';
+import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +34,7 @@ class OcrResultSheet extends ConsumerWidget {
     return showModalBottomSheet<OcrParseResultModel>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const OcrResultSheet(),
     );
@@ -646,7 +648,15 @@ class OcrResultSheet extends ConsumerWidget {
               onPressed:
                   state.status == OcrScanStatus.done &&
                       state.parseResult != null
-                  ? () => nav.pop(state.parseResult)
+                  ? () {
+                      // Simpan image file ke provider sebelum pop
+                      // agar transaction form bisa auto-fill lampiran
+                      if (state.imageFile != null) {
+                        ref.read(pendingOcrImageFileProvider.notifier).state =
+                            state.imageFile;
+                      }
+                      nav.pop(state.parseResult);
+                    }
                   : null,
               icon: FaIcon(FontAwesomeIcons.check, size: 14.w),
               label: Text(l10n.ocrUseResult),

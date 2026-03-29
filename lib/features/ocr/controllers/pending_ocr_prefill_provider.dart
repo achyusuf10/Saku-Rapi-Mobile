@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -10,3 +12,9 @@ import 'package:flutter_riverpod/legacy.dart';
 final pendingOcrPrefillProvider = StateProvider<OcrParseResultModel?>(
   (ref) => null,
 );
+
+/// Provider yang menyimpan file gambar hasil OCR scan sementara
+/// untuk di-set sebagai lampiran di transaction form.
+///
+/// Diatur bersama [pendingOcrPrefillProvider] — auto-cleared setelah dibaca.
+final pendingOcrImageFileProvider = StateProvider<File?>((ref) => null);

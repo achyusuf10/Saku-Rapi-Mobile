@@ -6,7 +6,6 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/auth/view/widgets/profile_header_widget.dart';
-import 'package:app_saku_rapi/features/settings/controllers/settings_controller.dart';
 import 'package:app_saku_rapi/features/settings/view/widgets/settings_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +19,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 /// Sections:
 /// 1. Profil header (avatar, nama, email)
 /// 2. Akun — Kategori, Notifikasi
-/// 3. Preferensi — Tema, Bahasa, Entry point transaksi
+/// 3. Preferensi — Tema, Bahasa
 /// 4. Data — Export/Import (coming soon)
 /// 5. Lainnya — App version, Logout
 class SettingsPage extends ConsumerStatefulWidget {
@@ -52,7 +51,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = context.l10n;
     final themeMode = ref.watch(themeControllerProvider);
     final locale = ref.watch(localeControllerProvider);
-    final entryPoint = ref.watch(entryPointProvider);
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -111,13 +109,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 label: l10n.profileLanguageTitle,
                 subtitle: _localeLabel(locale, l10n),
                 onTap: () => _showLanguagePicker(locale),
-              ),
-              // Entry point
-              SettingsTile(
-                icon: FontAwesomeIcons.bolt,
-                label: l10n.profileEntryPointTitle,
-                subtitle: _entryPointLabel(entryPoint, l10n),
-                onTap: () => _showEntryPointPicker(entryPoint),
               ),
             ],
           ),
@@ -198,14 +189,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         : l10n.profileLanguageIndonesian as String;
   }
 
-  String _entryPointLabel(TransactionEntryPoint ep, dynamic l10n) {
-    return switch (ep) {
-      TransactionEntryPoint.manual => l10n.profileEntryManual as String,
-      TransactionEntryPoint.voice => l10n.profileEntryVoice as String,
-      TransactionEntryPoint.scan => l10n.profileEntryScan as String,
-    };
-  }
-
   // ───────── Pickers ─────────
 
   void _showThemePicker(ThemeMode current) {
@@ -214,6 +197,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     showModalBottomSheet<ThemeMode>(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
@@ -244,6 +228,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     showModalBottomSheet<Locale>(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
@@ -262,34 +247,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     ).then((picked) {
       if (picked != null) {
         ref.read(localeControllerProvider.notifier).setLanguage(picked);
-      }
-    });
-  }
-
-  void _showEntryPointPicker(TransactionEntryPoint current) {
-    final l10n = context.l10n;
-    final colors = context.colors;
-
-    showModalBottomSheet<TransactionEntryPoint>(
-      context: context,
-      backgroundColor: colors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (_) => _OptionSheet<TransactionEntryPoint>(
-        title: l10n.profileEntryPointTitle,
-        options: TransactionEntryPoint.values,
-        selected: current,
-        labelBuilder: (ep) => _entryPointLabel(ep, l10n),
-        iconBuilder: (ep) => switch (ep) {
-          TransactionEntryPoint.manual => FontAwesomeIcons.penToSquare,
-          TransactionEntryPoint.voice => FontAwesomeIcons.microphone,
-          TransactionEntryPoint.scan => FontAwesomeIcons.camera,
-        },
-      ),
-    ).then((picked) {
-      if (picked != null) {
-        ref.read(entryPointProvider.notifier).setEntryPoint(picked);
       }
     });
   }

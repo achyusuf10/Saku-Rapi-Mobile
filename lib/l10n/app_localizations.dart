@@ -2504,36 +2504,6 @@ abstract class AppLocalizations {
   /// **'Pilih Bahasa'**
   String get profileLanguageTitle;
 
-  /// No description provided for @profileEntryPoint.
-  ///
-  /// In id, this message translates to:
-  /// **'Entri Awal Transaksi'**
-  String get profileEntryPoint;
-
-  /// No description provided for @profileEntryManual.
-  ///
-  /// In id, this message translates to:
-  /// **'Form Manual'**
-  String get profileEntryManual;
-
-  /// No description provided for @profileEntryVoice.
-  ///
-  /// In id, this message translates to:
-  /// **'Input Suara'**
-  String get profileEntryVoice;
-
-  /// No description provided for @profileEntryScan.
-  ///
-  /// In id, this message translates to:
-  /// **'Scan Struk'**
-  String get profileEntryScan;
-
-  /// No description provided for @profileEntryPointTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Entri Awal Transaksi'**
-  String get profileEntryPointTitle;
-
   /// No description provided for @profileExportImport.
   ///
   /// In id, this message translates to:
@@ -3909,6 +3879,48 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Maks: {amount}'**
   String debtLoanSettlementMaxAmount(String amount);
+
+  /// No description provided for @fabTextInput.
+  ///
+  /// In id, this message translates to:
+  /// **'Input Teks'**
+  String get fabTextInput;
+
+  /// No description provided for @textInputTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Input via Teks'**
+  String get textInputTitle;
+
+  /// No description provided for @textInputHint.
+  ///
+  /// In id, this message translates to:
+  /// **'cth. Makan siang di warteg 15rb'**
+  String get textInputHint;
+
+  /// No description provided for @textInputSubmit.
+  ///
+  /// In id, this message translates to:
+  /// **'Analisis'**
+  String get textInputSubmit;
+
+  /// No description provided for @textInputAnalyzing.
+  ///
+  /// In id, this message translates to:
+  /// **'Menganalisis dengan AI...'**
+  String get textInputAnalyzing;
+
+  /// No description provided for @textInputError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menganalisis teks'**
+  String get textInputError;
+
+  /// No description provided for @textInputEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Silakan masukkan deskripsi transaksi'**
+  String get textInputEmpty;
 }
 
 class _AppLocalizationsDelegate

@@ -1269,21 +1269,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileLanguageTitle => 'Pilih Bahasa';
 
   @override
-  String get profileEntryPoint => 'Entri Awal Transaksi';
-
-  @override
-  String get profileEntryManual => 'Form Manual';
-
-  @override
-  String get profileEntryVoice => 'Input Suara';
-
-  @override
-  String get profileEntryScan => 'Scan Struk';
-
-  @override
-  String get profileEntryPointTitle => 'Entri Awal Transaksi';
-
-  @override
   String get profileExportImport => 'Export / Import';
 
   @override
@@ -2040,4 +2025,25 @@ class AppLocalizationsId extends AppLocalizations {
   String debtLoanSettlementMaxAmount(String amount) {
     return 'Maks: $amount';
   }
+
+  @override
+  String get fabTextInput => 'Input Teks';
+
+  @override
+  String get textInputTitle => 'Input via Teks';
+
+  @override
+  String get textInputHint => 'cth. Makan siang di warteg 15rb';
+
+  @override
+  String get textInputSubmit => 'Analisis';
+
+  @override
+  String get textInputAnalyzing => 'Menganalisis dengan AI...';
+
+  @override
+  String get textInputError => 'Gagal menganalisis teks';
+
+  @override
+  String get textInputEmpty => 'Silakan masukkan deskripsi transaksi';
 }

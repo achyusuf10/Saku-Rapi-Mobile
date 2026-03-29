@@ -29,6 +29,8 @@ class CategoryIconMapper {
     'gasPump': FontAwesomeIcons.gasPump,
     'motorcycle': FontAwesomeIcons.motorcycle,
     'wrench': FontAwesomeIcons.wrench,
+    'road': FontAwesomeIcons.road,
+    'squareParking': FontAwesomeIcons.squareParking,
 
     // Tagihan
     'fileInvoiceDollar': FontAwesomeIcons.fileInvoiceDollar,
@@ -52,6 +54,7 @@ class CategoryIconMapper {
     'ellipsis': FontAwesomeIcons.ellipsis,
     'receipt': FontAwesomeIcons.receipt,
     'triangleExclamation': FontAwesomeIcons.triangleExclamation,
+    'circleQuestion': FontAwesomeIcons.circleQuestion,
 
     // Income
     'briefcase': FontAwesomeIcons.briefcase,

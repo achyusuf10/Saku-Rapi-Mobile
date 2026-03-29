@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/utils/function/compress_image_func.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class OcrImageService {
     if (!context.mounted) return null;
 
     final result = await showAdaptiveImageCropper(
-      context,
+      appContext ?? context,
       imageProvider: FileImage(imageFile),
     );
     if (result == null) return null;

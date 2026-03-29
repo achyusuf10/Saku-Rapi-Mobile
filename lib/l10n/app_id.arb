@@ -575,11 +575,6 @@
   "profileLanguageIndonesian": "Indonesia",
   "profileLanguageEnglish": "English",
   "profileLanguageTitle": "Pilih Bahasa",
-  "profileEntryPoint": "Entri Awal Transaksi",
-  "profileEntryManual": "Form Manual",
-  "profileEntryVoice": "Input Suara",
-  "profileEntryScan": "Scan Struk",
-  "profileEntryPointTitle": "Entri Awal Transaksi",
   "profileExportImport": "Export / Import",
   "profileComingSoon": "Segera Hadir",
   "profileAppVersion": "Versi Aplikasi",
@@ -979,5 +974,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "fabTextInput": "Input Teks",
+  "textInputTitle": "Input via Teks",
+  "textInputHint": "cth. Makan siang di warteg 15rb",
+  "textInputSubmit": "Analisis",
+  "textInputAnalyzing": "Menganalisis dengan AI...",
+  "textInputError": "Gagal menganalisis teks",
+  "textInputEmpty": "Silakan masukkan deskripsi transaksi"
 }

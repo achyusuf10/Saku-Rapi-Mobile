@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
@@ -20,6 +22,7 @@ class TransactionOptionalDetailsSection extends StatefulWidget {
     required this.onPickAttachment,
     required this.onRemoveAttachment,
     this.attachmentUrl,
+    this.localAttachmentPath,
   });
 
   final TextEditingController merchantController;
@@ -28,7 +31,12 @@ class TransactionOptionalDetailsSection extends StatefulWidget {
   final ValueChanged<String> onNoteChanged;
   final VoidCallback onPickAttachment;
   final VoidCallback onRemoveAttachment;
+
+  /// URL lampiran yang sudah di-upload (mode edit atau setelah upload).
   final String? attachmentUrl;
+
+  /// Path lokal lampiran yang belum di-upload (setelah user pilih foto).
+  final String? localAttachmentPath;
 
   @override
   State<TransactionOptionalDetailsSection> createState() =>
@@ -38,6 +46,17 @@ class TransactionOptionalDetailsSection extends StatefulWidget {
 class _TransactionOptionalDetailsSectionState
     extends State<TransactionOptionalDetailsSection> {
   bool _expanded = false;
+
+  @override
+  void didUpdateWidget(TransactionOptionalDetailsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-expand ketika lampiran di-prefill (misal dari OCR)
+    if (!_expanded &&
+        oldWidget.localAttachmentPath == null &&
+        widget.localAttachmentPath != null) {
+      setState(() => _expanded = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +134,7 @@ class _TransactionOptionalDetailsSectionState
                       SizedBox(height: 10.h),
                       TransactionAttachmentField(
                         attachmentUrl: widget.attachmentUrl,
+                        localAttachmentPath: widget.localAttachmentPath,
                         onPick: widget.onPickAttachment,
                         onRemove: widget.onRemoveAttachment,
                       ),
@@ -137,6 +157,11 @@ class _TransactionOptionalDetailsSectionState
 
 /// Field lampiran: menampilkan tombol pick atau preview gambar.
 ///
+/// Mendukung:
+/// - [localAttachmentPath]: file lokal yang belum di-upload (preview via File)
+/// - [attachmentUrl]: URL gambar yang sudah di-upload (preview via network)
+/// - Tap gambar → buka dialog full-screen dengan zoom
+///
 /// Digunakan di dalam [TransactionOptionalDetailsSection].
 class TransactionAttachmentField extends StatelessWidget {
   const TransactionAttachmentField({
@@ -144,17 +169,40 @@ class TransactionAttachmentField extends StatelessWidget {
     required this.onPick,
     required this.onRemove,
     this.attachmentUrl,
+    this.localAttachmentPath,
   });
 
   final String? attachmentUrl;
+  final String? localAttachmentPath;
   final VoidCallback onPick;
   final VoidCallback onRemove;
+
+  bool get _hasAttachment =>
+      localAttachmentPath != null || attachmentUrl != null;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    if (attachmentUrl != null) {
+    if (_hasAttachment) {
+      // Determine image widget based on source
+      final isLocal = localAttachmentPath != null;
+      final imageWidget = isLocal
+          ? Image.file(
+              File(localAttachmentPath!),
+              height: 120.h,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _ErrorPlaceholder(colors: colors),
+            )
+          : Image.network(
+              attachmentUrl!,
+              height: 120.h,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _ErrorPlaceholder(colors: colors),
+            );
+
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.r),
@@ -163,26 +211,15 @@ class TransactionAttachmentField extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.r),
-              child: Image.network(
-                attachmentUrl!,
-                height: 120.h,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
-                  height: 120.h,
-                  color: colors.background,
-                  child: Center(
-                    child: FaIcon(
-                      FontAwesomeIcons.image,
-                      size: 24.w,
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                ),
+            // Tap untuk preview full-screen
+            GestureDetector(
+              onTap: () => _showPreviewDialog(context),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.r),
+                child: imageWidget,
               ),
             ),
+            // Hapus lampiran
             Positioned(
               top: 6.h,
               right: 6.w,
@@ -202,6 +239,25 @@ class TransactionAttachmentField extends StatelessWidget {
                 ),
               ),
             ),
+            // Label kiri bawah: lokal = "Belum diunggah"
+            if (isLocal)
+              Positioned(
+                left: 6.w,
+                bottom: 6.h,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    'Belum diunggah',
+                    style: TextStyleConstants.label3.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       );
@@ -234,6 +290,106 @@ class TransactionAttachmentField extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Tampilkan dialog preview foto full-screen dengan zoom.
+  void _showPreviewDialog(BuildContext context) {
+    final isLocal = localAttachmentPath != null;
+    final heroTag = isLocal ? localAttachmentPath! : attachmentUrl!;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => _AttachmentPreviewDialog(
+        localPath: localAttachmentPath,
+        networkUrl: attachmentUrl,
+        heroTag: heroTag,
+      ),
+    );
+  }
+}
+
+/// Placeholder saat gambar gagal dimuat.
+class _ErrorPlaceholder extends StatelessWidget {
+  const _ErrorPlaceholder({required this.colors});
+
+  final dynamic colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      height: 120.h,
+      color: colors.background,
+      child: Center(
+        child: FaIcon(
+          FontAwesomeIcons.image,
+          size: 24.w,
+          color: colors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Dialog full-screen preview lampiran dengan InteractiveViewer (pinch-to-zoom).
+class _AttachmentPreviewDialog extends StatelessWidget {
+  const _AttachmentPreviewDialog({
+    this.localPath,
+    this.networkUrl,
+    required this.heroTag,
+  });
+
+  final String? localPath;
+  final String? networkUrl;
+  final String heroTag;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageProvider = localPath != null
+        ? FileImage(File(localPath!)) as ImageProvider
+        : NetworkImage(networkUrl!);
+
+    return Dialog.fullscreen(
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          // Zoomable image
+          Center(
+            child: InteractiveViewer(
+              panEnabled: true,
+              minScale: 1.0,
+              maxScale: 5.0,
+              child: Hero(
+                tag: heroTag,
+                child: Image(
+                  image: imageProvider,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => const Center(
+                    child: Icon(Icons.broken_image, color: Colors.white54),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Close button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

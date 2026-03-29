@@ -49,6 +49,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<String>(
       context: context,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => CategoryColorPickerSheet(selectedColor: selectedColor),
     );

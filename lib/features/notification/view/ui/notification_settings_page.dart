@@ -334,6 +334,7 @@ class _DebtDaysBeforeTile extends ConsumerWidget {
 
     showModalBottomSheet<int>(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface as Color,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),

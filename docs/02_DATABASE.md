@@ -339,8 +339,11 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
   - Suplemen & Nutrisi
   - Medis / Dokter / Obat
 - Transportasi
-  - Bensin / Tol / Parkir
-  - Transportasi Umum / Ojol
+  - Bensin
+  - Tol
+  - Parkir
+  - Transportasi Umum
+  - Ojol
   - Servis Kendaraan
 - Tagihan & Kewajiban
   - Listrik & Air
@@ -348,7 +351,8 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
   - Cicilan / Asuransi
 - Teknologi & Edukasi
   - Langganan Digital
-  - Kursus / Buku
+  - Kursus
+  - Buku
   - Server & Hosting
 - Keluarga & Sosial
   - Kebutuhan Pasangan
@@ -357,6 +361,7 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
 - Lain-lain
   - Biaya Admin / Pajak / Selisih
   - Pengeluaran Tak Terduga
+  - Pengeluaran yang tidak diketahui
 
 ## 7.2 Income
 - Gaji & Pendapatan Utama

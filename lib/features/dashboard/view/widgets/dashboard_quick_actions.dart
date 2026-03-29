@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controlle
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/view/ui/ocr_result_sheet.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
+import 'package:app_saku_rapi/features/voice/view/ui/text_input_sheet.dart';
 import 'package:app_saku_rapi/features/voice/view/ui/voice_input_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:flutter/material.dart';
@@ -51,10 +52,10 @@ class DashboardQuickActions extends ConsumerWidget {
         onTap: () => _handleOcrScan(context, ref),
       ),
       _QuickAction(
-        icon: FontAwesomeIcons.wallet,
-        label: l10n.walletTitle,
+        icon: FontAwesomeIcons.keyboard,
+        label: l10n.fabTextInput,
         color: colors.transfer,
-        onTap: () => context.push(AppRouter.wallet),
+        onTap: () => _handleTextInput(context, ref),
       ),
     ];
 
@@ -94,6 +95,19 @@ class DashboardQuickActions extends ConsumerWidget {
     final result = await OcrResultSheet.show(context: context);
     if (result != null && context.mounted) {
       ref.read(pendingOcrPrefillProvider.notifier).state = result;
+      final navResult = await context.push<bool>(AppRouter.transactionForm);
+      if (navResult == true && context.mounted) {
+        ref.read(dashboardControllerProvider.notifier).loadDashboard();
+        ref.read(walletControllerProvider.notifier).loadWallets();
+      }
+    }
+  }
+
+  /// Buka text input sheet → jika berhasil, set pending prefill → navigate ke form.
+  Future<void> _handleTextInput(BuildContext context, WidgetRef ref) async {
+    final result = await TextInputSheet.show(context: context);
+    if (result != null && context.mounted) {
+      ref.read(pendingVoicePrefillProvider.notifier).state = result;
       final navResult = await context.push<bool>(AppRouter.transactionForm);
       if (navResult == true && context.mounted) {
         ref.read(dashboardControllerProvider.notifier).loadDashboard();

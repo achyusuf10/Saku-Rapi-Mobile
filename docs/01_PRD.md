@@ -245,7 +245,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Pilih sumber: Camera / Gallery] --> B[Capture / Pick image]
-    B --> C[Crop image via ImageCropper]
+    B --> C[Crop image via croppy - showAdaptiveImageCropper]
     C --> D[Compress image ≤ 500KB]
     D --> E[Base64 encode + kirim ke Edge Function ai-parse mode ocr]
     E --> F{Vision AI berhasil? Gemini → Groq failover}
@@ -254,13 +254,14 @@ flowchart TD
     G --> H[OcrLocalParser: regex extraction]
     H --> I
     I --> J{isTransaction & hasUsableData?}
-    J -->|Ya| K[Set pendingOcrPrefill]
+    J -->|Ya| K[Set pendingOcrPrefill + Set pendingOcrImageFileProvider]
     J -->|Tidak| L[Tampilkan error spesifik]
     K --> M[Navigate ke Transaction Form]
     M --> N[Prefill: type, merchant, date, wallet, items, grandTotal, categories]
-    N --> O[Balance items jika total mismatch]
+    N --> NA[Set localAttachmentPath dari pendingOcrImageFileProvider]
+    NA --> O[Balance items jika total mismatch]
     O --> P[User review item list & edit]
-    P --> Q[Save]
+    P --> Q[Save - upload lampiran lazy saat save]
 ```
 
 ## 6.6 Debt/Loan Management Flow
@@ -547,6 +548,9 @@ Tab Hutang/Piutang memiliki **DebtLoanKindSelector** dengan 4 mode:
 - Settlement: amount ≤ remaining dari transaksi referensi.
 - Settlement: reference_transaction_id wajib.
 - Lampiran bersifat opsional.
+- **Lazy upload:** lampiran dipilih/difill secara lokal (disimpan sebagai `localAttachmentPath` di state), proses upload ke Supabase Storage dilakukan hanya saat user menekan tombol Simpan, bersamaan dengan loading overlay. Jika upload gagal, transaksi tetap tersimpan tanpa lampiran.
+- **Preview lampiran:** user dapat mengetuk thumbnail lampiran untuk membuka dialog fullscreen (`Dialog.fullscreen`) dengan `InteractiveViewer` (pinch-to-zoom, maxScale: 5x).
+- **Auto-expand attachment section:** jika `localAttachmentPath` berubah dari null → non-null (misal dari OCR prefill), section optional details otomatis expand.
 - Anti double-submit via status flag `saving`.
 
 ### Edit/delete policy
@@ -644,7 +648,7 @@ Tab Hutang/Piutang memiliki **DebtLoanKindSelector** dengan 4 mode:
 ## 7.7 OCR Receipt
 - User memilih sumber gambar: **Camera** atau **Gallery**.
 - Image processing pipeline:
-  1. Crop via ImageCropper (judul: "Pilih Area Struk")
+  1. Crop via **`croppy`** (Flutter-native cross-platform cropper, `showAdaptiveImageCropper`)
   2. Compress ke ≤ 500KB (JPEG)
   3. Base64 encode
 - AI pipeline:
@@ -655,7 +659,7 @@ Tab Hutang/Piutang memiliki **DebtLoanKindSelector** dengan 4 mode:
 - Jika items_sum ≠ grandTotal, repository auto-balance:
   - Diff > 0: tambah item "Item lainnya"
   - Diff < 0: tambah item "Diskon/potongan"
-- Foto struk dapat disimpan sebagai lampiran.
+- Foto struk **otomatis diisi ke field lampiran** saat user menekan "Gunakan Hasil" di `OcrResultSheet`, menggunakan `pendingOcrImageFileProvider` sebagai jembatan antara OCR flow dan form.
 - Hasil OCR di-preview di `OcrResultSheet` sebelum navigasi ke form.
 
 ### Request Edge Function OCR
@@ -1264,8 +1268,11 @@ Halaman terpisah (`NotificationSettingsPage`) dengan section-section:
   - Suplemen & Nutrisi
   - Medis / Dokter / Obat
 - Transportasi
-  - Bensin / Tol / Parkir
-  - Transportasi Umum / Ojol
+  - Bensin
+  - Tol
+  - Parkir
+  - Transportasi Umum
+  - Ojol
   - Servis Kendaraan
 - Tagihan & Kewajiban
   - Listrik & Air
@@ -1273,7 +1280,8 @@ Halaman terpisah (`NotificationSettingsPage`) dengan section-section:
   - Cicilan / Asuransi
 - Teknologi & Edukasi
   - Langganan Digital
-  - Kursus / Buku
+  - Kursus
+  - Buku
   - Server & Hosting
 - Keluarga & Sosial
   - Kebutuhan Pasangan
@@ -1282,6 +1290,7 @@ Halaman terpisah (`NotificationSettingsPage`) dengan section-section:
 - Lain-lain
   - Biaya Admin / Pajak / Selisih
   - Pengeluaran Tak Terduga
+  - Pengeluaran yang tidak diketahui
 
 ## 8.2 Income
 - Gaji & Pendapatan Utama

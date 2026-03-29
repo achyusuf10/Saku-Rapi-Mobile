@@ -1271,21 +1271,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileLanguageTitle => 'Select Language';
 
   @override
-  String get profileEntryPoint => 'Default Transaction Entry';
-
-  @override
-  String get profileEntryManual => 'Manual Form';
-
-  @override
-  String get profileEntryVoice => 'Voice Input';
-
-  @override
-  String get profileEntryScan => 'Scan Receipt';
-
-  @override
-  String get profileEntryPointTitle => 'Default Transaction Entry';
-
-  @override
   String get profileExportImport => 'Export / Import';
 
   @override
@@ -2043,4 +2028,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String debtLoanSettlementMaxAmount(String amount) {
     return 'Max: $amount';
   }
+
+  @override
+  String get fabTextInput => 'Text Input';
+
+  @override
+  String get textInputTitle => 'Input by Text';
+
+  @override
+  String get textInputHint => 'e.g. Lunch at warteg 15k';
+
+  @override
+  String get textInputSubmit => 'Analyze';
+
+  @override
+  String get textInputAnalyzing => 'Analyzing with AI...';
+
+  @override
+  String get textInputError => 'Failed to analyze text';
+
+  @override
+  String get textInputEmpty => 'Please enter a transaction description';
 }

@@ -283,6 +283,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
@@ -400,6 +401,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
