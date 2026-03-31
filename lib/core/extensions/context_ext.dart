@@ -16,6 +16,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// - Alert: `context.showAppAlert(message)`
 /// - Konfirmasi: `context.showConfirmDialog(title, message)`
 extension ContextExt on BuildContext {
+  /// similar to [MediaQuery.of(context).padding]
+  ThemeData get theme => Theme.of(this);
+
+  /// Check if dark mode theme is enable
+  bool get isDarkMode => (theme.brightness == Brightness.dark);
+
   /// Akses cepat ke [AppColorScheme] kustom SakuRapi.
   ///
   /// Contoh: `context.colors.primary`, `context.colors.income`.
