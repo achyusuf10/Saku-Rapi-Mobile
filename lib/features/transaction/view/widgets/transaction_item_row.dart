@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
@@ -236,7 +237,7 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
                       CategoryIconMapper.getIcon(widget.item.categoryIcon!),
                       size: 16.w,
                       color: widget.item.categoryColor != null
-                          ? _parseColor(widget.item.categoryColor!)
+                          ? parseHexColor(widget.item.categoryColor!)
                           : colors.textSecondary,
                     ),
                     SizedBox(width: 8.w),
@@ -283,10 +284,5 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
         ),
       );
     }
-  }
-
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceAll('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 }

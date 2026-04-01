@@ -48,9 +48,22 @@ class BudgetRepository {
     return result;
   }
 
-  /// Ambil budget yang sudah selesai (expired).
-  Future<DataState<List<BudgetModel>>> getCompletedBudgets() {
-    return _remote.getCompletedBudgets();
+  /// Ambil budget yang sudah selesai (expired) dengan pagination.
+  Future<DataState<List<BudgetModel>>> getCompletedBudgets({
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _remote.getCompletedBudgets(limit: limit, offset: offset);
+  }
+
+  /// Ambil budget yang belum dimulai (upcoming).
+  Future<DataState<List<BudgetModel>>> getUpcomingBudgets() {
+    return _remote.getUpcomingBudgets();
+  }
+
+  /// Ambil child category IDs untuk parent category.
+  Future<DataState<List<String>>> getChildCategoryIds(String parentCategoryId) {
+    return _remote.getChildCategoryIds(parentCategoryId);
   }
 
   /// Cari ID budget duplikat (same category + wallet + overlapping period).
@@ -80,6 +93,7 @@ class BudgetRepository {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
     // Validasi: amount > 0
     if (amount <= 0) {
@@ -112,6 +126,7 @@ class BudgetRepository {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
     return _remote.createBudget(budget);
@@ -129,6 +144,7 @@ class BudgetRepository {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
     if (amount <= 0) {
       final l10n = appContext?.l10n;
@@ -149,14 +165,14 @@ class BudgetRepository {
     }
 
     // Validasi duplikasi (exclude self)
-    final dupCheck = await _remote.hasDuplicateBudget(
+    final dupCheck = await _remote.findDuplicateBudgetId(
       categoryId: categoryId,
       walletId: walletId,
       startDate: startDate,
       endDate: endDate,
       excludeBudgetId: existing.id,
     );
-    if (dupCheck.isSuccess() && dupCheck.dataSuccess() == true) {
+    if (dupCheck.isSuccess() && dupCheck.dataSuccess() != null) {
       final l10n = appContext?.l10n;
       return DataState.error(
         message:
@@ -173,6 +189,7 @@ class BudgetRepository {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
     return _remote.updateBudget(updated);
@@ -185,7 +202,7 @@ class BudgetRepository {
     return _remote.deleteBudget(budgetId);
   }
 
-  /// Ganti budget lama dengan yang baru (hapus lama, buat baru).
+  /// Ganti budget lama dengan yang baru secara atomik via RPC.
   Future<DataState<BudgetModel>> replaceBudget({
     required String oldBudgetId,
     required String userId,
@@ -196,19 +213,8 @@ class BudgetRepository {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
-    // Hapus budget lama
-    final deleteResult = await _remote.deleteBudget(oldBudgetId);
-    if (!deleteResult.isSuccess()) {
-      final l10n = appContext?.l10n;
-      return DataState.error(
-        message:
-            l10n?.validationDeleteOldBudgetFailed ??
-            'Gagal menghapus anggaran lama',
-      );
-    }
-
-    // Buat budget baru
     final budget = BudgetModel(
       id: '',
       userId: userId,
@@ -220,9 +226,10 @@ class BudgetRepository {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
-    return _remote.createBudget(budget);
+    return _remote.replaceBudget(oldBudgetId: oldBudgetId, newBudget: budget);
   }
 
   // ───────────────── TRANSACTIONS FOR BUDGET ─────────────────
@@ -266,11 +273,10 @@ class BudgetRepository {
     return budgets.fold(0.0, (sum, b) => sum + b.usedAmount);
   }
 
-  /// Hitung jumlah yang masih bisa dibelanjakan.
+  /// Hitung jumlah yang masih bisa dibelanjakan (bisa negatif jika over).
   static double calculateSpendable(List<BudgetModel> budgets) {
     final total = calculateTotalBudget(budgets);
     final used = calculateTotalUsed(budgets);
-    final remaining = total - used;
-    return remaining > 0 ? remaining : 0;
+    return total - used;
   }
 }

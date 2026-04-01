@@ -28,6 +28,7 @@ class BudgetAlertChecker {
   Future<void> checkBudgets({
     required BudgetState budgetState,
     required bool budgetAlertEnabled,
+    required bool budgetAlert50Enabled,
     required AppLocalizations l10n,
   }) async {
     if (budgetState.status != BudgetStatus.loaded) return;
@@ -36,13 +37,18 @@ class BudgetAlertChecker {
     AppLogger.call('$_tag checkBudgets: ${budgetState.budgets.length} budgets');
 
     final alertData = budgetState.budgets
-        .where((b) => b.isActive && (b.isNearLimit || b.isOverBudget))
+        .where(
+          (b) =>
+              b.isActive && (b.isHalfUsed || b.isNearLimit || b.isOverBudget),
+        )
         .map(
           (b) => BudgetAlertData(
             id: b.id,
             categoryName: b.category?.name ?? 'Unknown',
+            isHalfUsed: b.isHalfUsed,
             isNearLimit: b.isNearLimit,
             isOverBudget: b.isOverBudget,
+            notificationSent50: b.notificationSent50,
             notificationSent80: b.notificationSent80,
             notificationSent100: b.notificationSent100,
           ),
@@ -54,7 +60,9 @@ class BudgetAlertChecker {
     await _notifRepo.checkAndSendBudgetAlerts(
       budgets: alertData,
       budgetAlertEnabled: budgetAlertEnabled,
+      budgetAlert50Enabled: budgetAlert50Enabled,
       alertTitle: l10n.notifBudgetTitle,
+      alert50Body: (cat) => l10n.notifBudgetAlert50(cat),
       alert80Body: (cat) => l10n.notifBudgetAlert80(cat),
       alert100Body: (cat) => l10n.notifBudgetAlert100(cat),
     );

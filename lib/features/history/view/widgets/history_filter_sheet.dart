@@ -3,8 +3,6 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
-import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
-import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,18 +12,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Bottom sheet filter untuk history.
 ///
 /// Filter:
-/// - Wallet (pilih dompet atau semua)
 /// - Type (semua / income / expense / transfer / debt / loan)
 /// - Grouping mode (by date / by category)
 class HistoryFilterSheet extends ConsumerStatefulWidget {
   const HistoryFilterSheet({
     super.key,
-    required this.currentWalletId,
     required this.currentType,
     required this.currentGroupMode,
   });
 
-  final String? currentWalletId;
   final TransactionTypeEnum? currentType;
   final HistoryGroupMode currentGroupMode;
 
@@ -34,14 +29,12 @@ class HistoryFilterSheet extends ConsumerStatefulWidget {
 }
 
 class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
-  late String? _walletId;
   late TransactionTypeEnum? _typeFilter;
   late HistoryGroupMode _groupMode;
 
   @override
   void initState() {
     super.initState();
-    _walletId = widget.currentWalletId;
     _typeFilter = widget.currentType;
     _groupMode = widget.currentGroupMode;
   }
@@ -50,7 +43,6 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final wallets = ref.watch(walletListProvider);
 
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
@@ -79,22 +71,6 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
           Text(
             l10n.historyFilter,
             style: TextStyleConstants.h7.copyWith(fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 20.h),
-
-          // ─── Wallet Filter ───
-          Text(
-            l10n.historySelectWallet,
-            style: TextStyleConstants.label1.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          _WalletChips(
-            wallets: wallets,
-            selectedId: _walletId,
-            allLabel: l10n.historyAllWallets,
-            onSelected: (id) => setState(() => _walletId = id),
           ),
           SizedBox(height: 20.h),
 
@@ -161,7 +137,6 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
                     Navigator.pop(
                       context,
                       _FilterResult(
-                        walletId: _walletId,
                         typeFilter: _typeFilter,
                         groupMode: _groupMode,
                       ),
@@ -181,71 +156,18 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
 /// Result model dari filter sheet.
 class _FilterResult {
   const _FilterResult({
-    this.walletId,
     this.typeFilter,
     this.groupMode = HistoryGroupMode.byDate,
   }) : isReset = false;
 
   const _FilterResult.reset()
-    : walletId = null,
-      typeFilter = null,
+    : typeFilter = null,
       groupMode = HistoryGroupMode.byDate,
       isReset = true;
 
-  final String? walletId;
   final TransactionTypeEnum? typeFilter;
   final HistoryGroupMode groupMode;
   final bool isReset;
-}
-
-/// Horizontal wrap of wallet filter chips.
-class _WalletChips extends StatelessWidget {
-  const _WalletChips({
-    required this.wallets,
-    required this.selectedId,
-    required this.allLabel,
-    required this.onSelected,
-  });
-
-  final List<WalletModel> wallets;
-  final String? selectedId;
-  final String allLabel;
-  final ValueChanged<String?> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Wrap(
-      spacing: 8.w,
-      runSpacing: 8.h,
-      children: [
-        // "Semua Dompet" chip
-        _FilterChip(
-          label: allLabel,
-          isSelected: selectedId == null,
-          onTap: () => onSelected(null),
-        ),
-        ...wallets.map(
-          (w) => _FilterChip(
-            label: w.name,
-            isSelected: selectedId == w.id,
-            leadingColor: _parseColor(w.color, colors.primary),
-            onTap: () => onSelected(w.id),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _parseColor(String hex, Color fallback) {
-    try {
-      final cleaned = hex.replaceAll('#', '');
-      return Color(int.parse('FF$cleaned', radix: 16));
-    } catch (_) {
-      return fallback;
-    }
-  }
 }
 
 /// Type filter chips.
@@ -290,13 +212,11 @@ class _FilterChip extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.onTap,
-    this.leadingColor,
   });
 
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  final Color? leadingColor;
 
   @override
   Widget build(BuildContext context) {
@@ -322,17 +242,6 @@ class _FilterChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (leadingColor != null) ...[
-              Container(
-                width: 8.w,
-                height: 8.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: leadingColor,
-                ),
-              ),
-              SizedBox(width: 6.w),
-            ],
             Text(
               label,
               style: TextStyleConstants.label2.copyWith(
@@ -415,7 +324,6 @@ Future<void> showHistoryFilterSheet(BuildContext context, WidgetRef ref) async {
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (_) => HistoryFilterSheet(
-      currentWalletId: historyState.walletId,
       currentType: historyState.typeFilter,
       currentGroupMode: historyState.groupMode,
     ),
@@ -431,7 +339,4 @@ Future<void> showHistoryFilterSheet(BuildContext context, WidgetRef ref) async {
   // Apply type & grouping locally (no refetch)
   controller.setTypeFilter(result.typeFilter);
   controller.setGroupMode(result.groupMode);
-
-  // Wallet filter triggers refetch
-  await controller.setWalletFilter(result.walletId);
 }

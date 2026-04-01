@@ -1,3 +1,6 @@
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
+
 /// Enum untuk tipe transaksi SakuRapi.
 ///
 /// Sesuai schema `02_DATABASE.md` §2.4:
@@ -60,5 +63,20 @@ enum TransactionTypeEnum {
   /// Apakah tipe ini memerlukan `with_person`.
   bool get requiresWithPerson {
     return this == TransactionTypeEnum.debt || this == TransactionTypeEnum.loan;
+  }
+
+  /// Label localized untuk ditampilkan di UI (group header, dsb.).
+  String toLocalizedLabel() {
+    final l10n = appContext?.l10n;
+    if (l10n == null) return toDbValue();
+    return switch (this) {
+      TransactionTypeEnum.income => l10n.transactionIncome,
+      TransactionTypeEnum.expense => l10n.transactionExpense,
+      TransactionTypeEnum.transfer => l10n.transactionTransfer,
+      TransactionTypeEnum.debt => l10n.transactionDebt,
+      TransactionTypeEnum.loan => l10n.transactionLoan,
+      TransactionTypeEnum.adjustment => l10n.transactionAdjustment,
+      TransactionTypeEnum.transferToAsset => l10n.transactionTransferToAsset,
+    };
   }
 }

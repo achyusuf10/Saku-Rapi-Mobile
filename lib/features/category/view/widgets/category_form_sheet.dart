@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
@@ -93,7 +94,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
         )
         .toList();
 
-    final previewColor = _parseColor(_selectedColor);
+    final previewColor = parseHexColor(_selectedColor);
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -255,7 +256,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                                   FaIcon(
                                     CategoryIconMapper.getIcon(p.icon),
                                     size: 14.w,
-                                    color: _parseColor(p.color),
+                                    color: parseHexColor(p.color),
                                   ),
                                   SizedBox(width: 8.w),
                                   Flexible(
@@ -420,13 +421,4 @@ class _PickerTile extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Parse hex color string ke [Color].
-Color _parseColor(String hexColor) {
-  final hex = hexColor.replaceFirst('#', '');
-  if (hex.length == 6) {
-    return Color(int.parse('FF$hex', radix: 16));
-  }
-  return const Color(0xFF6B7280);
 }

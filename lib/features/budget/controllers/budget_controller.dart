@@ -30,23 +30,52 @@ final budgetFilteredListProvider = Provider<List<BudgetModel>>((ref) {
 });
 
 /// Provider computed: period types yang tersedia dari budget aktif.
-final budgetAvailablePeriodTypesProvider = Provider<List<BudgetPeriodType>>((
-  ref,
-) {
+/// Custom budgets mendapat tab key unik berdasarkan tanggal.
+final budgetAvailablePeriodTypesProvider = Provider<List<String>>((ref) {
   final budgets = ref.watch(budgetFilteredListProvider);
-  final types = budgets.map((b) => b.periodType).toSet().toList();
-  // Sort: weekly, monthly, quarterly, yearly, custom
-  types.sort((a, b) => a.index.compareTo(b.index));
-  return types;
+  final keys = <String>{};
+  for (final b in budgets) {
+    if (b.periodType == BudgetPeriodType.custom) {
+      keys.add(
+        'custom_${b.startDate.toIso8601String().substring(0, 10)}_${b.endDate.toIso8601String().substring(0, 10)}',
+      );
+    } else {
+      keys.add(b.periodType.value);
+    }
+  }
+  // Sort: standard types first (by enum order), then custom by date
+  final sorted = keys.toList()
+    ..sort((a, b) {
+      final aIdx = _periodSortIndex(a);
+      final bIdx = _periodSortIndex(b);
+      if (aIdx != bIdx) return aIdx.compareTo(bIdx);
+      return a.compareTo(b);
+    });
+  return sorted;
 });
 
-/// Provider computed: budget difilter berdasarkan period type yang dipilih.
+int _periodSortIndex(String key) {
+  if (key == 'weekly') return 0;
+  if (key == 'monthly') return 1;
+  if (key == 'quarterly') return 2;
+  if (key == 'yearly') return 3;
+  return 4; // custom_*
+}
+
+/// Provider computed: budget difilter berdasarkan period tab key yang dipilih.
 final budgetByPeriodProvider = Provider<List<BudgetModel>>((ref) {
   final budgets = ref.watch(budgetFilteredListProvider);
   final state = ref.watch(budgetControllerProvider);
-  final selected = state.selectedPeriodType;
-  if (selected == null) return budgets;
-  return budgets.where((b) => b.periodType == selected).toList();
+  final selectedKey = state.selectedPeriodKey;
+  if (selectedKey == null) return budgets;
+
+  return budgets.where((b) {
+    if (b.periodType == BudgetPeriodType.custom) {
+      return 'custom_${b.startDate.toIso8601String().substring(0, 10)}_${b.endDate.toIso8601String().substring(0, 10)}' ==
+          selectedKey;
+    }
+    return b.periodType.value == selectedKey;
+  }).toList();
 });
 
 /// Provider computed: total anggaran dari budget aktif per periode.
@@ -88,42 +117,46 @@ class BudgetState {
   const BudgetState({
     this.status = BudgetStatus.initial,
     this.budgets = const [],
+    this.upcomingBudgets = const [],
     this.errorMessage,
     this.walletFilter,
-    this.selectedPeriodType,
+    this.selectedPeriodKey,
   });
 
   final BudgetStatus status;
   final List<BudgetModel> budgets;
+  final List<BudgetModel> upcomingBudgets;
   final String? errorMessage;
 
   /// Wallet ID filter. Null = semua dompet.
   final String? walletFilter;
 
-  /// Period type yang sedang dipilih di tab. Null = auto-select pertama.
-  final BudgetPeriodType? selectedPeriodType;
+  /// Period tab key yang sedang dipilih. Null = auto-select pertama.
+  final String? selectedPeriodKey;
 
   bool get isLoading => status == BudgetStatus.loading;
 
   BudgetState copyWith({
     BudgetStatus? status,
     List<BudgetModel>? budgets,
+    List<BudgetModel>? upcomingBudgets,
     String? errorMessage,
     String? walletFilter,
     bool clearWalletFilter = false,
-    BudgetPeriodType? selectedPeriodType,
-    bool clearPeriodType = false,
+    String? selectedPeriodKey,
+    bool clearPeriodKey = false,
   }) {
     return BudgetState(
       status: status ?? this.status,
       budgets: budgets ?? this.budgets,
+      upcomingBudgets: upcomingBudgets ?? this.upcomingBudgets,
       errorMessage: errorMessage,
       walletFilter: clearWalletFilter
           ? null
           : (walletFilter ?? this.walletFilter),
-      selectedPeriodType: clearPeriodType
+      selectedPeriodKey: clearPeriodKey
           ? null
-          : (selectedPeriodType ?? this.selectedPeriodType),
+          : (selectedPeriodKey ?? this.selectedPeriodKey),
     );
   }
 }
@@ -155,12 +188,12 @@ class BudgetController extends StateNotifier<BudgetState> {
     }
   }
 
-  /// Set period type yang sedang dipilih di tab.
-  void setSelectedPeriodType(BudgetPeriodType? type) {
-    if (type == null) {
-      state = state.copyWith(clearPeriodType: true);
+  /// Set period tab key yang sedang dipilih.
+  void setSelectedPeriodKey(String? key) {
+    if (key == null) {
+      state = state.copyWith(clearPeriodKey: true);
     } else {
-      state = state.copyWith(selectedPeriodType: type);
+      state = state.copyWith(selectedPeriodKey: key);
     }
   }
 
@@ -174,16 +207,30 @@ class BudgetController extends StateNotifier<BudgetState> {
 
     if (result.isSuccess()) {
       final budgets = result.dataSuccess()!;
-      state = state.copyWith(status: BudgetStatus.loaded, budgets: budgets);
+
+      // Also fetch upcoming budgets
+      final upcomingResult = await _repository.getUpcomingBudgets();
+      final upcoming = upcomingResult.isSuccess()
+          ? upcomingResult.dataSuccess()!
+          : <BudgetModel>[];
+
+      state = state.copyWith(
+        status: BudgetStatus.loaded,
+        budgets: budgets,
+        upcomingBudgets: upcoming,
+      );
     } else {
       final (message, _, _, _) = result.dataError()!;
       state = state.copyWith(status: BudgetStatus.error, errorMessage: message);
     }
   }
 
-  /// Fetch budget yang sudah selesai (expired).
-  Future<DataState<List<BudgetModel>>> loadCompletedBudgets() {
-    return _repository.getCompletedBudgets();
+  /// Fetch budget yang sudah selesai (expired) dengan pagination.
+  Future<DataState<List<BudgetModel>>> loadCompletedBudgets({
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return _repository.getCompletedBudgets(limit: limit, offset: offset);
   }
 
   /// Fetch transaksi terkait budget.
@@ -232,6 +279,7 @@ class BudgetController extends StateNotifier<BudgetState> {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
     final result = await _repository.createBudget(
       userId: userId,
@@ -242,6 +290,7 @@ class BudgetController extends StateNotifier<BudgetState> {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
     if (result.isSuccess()) {
@@ -262,6 +311,7 @@ class BudgetController extends StateNotifier<BudgetState> {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
     final result = await _repository.replaceBudget(
       oldBudgetId: oldBudgetId,
@@ -273,6 +323,7 @@ class BudgetController extends StateNotifier<BudgetState> {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
     if (result.isSuccess()) {
@@ -295,6 +346,7 @@ class BudgetController extends StateNotifier<BudgetState> {
     required DateTime endDate,
     bool isRecurring = false,
     BudgetPeriodType periodType = BudgetPeriodType.monthly,
+    bool carryForward = false,
   }) async {
     final result = await _repository.updateBudget(
       existing: existing,
@@ -305,6 +357,7 @@ class BudgetController extends StateNotifier<BudgetState> {
       endDate: endDate,
       isRecurring: isRecurring,
       periodType: periodType,
+      carryForward: carryForward,
     );
 
     if (result.isSuccess()) {
@@ -358,49 +411,89 @@ final completedBudgetsControllerProvider =
       return controller;
     });
 
-/// State untuk halaman completed budgets.
+/// State untuk halaman completed budgets dengan pagination.
 class CompletedBudgetsState {
   const CompletedBudgetsState({
     this.budgets = const [],
     this.isLoading = true,
+    this.isLoadingMore = false,
+    this.hasMore = true,
     this.errorMessage,
   });
 
   final List<BudgetModel> budgets;
   final bool isLoading;
+  final bool isLoadingMore;
+  final bool hasMore;
   final String? errorMessage;
 
   CompletedBudgetsState copyWith({
     List<BudgetModel>? budgets,
     bool? isLoading,
+    bool? isLoadingMore,
+    bool? hasMore,
     String? errorMessage,
   }) {
     return CompletedBudgetsState(
       budgets: budgets ?? this.budgets,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMore: hasMore ?? this.hasMore,
       errorMessage: errorMessage,
     );
   }
 }
 
-/// Controller untuk daftar budget yang sudah selesai (expired).
+/// Controller untuk daftar budget yang sudah selesai (expired) dengan pagination.
 class CompletedBudgetsController extends StateNotifier<CompletedBudgetsState> {
   CompletedBudgetsController(this._repository)
     : super(const CompletedBudgetsState());
 
   final BudgetRepository _repository;
+  static const _pageSize = 20;
 
-  /// Load daftar budget yang sudah selesai.
+  /// Load halaman pertama.
   Future<void> load() async {
     state = state.copyWith(isLoading: true);
 
-    final result = await _repository.getCompletedBudgets();
+    final result = await _repository.getCompletedBudgets(
+      limit: _pageSize,
+      offset: 0,
+    );
 
     if (result.isSuccess()) {
-      state = state.copyWith(budgets: result.dataSuccess()!, isLoading: false);
+      final budgets = result.dataSuccess()!;
+      state = state.copyWith(
+        budgets: budgets,
+        isLoading: false,
+        hasMore: budgets.length >= _pageSize,
+      );
     } else {
       final (message, _, _, _) = result.dataError()!;
       state = state.copyWith(errorMessage: message, isLoading: false);
+    }
+  }
+
+  /// Load halaman berikutnya (pagination).
+  Future<void> loadMore() async {
+    if (state.isLoadingMore || !state.hasMore) return;
+
+    state = state.copyWith(isLoadingMore: true);
+
+    final result = await _repository.getCompletedBudgets(
+      limit: _pageSize,
+      offset: state.budgets.length,
+    );
+
+    if (result.isSuccess()) {
+      final newBudgets = result.dataSuccess()!;
+      state = state.copyWith(
+        budgets: [...state.budgets, ...newBudgets],
+        isLoadingMore: false,
+        hasMore: newBudgets.length >= _pageSize,
+      );
+    } else {
+      state = state.copyWith(isLoadingMore: false);
     }
   }
 }
@@ -460,10 +553,15 @@ class BudgetDetailController extends StateNotifier<BudgetDetailState> {
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true);
 
+    // Build category IDs: budget category + child categories
     final categoryIds = <String>[_budget.categoryId];
-    final category = _budget.category;
-    if (category != null && category.children.isNotEmpty) {
-      categoryIds.addAll(category.children.map((c) => c.id));
+
+    // Fetch child category IDs from DB (more reliable than join)
+    final childResult = await _repository.getChildCategoryIds(
+      _budget.categoryId,
+    );
+    if (childResult.isSuccess()) {
+      categoryIds.addAll(childResult.dataSuccess()!);
     }
 
     final result = await _repository.getTransactionsForBudget(

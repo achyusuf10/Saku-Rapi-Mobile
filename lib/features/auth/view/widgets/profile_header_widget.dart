@@ -111,19 +111,29 @@ class _ProfileAvatar extends StatelessWidget {
                 width: 48.r,
                 height: 48.r,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => FaIcon(
-                  FontAwesomeIcons.user,
-                  color: colors.primary,
-                  size: 20.w,
+                placeholder: (context, url) => Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.user,
+                    color: colors.primary,
+                    size: 20.w,
+                  ),
                 ),
-                errorWidget: (context, url, error) => FaIcon(
-                  FontAwesomeIcons.user,
-                  color: colors.primary,
-                  size: 20.w,
+                errorWidget: (context, url, error) => Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.user,
+                    color: colors.primary,
+                    size: 20.w,
+                  ),
                 ),
               ),
             )
-          : FaIcon(FontAwesomeIcons.user, color: colors.primary, size: 20.w),
+          : Center(
+              child: FaIcon(
+                FontAwesomeIcons.user,
+                color: colors.primary,
+                size: 20.w,
+              ),
+            ),
     );
   }
 }

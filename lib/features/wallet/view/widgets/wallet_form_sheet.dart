@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
@@ -172,7 +173,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                           width: 24.w,
                           height: 24.w,
                           decoration: BoxDecoration(
-                            color: _parseColor(_selectedColor),
+                            color: parseHexColor(_selectedColor),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: colors.border,
@@ -330,11 +331,6 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
         setState(() => _isSaving = false);
       }
     }
-  }
-
-  Color _parseColor(String hex) {
-    final clean = hex.replaceAll('#', '');
-    return Color(int.parse('FF$clean', radix: 16));
   }
 }
 

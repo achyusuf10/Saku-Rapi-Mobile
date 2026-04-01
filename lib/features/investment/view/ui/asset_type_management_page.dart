@@ -89,10 +89,7 @@ class _AssetTypeManagementPageState
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.assetTypeTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.assetTypeTitle),
         centerTitle: false,
         leading: IconButton(
           onPressed: () => context.pop(),

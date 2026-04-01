@@ -410,7 +410,7 @@ class HistoryState {
     final list = filteredTransactions;
     final map = <String, List<TransactionModel>>{};
     for (final tx in list) {
-      final key = tx.categoryName ?? tx.type.toDbValue();
+      final key = tx.categoryName ?? tx.type.toLocalizedLabel();
       (map[key] ??= []).add(tx);
     }
     return map;

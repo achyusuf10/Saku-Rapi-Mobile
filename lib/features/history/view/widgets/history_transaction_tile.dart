@@ -5,7 +5,9 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,8 +16,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Tile untuk satu transaksi — dipakai di history list dan dashboard.
 ///
 /// Menampilkan icon kategori, nama, tanggal, dan jumlah.
-/// Jika [showDate] = true, subtitle menampilkan tanggal + jam (untuk dashboard).
-/// Jika [showDate] = false (default), subtitle menampilkan wallet + jam saja.
+/// [groupMode] menentukan layout:
+/// - [HistoryGroupMode.byDate]: Icon | Category + Note | Amount + Time
+/// - [HistoryGroupMode.byCategory]: Icon | Note + Date(EEE, dd MMM yyyy HH:mm) | Amount
 class HistoryTransactionTile extends StatelessWidget {
   const HistoryTransactionTile({
     super.key,
@@ -23,6 +26,7 @@ class HistoryTransactionTile extends StatelessWidget {
     required this.onTap,
     this.onLongPress,
     this.showDate = false,
+    this.groupMode,
   });
 
   final TransactionModel transaction;
@@ -30,10 +34,23 @@ class HistoryTransactionTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final bool showDate;
 
+  /// Jika null, gunakan layout byDate (default untuk dashboard).
+  final HistoryGroupMode? groupMode;
+
   @override
   Widget build(BuildContext context) {
+    final effectiveMode = groupMode ?? HistoryGroupMode.byDate;
+    if (effectiveMode == HistoryGroupMode.byCategory) {
+      return _buildByCategoryLayout(context);
+    }
+    return _buildByDateLayout(context);
+  }
+
+  /// Layout untuk mode byDate:
+  /// Icon | Category + Note | Amount + Time
+  Widget _buildByDateLayout(BuildContext context) {
     final colors = context.colors;
-    final typeColor = _colorForType(transaction.type, colors);
+    final typeColor = _resolveIconColor(transaction, colors);
     final isIncoming =
         transaction.type == TransactionTypeEnum.income ||
         transaction.type == TransactionTypeEnum.debt;
@@ -64,7 +81,7 @@ class HistoryTransactionTile extends StatelessWidget {
             ),
             SizedBox(width: 12.w),
 
-            // ─── Title + Subtitle ───
+            // ─── Category Name + Note ───
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,53 +95,24 @@ class HistoryTransactionTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                  SizedBox(height: 2.h),
-                  if (showDate)
+                  if (transaction.note != null &&
+                      transaction.note!.isNotEmpty) ...[
+                    SizedBox(height: 2.h),
                     Text(
-                      transaction.date.extToFormattedString(
-                        outputDateFormat: 'dd MMM yyyy, HH:mm',
-                      ),
+                      transaction.note!,
                       style: TextStyleConstants.label3.copyWith(
                         color: colors.textSecondary,
                       ),
-                    )
-                  else
-                    Row(
-                      children: [
-                        if (transaction.walletName != null) ...[
-                          FaIcon(
-                            FontAwesomeIcons.wallet,
-                            size: 9.w,
-                            color: colors.textSecondary.withValues(alpha: 0.6),
-                          ),
-                          SizedBox(width: 4.w),
-                          Flexible(
-                            child: Text(
-                              transaction.walletName!,
-                              style: TextStyleConstants.label3.copyWith(
-                                color: colors.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          SizedBox(width: 8.w),
-                        ],
-                        Text(
-                          transaction.date.extToFormattedString(
-                            outputDateFormat: 'HH:mm',
-                          ),
-                          style: TextStyleConstants.label3.copyWith(
-                            color: colors.textSecondary.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
+                  ],
                 ],
               ),
             ),
             SizedBox(width: 8.w),
 
-            // ─── Amount ───
+            // ─── Amount + Time ───
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -135,30 +123,84 @@ class HistoryTransactionTile extends StatelessWidget {
                     color: isIncoming ? colors.income : colors.expense,
                   ),
                 ),
-                if (transaction.isMultiItem)
-                  Padding(
-                    padding: EdgeInsets.only(top: 2.h),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 1.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Text(
-                        '${transaction.items.length} items',
-                        style: TextStyleConstants.label3.copyWith(
-                          color: colors.primary,
-                          fontSize: 9.sp,
-                        ),
-                      ),
-                    ),
+                SizedBox(height: 2.h),
+                Text(
+                  transaction.date.extToFormattedString(
+                    outputDateFormat: 'HH:mm',
                   ),
+                  style: TextStyleConstants.label3.copyWith(
+                    color: colors.textSecondary.withValues(alpha: 0.7),
+                  ),
+                ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Layout untuk mode byCategory:
+  /// Date(EEE, dd MMM yyyy HH:mm) + Note | Amount
+  Widget _buildByCategoryLayout(BuildContext context) {
+    final colors = context.colors;
+    final isIncoming =
+        transaction.type == TransactionTypeEnum.income ||
+        transaction.type == TransactionTypeEnum.debt;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          child: Row(
+            children: [
+              // ─── Date + Note ───
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.date.extToFormattedString(
+                        outputDateFormat: 'EEE, dd MMM yyyy HH:mm',
+                      ),
+                      style: TextStyleConstants.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    if (transaction.note != null &&
+                        transaction.note!.isNotEmpty) ...[
+                      SizedBox(height: 2.h),
+                      Text(
+                        transaction.note!,
+                        style: TextStyleConstants.label3.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+
+              // ─── Amount ───
+              Text(
+                '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
+                style: TextStyleConstants.caption.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isIncoming ? colors.income : colors.expense,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -209,6 +251,14 @@ class HistoryTransactionTile extends StatelessWidget {
       TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
       TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
     };
+  }
+
+  /// Warna icon: prioritaskan categoryColor, fallback ke warna tipe transaksi.
+  Color _resolveIconColor(TransactionModel tx, dynamic colors) {
+    if (tx.categoryColor != null && tx.categoryColor!.isNotEmpty) {
+      return parseHexColor(tx.categoryColor!);
+    }
+    return _colorForType(tx.type, colors);
   }
 
   Color _colorForType(TransactionTypeEnum type, dynamic colors) {

@@ -59,13 +59,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(
-          l10n.debtLoanPersonTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(l10n.debtLoanPersonTitle), centerTitle: false),
       body: _buildBody(context, state),
       // Settlement FAB — only when there are unpaid transactions.
       floatingActionButton: state.totalRemaining > 0

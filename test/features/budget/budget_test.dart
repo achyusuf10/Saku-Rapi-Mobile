@@ -12,8 +12,10 @@ BudgetModel _budget({
   DateTime? endDate,
   BudgetPeriodType periodType = BudgetPeriodType.monthly,
   bool isRecurring = false,
+  bool notificationSent50 = false,
   bool notificationSent80 = false,
   bool notificationSent100 = false,
+  bool carryForward = false,
 }) {
   return BudgetModel(
     id: id,
@@ -25,8 +27,10 @@ BudgetModel _budget({
     endDate: endDate ?? DateTime(2025, 1, 31),
     periodType: periodType,
     isRecurring: isRecurring,
+    notificationSent50: notificationSent50,
     notificationSent80: notificationSent80,
     notificationSent100: notificationSent100,
+    carryForward: carryForward,
   );
 }
 
@@ -94,6 +98,20 @@ void main() {
       expect(_budget(amount: 500000, usedAmount: 400000).isNearLimit, isTrue);
       expect(_budget(amount: 500000, usedAmount: 399999).isNearLimit, isFalse);
       expect(_budget(amount: 500000, usedAmount: 500000).isNearLimit, isTrue);
+    });
+
+    test('isHalfUsed when usage >= 50%', () {
+      expect(_budget(amount: 500000, usedAmount: 250000).isHalfUsed, isTrue);
+      expect(_budget(amount: 500000, usedAmount: 249999).isHalfUsed, isFalse);
+      expect(_budget(amount: 500000, usedAmount: 500000).isHalfUsed, isTrue);
+    });
+
+    test('carryForward defaults to false', () {
+      expect(_budget().carryForward, isFalse);
+    });
+
+    test('carryForward can be set to true', () {
+      expect(_budget(carryForward: true).carryForward, isTrue);
     });
 
     test('totalDays is inclusive', () {
@@ -351,7 +369,7 @@ void main() {
 
     test('clamps to 0 when over budget', () {
       final budgets = [_budget(id: 'b1', amount: 500000, usedAmount: 600000)];
-      expect(BudgetRepository.calculateSpendable(budgets), 0.0);
+      expect(BudgetRepository.calculateSpendable(budgets), -100000.0);
     });
   });
 
@@ -380,16 +398,16 @@ void main() {
       expect(next.walletFilter, isNull);
     });
 
-    test('copyWith preserves selectedPeriodType by default', () {
-      const state = BudgetState(selectedPeriodType: BudgetPeriodType.quarterly);
+    test('copyWith preserves selectedPeriodKey by default', () {
+      const state = BudgetState(selectedPeriodKey: 'quarterly');
       final next = state.copyWith(status: BudgetStatus.loaded);
-      expect(next.selectedPeriodType, BudgetPeriodType.quarterly);
+      expect(next.selectedPeriodKey, 'quarterly');
     });
 
-    test('copyWith clearPeriodType sets to null', () {
-      const state = BudgetState(selectedPeriodType: BudgetPeriodType.quarterly);
-      final next = state.copyWith(clearPeriodType: true);
-      expect(next.selectedPeriodType, isNull);
+    test('copyWith clearPeriodKey sets to null', () {
+      const state = BudgetState(selectedPeriodKey: 'quarterly');
+      final next = state.copyWith(clearPeriodKey: true);
+      expect(next.selectedPeriodKey, isNull);
     });
 
     test('copyWith clears errorMessage when not provided', () {

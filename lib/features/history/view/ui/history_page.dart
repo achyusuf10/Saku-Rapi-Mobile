@@ -1,9 +1,12 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
@@ -15,6 +18,7 @@ import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -135,16 +139,22 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.historyTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.historyTitle),
         centerTitle: false,
         actions: [
+          // Wallet filter popup
+          SakuWalletFilterButton(
+            selectedWalletId: historyState.walletId,
+            onSelected: (walletId) {
+              ref
+                  .read(historyControllerProvider.notifier)
+                  .setWalletFilter(walletId);
+            },
+          ),
           // Filter button
           IconButton(
             icon: Badge(
-              isLabelVisible: _hasActiveFilter(historyState),
+              isLabelVisible: historyState.typeFilter != null,
               smallSize: 8.w,
               child: FaIcon(FontAwesomeIcons.filter, size: 16.w),
             ),
@@ -210,10 +220,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
-  bool _hasActiveFilter(HistoryState state) {
-    return state.walletId != null || state.typeFilter != null;
-  }
-
   Widget _buildBody(HistoryState historyState) {
     final l10n = context.l10n;
 
@@ -247,25 +253,20 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         ? historyState.groupedByDate
         : historyState.groupedByCategory;
 
-    // Build a flat list of headers + tiles for efficient sliver rendering
-    final items = <_ListItem>[];
-    for (final entry in grouped.entries) {
-      items.add(_ListItem.header(entry.key, entry.value));
-      for (final tx in entry.value) {
-        items.add(_ListItem.transaction(tx));
-      }
-    }
+    // Build section-based list: each group = header + card with tiles
+    final sections = grouped.entries.toList();
 
     return RefreshIndicator(
       color: colors.primary,
       onRefresh: () => ref.read(historyControllerProvider.notifier).refresh(),
-      child: ListView.builder(
+      child: ListView.separated(
+        separatorBuilder: (context, index) => 12.verticalSpace,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: 80.h),
-        itemCount: items.length + 1,
+        itemCount: sections.length + 1,
         itemBuilder: (context, index) {
           // Last slot: load-more trigger or loading indicator
-          if (index == items.length) {
+          if (index == sections.length) {
             if (historyState.isLoadingMore) {
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -273,9 +274,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               );
             }
             if (!historyState.hasMore) {
-              return Center(
-                child: Text('No more data'),
-              ); // No more data, no trigger
+              return const SizedBox.shrink();
             }
             return VisibilityDetector(
               key: const Key('history_load_more_trigger'),
@@ -288,19 +287,61 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             );
           }
 
-          final item = items[index];
-          if (item.isHeader) {
-            return _GroupHeader(
-              label: _formatGroupLabel(item.headerKey!, historyState.groupMode),
-              total: _groupTotal(item.headerTransactions!),
-              transactionCount: item.headerTransactions!.length,
-              groupMode: historyState.groupMode,
-            );
-          }
+          final entry = sections[index];
+          final txList = entry.value;
 
-          return HistoryTransactionTile(
-            transaction: item.tx!,
-            onTap: () => _navigateToDetail(item.tx!),
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+              16.w,
+              index == 0 ? 4.h : 12.h,
+              16.w,
+              0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ─── Group Header ───
+                _GroupHeader(
+                  label: _formatGroupLabel(entry.key, historyState.groupMode),
+                  total: _groupTotal(txList),
+                  transactionCount: txList.length,
+                  groupMode: historyState.groupMode,
+                  firstTransaction: txList.first,
+                ),
+                SizedBox(height: 6.h),
+                // ─── Transaction Card ───
+                Container(
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < txList.length; i++) ...[
+                        HistoryTransactionTile(
+                          transaction: txList[i],
+                          groupMode: historyState.groupMode,
+                          onTap: () => _navigateToDetail(txList[i]),
+                        ),
+                        if (i < txList.length - 1)
+                          Divider(
+                            height: 1,
+                            indent:
+                                historyState.groupMode ==
+                                    HistoryGroupMode.byCategory
+                                ? 16.w
+                                : 70.w,
+                            color: colors.border.withValues(alpha: 0.3),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -322,24 +363,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   double _groupTotal(List<TransactionModel> txs) {
     return HistoryState.groupNetTotal(txs);
   }
-}
-
-// ───────────────── List Item Model ─────────────────
-
-class _ListItem {
-  _ListItem.header(this.headerKey, this.headerTransactions)
-    : tx = null,
-      isHeader = true;
-
-  _ListItem.transaction(this.tx)
-    : headerKey = null,
-      headerTransactions = null,
-      isHeader = false;
-
-  final bool isHeader;
-  final String? headerKey;
-  final List<TransactionModel>? headerTransactions;
-  final TransactionModel? tx;
 }
 
 // ───────────────── Summary Card ─────────────────
@@ -492,52 +515,109 @@ class _GroupHeader extends StatelessWidget {
     required this.total,
     required this.transactionCount,
     required this.groupMode,
+    this.firstTransaction,
   });
 
   final String label;
   final double total;
   final int transactionCount;
   final HistoryGroupMode groupMode;
+  final TransactionModel? firstTransaction;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final isPositive = total >= 0;
+    final isByCategory = groupMode == HistoryGroupMode.byCategory;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 4.h),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyleConstants.label1.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
+    return Row(
+      children: [
+        // ─── Category Icon (only in byCategory mode) ───
+        if (isByCategory && firstTransaction != null) ...[
+          Builder(
+            builder: (_) {
+              final iconColor = _resolveIconColor(firstTransaction!, colors);
+              return Container(
+                width: 36.w,
+                height: 36.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: iconColor.withValues(alpha: 0.1),
+                ),
+                child: Center(
+                  child: FaIcon(
+                    _iconForTx(firstTransaction!),
+                    size: 14.w,
+                    color: iconColor,
                   ),
                 ),
-                if (groupMode == HistoryGroupMode.byDate)
-                  Text(
-                    '$transactionCount transaksi',
-                    style: TextStyleConstants.label3.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-              ],
-            ),
+              );
+            },
           ),
-          Text(
-            '${isPositive ? '+' : ''}${total.toCompactCurrency()}',
-            style: TextStyleConstants.caption.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isPositive ? colors.income : colors.expense,
-            ),
-          ),
+          SizedBox(width: 10.w),
         ],
-      ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyleConstants.label1.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                '$transactionCount transaksi',
+                style: TextStyleConstants.label3.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          '${isPositive ? '+' : ''}${total.toCompactCurrency()}',
+          style: TextStyleConstants.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isPositive ? colors.income : colors.expense,
+          ),
+        ),
+      ],
     );
+  }
+
+  IconData _iconForTx(TransactionModel tx) {
+    if (tx.categoryIcon != null) {
+      return CategoryIconMapper.getIcon(tx.categoryIcon!);
+    }
+    return switch (tx.type) {
+      TransactionTypeEnum.income => FontAwesomeIcons.arrowTrendUp,
+      TransactionTypeEnum.expense => FontAwesomeIcons.arrowTrendDown,
+      TransactionTypeEnum.transfer => FontAwesomeIcons.arrowRightArrowLeft,
+      TransactionTypeEnum.debt => FontAwesomeIcons.handHoldingDollar,
+      TransactionTypeEnum.loan => FontAwesomeIcons.handHoldingHand,
+      TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
+      TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
+    };
+  }
+
+  Color _resolveIconColor(TransactionModel tx, dynamic colors) {
+    if (tx.categoryColor != null && tx.categoryColor!.isNotEmpty) {
+      return parseHexColor(tx.categoryColor!);
+    }
+    return _typeColor(tx.type, colors);
+  }
+
+  Color _typeColor(TransactionTypeEnum type, dynamic colors) {
+    return switch (type) {
+      TransactionTypeEnum.expense => colors.expense as Color,
+      TransactionTypeEnum.income => colors.income as Color,
+      TransactionTypeEnum.transfer => colors.transfer as Color,
+      TransactionTypeEnum.debt => colors.debt as Color,
+      TransactionTypeEnum.loan => colors.loan as Color,
+      _ => colors.primary as Color,
+    };
   }
 }

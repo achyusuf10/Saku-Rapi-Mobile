@@ -50,13 +50,7 @@ class _NotificationSettingsPageState
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(
-          l10n.notifTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(l10n.notifTitle), centerTitle: false),
       body: status == NotificationSettingsStatus.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -76,7 +70,12 @@ class _NotificationSettingsPageState
 
                 // ─── ALERT ANGGARAN ───
                 SettingsSectionHeader(title: l10n.notifBudgetTitle),
-                SettingsGroup(children: [const _BudgetAlertToggleTile()]),
+                SettingsGroup(
+                  children: [
+                    const _BudgetAlertToggleTile(),
+                    const _BudgetAlert50ToggleTile(),
+                  ],
+                ),
 
                 // ─── PENGINGAT PIUTANG ───
                 SettingsSectionHeader(title: l10n.notifDebtTitle),
@@ -272,6 +271,30 @@ class _BudgetAlertToggleTile extends ConsumerWidget {
           ref
               .read(notificationControllerProvider.notifier)
               .toggleBudgetAlert(val);
+        },
+      ),
+    );
+  }
+}
+
+/// Toggle tile untuk budget alert 50%.
+class _BudgetAlert50ToggleTile extends ConsumerWidget {
+  const _BudgetAlert50ToggleTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(isBudgetAlert50EnabledProvider);
+    final l10n = context.l10n;
+
+    return SettingsTile(
+      icon: FontAwesomeIcons.chartPie,
+      label: l10n.notifBudget50Subtitle,
+      trailing: Switch.adaptive(
+        value: enabled,
+        onChanged: (val) {
+          ref
+              .read(notificationControllerProvider.notifier)
+              .toggleBudgetAlert50(val);
         },
       ),
     );

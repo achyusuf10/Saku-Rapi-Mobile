@@ -27,6 +27,8 @@ class HistoryRemoteDataSource {
     required DateTime startDate,
     required DateTime endDate,
     String? walletId,
+    String? categoryId,
+    String? type,
     int limit = 30,
     int offset = 0,
   }) {
@@ -34,7 +36,8 @@ class HistoryRemoteDataSource {
       function: () async {
         AppLogger.call(
           '$_tag getTransactions: $startDate - $endDate, '
-          'wallet=$walletId, limit=$limit, offset=$offset',
+          'wallet=$walletId, category=$categoryId, type=$type, '
+          'limit=$limit, offset=$offset',
         );
 
         var query = _client
@@ -43,7 +46,7 @@ class HistoryRemoteDataSource {
               *,
               wallets!transactions_wallet_id_fkey(name),
               destination_wallet:wallets!transactions_destination_wallet_id_fkey(name),
-              transaction_items(
+              transaction_items${categoryId != null ? '!inner' : ''}(
                 *,
                 categories(name, icon, color)
               )
@@ -54,6 +57,14 @@ class HistoryRemoteDataSource {
 
         if (walletId != null) {
           query = query.eq('wallet_id', walletId);
+        }
+
+        if (type != null) {
+          query = query.eq('type', type);
+        }
+
+        if (categoryId != null) {
+          query = query.eq('transaction_items.category_id', categoryId);
         }
 
         final response = await query

@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -146,7 +147,7 @@ class _WalletPickerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final walletColor = _parseColor(wallet.color);
+    final walletColor = parseHexColor(wallet.color);
 
     return InkWell(
       onTap: onTap,
@@ -216,10 +217,5 @@ class _WalletPickerItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _parseColor(String hex) {
-    final clean = hex.replaceAll('#', '');
-    return Color(int.parse('FF$clean', radix: 16));
   }
 }

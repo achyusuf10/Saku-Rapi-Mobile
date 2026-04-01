@@ -37,6 +37,8 @@ class BudgetModel {
     required this.endDate,
     this.periodType = BudgetPeriodType.monthly,
     this.isRecurring = false,
+    this.carryForward = false,
+    this.notificationSent50 = false,
     this.notificationSent80 = false,
     this.notificationSent100 = false,
     this.createdAt,
@@ -75,6 +77,12 @@ class BudgetModel {
   /// Auto-renew budget di periode berikutnya.
   final bool isRecurring;
 
+  /// Sisa positif diteruskan ke budget berikutnya saat renew.
+  final bool carryForward;
+
+  /// Flag notifikasi 50% sudah dikirim.
+  final bool notificationSent50;
+
   /// Flag notifikasi 80% sudah dikirim.
   final bool notificationSent80;
 
@@ -103,6 +111,9 @@ class BudgetModel {
 
   /// Apakah budget sudah terpakai >= 100%.
   bool get isOverBudget => usedAmount >= amount;
+
+  /// Apakah budget sudah terpakai >= 50%.
+  bool get isHalfUsed => usageRatio >= 0.5;
 
   /// Apakah budget sudah terpakai >= 80%.
   bool get isNearLimit => usageRatio >= 0.8;
@@ -162,6 +173,8 @@ class BudgetModel {
         (map['period_type'] as String?) ?? 'monthly',
       ),
       isRecurring: (map['is_recurring'] as bool?) ?? false,
+      carryForward: (map['carry_forward'] as bool?) ?? false,
+      notificationSent50: (map['notification_sent_50'] as bool?) ?? false,
       notificationSent80: (map['notification_sent_80'] as bool?) ?? false,
       notificationSent100: (map['notification_sent_100'] as bool?) ?? false,
       createdAt: map['created_at'] != null
@@ -190,6 +203,7 @@ class BudgetModel {
       'end_date': _formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
+      'carry_forward': carryForward,
     };
   }
 
@@ -203,6 +217,7 @@ class BudgetModel {
       'end_date': _formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
+      'carry_forward': carryForward,
     };
   }
 
@@ -219,6 +234,8 @@ class BudgetModel {
       'end_date': _formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
+      'carry_forward': carryForward,
+      'notification_sent_50': notificationSent50,
       'notification_sent_80': notificationSent80,
       'notification_sent_100': notificationSent100,
       'created_at': createdAt?.toIso8601String(),
@@ -237,6 +254,8 @@ class BudgetModel {
     DateTime? endDate,
     BudgetPeriodType? periodType,
     bool? isRecurring,
+    bool? carryForward,
+    bool? notificationSent50,
     bool? notificationSent80,
     bool? notificationSent100,
     DateTime? createdAt,
@@ -255,6 +274,8 @@ class BudgetModel {
       endDate: endDate ?? this.endDate,
       periodType: periodType ?? this.periodType,
       isRecurring: isRecurring ?? this.isRecurring,
+      carryForward: carryForward ?? this.carryForward,
+      notificationSent50: notificationSent50 ?? this.notificationSent50,
       notificationSent80: notificationSent80 ?? this.notificationSent80,
       notificationSent100: notificationSent100 ?? this.notificationSent100,
       createdAt: createdAt ?? this.createdAt,

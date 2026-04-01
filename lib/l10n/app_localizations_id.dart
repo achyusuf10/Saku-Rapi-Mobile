@@ -799,6 +799,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get budgetEndOfMonthLabel => 'Akhir Bulan';
 
   @override
+  String get budgetEndOfPeriodLabel => 'Akhir Periode';
+
+  @override
   String budgetDaysRemaining(int days) {
     return '$days hari';
   }
@@ -993,6 +996,26 @@ class AppLocalizationsId extends AppLocalizations {
   String get budgetDetailTransactionsEmpty => 'Belum ada transaksi';
 
   @override
+  String get budgetFormCarryForwardTitle => 'Carry Forward';
+
+  @override
+  String get budgetFormCarryForwardSubtitle =>
+      'Bawa sisa anggaran ke periode berikutnya saat diperpanjang';
+
+  @override
+  String get budgetFormDiscardTitle => 'Buang Perubahan?';
+
+  @override
+  String get budgetFormDiscardMessage =>
+      'Kamu punya perubahan yang belum disimpan. Yakin ingin membuangnya?';
+
+  @override
+  String get budgetFormDiscardConfirm => 'Buang';
+
+  @override
+  String get budgetUpcomingBudgets => 'Anggaran Mendatang';
+
+  @override
   String get investmentTitle => 'Investasi';
 
   @override
@@ -1181,6 +1204,17 @@ class AppLocalizationsId extends AppLocalizations {
   String notifBudgetAlert100(String category) {
     return 'Anggaran $category sudah habis!';
   }
+
+  @override
+  String notifBudgetAlert50(String category) {
+    return 'Anggaran $category sudah 50% terpakai';
+  }
+
+  @override
+  String get notifBudget50Title => 'Alert Anggaran 50%';
+
+  @override
+  String get notifBudget50Subtitle => 'Notif saat anggaran mencapai 50%';
 
   @override
   String notifDebtDue(String person, int days) {

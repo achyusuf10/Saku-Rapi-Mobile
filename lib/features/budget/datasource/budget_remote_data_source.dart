@@ -64,11 +64,37 @@ class BudgetRemoteDataSource {
     );
   }
 
-  /// Ambil budget yang sudah selesai (end_date < today).
-  Future<DataState<List<BudgetModel>>> getCompletedBudgets() {
+  /// Ambil budget yang belum dimulai (start_date > today).
+  Future<DataState<List<BudgetModel>>> getUpcomingBudgets() {
     return SupabaseHandler.call<List<BudgetModel>>(
       function: () async {
-        AppLogger.call('$_tag getCompletedBudgets');
+        AppLogger.call('$_tag getUpcomingBudgets');
+        final now = DateTime.now();
+        final today =
+            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+        final response = await _client
+            .from(_table)
+            .select(_selectWithJoin)
+            .eq('user_id', _userId)
+            .gt('start_date', today)
+            .order('start_date', ascending: true);
+
+        return response.map((e) => BudgetModel.fromMap(e)).toList();
+      },
+    );
+  }
+
+  /// Ambil budget yang sudah selesai (end_date < today) dengan pagination.
+  Future<DataState<List<BudgetModel>>> getCompletedBudgets({
+    int limit = 20,
+    int offset = 0,
+  }) {
+    return SupabaseHandler.call<List<BudgetModel>>(
+      function: () async {
+        AppLogger.call(
+          '$_tag getCompletedBudgets: limit=$limit offset=$offset',
+        );
         final now = DateTime.now();
         final today =
             '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -78,7 +104,8 @@ class BudgetRemoteDataSource {
             .select(_selectWithJoin)
             .eq('user_id', _userId)
             .lt('end_date', today)
-            .order('end_date', ascending: false);
+            .order('end_date', ascending: false)
+            .range(offset, offset + limit - 1);
 
         return response.map((e) => BudgetModel.fromMap(e)).toList();
       },
@@ -158,6 +185,64 @@ class BudgetRemoteDataSource {
       function: () async {
         AppLogger.call('$_tag deleteBudget: $budgetId');
         await _client.from(_table).delete().eq('id', budgetId);
+      },
+    );
+  }
+
+  /// Ganti budget lama secara atomik via RPC (DELETE old + INSERT new).
+  Future<DataState<BudgetModel>> replaceBudget({
+    required String oldBudgetId,
+    required BudgetModel newBudget,
+  }) {
+    return SupabaseHandler.call<BudgetModel>(
+      function: () async {
+        AppLogger.call('$_tag replaceBudget: $oldBudgetId → new');
+        final result = await _client.rpc(
+          'replace_budget',
+          params: {
+            'p_old_budget_id': oldBudgetId,
+            'p_user_id': newBudget.userId,
+            'p_category_id': newBudget.categoryId,
+            'p_wallet_id': newBudget.walletId,
+            'p_amount': newBudget.amount,
+            'p_start_date': newBudget.startDate.toIso8601String().substring(
+              0,
+              10,
+            ),
+            'p_end_date': newBudget.endDate.toIso8601String().substring(0, 10),
+            'p_is_recurring': newBudget.isRecurring,
+            'p_period_type': newBudget.periodType.value,
+            'p_carry_forward': newBudget.carryForward,
+          },
+        );
+
+        final newId = (result as Map<String, dynamic>)['id'] as String;
+
+        // Fetch with join
+        final response = await _client
+            .from(_table)
+            .select(_selectWithJoin)
+            .eq('id', newId)
+            .single();
+
+        return BudgetModel.fromMap(response);
+      },
+    );
+  }
+
+  /// Ambil child category IDs untuk parent category.
+  Future<DataState<List<String>>> getChildCategoryIds(String parentCategoryId) {
+    return SupabaseHandler.call<List<String>>(
+      function: () async {
+        AppLogger.call('$_tag getChildCategoryIds: $parentCategoryId');
+        final response = await _client
+            .from('categories')
+            .select('id')
+            .eq('parent_id', parentCategoryId);
+
+        return (response as List)
+            .map((e) => (e as Map<String, dynamic>)['id'] as String)
+            .toList();
       },
     );
   }

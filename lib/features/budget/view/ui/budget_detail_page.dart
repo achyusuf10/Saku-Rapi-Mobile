@@ -1,9 +1,11 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
+import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
@@ -44,10 +46,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          l10n.budgetDetailTitle,
-          style: TextStyleConstants.h7.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.budgetDetailTitle),
         centerTitle: false,
         actions: [
           IconButton(
@@ -87,7 +86,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
   Widget _buildHeader(BuildContext context) {
     final colors = context.colors;
-    final catColor = _parseColor(_budget.category?.color);
+    final catColor = parseHexColor(_budget.category?.color);
 
     return Row(
       children: [
@@ -410,24 +409,71 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       AppRouter.budgetForm,
       extra: _budget,
     );
-    if (result != null && context.mounted) {
-      final controller = ref.read(budgetControllerProvider.notifier);
-      final updateResult = await controller.updateBudget(
-        existing: _budget,
-        categoryId: result['categoryId'] as String,
-        walletId: result['walletId'] as String?,
-        amount: result['amount'] as double,
-        startDate: result['startDate'] as DateTime,
-        endDate: result['endDate'] as DateTime,
-        isRecurring: result['isRecurring'] as bool? ?? false,
-        periodType:
-            result['periodType'] as BudgetPeriodType? ??
-            BudgetPeriodType.monthly,
+    if (result == null || !context.mounted) return;
+
+    final l10n = context.l10n;
+    final controller = ref.read(budgetControllerProvider.notifier);
+    final categoryId = result['categoryId'] as String;
+    final walletId = result['walletId'] as String?;
+    final amount = result['amount'] as double;
+    final startDate = result['startDate'] as DateTime;
+    final endDate = result['endDate'] as DateTime;
+    final isRecurring = result['isRecurring'] as bool? ?? false;
+    final periodType =
+        result['periodType'] as BudgetPeriodType? ?? BudgetPeriodType.monthly;
+    final carryForward = result['carryForward'] as bool? ?? false;
+
+    // Check for duplicates
+    final duplicateId = await controller.findDuplicateBudgetId(
+      categoryId: categoryId,
+      walletId: walletId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    if (!context.mounted) return;
+
+    if (duplicateId != null && duplicateId != _budget.id) {
+      final categoryName = result['categoryName'] as String? ?? '';
+      final walletName =
+          result['walletName'] as String? ?? l10n.budgetFilterAll;
+
+      final confirmed = await context.showConfirmDialog(
+        title: l10n.budgetDuplicateTitle,
+        message: l10n.budgetDuplicateMessage(categoryName, walletName),
+        confirmLabel: l10n.budgetDuplicateReplace,
+        cancelLabel: l10n.budgetDuplicateKeep,
       );
-      if (updateResult.isSuccess() && context.mounted) {
-        context.showAppAlert(context.l10n.budgetSuccessEdit);
-        Navigator.of(context).pop(); // Go back after edit
-      }
+
+      if (confirmed != true || !context.mounted) return;
+
+      await controller.deleteBudget(duplicateId);
+      if (!context.mounted) return;
+    }
+
+    final updateResult = await controller.updateBudget(
+      existing: _budget,
+      categoryId: categoryId,
+      walletId: walletId,
+      amount: amount,
+      startDate: startDate,
+      endDate: endDate,
+      isRecurring: isRecurring,
+      periodType: periodType,
+      carryForward: carryForward,
+    );
+
+    if (!context.mounted) return;
+    if (updateResult.isSuccess()) {
+      context.showAppAlert(
+        l10n.budgetSuccessEdit,
+        alertType: AlertTypeEnum.success,
+      );
+      // Refresh budget list instead of popping
+      await controller.loadBudgets();
+    } else {
+      final (message, _, _, _) = updateResult.dataError()!;
+      context.showAppAlert(message, alertType: AlertTypeEnum.error);
     }
   }
 
@@ -447,15 +493,6 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
         Navigator.of(context).pop();
       }
     }
-  }
-
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF6B7280);
-    final cleaned = hex.replaceAll('#', '');
-    if (cleaned.length == 6) {
-      return Color(int.parse('FF$cleaned', radix: 16));
-    }
-    return const Color(0xFF6B7280);
   }
 }
 

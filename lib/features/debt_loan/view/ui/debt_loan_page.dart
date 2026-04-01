@@ -6,9 +6,9 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_summary_model.dart';
-import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -41,22 +41,17 @@ class _DebtLoanPageState extends ConsumerState<DebtLoanPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
 
-    // Load data for initial tab.
+    // Load kedua tab sekaligus saat halaman dibuka.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(debtLoanControllerProvider.notifier).loadSummary('debt');
+      final notifier = ref.read(debtLoanControllerProvider.notifier);
+      notifier.loadSummary('debt');
+      notifier.loadSummary('loan');
     });
-  }
-
-  void _onTabChanged() {
-    if (!_tabController.indexIsChanging) return;
-    ref.read(debtLoanControllerProvider.notifier).loadSummary(_currentType);
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -69,12 +64,21 @@ class _DebtLoanPageState extends ConsumerState<DebtLoanPage>
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.debtLoanTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.debtLoanTitle),
         centerTitle: false,
-        actions: [_DebtLoanWalletFilter(currentType: _currentType)],
+        actions: [
+          SakuWalletFilterButton(
+            selectedWalletId: ref
+                .watch(debtLoanControllerProvider)
+                .selectedWalletId,
+            allLabel: l10n.debtLoanAllWallets,
+            onSelected: (walletId) {
+              ref
+                  .read(debtLoanControllerProvider.notifier)
+                  .setWalletFilter(walletId, _currentType);
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: colors.primary,
@@ -112,29 +116,43 @@ class _DebtLoanListView extends ConsumerWidget {
     final state = ref.watch(debtLoanControllerProvider);
     final l10n = context.l10n;
     final colors = context.colors;
+    final status = state.statusFor(type);
+    final summaries = state.summariesFor(type);
+    final errorMessage = state.errorFor(type);
 
-    if (state.status == DebtLoanStatus.loading) {
+    if (status == DebtLoanStatus.loading) {
       return const Center(child: SakuLoadingIndicator());
     }
 
-    if (state.status == DebtLoanStatus.error) {
+    if (status == DebtLoanStatus.error) {
       return Center(
         child: SakuEmptyState(
-          message: state.errorMessage ?? '',
+          message: errorMessage ?? '',
           icon: FontAwesomeIcons.triangleExclamation,
         ),
       );
     }
 
-    if (state.summaries.isEmpty) {
-      return SakuEmptyState(
-        message: l10n.debtLoanEmpty,
-        icon: FontAwesomeIcons.handshake,
+    if (summaries.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () =>
+            ref.read(debtLoanControllerProvider.notifier).loadSummary(type),
+        color: colors.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: 120.h),
+            SakuEmptyState(
+              message: l10n.debtLoanEmpty,
+              icon: FontAwesomeIcons.handshake,
+            ),
+          ],
+        ),
       );
     }
 
-    final unpaid = state.unpaid;
-    final paid = state.paid;
+    final unpaid = summaries.where((s) => s.hasUnpaid).toList();
+    final paid = summaries.where((s) => !s.hasUnpaid).toList();
 
     // Build flat list with section headers.
     final items = <_ListItem>[];
@@ -162,20 +180,26 @@ class _DebtLoanListView extends ConsumerWidget {
       }
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        if (item.isHeader) {
-          return _SectionHeader(
-            label: item.headerLabel!,
-            amount: item.headerAmount!,
-            type: type,
-          );
-        }
-        return _DebtLoanPersonTile(summary: item.summary!, type: type);
-      },
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(debtLoanControllerProvider.notifier).loadSummary(type),
+      color: colors.primary,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          if (item.isHeader) {
+            return _SectionHeader(
+              label: item.headerLabel!,
+              amount: item.headerAmount!,
+              type: type,
+            );
+          }
+          return _DebtLoanPersonTile(summary: item.summary!, type: type);
+        },
+      ),
     );
   }
 }
@@ -338,114 +362,6 @@ class _DebtLoanPersonTile extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ───────────────── Wallet Filter ─────────────────
-
-class _DebtLoanWalletFilter extends ConsumerWidget {
-  const _DebtLoanWalletFilter({required this.currentType});
-  final String currentType;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-    final wallets = ref.watch(walletListProvider);
-    final state = ref.watch(debtLoanControllerProvider);
-    final selectedWalletId = state.selectedWalletId;
-
-    return PopupMenuButton<String?>(
-      onSelected: (walletId) {
-        ref
-            .read(debtLoanControllerProvider.notifier)
-            .setWalletFilter(walletId, currentType);
-      },
-      offset: Offset(0, 40.h),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      color: colors.surface,
-      itemBuilder: (context) => [
-        PopupMenuItem<String?>(
-          value: null,
-          child: Row(
-            children: [
-              FaIcon(
-                FontAwesomeIcons.wallet,
-                size: 14.w,
-                color: selectedWalletId == null
-                    ? colors.primary
-                    : colors.textSecondary,
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: Text(
-                  l10n.debtLoanAllWallets,
-                  style: TextStyleConstants.b2.copyWith(
-                    color: selectedWalletId == null
-                        ? colors.primary
-                        : colors.textPrimary,
-                    fontWeight: selectedWalletId == null
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                ),
-              ),
-              if (selectedWalletId == null)
-                FaIcon(
-                  FontAwesomeIcons.check,
-                  size: 12.w,
-                  color: colors.primary,
-                ),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        ...wallets.map(
-          (wallet) => PopupMenuItem<String?>(
-            value: wallet.id,
-            child: Row(
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.wallet,
-                  size: 14.w,
-                  color: selectedWalletId == wallet.id
-                      ? colors.primary
-                      : colors.textSecondary,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    wallet.name,
-                    style: TextStyleConstants.b2.copyWith(
-                      color: selectedWalletId == wallet.id
-                          ? colors.primary
-                          : colors.textPrimary,
-                      fontWeight: selectedWalletId == wallet.id
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-                if (selectedWalletId == wallet.id)
-                  FaIcon(
-                    FontAwesomeIcons.check,
-                    size: 12.w,
-                    color: colors.primary,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.w),
-        child: FaIcon(
-          FontAwesomeIcons.filter,
-          size: 16.w,
-          color: selectedWalletId != null ? colors.primary : colors.textPrimary,
         ),
       ),
     );

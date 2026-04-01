@@ -1,16 +1,17 @@
 /// Supabase Edge Function: gold-price
 ///
-/// Mengambil harga emas Antam (Logam Mulia) terkini menggunakan AI,
-/// dilengkapi 1-Day On-Demand Cache di tabel `gold_prices_cache`.
+/// Mengambil harga buyback Emas Antam per 1 gram,
+/// dilengkapi cache 24 jam di tabel `gold_prices_cache`.
 ///
 /// Flow:
-/// 1. Cek cache Supabase (gold_prices_cache) — jika hari ini sudah ada → return langsung
-/// 2. Gemini (primary): Google Search grounding + systemInstruction
-/// 3. Groq/OpenRouter (fallback): fetch HTML page → optimize → kirim ke AI
-/// 4. Setelah AI berhasil → upsert ke cache
+/// 1. Cek cache (gold_prices_cache) — jika < 24 jam → return langsung
+/// 2. Direct scrape via WordPress REST API (< 1 detik, tanpa AI)
+/// 3. Gemini + Google Search ke GOLD_PRICE_URL (antaremas.com)
+/// 4. Gemini + Google Search ke DEFAULT_GOLD_URL (logammulia.com)
+/// 5. Fetch page → Groq → OpenRouter
 ///
 /// Environment variables:
-/// - GOLD_PRICE_URL: URL target untuk fallback scrape (opsional)
+/// - GOLD_PRICE_URL: URL utama (antaremas.com/harga-emas/)
 /// - GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -30,16 +31,17 @@ function jsonResponse(body: Record<string, unknown>, status = 200): Response {
 // ─────────────────────────────────────────────────────
 
 const DEFAULT_GOLD_URL = 'https://www.logammulia.com/id/harga-emas-hari-ini';
-const GEMINI_TIMEOUT_MS = 8_000;
+const GEMINI_TIMEOUT_MS = 12_000;
 const GROQ_TIMEOUT_MS = 10_000;
 const OPENROUTER_TIMEOUT_MS = 12_000;
 const FETCH_URL_TIMEOUT_MS = 10_000;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
 
 /// Max karakter page content yang dikirim ke Groq/OpenRouter (hemat token).
 const MAX_PAGE_CONTENT_LENGTH = 4_000;
 
 // ─────────────────────────────────────────────────────
-// Helpers: tanggal hari ini WIB (UTC+7)
+// Helpers
 // ─────────────────────────────────────────────────────
 
 /// Return tanggal hari ini dalam format `yyyy-MM-dd` (zona WIB / UTC+7).
@@ -49,43 +51,44 @@ function getTodayDateWIB(): string {
   return wib.toISOString().split('T')[0];
 }
 
-// ─────────────────────────────────────────────────────
-// Prompts — System + User dipisah
-// ─────────────────────────────────────────────────────
-
-/// System prompt (shared rules + JSON template) — dipakai oleh semua provider.
-const GOLD_SYSTEM_PROMPT = `You are a gold price extractor specializing in Indonesian gold market data.
-Your ONLY task is to find the CURRENT DAILY price for "Emas Antam" (produced by PT Aneka Tambang / Logam Mulia).
-
-IMPORTANT DISTINCTIONS:
-- You MUST find the BUYBACK price (harga beli kembali / buyback Antam), NOT the selling price.
-- "Emas Antam" is a specific Indonesian gold product, NOT the global XAU/USD spot price.
-- The buyback price is the price at which Antam will repurchase 1 gram of their certified gold bar.
-- Common source: logammulia.com, harga-emas.org, or major Indonesian financial news.
-
-OUTPUT — return a JSON object with exactly these fields:
-{
-  "price_per_gram_idr": <number — Antam buyback price per gram in IDR, plain number without thousand separators>,
-  "source_description": "<brief description of the source>",
-  "confidence": "<high or low>"
+/// Cek apakah cache masih fresh (< 24 jam dari sekarang).
+function isCacheFresh(createdAt: string): boolean {
+  const cacheTime = new Date(createdAt).getTime();
+  return Date.now() - cacheTime < CACHE_TTL_MS;
 }
 
-RULES:
-1. Find TODAY's Antam buyback price per gram in IDR.
-2. Convert formatted numbers (e.g., "1.850.000" or "Rp1.850.000") to plain number (1850000).
-3. If you cannot find the Antam buyback price, return {"price_per_gram_idr": null, "source_description": null, "confidence": "low"}.
-4. Return ONLY the JSON object, no explanation or markdown.`;
+// ─────────────────────────────────────────────────────
+// Prompts
+// ─────────────────────────────────────────────────────
 
-/// User prompt untuk Gemini (search grounding — AI cari sendiri).
+/// System prompt — ringkas, langsung ke inti.
+const GOLD_SYSTEM_PROMPT = `Cari harga BUYBACK Emas Antam per 1 gram HARI INI dalam Rupiah (IDR).
+Buyback = harga beli kembali oleh Antam, BUKAN harga jual.
+
+Cara menemukan harga:
+- Di antaremas.com: cari tabel "TABEL HARGA BUYBACK" → baris "Buyback per 1 Gr" → ambil harganya.
+- Di logammulia.com: cari bagian "Harga Buyback" → harga per gram.
+
+PENTING:
+- Pastikan tanggal di halaman SAMA dengan tanggal yang diminta. Jika tanggal berbeda, set confidence = "low".
+- Ambil harga yang paling terbaru/terkini, BUKAN harga kemarin atau tanggal lama.
+
+Return ONLY JSON (tanpa markdown/penjelasan):
+{"price_per_gram_idr":<angka tanpa titik pemisah>,"source_description":"<sumber>","confidence":"high|low"}
+
+Contoh: "Rp. 2.742.000" → {"price_per_gram_idr":2742000,"source_description":"antaremas.com","confidence":"high"}
+Jika tidak ketemu atau tanggal tidak cocok: {"price_per_gram_idr":null,"source_description":null,"confidence":"low"}`;
+
+/// User prompt untuk Gemini (search grounding).
 function buildGeminiUserPrompt(targetUrl: string): string {
   const today = getTodayDateWIB();
-  return `Find today's (${today}) Emas Antam buyback price per gram in IDR. You may reference: ${targetUrl}`;
+  return `Cari harga buyback Emas Antam per 1 gram untuk HARI INI tanggal ${today}. HARUS harga tanggal ${today}, bukan tanggal lain. Sumber: ${targetUrl}`;
 }
 
 /// User prompt untuk Groq/OpenRouter (dengan page content).
 function buildFallbackUserPrompt(pageContent: string): string {
   const today = getTodayDateWIB();
-  return `Extract today's (${today}) Emas Antam buyback price per gram in IDR from this webpage content:\n\n${pageContent.substring(0, MAX_PAGE_CONTENT_LENGTH)}`;
+  return `Cari harga "Buyback per 1 Gr" atau "Harga Buyback" per 1 gram untuk tanggal ${today} dari halaman berikut. Pastikan tanggal di halaman cocok dengan ${today}:\n\n${pageContent.substring(0, MAX_PAGE_CONTENT_LENGTH)}`;
 }
 
 // ─────────────────────────────────────────────────────
@@ -163,7 +166,6 @@ async function callGeminiWithSearch(
           contents: [{ parts: [{ text: userPrompt }] }],
           tools: [{ google_search: {} }],
           generationConfig: {
-            responseMimeType: 'application/json',
             temperature: 0.1,
           },
         }),
@@ -270,7 +272,138 @@ async function callOpenRouter(
 }
 
 // ─────────────────────────────────────────────────────
-// Fetch target URL content (hanya untuk fallback Groq/OpenRouter)
+// WordPress REST API direct scrape (NO AI needed)
+// ─────────────────────────────────────────────────────
+
+/// Map nama bulan Indonesia → angka.
+function monthToNum(month: string): string {
+  const months: Record<string, string> = {
+    'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
+    'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
+    'september': '09', 'oktober': '10', 'november': '11', 'desember': '12',
+  };
+  return months[month.toLowerCase()] ?? '00';
+}
+
+/// Coba ambil harga buyback langsung dari WordPress REST API.
+/// Jauh lebih cepat (< 1 detik) dan akurat karena parse HTML langsung.
+async function tryDirectScrape(pageUrl: string): Promise<{
+  price: number;
+  pageDate: string;
+  source: string;
+} | null> {
+  try {
+    // Konversi URL halaman ke WP REST API endpoint
+    const wpApiUrl = pageUrl.replace(/\/harga-emas\/?$/, '/wp-json/wp/v2/pages?slug=harga-emas');
+    console.log('[gold-price] WP API URL:', wpApiUrl);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_URL_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(wpApiUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        },
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        console.log('[gold-price] WP API HTTP', res.status);
+        return null;
+      }
+
+      const pages = await res.json();
+      if (!Array.isArray(pages) || pages.length === 0) {
+        console.log('[gold-price] WP API returned empty array');
+        return null;
+      }
+
+      const html: string = pages[0]?.content?.rendered ?? '';
+      if (!html) {
+        console.log('[gold-price] WP API content.rendered is empty');
+        return null;
+      }
+
+      // Cari harga buyback: <td>Buyback per 1 Gr</td><td>Rp. 2.742.000</td>
+      const buybackMatch = html.match(
+        /Buyback\s+per\s+1\s+Gr<\/td>\s*<td[^>]*>Rp\.\s*([\d.]+)/i,
+      );
+
+      if (!buybackMatch) {
+        console.log('[gold-price] WP API: buyback pattern not found in HTML');
+        return null;
+      }
+
+      // Parse harga: "2.742.000" → 2742000
+      const priceStr = buybackMatch[1].replace(/\./g, '');
+      const price = parseInt(priceStr, 10);
+
+      if (isNaN(price) || price <= 0) {
+        console.log('[gold-price] WP API: invalid price:', priceStr);
+        return null;
+      }
+
+      // Ambil tanggal dari heading halaman, misal "31 Maret 2026"
+      const dateMatch = html.match(
+        /(\d{1,2})\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{4})/i,
+      );
+
+      const pageDate = dateMatch
+        ? `${dateMatch[3]}-${monthToNum(dateMatch[2])}-${dateMatch[1].padStart(2, '0')}`
+        : '';
+
+      console.log('[gold-price] WP API scraped: price=', price, 'date=', pageDate);
+      return { price, pageDate, source: 'antaremas.com (direct scrape)' };
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log('[gold-price] WP API scrape error:', msg);
+    return null;
+  }
+}
+
+/// Ambil konten halaman dari WP REST API (lebih bersih, tanpa nav/header/footer).
+async function fetchWpApiContent(pageUrl: string): Promise<string | null> {
+  try {
+    const wpApiUrl = pageUrl.replace(/\/harga-emas\/?$/, '/wp-json/wp/v2/pages?slug=harga-emas');
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_URL_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(wpApiUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        },
+        signal: controller.signal,
+      });
+
+      if (!res.ok) return null;
+
+      const pages = await res.json();
+      if (!Array.isArray(pages) || pages.length === 0) return null;
+
+      const html: string = pages[0]?.content?.rendered ?? '';
+      if (!html) return null;
+
+      // Strip HTML tags dari content.rendered (sudah bersih, tanpa nav/header/footer)
+      const stripped = stripHtml(html);
+      return stripped.length >= 50 ? stripped : null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// Fetch target URL content (fallback untuk non-WordPress sites)
 // ─────────────────────────────────────────────────────
 
 async function fetchPageContent(url: string): Promise<string | null> {
@@ -349,19 +482,19 @@ Deno.serve(async (req) => {
     console.log('[gold-price] Auth OK, user:', user.id);
 
     // ══════════════════════════════════════════════════
-    // Step 1: Cek cache 1-day di gold_prices_cache
+    // Step 1: Cek cache — TTL 24 jam
     // ══════════════════════════════════════════════════
     const todayDate = getTodayDateWIB();
     console.log('[gold-price] Checking cache for date:', todayDate);
 
     const { data: cached } = await supabase
       .from('gold_prices_cache')
-      .select('price_per_gram_idr, provider, source')
+      .select('price_per_gram_idr, provider, source, created_at')
       .eq('date', todayDate)
       .maybeSingle();
 
-    if (cached && cached.price_per_gram_idr > 0) {
-      console.log('[gold-price] Cache HIT:', cached.price_per_gram_idr);
+    if (cached && cached.price_per_gram_idr > 0 && isCacheFresh(cached.created_at)) {
+      console.log('[gold-price] Cache HIT (TTL OK):', cached.price_per_gram_idr);
       return jsonResponse({
         success: true,
         price_per_gram_idr: cached.price_per_gram_idr,
@@ -372,86 +505,136 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('[gold-price] Cache MISS — calling AI providers');
-
-    // ── Tentukan URL target ──
-    let body: Record<string, unknown> = {};
-    try {
-      body = await req.json();
-    } catch {
-      // Body kosong — OK
+    if (cached) {
+      console.log('[gold-price] Cache EXPIRED — refetching');
+    } else {
+      console.log('[gold-price] Cache MISS — calling AI providers');
     }
 
-    const envUrl = Deno.env.get('GOLD_PRICE_URL') ?? '';
-    const targetUrl: string = (body.url as string) || envUrl || DEFAULT_GOLD_URL;
+    // ── Tentukan URLs ──
+    const primaryUrl = Deno.env.get('GOLD_PRICE_URL') ?? 'https://antaremas.com/harga-emas/';
+    const fallbackUrl = DEFAULT_GOLD_URL;
 
-    console.log('[gold-price] Target URL:', targetUrl);
+    console.log('[gold-price] Primary URL:', primaryUrl, '| Fallback URL:', fallbackUrl);
 
-    // ══════════════════════════════════════════════════
-    // Step 2: Gemini + Google Search grounding
-    //   → AI langsung cari di web, tidak perlu fetch URL
-    // ══════════════════════════════════════════════════
     let result: { data: unknown; provider: string } | null = null;
+    const errors: Record<string, string> = {};
 
+    // ══════════════════════════════════════════════════
+    // Step 2: Direct scrape via WordPress REST API (< 1 detik)
+    // ══════════════════════════════════════════════════
     try {
-      const userPrompt = buildGeminiUserPrompt(targetUrl);
-      result = await callGeminiWithSearch(GOLD_SYSTEM_PROMPT, userPrompt);
-      console.log('[gold-price] Gemini+Search OK');
-    } catch (geminiErr: unknown) {
-      console.error('[gold-price] Gemini+Search failed:', geminiErr);
-    }
+      console.log('[gold-price] Step 2: WP REST API direct scrape');
+      const scraped = await tryDirectScrape(primaryUrl);
 
-    // ══════════════════════════════════════════════════
-    // Step 3: Fallback → Fetch page → Groq / OpenRouter
-    //   → Ambil HTML, strip & optimize, kirim ke AI
-    // ══════════════════════════════════════════════════
-    if (!result || !isValidResult(result.data)) {
-      console.log('[gold-price] Trying fallback: fetch page + Groq/OpenRouter');
-
-      const pageContent = await fetchPageContent(targetUrl);
-      if (pageContent) {
-        console.log('[gold-price] Page fetched, length:', pageContent.length);
-        const userPrompt = buildFallbackUserPrompt(pageContent);
-
-        try {
-          result = await callGroq(GOLD_SYSTEM_PROMPT, userPrompt);
-          console.log('[gold-price] Groq OK');
-        } catch (groqErr: unknown) {
-          console.error('[gold-price] Groq failed:', groqErr);
-          try {
-            result = await callOpenRouter(GOLD_SYSTEM_PROMPT, userPrompt);
-            console.log('[gold-price] OpenRouter OK');
-          } catch (openrouterErr: unknown) {
-            console.error('[gold-price] OpenRouter failed:', openrouterErr);
-          }
+      if (scraped) {
+        // Verifikasi tanggal halaman = hari ini
+        if (scraped.pageDate === todayDate) {
+          console.log('[gold-price] Step 2 OK — direct scrape matched today:', scraped.price);
+          result = {
+            data: {
+              price_per_gram_idr: scraped.price,
+              source_description: scraped.source,
+              confidence: 'high',
+            },
+            provider: 'direct_scrape',
+          };
+        } else {
+          console.log('[gold-price] Step 2: date mismatch — page:', scraped.pageDate, 'vs today:', todayDate);
+          errors['direct_scrape'] = `Date mismatch: page=${scraped.pageDate}, today=${todayDate}`;
         }
       } else {
-        console.log('[gold-price] Page fetch failed, skipping Groq/OpenRouter');
+        errors['direct_scrape'] = 'Scrape returned null (pattern not found or API unreachable)';
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors['direct_scrape'] = msg;
+      console.error('[gold-price] Step 2 failed:', msg);
+    }
+
+    // ══════════════════════════════════════════════════
+    // Step 3: Gemini + Google Search → Primary URL (antaremas.com)
+    // ══════════════════════════════════════════════════
+    if (!result || !isValidResult(result.data)) {
+      try {
+        console.log('[gold-price] Step 3: Gemini → primary URL');
+        const userPrompt = buildGeminiUserPrompt(primaryUrl);
+        result = await callGeminiWithSearch(GOLD_SYSTEM_PROMPT, userPrompt);
+        console.log('[gold-price] Step 3 OK');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors['gemini_primary'] = msg;
+        console.error('[gold-price] Step 3 failed:', msg);
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // Step 4: Gemini + Google Search → Fallback URL (logammulia.com)
+    // ══════════════════════════════════════════════════
+    if (!result || !isValidResult(result.data)) {
+      try {
+        console.log('[gold-price] Step 4: Gemini → fallback URL');
+        const userPrompt = buildGeminiUserPrompt(fallbackUrl);
+        result = await callGeminiWithSearch(GOLD_SYSTEM_PROMPT, userPrompt);
+        console.log('[gold-price] Step 4 OK');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors['gemini_fallback'] = msg;
+        console.error('[gold-price] Step 4 failed:', msg);
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // Step 5: Fetch page content → Groq → OpenRouter
+    // ══════════════════════════════════════════════════
+    if (!result || !isValidResult(result.data)) {
+      console.log('[gold-price] Step 5: Fetch page + Groq/OpenRouter');
+
+      // Prioritas: WP REST API content (bersih) > full page fetch
+      const pageContent = await fetchWpApiContent(primaryUrl)
+        ?? await fetchPageContent(fallbackUrl)
+        ?? await fetchPageContent(primaryUrl);
+
+      const userPrompt = pageContent
+        ? (console.log('[gold-price] Page content obtained, length:', pageContent.length),
+           buildFallbackUserPrompt(pageContent))
+        : (console.log('[gold-price] All page fetches failed, using general prompt'),
+           `Harga buyback Emas Antam per 1 gram hari ini (${getTodayDateWIB()}) dalam IDR?`);
+
+      try {
+        result = await callGroq(GOLD_SYSTEM_PROMPT, userPrompt);
+        console.log('[gold-price] Groq OK');
+      } catch (groqErr: unknown) {
+        const groqMsg = groqErr instanceof Error ? groqErr.message : String(groqErr);
+        errors['groq'] = groqMsg;
+        console.error('[gold-price] Groq failed:', groqMsg);
+        try {
+          result = await callOpenRouter(GOLD_SYSTEM_PROMPT, userPrompt);
+          console.log('[gold-price] OpenRouter OK');
+        } catch (openrouterErr: unknown) {
+          const orMsg = openrouterErr instanceof Error ? openrouterErr.message : String(openrouterErr);
+          errors['openrouter'] = orMsg;
+          console.error('[gold-price] OpenRouter failed:', orMsg);
+        }
       }
     }
 
     // ── Final check ──
-    if (!result) {
-      return jsonResponse({ success: false, error: 'AI_BUSY' }, 503);
+    if (!result || !isValidResult(result.data)) {
+      return jsonResponse({
+        success: false,
+        error: 'AI_BUSY',
+        detail: 'All providers failed to extract gold price',
+        provider_errors: errors,
+        raw_result: result?.data ?? null,
+      }, 503);
     }
 
     const aiResult = result.data as Record<string, unknown>;
-    const pricePerGram = aiResult?.price_per_gram_idr;
-
-    if (pricePerGram == null || typeof pricePerGram !== 'number' || pricePerGram <= 0) {
-      return jsonResponse(
-        {
-          success: false,
-          error: 'AI could not extract gold price',
-          provider: result.provider,
-          raw: aiResult,
-        },
-        422,
-      );
-    }
+    const pricePerGram = aiResult.price_per_gram_idr as number;
 
     // ══════════════════════════════════════════════════
-    // Step 4: Upsert ke cache gold_prices_cache
+    // Step 6: Upsert ke cache (TTL 24 jam — reset created_at)
     // ══════════════════════════════════════════════════
     const { error: upsertError } = await supabase
       .from('gold_prices_cache')
@@ -461,15 +644,15 @@ Deno.serve(async (req) => {
           price_per_gram_idr: pricePerGram,
           provider: result.provider,
           source: (aiResult.source_description as string) ?? null,
+          created_at: new Date().toISOString(),
         },
         { onConflict: 'date' },
       );
 
     if (upsertError) {
       console.error('[gold-price] Cache upsert failed:', upsertError.message);
-      // Non-blocking — tetap return response meskipun cache gagal
     } else {
-      console.log('[gold-price] Cache stored for', todayDate);
+      console.log('[gold-price] Cache stored for', todayDate, '(TTL 24h)');
     }
 
     console.log('[gold-price] Success:', pricePerGram, 'via', result.provider);

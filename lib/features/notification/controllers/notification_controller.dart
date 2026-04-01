@@ -40,6 +40,15 @@ final isBudgetAlertEnabledProvider = Provider<bool>((ref) {
   );
 });
 
+/// Provider computed: apakah budget alert 50% enabled.
+final isBudgetAlert50EnabledProvider = Provider<bool>((ref) {
+  return ref.watch(
+    notificationControllerProvider.select(
+      (s) => s.settings?.budgetAlert50Enabled ?? false,
+    ),
+  );
+});
+
 /// Provider computed: apakah debt reminder enabled.
 final isDebtReminderEnabledProvider = Provider<bool>((ref) {
   return ref.watch(
@@ -177,6 +186,15 @@ class NotificationController extends StateNotifier<NotificationSettingsState> {
     if (current == null) return;
     state = state.copyWith(
       settings: current.copyWith(budgetAlertEnabled: enabled),
+    );
+  }
+
+  /// Toggle 50% budget alert on/off.
+  void toggleBudgetAlert50(bool enabled) {
+    final current = state.settings;
+    if (current == null) return;
+    state = state.copyWith(
+      settings: current.copyWith(budgetAlert50Enabled: enabled),
     );
   }
 

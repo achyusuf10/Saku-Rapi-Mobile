@@ -142,8 +142,10 @@
 | start_date | date not null | |
 | end_date | date not null | |
 | is_recurring | boolean not null default false | auto clone |
+| notification_sent_50 | boolean not null default false | |
 | notification_sent_80 | boolean not null default false | |
 | notification_sent_100 | boolean not null default false | |
+| carry_forward | boolean not null default false | rollover sisa positif ke periode baru |
 | period_type | text not null default 'monthly' | `weekly`, `monthly`, `quarterly`, `yearly`, `custom` |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
@@ -189,6 +191,7 @@
 | reminder_enabled | boolean not null default false | daily reminder |
 | reminder_time | time nullable | |
 | budget_alert_enabled | boolean not null default true | |
+| budget_alert_50_enabled | boolean not null default false | early warning 50% |
 | debt_reminder_enabled | boolean not null default true | |
 | debt_reminder_days_before | integer not null default 3 | |
 | created_at | timestamptz | |
@@ -239,7 +242,7 @@
 | `update_wallet_balance()` | after insert/update/delete on `transactions` | update saldo wallet |
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
 | `set_updated_at()` | before update on all mutable tables | update timestamp |
-| `auto_renew_budgets()` | pg_cron daily | clone recurring budgets |
+| `auto_renew_budgets()` | pg_cron daily | clone recurring budgets; period-aware date calculation (weekly +7d, monthly +1mo, quarterly +3mo, yearly +1yr, custom smart: end-of-month detection vs duration preservation); carry_forward support (sisa positif ditambah ke amount budget baru); reset notification_sent_50/80/100 |
 
 ## 3.2 RPC yang sudah diimplementasi
 Agar write atomik dan Copilot tidak menyebar logika:
@@ -263,6 +266,10 @@ Agar write atomik dan Copilot tidak menyebar logika:
 
 ### Contact RPC
 - `upsert_contact(p_name, p_phone?)` → uuid
+
+### Budget RPCs
+- `replace_budget(p_old_budget_id uuid, p_user_id uuid, p_category_id uuid, p_wallet_id uuid, p_amount numeric, p_start_date date, p_end_date date, p_is_recurring boolean, p_period_type text, p_carry_forward boolean)` → jsonb  
+  Atomic DELETE old + INSERT new dalam satu transaction. Digunakan ketika user mengganti budget yang sudah ada (duplicate overlap).
 
 ### Investment RPC
 - `create_investment_with_optional_wallet_deduction(p_type, p_name, p_amount, p_avg_buy_price, p_symbol?, p_custom_current_price?, p_linked_wallet_id?, p_deduct_from_wallet?, p_notes?, p_date?, p_asset_type_id?)` → jsonb

@@ -45,10 +45,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.walletTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.walletTitle),
         centerTitle: false,
       ),
       floatingActionButton: FloatingActionButton(

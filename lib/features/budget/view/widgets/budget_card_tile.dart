@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
@@ -29,7 +30,7 @@ class BudgetCardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final catColor = _parseColor(budget.category?.color);
+    final catColor = parseHexColor(budget.category?.color);
     final ratio = budget.usageRatio;
     final statusColor = BudgetProgressBar.colorForRatio(ratio, context);
 
@@ -160,14 +161,5 @@ class BudgetCardTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF6B7280);
-    final cleaned = hex.replaceAll('#', '');
-    if (cleaned.length == 6) {
-      return Color(int.parse('FF$cleaned', radix: 16));
-    }
-    return const Color(0xFF6B7280);
   }
 }

@@ -18,43 +18,54 @@ enum DebtLoanStatus { initial, loading, loaded, error }
 /// State untuk list hutang/piutang (halaman utama).
 class DebtLoanState {
   const DebtLoanState({
-    this.status = DebtLoanStatus.initial,
-    this.summaries = const [],
+    this.debtStatus = DebtLoanStatus.initial,
+    this.loanStatus = DebtLoanStatus.initial,
+    this.debtSummaries = const [],
+    this.loanSummaries = const [],
     this.selectedWalletId,
-    this.errorMessage,
+    this.debtError,
+    this.loanError,
   });
 
-  final DebtLoanStatus status;
-  final List<DebtLoanSummaryModel> summaries;
+  final DebtLoanStatus debtStatus;
+  final DebtLoanStatus loanStatus;
+  final List<DebtLoanSummaryModel> debtSummaries;
+  final List<DebtLoanSummaryModel> loanSummaries;
   final String? selectedWalletId;
-  final String? errorMessage;
+  final String? debtError;
+  final String? loanError;
 
-  /// Kontak dengan hutang/piutang belum lunas.
-  List<DebtLoanSummaryModel> get unpaid =>
-      summaries.where((s) => s.hasUnpaid).toList();
+  /// Ambil status berdasarkan type.
+  DebtLoanStatus statusFor(String type) =>
+      type == 'debt' ? debtStatus : loanStatus;
 
-  /// Kontak yang sudah lunas semua.
-  List<DebtLoanSummaryModel> get paid =>
-      summaries.where((s) => !s.hasUnpaid).toList();
+  /// Ambil summaries berdasarkan type.
+  List<DebtLoanSummaryModel> summariesFor(String type) =>
+      type == 'debt' ? debtSummaries : loanSummaries;
 
-  /// Total sisa seluruh kontak.
-  double get totalRemaining =>
-      summaries.fold(0.0, (sum, s) => sum + s.remaining);
+  /// Ambil error berdasarkan type.
+  String? errorFor(String type) => type == 'debt' ? debtError : loanError;
 
   DebtLoanState copyWith({
-    DebtLoanStatus? status,
-    List<DebtLoanSummaryModel>? summaries,
+    DebtLoanStatus? debtStatus,
+    DebtLoanStatus? loanStatus,
+    List<DebtLoanSummaryModel>? debtSummaries,
+    List<DebtLoanSummaryModel>? loanSummaries,
     String? selectedWalletId,
-    String? errorMessage,
+    String? debtError,
+    String? loanError,
     bool clearWalletId = false,
   }) {
     return DebtLoanState(
-      status: status ?? this.status,
-      summaries: summaries ?? this.summaries,
+      debtStatus: debtStatus ?? this.debtStatus,
+      loanStatus: loanStatus ?? this.loanStatus,
+      debtSummaries: debtSummaries ?? this.debtSummaries,
+      loanSummaries: loanSummaries ?? this.loanSummaries,
       selectedWalletId: clearWalletId
           ? null
           : (selectedWalletId ?? this.selectedWalletId),
-      errorMessage: errorMessage ?? this.errorMessage,
+      debtError: debtError ?? this.debtError,
+      loanError: loanError ?? this.loanError,
     );
   }
 }
@@ -71,7 +82,11 @@ class DebtLoanController extends StateNotifier<DebtLoanState> {
 
   /// Load summary untuk type tertentu (debt/loan).
   Future<void> loadSummary(String type) async {
-    state = state.copyWith(status: DebtLoanStatus.loading);
+    if (type == 'debt') {
+      state = state.copyWith(debtStatus: DebtLoanStatus.loading);
+    } else {
+      state = state.copyWith(loanStatus: DebtLoanStatus.loading);
+    }
 
     final result = await _repository.getSummary(
       type: type,
@@ -79,17 +94,31 @@ class DebtLoanController extends StateNotifier<DebtLoanState> {
     );
 
     if (result.isSuccess()) {
-      state = state.copyWith(
-        status: DebtLoanStatus.loaded,
-        summaries: result.dataSuccess()!,
-      );
+      if (type == 'debt') {
+        state = state.copyWith(
+          debtStatus: DebtLoanStatus.loaded,
+          debtSummaries: result.dataSuccess()!,
+        );
+      } else {
+        state = state.copyWith(
+          loanStatus: DebtLoanStatus.loaded,
+          loanSummaries: result.dataSuccess()!,
+        );
+      }
     } else {
       final (message, _, _, _) = result.dataError()!;
       AppLogger.call('[DebtLoan] loadSummary error: $message');
-      state = state.copyWith(
-        status: DebtLoanStatus.error,
-        errorMessage: message,
-      );
+      if (type == 'debt') {
+        state = state.copyWith(
+          debtStatus: DebtLoanStatus.error,
+          debtError: message,
+        );
+      } else {
+        state = state.copyWith(
+          loanStatus: DebtLoanStatus.error,
+          loanError: message,
+        );
+      }
     }
   }
 

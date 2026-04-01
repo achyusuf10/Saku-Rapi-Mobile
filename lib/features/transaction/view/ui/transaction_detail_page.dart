@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
@@ -49,10 +50,7 @@ class TransactionDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.transactionDetailTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.transactionDetailTitle),
         centerTitle: false,
         actions: [
           // Edit button — regular transactions open form, settlements open edit sheet
@@ -536,7 +534,7 @@ class _ItemRow extends StatelessWidget {
     final colors = context.colors;
 
     final iconColor = item.categoryColor != null
-        ? _parseColor(item.categoryColor!)
+        ? parseHexColor(item.categoryColor!)
         : colors.textSecondary;
 
     return Padding(
@@ -586,11 +584,6 @@ class _ItemRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceAll('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 }
 

@@ -1,4 +1,3 @@
-import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
@@ -129,10 +128,7 @@ class _AssetTypeFormPageState extends ConsumerState<AssetTypeFormPage> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          _isEditing ? l10n.assetTypeEdit : l10n.assetTypeAdd,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(_isEditing ? l10n.assetTypeEdit : l10n.assetTypeAdd),
         centerTitle: false,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),

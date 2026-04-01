@@ -1,21 +1,24 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
 import 'package:app_saku_rapi/features/reports/controllers/report_controller.dart';
+import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_category_chart.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_sub_period_tabs.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_summary_card.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_trend_chart.dart';
-import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 /// Halaman laporan (Reports & Analytics).
 ///
@@ -81,11 +84,18 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          l10n.reportTitle,
-          style: TextStyleConstants.h7.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.reportTitle),
         centerTitle: false,
+        actions: [
+          SakuWalletFilterButton(
+            selectedWalletId: ref.watch(
+              reportControllerProvider.select((s) => s.walletId),
+            ),
+            onSelected: (id) =>
+                ref.read(reportControllerProvider.notifier).setWalletFilter(id),
+          ),
+          10.horizontalSpace,
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _onRefresh,
@@ -103,9 +113,6 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 child: const ReportSubPeriodTabs(),
               ),
             ),
-
-            // ─── Wallet Filter ───
-            const SliverToBoxAdapter(child: _ReportWalletFilter()),
 
             // ─── Body ───
             if (status == ReportStatus.loading)
@@ -229,52 +236,6 @@ class _ReportPeriodTabs extends ConsumerWidget {
   }
 }
 
-// ───────────────── Wallet Filter (granular) ─────────────────
-
-class _ReportWalletFilter extends ConsumerWidget {
-  const _ReportWalletFilter();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-    final walletId = ref.watch(
-      reportControllerProvider.select((s) => s.walletId),
-    );
-    final wallets = ref.watch(walletControllerProvider).wallets;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
-      child: SizedBox(
-        height: 32.h,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: [
-            _FilterChip(
-              label: l10n.reportAllWallets,
-              isSelected: walletId == null,
-              onTap: () => ref
-                  .read(reportControllerProvider.notifier)
-                  .setWalletFilter(null),
-              colors: colors,
-            ),
-            ...wallets.map(
-              (w) => _FilterChip(
-                label: w.name,
-                isSelected: walletId == w.id,
-                onTap: () => ref
-                    .read(reportControllerProvider.notifier)
-                    .setWalletFilter(w.id),
-                colors: colors,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ───────────────── Summary Section (granular) ─────────────────
 
 class _ReportSummarySection extends ConsumerWidget {
@@ -366,7 +327,34 @@ class _ReportCategorySection extends ConsumerWidget {
               ),
             )
           else
-            ReportCategoryChart(categories: categories, total: total),
+            ReportCategoryChart(
+              categories: categories,
+              total: total,
+              onCategoryTap: (cat) {
+                // Tidak navigasi untuk "Lainnya"
+                if (cat.categoryId == '__others__') return;
+
+                final state = ref.read(reportControllerProvider);
+                final (start, end) = state.dateRange;
+                final type = breakdownType == ReportBreakdownType.expense
+                    ? 'expense'
+                    : 'income';
+
+                context.push(
+                  AppRouter.reportCategoryTransactions,
+                  extra: ReportCategoryTransactionsArgument(
+                    categoryId: cat.categoryId,
+                    categoryName: cat.categoryName,
+                    categoryIcon: cat.categoryIcon,
+                    categoryColor: cat.categoryColor,
+                    startDate: start,
+                    endDate: end,
+                    type: type,
+                    walletId: state.walletId,
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );
@@ -532,49 +520,6 @@ class _ReportInsightSection extends ConsumerWidget {
 }
 
 // ───────────────── Private Widgets ─────────────────
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.colors,
-  });
-
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final dynamic colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(right: 8.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colors.primary.withValues(alpha: 0.15)
-              : colors.surfaceVariant.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(
-            color: isSelected
-                ? colors.primary.withValues(alpha: 0.4)
-                : Colors.transparent,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyleConstants.label2.copyWith(
-            color: isSelected ? colors.primary : colors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _BreakdownToggle extends StatelessWidget {
   const _BreakdownToggle({

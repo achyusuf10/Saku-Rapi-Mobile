@@ -293,10 +293,9 @@ class AppThemes {
       scrolledUnderElevation: 0,
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.6),
-      titleTextStyle: GoogleFonts.nunitoSans(
-        fontWeight: FontWeight.w500,
+      titleTextStyle: TextStyleConstants.h7.copyWith(
+        fontWeight: FontWeight.bold,
         color: Colors.white,
-        fontSize: 18.sp, //20
       ),
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFF2F2F31),

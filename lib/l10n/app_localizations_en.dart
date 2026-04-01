@@ -801,6 +801,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetEndOfMonthLabel => 'End of Month';
 
   @override
+  String get budgetEndOfPeriodLabel => 'End of Period';
+
+  @override
   String budgetDaysRemaining(int days) {
     return '$days days';
   }
@@ -995,6 +998,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetDetailTransactionsEmpty => 'No transactions yet';
 
   @override
+  String get budgetFormCarryForwardTitle => 'Carry Forward';
+
+  @override
+  String get budgetFormCarryForwardSubtitle =>
+      'Carry remaining balance to next period when renewed';
+
+  @override
+  String get budgetFormDiscardTitle => 'Discard Changes?';
+
+  @override
+  String get budgetFormDiscardMessage =>
+      'You have unsaved changes. Are you sure you want to discard them?';
+
+  @override
+  String get budgetFormDiscardConfirm => 'Discard';
+
+  @override
+  String get budgetUpcomingBudgets => 'Upcoming Budgets';
+
+  @override
   String get investmentTitle => 'Investments';
 
   @override
@@ -1183,6 +1206,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifBudgetAlert100(String category) {
     return 'Budget $category is fully used!';
   }
+
+  @override
+  String notifBudgetAlert50(String category) {
+    return 'Budget $category is 50% used';
+  }
+
+  @override
+  String get notifBudget50Title => '50% Budget Alert';
+
+  @override
+  String get notifBudget50Subtitle => 'Notify when budget reaches 50%';
 
   @override
   String notifDebtDue(String person, int days) {

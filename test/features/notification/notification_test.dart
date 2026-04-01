@@ -59,6 +59,7 @@ void main() {
         expect(model.reminderEnabled, false);
         expect(model.reminderTime, isNull);
         expect(model.budgetAlertEnabled, true);
+        expect(model.budgetAlert50Enabled, false);
         expect(model.debtReminderEnabled, true);
         expect(model.debtReminderDaysBefore, 3);
       });
@@ -72,6 +73,7 @@ void main() {
           reminderEnabled: true,
           reminderTime: TimeOfDay(hour: 8, minute: 5),
           budgetAlertEnabled: false,
+          budgetAlert50Enabled: true,
           debtReminderEnabled: true,
           debtReminderDaysBefore: 7,
         );
@@ -81,6 +83,7 @@ void main() {
         expect(map['reminder_enabled'], true);
         expect(map['reminder_time'], '08:05:00');
         expect(map['budget_alert_enabled'], false);
+        expect(map['budget_alert_50_enabled'], true);
         expect(map['debt_reminder_enabled'], true);
         expect(map['debt_reminder_days_before'], 7);
       });
@@ -105,6 +108,7 @@ void main() {
           reminderEnabled: true,
           reminderTime: TimeOfDay(hour: 20, minute: 0),
           budgetAlertEnabled: true,
+          budgetAlert50Enabled: true,
           debtReminderEnabled: true,
           debtReminderDaysBefore: 3,
         );
@@ -116,6 +120,7 @@ void main() {
         expect(map['reminder_enabled'], true);
         expect(map['reminder_time'], '20:00:00');
         expect(map['budget_alert_enabled'], true);
+        expect(map['budget_alert_50_enabled'], true);
         expect(map['debt_reminder_enabled'], true);
         expect(map['debt_reminder_days_before'], 3);
       });
@@ -166,6 +171,7 @@ void main() {
           reminderEnabled: true,
           reminderTime: TimeOfDay(hour: 15, minute: 45),
           budgetAlertEnabled: false,
+          budgetAlert50Enabled: true,
           debtReminderEnabled: true,
           debtReminderDaysBefore: 2,
         );
@@ -179,6 +185,7 @@ void main() {
         expect(restored.reminderEnabled, original.reminderEnabled);
         expect(restored.reminderTime, original.reminderTime);
         expect(restored.budgetAlertEnabled, original.budgetAlertEnabled);
+        expect(restored.budgetAlert50Enabled, original.budgetAlert50Enabled);
         expect(restored.debtReminderEnabled, original.debtReminderEnabled);
         expect(
           restored.debtReminderDaysBefore,
@@ -195,16 +202,20 @@ void main() {
       const data = BudgetAlertData(
         id: 'budget-1',
         categoryName: 'Makan',
+        isHalfUsed: true,
         isNearLimit: true,
         isOverBudget: false,
+        notificationSent50: false,
         notificationSent80: false,
         notificationSent100: false,
       );
 
       expect(data.id, 'budget-1');
       expect(data.categoryName, 'Makan');
+      expect(data.isHalfUsed, true);
       expect(data.isNearLimit, true);
       expect(data.isOverBudget, false);
+      expect(data.notificationSent50, false);
       expect(data.notificationSent80, false);
       expect(data.notificationSent100, false);
     });

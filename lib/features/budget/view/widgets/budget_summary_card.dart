@@ -95,7 +95,9 @@ class BudgetSummaryCard extends ConsumerWidget {
 
           // ─── Spendable amount ───
           Text(
-            '+${spendable.toCurrency()}',
+            spendable >= 0
+                ? '+${spendable.toCurrency()}'
+                : spendable.toCurrency(),
             style: TextStyleConstants.h5.copyWith(
               fontWeight: FontWeight.bold,
               color: spendable > 0 ? colors.income : colors.error,
@@ -126,7 +128,7 @@ class BudgetSummaryCard extends ConsumerWidget {
               ),
               _StatItem(
                 value: l10n.budgetDaysRemaining(daysRemaining),
-                label: l10n.budgetEndOfMonthLabel,
+                label: l10n.budgetEndOfPeriodLabel,
               ),
             ],
           ),

@@ -160,7 +160,6 @@ class _InvestmentFormPageState extends ConsumerState<InvestmentFormPage> {
           isEditing
               ? l10n.investmentFormTitleEdit
               : l10n.investmentFormTitleAdd,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: false,
         leading: IconButton(

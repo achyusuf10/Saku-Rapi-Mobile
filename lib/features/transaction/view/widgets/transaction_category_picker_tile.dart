@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,7 @@ class TransactionCategoryPickerTile extends StatelessWidget {
     final colors = context.colors;
     final hasCategory = item?.categoryName != null;
     final categoryColor = item?.categoryColor != null
-        ? _parseColor(item!.categoryColor!)
+        ? parseHexColor(item!.categoryColor!)
         : null;
     final circleColor = categoryColor ?? iconColor;
 
@@ -100,10 +101,5 @@ class TransactionCategoryPickerTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceAll('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 }

@@ -350,6 +350,7 @@
   "budgetTotalBudgetLabel": "Total Budget",
   "budgetUsed": "Used",
   "budgetEndOfMonthLabel": "End of Month",
+  "budgetEndOfPeriodLabel": "End of Period",
   "budgetDaysRemaining": "{days} days",
   "@budgetDaysRemaining": {
     "placeholders": {
@@ -449,6 +450,12 @@
   "budgetDetailActualDaily": "Actual Daily",
   "budgetDetailTransactions": "Transactions",
   "budgetDetailTransactionsEmpty": "No transactions yet",
+  "budgetFormCarryForwardTitle": "Carry Forward",
+  "budgetFormCarryForwardSubtitle": "Carry remaining balance to next period when renewed",
+  "budgetFormDiscardTitle": "Discard Changes?",
+  "budgetFormDiscardMessage": "You have unsaved changes. Are you sure you want to discard them?",
+  "budgetFormDiscardConfirm": "Discard",
+  "budgetUpcomingBudgets": "Upcoming Budgets",
   "investmentTitle": "Investments",
   "investmentAdd": "Add Investment",
   "investmentEdit": "Edit Investment",
@@ -537,6 +544,16 @@
       }
     }
   },
+  "notifBudgetAlert50": "Budget {category} is 50% used",
+  "@notifBudgetAlert50": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBudget50Title": "50% Budget Alert",
+  "notifBudget50Subtitle": "Notify when budget reaches 50%",
   "notifDebtDue": "Debt to {person} is due in {days} days",
   "@notifDebtDue": {
     "placeholders": {

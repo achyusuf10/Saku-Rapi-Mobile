@@ -156,10 +156,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.investmentTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.investmentTitle),
         centerTitle: false,
         actions: [
           if (state.investments.isNotEmpty) ...[

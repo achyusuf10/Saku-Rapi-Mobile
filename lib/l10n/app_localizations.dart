@@ -1610,6 +1610,12 @@ abstract class AppLocalizations {
   /// **'Akhir Bulan'**
   String get budgetEndOfMonthLabel;
 
+  /// No description provided for @budgetEndOfPeriodLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Akhir Periode'**
+  String get budgetEndOfPeriodLabel;
+
   /// No description provided for @budgetDaysRemaining.
   ///
   /// In id, this message translates to:
@@ -1976,6 +1982,42 @@ abstract class AppLocalizations {
   /// **'Belum ada transaksi'**
   String get budgetDetailTransactionsEmpty;
 
+  /// No description provided for @budgetFormCarryForwardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Carry Forward'**
+  String get budgetFormCarryForwardTitle;
+
+  /// No description provided for @budgetFormCarryForwardSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Bawa sisa anggaran ke periode berikutnya saat diperpanjang'**
+  String get budgetFormCarryForwardSubtitle;
+
+  /// No description provided for @budgetFormDiscardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buang Perubahan?'**
+  String get budgetFormDiscardTitle;
+
+  /// No description provided for @budgetFormDiscardMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu punya perubahan yang belum disimpan. Yakin ingin membuangnya?'**
+  String get budgetFormDiscardMessage;
+
+  /// No description provided for @budgetFormDiscardConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Buang'**
+  String get budgetFormDiscardConfirm;
+
+  /// No description provided for @budgetUpcomingBudgets.
+  ///
+  /// In id, this message translates to:
+  /// **'Anggaran Mendatang'**
+  String get budgetUpcomingBudgets;
+
   /// No description provided for @investmentTitle.
   ///
   /// In id, this message translates to:
@@ -2335,6 +2377,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Anggaran {category} sudah habis!'**
   String notifBudgetAlert100(String category);
+
+  /// No description provided for @notifBudgetAlert50.
+  ///
+  /// In id, this message translates to:
+  /// **'Anggaran {category} sudah 50% terpakai'**
+  String notifBudgetAlert50(String category);
+
+  /// No description provided for @notifBudget50Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Alert Anggaran 50%'**
+  String get notifBudget50Title;
+
+  /// No description provided for @notifBudget50Subtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Notif saat anggaran mencapai 50%'**
+  String get notifBudget50Subtitle;
 
   /// No description provided for @notifDebtDue.
   ///

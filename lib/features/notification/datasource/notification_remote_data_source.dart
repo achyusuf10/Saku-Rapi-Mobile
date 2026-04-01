@@ -51,14 +51,13 @@ class NotificationRemoteDataSource {
     );
   }
 
-  /// Update flag notification_sent_80 / notification_sent_100 pada budget.
+  /// Update flag notification_sent_50 / notification_sent_80 / notification_sent_100 pada budget.
   Future<DataState<void>> markBudgetNotificationSent({
     required String budgetId,
-    required bool is80,
+    required String field,
   }) {
     return SupabaseHandler.call<void>(
       function: () async {
-        final field = is80 ? 'notification_sent_80' : 'notification_sent_100';
         AppLogger.call('$_tag markBudgetNotificationSent: $budgetId ($field)');
         await _client.from('budgets').update({field: true}).eq('id', budgetId);
       },

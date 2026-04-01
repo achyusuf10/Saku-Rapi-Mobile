@@ -4,8 +4,8 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_form_sheet.dart';
+import 'package:app_saku_rapi/features/category/view/widgets/category_list_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -59,10 +59,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(
-          l10n.categoryTitle,
-          style: TextStyleConstants.h6.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.categoryTitle),
         centerTitle: false,
         bottom: TabBar(
           controller: _tabController,
@@ -153,9 +150,10 @@ class _CategoryListTab extends ConsumerWidget {
       onRefresh: () async {
         await ref.read(categoryControllerProvider.notifier).loadCategories();
       },
-      child: ListView.builder(
+      child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         itemCount: groupedCategories.length,
+        separatorBuilder: (_, __) => SizedBox(height: 4.h),
         itemBuilder: (context, index) {
           final parent = groupedCategories[index];
           return _CategoryManagementTile(category: parent, type: type);
@@ -176,139 +174,66 @@ class _CategoryManagementTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final categoryColor = _parseColor(category.color);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Parent tile
-        InkWell(
-          onTap: () => _showEditForm(context, category),
-          onLongPress: () => _showActions(context, ref, category),
-          borderRadius: BorderRadius.circular(12.r),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-            child: Row(
-              children: [
-                // Icon
-                Container(
-                  width: 40.w,
-                  height: 40.w,
-                  decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Center(
-                    child: FaIcon(
-                      CategoryIconMapper.getIcon(category.icon),
-                      size: 18.w,
-                      color: category.isHidden
-                          ? colors.textSecondary.withValues(alpha: 0.5)
-                          : categoryColor,
-                    ),
-                  ),
+    return CategoryParentListTile(
+      category: category,
+      onTap: () => _showEditForm(context, category),
+      onLongPress: () => _showActions(context, ref, category),
+      onChildTap: (child) => CategoryFormSheet.show(
+        context: context,
+        type: type,
+        editCategory: child,
+      ),
+      onChildLongPress: (child) => _showActions(context, ref, child),
+      trailing: (ctx, cat) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (cat.isHidden) ...[
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+              decoration: BoxDecoration(
+                color: colors.textSecondary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+              child: Text(
+                l10n.categoryHidden,
+                style: TextStyleConstants.overline.copyWith(
+                  color: colors.textSecondary,
                 ),
-                SizedBox(width: 12.w),
-
-                // Name + info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              category.name,
-                              style: TextStyleConstants.b2.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: category.isHidden
-                                    ? colors.textSecondary
-                                    : colors.textPrimary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (category.isHidden) ...[
-                            SizedBox(width: 6.w),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 6.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colors.textSecondary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(4.r),
-                              ),
-                              child: Text(
-                                l10n.categoryHidden,
-                                style: TextStyleConstants.overline.copyWith(
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (category.isDefault) ...[
-                            SizedBox(width: 6.w),
-                            FaIcon(
-                              FontAwesomeIcons.lock,
-                              size: 10.w,
-                              color: colors.textSecondary.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (category.children.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 2.h),
-                          child: Text(
-                            l10n.categoryChildCount(category.children.length),
-                            style: TextStyleConstants.caption.copyWith(
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // More actions
-                IconButton(
-                  onPressed: () => _showActions(context, ref, category),
-                  icon: FaIcon(
-                    FontAwesomeIcons.ellipsisVertical,
-                    size: 14.w,
-                    color: colors.textSecondary,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-
-        // Children
-        if (category.children.isNotEmpty)
-          Padding(
-            padding: EdgeInsets.only(left: 30.w),
-            child: Column(
-              children: category.children
-                  .map(
-                    (child) => _CategoryChildManagementTile(
-                      category: child,
-                      type: type,
-                    ),
-                  )
-                  .toList(),
+            SizedBox(width: 4.w),
+          ],
+          if (cat.isDefault) ...[
+            FaIcon(
+              FontAwesomeIcons.lock,
+              size: 10.w,
+              color: colors.textSecondary.withValues(alpha: 0.5),
             ),
+            SizedBox(width: 4.w),
+          ],
+          IconButton(
+            onPressed: () => _showActions(ctx, ref, cat),
+            icon: FaIcon(
+              FontAwesomeIcons.ellipsisVertical,
+              size: 14.w,
+              color: colors.textSecondary,
+            ),
+            visualDensity: VisualDensity.compact,
           ),
-
-        SizedBox(height: 4.h),
-      ],
+        ],
+      ),
+      childTrailing: (ctx, child) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (child.isHidden)
+            FaIcon(
+              FontAwesomeIcons.eyeSlash,
+              size: 10.w,
+              color: colors.textSecondary.withValues(alpha: 0.5),
+            ),
+        ],
+      ),
     );
   }
 
@@ -480,87 +405,4 @@ class _CategoryManagementTile extends ConsumerWidget {
       }
     }
   }
-}
-
-/// Tile child dalam management view.
-class _CategoryChildManagementTile extends ConsumerWidget {
-  const _CategoryChildManagementTile({
-    required this.category,
-    required this.type,
-  });
-
-  final CategoryModel category;
-  final CategoryType type;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final categoryColor = _parseColor(category.color);
-
-    return InkWell(
-      onTap: () => CategoryFormSheet.show(
-        context: context,
-        type: type,
-        editCategory: category,
-      ),
-      onLongPress: () {
-        // Reuse parent's action sheet pattern
-        _CategoryManagementTile(
-          category: category,
-          type: type,
-        )._showActions(context, ref, category);
-      },
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
-        child: Row(
-          children: [
-            Container(
-              width: 28.w,
-              height: 28.w,
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(category.icon),
-                  size: 12.w,
-                  color: category.isHidden
-                      ? colors.textSecondary.withValues(alpha: 0.5)
-                      : categoryColor,
-                ),
-              ),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Text(
-                category.name,
-                style: TextStyleConstants.caption.copyWith(
-                  color: category.isHidden
-                      ? colors.textSecondary
-                      : colors.textPrimary,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (category.isHidden)
-              FaIcon(
-                FontAwesomeIcons.eyeSlash,
-                size: 10.w,
-                color: colors.textSecondary.withValues(alpha: 0.5),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Parse hex color string ke [Color].
-Color _parseColor(String hexColor) {
-  final hex = hexColor.replaceFirst('#', '');
-  if (hex.length == 6) {
-    return Color(int.parse('FF$hex', radix: 16));
-  }
-  return const Color(0xFF6B7280);
 }

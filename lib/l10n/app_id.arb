@@ -350,6 +350,7 @@
   "budgetTotalBudgetLabel": "Total Anggaran",
   "budgetUsed": "Terpakai",
   "budgetEndOfMonthLabel": "Akhir Bulan",
+  "budgetEndOfPeriodLabel": "Akhir Periode",
   "budgetDaysRemaining": "{days} hari",
   "@budgetDaysRemaining": {
     "placeholders": {
@@ -449,6 +450,12 @@
   "budgetDetailActualDaily": "Rata-rata Harian",
   "budgetDetailTransactions": "Transaksi",
   "budgetDetailTransactionsEmpty": "Belum ada transaksi",
+  "budgetFormCarryForwardTitle": "Carry Forward",
+  "budgetFormCarryForwardSubtitle": "Bawa sisa anggaran ke periode berikutnya saat diperpanjang",
+  "budgetFormDiscardTitle": "Buang Perubahan?",
+  "budgetFormDiscardMessage": "Kamu punya perubahan yang belum disimpan. Yakin ingin membuangnya?",
+  "budgetFormDiscardConfirm": "Buang",
+  "budgetUpcomingBudgets": "Anggaran Mendatang",
   "investmentTitle": "Investasi",
   "investmentAdd": "Tambah Investasi",
   "investmentEdit": "Edit Investasi",
@@ -537,6 +544,16 @@
       }
     }
   },
+  "notifBudgetAlert50": "Anggaran {category} sudah 50% terpakai",
+  "@notifBudgetAlert50": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBudget50Title": "Alert Anggaran 50%",
+  "notifBudget50Subtitle": "Notif saat anggaran mencapai 50%",
   "notifDebtDue": "Piutang ke {person} jatuh tempo {days} hari lagi",
   "@notifDebtDue": {
     "placeholders": {

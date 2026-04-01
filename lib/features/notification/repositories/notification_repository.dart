@@ -79,18 +79,22 @@ class NotificationRepository {
   Future<void> sendBudgetAlert({
     required String budgetId,
     required String categoryName,
-    required bool is80,
+    required String dbField,
     required String title,
     required String body,
   }) async {
-    AppLogger.call('$_tag sendBudgetAlert: $budgetId (is80=$is80)');
+    AppLogger.call('$_tag sendBudgetAlert: $budgetId ($dbField)');
 
-    final id = NotificationService.budgetAlertId(budgetId, is100: !is80);
+    final is100 = dbField == 'notification_sent_100';
+    final id = NotificationService.budgetAlertId(budgetId, is100: is100);
 
     await _notifService.showBudgetAlert(id: id, title: title, body: body);
 
     // Tandai flag di DB agar tidak dikirim ulang.
-    await _remote.markBudgetNotificationSent(budgetId: budgetId, is80: is80);
+    await _remote.markBudgetNotificationSent(
+      budgetId: budgetId,
+      field: dbField,
+    );
   }
 
   // ───────────────── Sync Schedule ─────────────────
@@ -135,6 +139,8 @@ class NotificationRepository {
   Future<void> checkAndSendBudgetAlerts({
     required List<BudgetAlertData> budgets,
     required bool budgetAlertEnabled,
+    required bool budgetAlert50Enabled,
+    required String Function(String categoryName) alert50Body,
     required String Function(String categoryName) alert80Body,
     required String Function(String categoryName) alert100Body,
     required String alertTitle,
@@ -145,12 +151,12 @@ class NotificationRepository {
     if (!hasPermission) return;
 
     for (final budget in budgets) {
-      // 100% check (check first — jika 100% maka skip 80%)
+      // 100% check (check first — jika 100% maka skip 80% dan 50%)
       if (budget.isOverBudget && !budget.notificationSent100) {
         await sendBudgetAlert(
           budgetId: budget.id,
           categoryName: budget.categoryName,
-          is80: false,
+          dbField: 'notification_sent_100',
           title: alertTitle,
           body: alert100Body(budget.categoryName),
         );
@@ -162,9 +168,23 @@ class NotificationRepository {
         await sendBudgetAlert(
           budgetId: budget.id,
           categoryName: budget.categoryName,
-          is80: true,
+          dbField: 'notification_sent_80',
           title: alertTitle,
           body: alert80Body(budget.categoryName),
+        );
+      }
+      // 50% check (only if setting enabled)
+      else if (budgetAlert50Enabled &&
+          budget.isHalfUsed &&
+          !budget.isNearLimit &&
+          !budget.isOverBudget &&
+          !budget.notificationSent50) {
+        await sendBudgetAlert(
+          budgetId: budget.id,
+          categoryName: budget.categoryName,
+          dbField: 'notification_sent_50',
+          title: alertTitle,
+          body: alert50Body(budget.categoryName),
         );
       }
     }
@@ -181,16 +201,20 @@ class BudgetAlertData {
   const BudgetAlertData({
     required this.id,
     required this.categoryName,
+    required this.isHalfUsed,
     required this.isNearLimit,
     required this.isOverBudget,
+    required this.notificationSent50,
     required this.notificationSent80,
     required this.notificationSent100,
   });
 
   final String id;
   final String categoryName;
+  final bool isHalfUsed;
   final bool isNearLimit;
   final bool isOverBudget;
+  final bool notificationSent50;
   final bool notificationSent80;
   final bool notificationSent100;
 }

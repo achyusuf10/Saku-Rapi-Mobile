@@ -11,6 +11,7 @@ class NotificationSettingsModel {
     this.reminderEnabled = false,
     this.reminderTime,
     this.budgetAlertEnabled = true,
+    this.budgetAlert50Enabled = false,
     this.debtReminderEnabled = true,
     this.debtReminderDaysBefore = 3,
     this.createdAt,
@@ -28,6 +29,9 @@ class NotificationSettingsModel {
 
   /// Aktifkan alert saat budget 80% / 100%.
   final bool budgetAlertEnabled;
+
+  /// Aktifkan alert saat budget 50%.
+  final bool budgetAlert50Enabled;
 
   /// Aktifkan pengingat piutang sebelum jatuh tempo.
   final bool debtReminderEnabled;
@@ -47,6 +51,7 @@ class NotificationSettingsModel {
       reminderEnabled: (map['reminder_enabled'] as bool?) ?? false,
       reminderTime: _parseTime(map['reminder_time'] as String?),
       budgetAlertEnabled: (map['budget_alert_enabled'] as bool?) ?? true,
+      budgetAlert50Enabled: (map['budget_alert_50_enabled'] as bool?) ?? false,
       debtReminderEnabled: (map['debt_reminder_enabled'] as bool?) ?? true,
       debtReminderDaysBefore: (map['debt_reminder_days_before'] as int?) ?? 3,
       createdAt: map['created_at'] != null
@@ -66,6 +71,7 @@ class NotificationSettingsModel {
           ? '${reminderTime!.hour.toString().padLeft(2, '0')}:${reminderTime!.minute.toString().padLeft(2, '0')}:00'
           : null,
       'budget_alert_enabled': budgetAlertEnabled,
+      'budget_alert_50_enabled': budgetAlert50Enabled,
       'debt_reminder_enabled': debtReminderEnabled,
       'debt_reminder_days_before': debtReminderDaysBefore,
     };
@@ -81,6 +87,7 @@ class NotificationSettingsModel {
           ? '${reminderTime!.hour.toString().padLeft(2, '0')}:${reminderTime!.minute.toString().padLeft(2, '0')}:00'
           : null,
       'budget_alert_enabled': budgetAlertEnabled,
+      'budget_alert_50_enabled': budgetAlert50Enabled,
       'debt_reminder_enabled': debtReminderEnabled,
       'debt_reminder_days_before': debtReminderDaysBefore,
       'created_at': createdAt?.toIso8601String(),
@@ -95,6 +102,7 @@ class NotificationSettingsModel {
     TimeOfDay? reminderTime,
     bool clearReminderTime = false,
     bool? budgetAlertEnabled,
+    bool? budgetAlert50Enabled,
     bool? debtReminderEnabled,
     int? debtReminderDaysBefore,
     DateTime? createdAt,
@@ -108,6 +116,7 @@ class NotificationSettingsModel {
           ? null
           : (reminderTime ?? this.reminderTime),
       budgetAlertEnabled: budgetAlertEnabled ?? this.budgetAlertEnabled,
+      budgetAlert50Enabled: budgetAlert50Enabled ?? this.budgetAlert50Enabled,
       debtReminderEnabled: debtReminderEnabled ?? this.debtReminderEnabled,
       debtReminderDaysBefore:
           debtReminderDaysBefore ?? this.debtReminderDaysBefore,
