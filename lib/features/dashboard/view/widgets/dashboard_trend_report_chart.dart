@@ -1,14 +1,13 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
-import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
-import 'package:app_saku_rapi/utils/packages/graphify/controller/graphify_controller.dart';
-import 'package:app_saku_rapi/utils/packages/graphify/view/graphify_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 /// Cumulative line chart untuk Laporan Tren pengeluaran.
 ///
@@ -80,22 +79,33 @@ class DashboardTrendReportChart extends ConsumerWidget {
       }).toList();
     }
 
-    // Build ECharts options
-    final expenseHex =
-        '#${colors.expense.toARGB32().toRadixString(16).substring(2)}';
-    final textColor = isDark ? '#9CA3AF' : '#6B7280';
-    final borderColor = isDark ? '#2D3F38' : '#E5E7EB';
+    // Build Syncfusion chart data
+    final trendData = <_TrendPoint>[];
+    final maxLen = [
+      currentCumulative.length,
+      previousCumulative.length,
+      avg3Cumulative.length,
+    ].reduce((a, b) => a > b ? a : b);
 
-    final chartOptions = _buildChartOptions(
-      xLabels: xLabels,
-      currentData: currentCumulative,
-      previousData: previousCumulative,
-      avg3Data: avg3Cumulative,
-      expenseColor: expenseHex,
-      textColor: textColor,
-      borderColor: borderColor,
-      isDark: isDark,
-    );
+    for (int i = 0; i < maxLen; i++) {
+      trendData.add(
+        _TrendPoint(
+          label: i < xLabels.length ? xLabels[i] : '${i + 1}',
+          current: i < currentCumulative.length ? currentCumulative[i] : null,
+          previous: i < previousCumulative.length
+              ? previousCumulative[i]
+              : null,
+          avg3: i < avg3Cumulative.length ? avg3Cumulative[i] : null,
+        ),
+      );
+    }
+
+    final textColor = isDark
+        ? const Color(0xFF9CA3AF)
+        : const Color(0xFF6B7280);
+    final gridColor = isDark
+        ? const Color(0xFF2D3F38)
+        : const Color(0xFFE5E7EB);
 
     // For insight: compare current cumulative total to 3-month avg total
     final currentTotal = currentCumulative.isNotEmpty
@@ -126,53 +136,160 @@ class DashboardTrendReportChart extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ─── Legend + Fullscreen ───
-        Row(
+        // ─── Legend ───
+        Wrap(
+          spacing: 12.w,
+          runSpacing: 4.h,
           children: [
-            Expanded(
-              child: Wrap(
-                spacing: 12.w,
-                runSpacing: 4.h,
-                children: [
-                  _LegendItem(
-                    color: colors.expense,
-                    label: currentLegend,
-                    isDashed: false,
-                  ),
-                  _LegendItem(
-                    color: colors.expense.withValues(alpha: 0.5),
-                    label: previousLegend,
-                    isDashed: true,
-                  ),
-                  _LegendItem(
-                    color: colors.textSecondary.withValues(alpha: 0.5),
-                    label: avgLegend,
-                    isDashed: true,
-                  ),
-                ],
-              ),
+            _LegendItem(
+              color: colors.expense,
+              label: currentLegend,
+              isDashed: false,
             ),
-            _FullscreenButton(
-              onPressed: () => ChartFullscreenDialog.show(
-                context,
-                title: l10n.dashboardTrendReport,
-                chartOptions: chartOptions,
-                isDark: isDark,
-              ),
+            _LegendItem(
+              color: colors.expense.withValues(alpha: 0.5),
+              label: previousLegend,
+              isDashed: true,
+            ),
+            _LegendItem(
+              color: colors.textSecondary.withValues(alpha: 0.5),
+              label: avgLegend,
+              isDashed: true,
             ),
           ],
         ),
         SizedBox(height: 8.h),
 
-        // ─── ECharts Line ───
+        // ─── Syncfusion Line Chart ───
         SizedBox(
           height: 220.h,
-          child: GraphifyView(
+          child: SfCartesianChart(
             key: ValueKey(
               '${chartState.chartMode}_${currentTotal.toStringAsFixed(0)}_${avg3Total.toStringAsFixed(0)}',
             ),
-            initialOptions: chartOptions,
-            isDarkMode: isDark,
+            margin: EdgeInsets.zero,
+            plotAreaBorderWidth: 0,
+            primaryXAxis: CategoryAxis(
+              labelStyle: TextStyle(color: textColor, fontSize: 9.sp),
+              majorGridLines: const MajorGridLines(width: 0),
+              axisLine: AxisLine(color: gridColor),
+              majorTickLines: const MajorTickLines(size: 0),
+              labelRotation: trendData.length > 15 ? 45 : 0,
+              labelIntersectAction: trendData.length > 20
+                  ? AxisLabelIntersectAction.hide
+                  : AxisLabelIntersectAction.none,
+            ),
+            primaryYAxis: NumericAxis(
+              labelStyle: TextStyle(color: textColor, fontSize: 10.sp),
+              majorGridLines: MajorGridLines(
+                color: gridColor,
+                dashArray: const <double>[4, 3],
+              ),
+              axisLine: const AxisLine(width: 0),
+              majorTickLines: const MajorTickLines(size: 0),
+              axisLabelFormatter: (details) => ChartAxisLabel(
+                _compactLabel(details.value),
+                TextStyle(color: textColor, fontSize: 10.sp),
+              ),
+            ),
+            tooltipBehavior: TooltipBehavior(
+              enable: true,
+              header: '',
+              builder: (data, point, series, pointIdx, seriesIdx) {
+                final d = data as _TrendPoint;
+                final names = [currentLegend, previousLegend, avgLegend];
+                final values = [d.current, d.previous, d.avg3];
+                final seriesColors = [
+                  colors.expense,
+                  colors.expense.withValues(alpha: 0.5),
+                  colors.textSecondary.withValues(alpha: 0.5),
+                ];
+                return Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1F2937) : Colors.white,
+                    borderRadius: BorderRadius.circular(8.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        d.label,
+                        style: TextStyle(color: textColor, fontSize: 10.sp),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        '${names[seriesIdx]}: ${(values[seriesIdx] ?? 0).toCompactCurrency()}',
+                        style: TextStyle(
+                          color: seriesColors[seriesIdx],
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            zoomPanBehavior: ZoomPanBehavior(
+              enablePinching: true,
+              enablePanning: true,
+              zoomMode: ZoomMode.x,
+            ),
+            series: <CartesianSeries<_TrendPoint, String>>[
+              // Current period — solid line with gradient area
+              SplineAreaSeries<_TrendPoint, String>(
+                name: currentLegend,
+                dataSource: trendData,
+                xValueMapper: (d, _) => d.label,
+                yValueMapper: (d, _) => d.current,
+                color: colors.expense,
+                borderColor: colors.expense,
+                borderWidth: 2.5,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    colors.expense.withValues(alpha: 0.25),
+                    colors.expense.withValues(alpha: 0.02),
+                  ],
+                ),
+                markerSettings: const MarkerSettings(isVisible: false),
+              ),
+              // Previous period — dashed line
+              SplineSeries<_TrendPoint, String>(
+                name: previousLegend,
+                dataSource: trendData,
+                xValueMapper: (d, _) => d.label,
+                yValueMapper: (d, _) => d.previous,
+                color: colors.expense.withValues(alpha: 0.5),
+                width: 1.5,
+                dashArray: const <double>[6, 4],
+                markerSettings: const MarkerSettings(isVisible: false),
+              ),
+              // 3-month average — dashed gray line
+              SplineSeries<_TrendPoint, String>(
+                name: avgLegend,
+                dataSource: trendData,
+                xValueMapper: (d, _) => d.label,
+                yValueMapper: (d, _) => d.avg3,
+                color: const Color(0xFF9CA3AF),
+                width: 1.5,
+                dashArray: const <double>[6, 4],
+                markerSettings: const MarkerSettings(isVisible: false),
+              ),
+            ],
           ),
         ),
         SizedBox(height: 12.h),
@@ -251,113 +368,12 @@ class DashboardTrendReportChart extends ConsumerWidget {
     return result;
   }
 
-  /// Builds ECharts option for cumulative line chart.
-  static Map<String, dynamic> _buildChartOptions({
-    required List<String> xLabels,
-    required List<double> currentData,
-    required List<double> previousData,
-    required List<double> avg3Data,
-    required String expenseColor,
-    required String textColor,
-    required String borderColor,
-    required bool isDark,
-  }) {
-    return {
-      'backgroundColor': 'transparent',
-      'grid': {
-        'left': '3%',
-        'right': '3%',
-        'bottom': '5%',
-        'top': '8%',
-        'containLabel': true,
-      },
-      'xAxis': {
-        'type': 'category',
-        'data': xLabels,
-        'boundaryGap': false,
-        'axisLabel': {
-          'color': textColor,
-          'fontSize': 9,
-          'rotate': xLabels.length > 15 ? 45 : 0,
-          'interval': _calculateInterval(xLabels.length),
-        },
-        'axisLine': {
-          'lineStyle': {'color': borderColor},
-        },
-      },
-      'yAxis': {
-        'type': 'value',
-        'axisLabel': {
-          'color': textColor,
-          'fontSize': 10,
-          'formatter': JsFunctionModel(
-            'function(value) {'
-            '  if (value >= 1000000) return (value/1000000).toFixed(1) + " jt";'
-            '  if (value >= 1000) return (value/1000).toFixed(0) + " rb";'
-            '  return value;'
-            '}',
-          ),
-        },
-        'splitLine': {
-          'lineStyle': {'color': borderColor, 'type': 'dashed'},
-        },
-      },
-      'tooltip': {'trigger': 'axis'},
-      'series': [
-        {
-          'name': 'Current',
-          'type': 'line',
-          'data': currentData,
-          'smooth': true,
-          'symbol': 'none',
-          'lineStyle': {'color': expenseColor, 'width': 2.5},
-          'itemStyle': {'color': expenseColor},
-          'areaStyle': {
-            'color': {
-              'type': 'linear',
-              'x': 0,
-              'y': 0,
-              'x2': 0,
-              'y2': 1,
-              'colorStops': [
-                {'offset': 0, 'color': '${expenseColor}40'},
-                {'offset': 1, 'color': '${expenseColor}05'},
-              ],
-            },
-          },
-        },
-        {
-          'name': 'Previous',
-          'type': 'line',
-          'data': previousData,
-          'smooth': true,
-          'symbol': 'none',
-          'lineStyle': {
-            'color': expenseColor,
-            'width': 1.5,
-            'opacity': 0.5,
-            'type': 'dashed',
-          },
-          'itemStyle': {'color': expenseColor, 'opacity': 0.5},
-        },
-        {
-          'name': 'Avg 3M',
-          'type': 'line',
-          'data': avg3Data,
-          'smooth': true,
-          'symbol': 'none',
-          'lineStyle': {'color': '#9CA3AF', 'width': 1.5, 'type': 'dashed'},
-          'itemStyle': {'color': '#9CA3AF'},
-        },
-      ],
-    };
-  }
-
-  static int _calculateInterval(int count) {
-    if (count <= 7) return 0;
-    if (count <= 14) return 1;
-    if (count <= 21) return 2;
-    return 4;
+  /// Compact axis label: 1.5 jt, 300 rb, etc.
+  static String _compactLabel(num value) {
+    final v = value.toDouble();
+    if (v.abs() >= 1000000) return '${(v / 1000000).toStringAsFixed(1)} jt';
+    if (v.abs() >= 1000) return '${(v / 1000).toStringAsFixed(0)} rb';
+    return v.toStringAsFixed(0);
   }
 
   static Widget _buildInsight(
@@ -483,29 +499,11 @@ class _DashedLinePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _FullscreenButton extends StatelessWidget {
-  const _FullscreenButton({required this.onPressed});
+class _TrendPoint {
+  _TrendPoint({required this.label, this.current, this.previous, this.avg3});
 
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return SizedBox(
-      width: 28.w,
-      height: 28.w,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(Icons.fullscreen_rounded, size: 18.w),
-        padding: EdgeInsets.zero,
-        style: IconButton.styleFrom(
-          backgroundColor: colors.surfaceVariant.withValues(alpha: 0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6.r),
-          ),
-        ),
-        color: colors.textPrimary,
-      ),
-    );
-  }
+  final String label;
+  final double? current;
+  final double? previous;
+  final double? avg3;
 }
