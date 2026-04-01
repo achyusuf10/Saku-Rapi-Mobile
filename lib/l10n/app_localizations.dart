@@ -1190,6 +1190,12 @@ abstract class AppLocalizations {
   /// **'Tidak ada transaksi dengan filter ini'**
   String get historyFilterEmpty;
 
+  /// No description provided for @historyViewReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Laporan'**
+  String get historyViewReport;
+
   /// No description provided for @historyDeleteSuccess.
   ///
   /// In id, this message translates to:
@@ -3285,6 +3291,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Lainnya'**
   String get reportOthersCategory;
+
+  /// No description provided for @reportTransactionCountLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'transaksi'**
+  String get reportTransactionCountLabel;
 
   /// No description provided for @ocrBalanceItem.
   ///

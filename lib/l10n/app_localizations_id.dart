@@ -575,6 +575,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyFilterEmpty => 'Tidak ada transaksi dengan filter ini';
 
   @override
+  String get historyViewReport => 'Lihat Laporan';
+
+  @override
   String get historyDeleteSuccess => 'Transaksi berhasil dihapus';
 
   @override
@@ -1693,6 +1696,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get reportOthersCategory => 'Lainnya';
+
+  @override
+  String get reportTransactionCountLabel => 'transaksi';
 
   @override
   String get ocrBalanceItem => 'Item lainnya';

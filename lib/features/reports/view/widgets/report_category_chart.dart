@@ -17,11 +17,13 @@ class ReportCategoryChart extends StatelessWidget {
     required this.categories,
     required this.total,
     this.onCategoryTap,
+    this.isOthersExpanded = false,
   });
 
   final List<ReportCategoryBreakdownModel> categories;
   final double total;
   final void Function(ReportCategoryBreakdownModel category)? onCategoryTap;
+  final bool isOthersExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,9 @@ class ReportCategoryChart extends StatelessWidget {
             category: categories[i],
             total: total,
             rank: i + 1,
+            isExpanded: categories[i].categoryId == '__others__'
+                ? isOthersExpanded
+                : false,
             onTap: onCategoryTap != null
                 ? () => onCategoryTap!(categories[i])
                 : null,
@@ -51,12 +56,14 @@ class _CategoryRow extends StatelessWidget {
     required this.total,
     required this.rank,
     this.onTap,
+    this.isExpanded = false,
   });
 
   final ReportCategoryBreakdownModel category;
   final double total;
   final int rank;
   final VoidCallback? onTap;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +111,18 @@ class _CategoryRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (category.categoryId == '__others__') ...[
+                      AnimatedRotation(
+                        turns: isExpanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 250),
+                        child: FaIcon(
+                          FontAwesomeIcons.chevronDown,
+                          size: 10.w,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(width: 6.w),
+                    ],
                     Text(
                       category.amount.toCompactCurrency(),
                       style: TextStyleConstants.label2.copyWith(

@@ -19,6 +19,7 @@ import 'package:app_saku_rapi/features/investment/view/ui/investment_form_page.d
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
+import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_category_transactions_page.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_page.dart';
 import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
@@ -247,7 +248,8 @@ class AppRouter {
         GoRoute(
           path: reports,
           parentNavigatorKey: navigatorKey,
-          builder: (context, state) => const ReportPage(),
+          builder: (context, state) =>
+              ReportPage(argument: state.extra as ReportPageArgument?),
         ),
         GoRoute(
           path: reportCategoryTransactions,

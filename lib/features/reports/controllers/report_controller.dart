@@ -1,7 +1,8 @@
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
+import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
+import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/repositories/report_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -9,8 +10,8 @@ import 'package:intl/intl.dart';
 
 // ───────────────── Enums ─────────────────
 
-/// Periode filter untuk report.
-enum ReportPeriod { weekly, monthly, quarterly, yearly, custom }
+/// Alias backward-compatible untuk fitur report.
+typedef ReportPeriod = AppPeriod;
 
 /// Tab breakdown: expense atau income.
 enum ReportBreakdownType { expense, income }
@@ -69,7 +70,7 @@ enum ReportStatus { initial, loading, loaded, error }
 class ReportState {
   const ReportState({
     this.status = ReportStatus.initial,
-    this.period = ReportPeriod.monthly,
+    this.period = AppPeriod.monthly,
     this.breakdownType = ReportBreakdownType.expense,
     this.summary = const ReportPeriodSummaryModel(
       totalIncome: 0,
@@ -90,7 +91,7 @@ class ReportState {
   });
 
   final ReportStatus status;
-  final ReportPeriod period;
+  final AppPeriod period;
   final ReportBreakdownType breakdownType;
   final ReportPeriodSummaryModel summary;
   final ReportPeriodSummaryModel previousSummary;
@@ -114,17 +115,18 @@ class ReportState {
   List<SubPeriodTab> get subPeriodTabs {
     final now = DateTime.now();
     return switch (period) {
-      ReportPeriod.weekly => _generateWeeklyTabs(now, 30),
-      ReportPeriod.monthly => _generateMonthlyTabs(now, 14),
-      ReportPeriod.quarterly => _generateQuarterlyTabs(now, 2),
-      ReportPeriod.yearly => _generateYearlyTabs(now, 5),
-      ReportPeriod.custom => const [],
+      AppPeriod.daily => _generateDailyTabs(now, 30),
+      AppPeriod.weekly => _generateWeeklyTabs(now, 30),
+      AppPeriod.monthly => _generateMonthlyTabs(now, 14),
+      AppPeriod.quarterly => _generateQuarterlyTabs(now, 2),
+      AppPeriod.yearly => _generateYearlyTabs(now, 5),
+      AppPeriod.custom => const [],
     };
   }
 
   /// Date range berdasarkan period + subPeriodIndex.
   (DateTime, DateTime) get dateRange {
-    if (period == ReportPeriod.custom &&
+    if (period == AppPeriod.custom &&
         customStart != null &&
         customEnd != null) {
       return (
@@ -152,7 +154,11 @@ class ReportState {
     // Fallback: range "saat ini" (tab terakhir)
     final now = DateTime.now();
     return switch (period) {
-      ReportPeriod.weekly => () {
+      AppPeriod.daily => (
+        DateTime.utc(now.year, now.month, now.day),
+        DateTime.utc(now.year, now.month, now.day, 23, 59, 59),
+      ),
+      AppPeriod.weekly => () {
         final weekday = now.weekday;
         final monday = now.subtract(Duration(days: weekday - 1));
         final sunday = monday.add(const Duration(days: 6));
@@ -161,22 +167,22 @@ class ReportState {
           DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
         );
       }(),
-      ReportPeriod.monthly => (
+      AppPeriod.monthly => (
         DateTime.utc(now.year, now.month),
         DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
       ),
-      ReportPeriod.quarterly => () {
+      AppPeriod.quarterly => () {
         final qStart = ((now.month - 1) ~/ 3) * 3 + 1;
         return (
           DateTime.utc(now.year, qStart),
           DateTime.utc(now.year, qStart + 3, 0, 23, 59, 59),
         );
       }(),
-      ReportPeriod.yearly => (
+      AppPeriod.yearly => (
         DateTime.utc(now.year),
         DateTime.utc(now.year, 12, 31, 23, 59, 59),
       ),
-      ReportPeriod.custom => (
+      AppPeriod.custom => (
         DateTime.utc(now.year, now.month),
         DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
       ),
@@ -198,7 +204,7 @@ class ReportState {
 
   ReportState copyWith({
     ReportStatus? status,
-    ReportPeriod? period,
+    AppPeriod? period,
     ReportBreakdownType? breakdownType,
     ReportPeriodSummaryModel? summary,
     ReportPeriodSummaryModel? previousSummary,
@@ -234,6 +240,32 @@ class ReportState {
   }
 
   // ───────────────── Sub-Period Tab Generators ─────────────────
+
+  List<SubPeriodTab> _generateDailyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final today = DateTime(now.year, now.month, now.day);
+    var cursor = today.subtract(Duration(days: maxItems - 1));
+
+    while (!cursor.isAfter(today)) {
+      final isToday =
+          cursor.year == today.year &&
+          cursor.month == today.month &&
+          cursor.day == today.day;
+      tabs.add(
+        SubPeriodTab(
+          label: isToday
+              ? (appContext?.l10n.today ?? 'Hari Ini')
+              : '${cursor.day} ${_shortMonth(cursor.month)}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, cursor.day),
+            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+          ),
+        ),
+      );
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    return tabs;
+  }
 
   List<SubPeriodTab> _generateWeeklyTabs(DateTime now, int maxItems) {
     final tabs = <SubPeriodTab>[];
@@ -370,6 +402,19 @@ class ReportController extends StateNotifier<ReportState> {
 
   final ReportRepository _repository;
 
+  /// Inisialisasi state dari [ReportPageArgument] sebelum load pertama.
+  ///
+  /// Dipanggil dari [ReportPage.initState] saat halaman dibuka dengan argument
+  /// (misalnya dari tombol "Lihat Laporan" di halaman riwayat).
+  void initializeFrom(ReportPageArgument argument) {
+    state = state.copyWith(
+      period: argument.period,
+      subPeriodIndex: argument.subPeriodIndex,
+      walletId: argument.walletId,
+      clearWallet: argument.walletId == null,
+    );
+  }
+
   /// Load semua data report secara paralel.
   Future<void> loadReport() async {
     state = state.copyWith(status: ReportStatus.loading, clearError: true);
@@ -454,7 +499,7 @@ class ReportController extends StateNotifier<ReportState> {
   }
 
   /// Ganti periode dan reload. Reset sub-period ke tab terakhir.
-  Future<void> setPeriod(ReportPeriod period) async {
+  Future<void> setPeriod(AppPeriod period) async {
     if (state.period == period) return;
     state = state.copyWith(period: period, clearSubPeriod: true);
     // Set sub-period ke tab terakhir ("saat ini")
@@ -475,7 +520,7 @@ class ReportController extends StateNotifier<ReportState> {
   /// Set custom date range dan reload.
   Future<void> setCustomRange(DateTime start, DateTime end) async {
     state = state.copyWith(
-      period: ReportPeriod.custom,
+      period: AppPeriod.custom,
       customStart: start,
       customEnd: end,
       clearSubPeriod: true,

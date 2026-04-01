@@ -1,19 +1,15 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/features/history/datasource/history_local_data_source.dart';
+import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/history/repositories/history_repository.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 
-// ───────────────── Enums ─────────────────
-
-/// Periode filter untuk history.
-enum HistoryPeriod { daily, weekly, monthly, quarterly, yearly, custom }
-
-/// Mode pengelompokan list transaksi.
-enum HistoryGroupMode { byDate, byCategory }
+export 'package:app_saku_rapi/features/history/models/history_models.dart';
 
 // ───────────────── Providers ─────────────────
 
@@ -22,11 +18,17 @@ final historyRepositoryProvider = Provider<HistoryRepository>((ref) {
   return HistoryRepository();
 });
 
+/// Provider singleton untuk [HistoryLocalDataSource].
+final historyLocalDataSourceProvider = Provider<HistoryLocalDataSource>((ref) {
+  return HistoryLocalDataSource();
+});
+
 /// Provider utama untuk [HistoryController].
 final historyControllerProvider =
     StateNotifierProvider<HistoryController, HistoryState>((ref) {
       final repository = ref.watch(historyRepositoryProvider);
-      return HistoryController(repository);
+      final localDataSource = ref.watch(historyLocalDataSourceProvider);
+      return HistoryController(repository, localDataSource);
     });
 
 // ───────────────── State ─────────────────
@@ -431,21 +433,6 @@ class HistoryState {
   }
 }
 
-enum HistoryStatus { initial, loading, loaded, error }
-
-// ───────────────── Sub-Period Tab ─────────────────
-
-/// Data model untuk satu tab sub-period.
-class SubPeriodTab {
-  const SubPeriodTab({required this.label, required this.dateRange});
-
-  /// Label yang ditampilkan di tab, misal "Jan 2024", "Hari Ini".
-  final String label;
-
-  /// Date range (start, end) UTC untuk sub-period ini.
-  final (DateTime, DateTime) dateRange;
-}
-
 // ───────────────── Controller ─────────────────
 
 /// Controller untuk fitur history transaksi.
@@ -456,11 +443,114 @@ class SubPeriodTab {
 /// - Periode filter (daily/weekly/monthly/quarterly/yearly/custom)
 /// - Grouping mode (by date / by category) — lokal, tanpa refetch
 /// - Type filter (income/expense/etc.) — lokal, tanpa refetch
+/// - Persistensi preferensi filter ke local storage (Hive)
 class HistoryController extends StateNotifier<HistoryState> {
-  HistoryController(this._repository) : super(const HistoryState());
+  HistoryController(this._repository, this._local)
+    : super(_restoreInitialState(_local));
 
   final HistoryRepository _repository;
+  final HistoryLocalDataSource _local;
   static const _pageSize = 30;
+
+  // ───────────────── RESTORE ─────────────────
+
+  /// Baca preferensi filter terakhir dari Hive dan kembalikan sebagai
+  /// [HistoryState] awal. Jika tidak ada data atau parsing gagal,
+  /// kembalikan state default.
+  static HistoryState _restoreInitialState(HistoryLocalDataSource local) {
+    try {
+      final prefs = local.loadFilterPrefs();
+      if (prefs == null) return const HistoryState();
+
+      // ── period ──
+      HistoryPeriod period = HistoryPeriod.monthly;
+      final periodName = prefs['period'] as String?;
+      if (periodName != null) {
+        for (final e in HistoryPeriod.values) {
+          if (e.name == periodName) {
+            period = e;
+            break;
+          }
+        }
+      }
+
+      // ── groupMode ──
+      HistoryGroupMode groupMode = HistoryGroupMode.byDate;
+      final groupModeName = prefs['groupMode'] as String?;
+      if (groupModeName != null) {
+        for (final e in HistoryGroupMode.values) {
+          if (e.name == groupModeName) {
+            groupMode = e;
+            break;
+          }
+        }
+      }
+
+      // ── walletId ──
+      final walletId = prefs['walletId'] as String?;
+
+      // ── typeFilter ──
+      TransactionTypeEnum? typeFilter;
+      final typeFilterName = prefs['typeFilter'] as String?;
+      if (typeFilterName != null) {
+        for (final e in TransactionTypeEnum.values) {
+          if (e.name == typeFilterName) {
+            typeFilter = e;
+            break;
+          }
+        }
+      }
+
+      // ── customStart / customEnd ──
+      DateTime? customStart, customEnd;
+      final customStartRaw = prefs['customStart'] as String?;
+      final customEndRaw = prefs['customEnd'] as String?;
+      if (customStartRaw != null)
+        customStart = DateTime.tryParse(customStartRaw);
+      if (customEndRaw != null) customEnd = DateTime.tryParse(customEndRaw);
+
+      // ── subPeriodIndex: validasi agar tidak out of bounds ──
+      int? subPeriodIndex = prefs['subPeriodIndex'] as int?;
+      if (subPeriodIndex != null) {
+        final tempState = HistoryState(
+          period: period,
+          customStart: customStart,
+          customEnd: customEnd,
+        );
+        final tabs = tempState.subPeriodTabs;
+        if (tabs.isEmpty || subPeriodIndex >= tabs.length) {
+          subPeriodIndex = tabs.isNotEmpty ? tabs.length - 1 : null;
+        }
+      }
+
+      return HistoryState(
+        period: period,
+        groupMode: groupMode,
+        walletId: walletId,
+        typeFilter: typeFilter,
+        customStart: customStart,
+        customEnd: customEnd,
+        subPeriodIndex: subPeriodIndex,
+      );
+    } catch (_) {
+      return const HistoryState();
+    }
+  }
+
+  // ───────────────── PERSIST ─────────────────
+
+  /// Simpan preferensi filter dari state saat ini ke local storage.
+  void _persist() {
+    _local.saveFilterPrefs(
+      period: state.period,
+      groupMode: state.groupMode,
+      walletId: state.walletId,
+      typeFilter: state.typeFilter,
+      subPeriodIndex: state.subPeriodIndex,
+      customStart: state.customStart,
+      customEnd: state.customEnd,
+    );
+  }
 
   // ───────────────── LOAD ─────────────────
 
@@ -538,6 +628,7 @@ class HistoryController extends StateNotifier<HistoryState> {
     if (tabs.isNotEmpty) {
       state = state.copyWith(subPeriodIndex: tabs.length - 1);
     }
+    _persist();
     await loadTransactions();
   }
 
@@ -554,6 +645,7 @@ class HistoryController extends StateNotifier<HistoryState> {
     if (tabs.isNotEmpty) {
       state = state.copyWith(subPeriodIndex: tabs.length - 1);
     }
+    _persist();
     await loadTransactions();
   }
 
@@ -561,6 +653,7 @@ class HistoryController extends StateNotifier<HistoryState> {
   Future<void> setSubPeriod(int index) async {
     if (index == state.subPeriodIndex) return;
     state = state.copyWith(subPeriodIndex: index);
+    _persist();
     await loadTransactions();
   }
 
@@ -572,6 +665,7 @@ class HistoryController extends StateNotifier<HistoryState> {
     } else {
       state = state.copyWith(walletId: walletId);
     }
+    _persist();
     await loadTransactions();
   }
 
@@ -583,12 +677,14 @@ class HistoryController extends StateNotifier<HistoryState> {
     } else {
       state = state.copyWith(typeFilter: type);
     }
+    _persist();
   }
 
   /// Ganti grouping mode — lokal saja, tanpa refetch (PRD §7.8).
   void setGroupMode(HistoryGroupMode mode) {
     if (mode == state.groupMode) return;
     state = state.copyWith(groupMode: mode);
+    _persist();
   }
 
   /// Reset semua filter ke default.
@@ -598,6 +694,7 @@ class HistoryController extends StateNotifier<HistoryState> {
     if (tabs.isNotEmpty) {
       state = state.copyWith(subPeriodIndex: tabs.length - 1);
     }
+    _persist();
     await loadTransactions();
   }
 

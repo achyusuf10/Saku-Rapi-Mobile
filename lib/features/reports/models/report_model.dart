@@ -55,6 +55,7 @@ class ReportCategoryBreakdownModel {
     required this.amount,
     this.parentId,
     this.transactionCount = 0,
+    this.otherItems = const [],
   });
 
   final String categoryId;
@@ -64,6 +65,9 @@ class ReportCategoryBreakdownModel {
   final double amount;
   final String? parentId;
   final int transactionCount;
+
+  /// Isi dari bucket "Lainnya". Hanya terisi jika [categoryId] == '__others__'.
+  final List<ReportCategoryBreakdownModel> otherItems;
 
   /// Rasio terhadap total. Dihitung di luar model.
   double ratioOf(double total) => total > 0 ? amount / total : 0;
@@ -88,6 +92,7 @@ class ReportCategoryBreakdownModel {
     double? amount,
     String? parentId,
     int? transactionCount,
+    List<ReportCategoryBreakdownModel>? otherItems,
   }) {
     return ReportCategoryBreakdownModel(
       categoryId: categoryId ?? this.categoryId,
@@ -97,6 +102,7 @@ class ReportCategoryBreakdownModel {
       amount: amount ?? this.amount,
       parentId: parentId ?? this.parentId,
       transactionCount: transactionCount ?? this.transactionCount,
+      otherItems: otherItems ?? this.otherItems,
     );
   }
 }

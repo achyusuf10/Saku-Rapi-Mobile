@@ -577,6 +577,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyFilterEmpty => 'No transactions matching this filter';
 
   @override
+  String get historyViewReport => 'View Report';
+
+  @override
   String get historyDeleteSuccess => 'Transaction deleted successfully';
 
   @override
@@ -1695,6 +1698,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportOthersCategory => 'Others';
+
+  @override
+  String get reportTransactionCountLabel => 'transactions';
 
   @override
   String get ocrBalanceItem => 'Other items';

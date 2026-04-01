@@ -5,14 +5,17 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
 import 'package:app_saku_rapi/features/reports/controllers/report_controller.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
+import 'package:app_saku_rapi/features/reports/models/report_model.dart';
+import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_category_chart.dart';
-import 'package:app_saku_rapi/features/reports/view/widgets/report_sub_period_tabs.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_summary_card.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_trend_chart.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_period_selector.dart';
+import 'package:app_saku_rapi/global/widgets/saku_sub_period_tabs.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +26,7 @@ import 'package:go_router/go_router.dart';
 /// Halaman laporan (Reports & Analytics).
 ///
 /// Menampilkan:
-/// - Period selector tabs (Mingguan, Bulanan, Kuartal, Tahunan)
+/// - Period selector (harian/mingguan/bulanan/3 bulanan/tahunan/kustom)
 /// - Sub-period tabs (navigasi bulan ini / bulan lalu, dsb.)
 /// - Wallet filter chip
 /// - Income vs Expense summary card
@@ -34,47 +37,114 @@ import 'package:go_router/go_router.dart';
 /// Setiap section menggunakan ConsumerWidget terpisah
 /// agar hanya rebuild widget yang datanya berubah.
 class ReportPage extends ConsumerStatefulWidget {
-  const ReportPage({super.key});
+  const ReportPage({super.key, this.argument});
+
+  /// Argument opsional untuk inisialisasi state awal.
+  ///
+  /// Jika diberikan, period, sub-period, dan wallet filter akan disamakan
+  /// dengan nilai yang dikirim (biasanya dari halaman riwayat).
+  final ReportPageArgument? argument;
 
   @override
   ConsumerState<ReportPage> createState() => _ReportPageState();
 }
 
 class _ReportPageState extends ConsumerState<ReportPage> {
+  late PageController _pageController;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = ref.read(reportControllerProvider.notifier);
-      // Init sub-period ke tab terakhir (saat ini)
-      final state = ref.read(reportControllerProvider);
-      final tabs = state.subPeriodTabs;
-      if (tabs.isNotEmpty && state.subPeriodIndex == null) {
-        ref
-            .read(reportControllerProvider.notifier)
-            .setSubPeriod(tabs.length - 1);
-      } else {
-        controller.loadReport();
+
+    // PageController diinisialisasi dari state default dulu.
+    // Nilai sesungguhnya (dari argument) diterapkan di microtask setelah build.
+    _pageController = PageController();
+
+    Future.microtask(() {
+      if (!mounted) return;
+      final ctrl = ref.read(reportControllerProvider.notifier);
+
+      // Terapkan argument jika ada (misal dari tombol "Lihat Laporan").
+      if (widget.argument != null) {
+        ctrl.initializeFrom(widget.argument!);
       }
+
+      final s = ref.read(reportControllerProvider);
+      final tabs = s.subPeriodTabs;
+      final targetIdx =
+          s.subPeriodIndex ?? (tabs.isNotEmpty ? tabs.length - 1 : 0);
+
+      // Sync PageController ke index yang benar.
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(targetIdx);
+      }
+
+      if (s.subPeriodIndex == null) {
+        if (tabs.isNotEmpty) {
+          ctrl.setSubPeriod(tabs.length - 1);
+          return;
+        }
+      }
+      ctrl.loadReport();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _onRefresh() async {
     await ref.read(reportControllerProvider.notifier).loadReport();
   }
 
+  Future<void> _openCustomDateRange() async {
+    final reportState = ref.read(reportControllerProvider);
+    final (defaultStart, defaultEnd) = reportState.dateRange;
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now().subtract(const Duration(days: 365 * 3)),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(start: defaultStart, end: defaultEnd),
+      helpText: context.l10n.historySelectDateRange,
+    );
+
+    if (picked != null) {
+      await ref
+          .read(reportControllerProvider.notifier)
+          .setCustomRange(picked.start, picked.end);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final l10n = context.l10n;
-    // Hanya watch status & period untuk scaffold-level decisions
-    final status = ref.watch(reportControllerProvider.select((s) => s.status));
-    final errorMessage = ref.watch(
-      reportControllerProvider.select((s) => s.errorMessage),
-    );
-    final total = ref.watch(
-      reportControllerProvider.select((s) => s.summary.total),
-    );
+    final reportState = ref.watch(reportControllerProvider);
+    final tabs = reportState.subPeriodTabs;
+
+    // Sync PageController ↔ subPeriodIndex (dari tap tab / period change)
+    ref.listen<ReportState>(reportControllerProvider, (prev, next) {
+      final prevIdx = prev?.subPeriodIndex;
+      final newIdx = next.subPeriodIndex;
+      if (prevIdx == newIdx || newIdx == null || !_pageController.hasClients) {
+        return;
+      }
+      if (prev?.period != next.period) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(newIdx);
+          }
+        });
+      } else if (_pageController.page?.round() != newIdx) {
+        _pageController.animateToPage(
+          newIdx,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -84,7 +154,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(l10n.reportTitle),
+        title: Text(context.l10n.reportTitle),
         centerTitle: false,
         actions: [
           SakuWalletFilterButton(
@@ -97,142 +167,101 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           10.horizontalSpace,
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        color: colors.primary,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // ─── Period Tabs ───
-            const SliverToBoxAdapter(child: _ReportPeriodTabs()),
-
-            // ─── Sub-Period Tabs ───
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: const ReportSubPeriodTabs(),
-              ),
+      body: Column(
+        children: [
+          // ─── Period Selector ───
+          Padding(
+            padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
+            child: SakuPeriodSelector(
+              selected: reportState.period,
+              onSelected: (period) =>
+                  ref.read(reportControllerProvider.notifier).setPeriod(period),
+              onCustomTap: _openCustomDateRange,
+              customStart: reportState.customStart,
+              customEnd: reportState.customEnd,
             ),
+          ),
 
-            // ─── Body ───
-            if (status == ReportStatus.loading)
-              const SliverFillRemaining(
-                child: Center(child: SakuLoadingIndicator()),
-              )
-            else if (status == ReportStatus.error)
-              SliverFillRemaining(
-                child: Center(
-                  child: SakuErrorState(
-                    message: errorMessage ?? l10n.reportErrorGeneric,
-                    onRetry: _onRefresh,
+          // ─── Sub-Period Tabs ───
+          SakuSubPeriodTabs(
+            tabs: tabs,
+            selectedIndex:
+                reportState.subPeriodIndex ??
+                (tabs.isNotEmpty ? tabs.length - 1 : 0),
+            onTabSelected: (index) =>
+                ref.read(reportControllerProvider.notifier).setSubPeriod(index),
+          ),
+          SizedBox(height: 4.h),
+
+          // ─── Swipeable Content ───
+          Expanded(
+            child: tabs.isEmpty
+                ? _buildPage(reportState)
+                : PageView.builder(
+                    controller: _pageController,
+                    itemCount: tabs.length,
+                    onPageChanged: (index) => ref
+                        .read(reportControllerProvider.notifier)
+                        .setSubPeriod(index),
+                    itemBuilder: (context, index) => _buildPage(reportState),
                   ),
-                ),
-              )
-            else if (status == ReportStatus.loaded && total == 0)
-              SliverFillRemaining(
-                child: SakuEmptyState(
-                  icon: FontAwesomeIcons.chartPie,
-                  title: l10n.reportEmptyTitle,
-                  message: l10n.reportEmptyMessage,
-                ),
-              )
-            else ...[
-              // ─── Summary Card ───
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
-                  child: const _ReportSummarySection(),
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: 20.h)),
-
-              // ─── Category Breakdown ───
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: const _ReportCategorySection(),
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: 20.h)),
-
-              // ─── Daily Trend ───
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: const _ReportTrendSection(),
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: 20.h)),
-
-              // ─── Insight ───
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: const _ReportInsightSection(),
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: 24.h)),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-}
 
-// ───────────────── Period Tabs (granular) ─────────────────
-
-class _ReportPeriodTabs extends ConsumerWidget {
-  const _ReportPeriodTabs();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
+  Widget _buildPage(ReportState reportState) {
     final l10n = context.l10n;
-    final period = ref.watch(reportControllerProvider.select((s) => s.period));
+    final colors = context.colors;
 
-    final tabs = [
-      (ReportPeriod.weekly, l10n.reportPeriodWeekly),
-      (ReportPeriod.monthly, l10n.reportPeriodMonthly),
-      (ReportPeriod.quarterly, l10n.reportPeriodQuarterly),
-      (ReportPeriod.yearly, l10n.reportPeriodYearly),
-    ];
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
-      child: Row(
-        children: tabs.map((tab) {
-          final isSelected = period == tab.$1;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () =>
-                  ref.read(reportControllerProvider.notifier).setPeriod(tab.$1),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(vertical: 8.h),
-                margin: EdgeInsets.symmetric(horizontal: 2.w),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? colors.primary
-                      : colors.surfaceVariant.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  tab.$2,
-                  style: TextStyleConstants.label2.copyWith(
-                    color: isSelected ? colors.onPrimary : colors.textSecondary,
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+    return switch (reportState.status) {
+      ReportStatus.initial ||
+      ReportStatus.loading => const Center(child: SakuLoadingIndicator()),
+      ReportStatus.error => Center(
+        child: SakuErrorState(
+          message: reportState.errorMessage ?? l10n.reportErrorGeneric,
+          onRetry: _onRefresh,
+        ),
       ),
-    );
+      ReportStatus.loaded when reportState.summary.total == 0 => SakuEmptyState(
+        icon: FontAwesomeIcons.chartPie,
+        title: l10n.reportEmptyTitle,
+        message: l10n.reportEmptyMessage,
+      ),
+      _ => RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: colors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(bottom: 24.h),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
+                child: const _ReportSummarySection(),
+              ),
+              SizedBox(height: 20.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: const _ReportCategorySection(),
+              ),
+              SizedBox(height: 20.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: const _ReportTrendSection(),
+              ),
+              SizedBox(height: 20.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: const _ReportInsightSection(),
+              ),
+              SizedBox(height: 24.h),
+            ],
+          ),
+        ),
+      ),
+    };
   }
 }
 
@@ -259,11 +288,41 @@ class _ReportSummarySection extends ConsumerWidget {
 
 // ───────────────── Category Section (granular) ─────────────────
 
-class _ReportCategorySection extends ConsumerWidget {
+class _ReportCategorySection extends ConsumerStatefulWidget {
   const _ReportCategorySection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ReportCategorySection> createState() =>
+      _ReportCategorySectionState();
+}
+
+class _ReportCategorySectionState
+    extends ConsumerState<_ReportCategorySection> {
+  bool _isOthersExpanded = false;
+
+  void _navigateToCategory(
+    ReportCategoryBreakdownModel cat,
+    String type,
+    ReportState state,
+  ) {
+    final (start, end) = state.dateRange;
+    context.push(
+      AppRouter.reportCategoryTransactions,
+      extra: ReportCategoryTransactionsArgument(
+        categoryId: cat.categoryId,
+        categoryName: cat.categoryName,
+        categoryIcon: cat.categoryIcon,
+        categoryColor: cat.categoryColor,
+        startDate: start,
+        endDate: end,
+        type: type,
+        walletId: state.walletId,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
     final breakdownType = ref.watch(
@@ -274,6 +333,15 @@ class _ReportCategorySection extends ConsumerWidget {
     );
     final categories = ref.watch(reportTopCategoriesProvider);
     final total = ref.watch(reportCategoryTotalProvider);
+
+    final type = breakdownType == ReportBreakdownType.expense
+        ? 'expense'
+        : 'income';
+
+    // Cari bucket "Lainnya" untuk ditampilkan saat expanded.
+    final othersEntry = categories
+        .where((c) => c.categoryId == '__others__')
+        .firstOrNull;
 
     return SakuCard(
       padding: EdgeInsets.all(16.w),
@@ -326,35 +394,55 @@ class _ReportCategorySection extends ConsumerWidget {
                 ),
               ),
             )
-          else
+          else ...[
             ReportCategoryChart(
               categories: categories,
               total: total,
+              isOthersExpanded: _isOthersExpanded,
               onCategoryTap: (cat) {
-                // Tidak navigasi untuk "Lainnya"
-                if (cat.categoryId == '__others__') return;
-
-                final state = ref.read(reportControllerProvider);
-                final (start, end) = state.dateRange;
-                final type = breakdownType == ReportBreakdownType.expense
-                    ? 'expense'
-                    : 'income';
-
-                context.push(
-                  AppRouter.reportCategoryTransactions,
-                  extra: ReportCategoryTransactionsArgument(
-                    categoryId: cat.categoryId,
-                    categoryName: cat.categoryName,
-                    categoryIcon: cat.categoryIcon,
-                    categoryColor: cat.categoryColor,
-                    startDate: start,
-                    endDate: end,
-                    type: type,
-                    walletId: state.walletId,
-                  ),
+                if (cat.categoryId == '__others__') {
+                  setState(() => _isOthersExpanded = !_isOthersExpanded);
+                  return;
+                }
+                _navigateToCategory(
+                  cat,
+                  type,
+                  ref.read(reportControllerProvider),
                 );
               },
             ),
+            // ─── Expanded "Lainnya" sub-list ───
+            if (othersEntry != null)
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: _isOthersExpanded
+                    ? Padding(
+                        padding: EdgeInsets.only(top: 12.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Divider(
+                              height: 1,
+                              color: colors.border.withValues(alpha: 0.4),
+                            ),
+                            SizedBox(height: 12.h),
+                            ReportCategoryChart(
+                              categories: othersEntry.otherItems,
+                              // Progress bar relatif terhadap total bucket "Lainnya"
+                              total: othersEntry.amount,
+                              onCategoryTap: (cat) => _navigateToCategory(
+                                cat,
+                                type,
+                                ref.read(reportControllerProvider),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+          ],
         ],
       ),
     );

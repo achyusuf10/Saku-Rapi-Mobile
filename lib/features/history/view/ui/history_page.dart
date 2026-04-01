@@ -10,14 +10,15 @@ import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart'
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
-import 'package:app_saku_rapi/features/history/view/widgets/history_period_selector.dart';
-import 'package:app_saku_rapi/features/history/view/widgets/history_sub_period_tabs.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_period_selector.dart';
+import 'package:app_saku_rapi/global/widgets/saku_sub_period_tabs.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -167,7 +168,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           // ─── Period Selector ───
           Padding(
             padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
-            child: HistoryPeriodSelector(
+            child: SakuPeriodSelector(
               selected: historyState.period,
               onSelected: (period) {
                 ref.read(historyControllerProvider.notifier).setPeriod(period);
@@ -179,7 +180,15 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
 
           // ─── Sub-Period Tabs ───
-          const HistorySubPeriodTabs(),
+          SakuSubPeriodTabs(
+            tabs: tabs,
+            selectedIndex:
+                historyState.subPeriodIndex ??
+                (tabs.isNotEmpty ? tabs.length - 1 : 0),
+            onTabSelected: (index) {
+              ref.read(historyControllerProvider.notifier).setSubPeriod(index);
+            },
+          ),
 
           // ─── Swipeable Content ───
           Expanded(
@@ -212,6 +221,16 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             income: historyState.totalIncome,
             expense: historyState.totalExpense,
             transactionCount: historyState.filteredTransactions.length,
+            onViewReport: () {
+              context.push(
+                AppRouter.reports,
+                extra: ReportPageArgument(
+                  period: historyState.period,
+                  subPeriodIndex: historyState.subPeriodIndex,
+                  walletId: historyState.walletId,
+                ),
+              );
+            },
           ),
 
         // ─── Body ───
@@ -372,11 +391,15 @@ class _SummaryCard extends StatelessWidget {
     required this.income,
     required this.expense,
     required this.transactionCount,
+    required this.onViewReport,
   });
 
   final double income;
   final double expense;
   final int transactionCount;
+
+  /// Callback saat tombol "Lihat Laporan" ditekan.
+  final VoidCallback onViewReport;
 
   @override
   Widget build(BuildContext context) {
@@ -498,6 +521,40 @@ class _SummaryCard extends StatelessWidget {
               l10n.historyTransactionCount(transactionCount),
               style: TextStyleConstants.label3.copyWith(
                 color: colors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            // ─── View Report Button ───
+            GestureDetector(
+              onTap: onViewReport,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: colors.primary.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.chartPie,
+                      size: 11.w,
+                      color: colors.primary,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      l10n.historyViewReport,
+                      style: TextStyleConstants.label3.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

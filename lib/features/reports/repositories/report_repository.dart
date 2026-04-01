@@ -75,10 +75,14 @@ class ReportRepository {
     List<ReportCategoryBreakdownModel> categories, {
     int maxCount = 5,
   }) {
-    if (categories.length <= maxCount) return categories;
+    // Urutkan dari value terbesar ke terkecil.
+    final sorted = [...categories]
+      ..sort((a, b) => b.amount.compareTo(a.amount));
 
-    final top = categories.sublist(0, maxCount);
-    final rest = categories.sublist(maxCount);
+    if (sorted.length <= maxCount) return sorted;
+
+    final top = sorted.sublist(0, maxCount);
+    final rest = sorted.sublist(maxCount);
     final restAmount = rest.fold<double>(0, (sum, c) => sum + c.amount);
     final restCount = rest.fold<int>(0, (sum, c) => sum + c.transactionCount);
 
@@ -90,6 +94,7 @@ class ReportRepository {
         categoryColor: '#9CA3AF',
         amount: restAmount,
         transactionCount: restCount,
+        otherItems: rest,
       ),
     );
 
