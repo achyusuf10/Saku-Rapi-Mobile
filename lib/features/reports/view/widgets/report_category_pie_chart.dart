@@ -39,6 +39,8 @@ class ReportCategoryPieChart extends StatelessWidget {
           child: SfCircularChart(
             margin: EdgeInsets.zero,
             tooltipBehavior: TooltipBehavior(
+              color: isDark ? const Color(0xFF1F2937) : Colors.white,
+
               enable: true,
               header: '',
               builder: (data, point, series, pointIdx, seriesIdx) {
@@ -52,17 +54,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                     horizontal: 10.w,
                     vertical: 6.h,
                   ),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1F2937) : Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -103,7 +95,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                   labelPosition: ChartDataLabelPosition.outside,
                   labelIntersectAction: LabelIntersectAction.shift,
                   connectorLineSettings: ConnectorLineSettings(
-                    length: '18%',
+                    length: '20%',
                     type: ConnectorType.curve,
                     color: colors.textSecondary.withValues(alpha: 0.4),
                   ),
@@ -112,39 +104,34 @@ class ReportCategoryPieChart extends StatelessWidget {
                     final catColor = parseHexColor(cat.categoryColor);
                     final ratio = total > 0 ? cat.amount / total : 0.0;
                     final percent = (ratio * 100).toStringAsFixed(0);
-                    return GestureDetector(
-                      onTap: onCategoryTap != null
-                          ? () => onCategoryTap!(cat)
-                          : null,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 24.w,
-                            height: 24.w,
-                            decoration: BoxDecoration(
-                              color: catColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6.r),
-                            ),
-                            child: Center(
-                              child: FaIcon(
-                                CategoryIconMapper.getIcon(cat.categoryIcon),
-                                size: 11.w,
-                                color: catColor,
-                              ),
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 18.w,
+                          height: 18.w,
+                          decoration: BoxDecoration(
+                            color: catColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Center(
+                            child: FaIcon(
+                              CategoryIconMapper.getIcon(cat.categoryIcon),
+                              size: 9.w,
+                              color: catColor,
                             ),
                           ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            '$percent%',
-                            style: TextStyleConstants.label3.copyWith(
-                              color: colors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 9.sp,
-                            ),
+                        ),
+                        SizedBox(width: 3.w),
+                        Text(
+                          '$percent%',
+                          style: TextStyle(
+                            color: colors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 9.sp,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 ),

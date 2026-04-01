@@ -149,6 +149,7 @@ class DashboardComparisonChart extends ConsumerWidget {
               ),
             ),
             tooltipBehavior: TooltipBehavior(
+              color: isDark ? const Color(0xFF1F2937) : Colors.white,
               enable: true,
               header: '',
               builder: (data, point, series, pointIdx, seriesIdx) {
@@ -160,17 +161,7 @@ class DashboardComparisonChart extends ConsumerWidget {
                     horizontal: 10.w,
                     vertical: 6.h,
                   ),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1F2937) : Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
