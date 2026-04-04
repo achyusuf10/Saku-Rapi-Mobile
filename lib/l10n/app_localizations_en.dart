@@ -1021,157 +1021,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetUpcomingBudgets => 'Upcoming Budgets';
 
   @override
-  String get investmentTitle => 'Investments';
-
-  @override
-  String get investmentAdd => 'Add Investment';
-
-  @override
-  String get investmentEdit => 'Edit Investment';
-
-  @override
-  String get investmentDelete => 'Delete Investment';
-
-  @override
-  String get investmentPortfolio => 'Total Portfolio';
-
-  @override
-  String get investmentTotalValue => 'Current Value';
-
-  @override
-  String get investmentTotalPL => 'Total P&L';
-
-  @override
-  String get investmentTypeGold => 'Gold';
-
-  @override
-  String get investmentTypeBtc => 'Bitcoin';
-
-  @override
-  String get investmentTypeCustom => 'Custom';
-
-  @override
-  String get investmentBuyPrice => 'Buy Price';
-
-  @override
-  String get investmentCurrentPrice => 'Current Price';
-
-  @override
-  String get investmentAmount => 'Amount';
-
-  @override
-  String get investmentUnit => 'unit';
-
-  @override
-  String get investmentEmptyTitle => 'No Investments Yet';
-
-  @override
-  String get investmentEmptySubtitle => 'Tap + to add your first asset';
-
-  @override
-  String get investmentRefreshPrice => 'Refresh Prices';
-
-  @override
-  String get investmentFormTitleAdd => 'Add Investment';
-
-  @override
-  String get investmentFormTitleEdit => 'Edit Investment';
-
-  @override
-  String get investmentFormType => 'Asset Type';
-
-  @override
-  String get investmentFormName => 'Asset Name';
-
-  @override
-  String get investmentFormNameHint => 'e.g., Gold Bar, Bitcoin';
-
-  @override
-  String get investmentFormNameRequired => 'Asset name is required';
-
-  @override
-  String get investmentFormAmount => 'Amount (units)';
-
-  @override
-  String get investmentFormAmountRequired => 'Amount is required';
-
-  @override
-  String get investmentFormAmountInvalid => 'Amount must be greater than 0';
-
-  @override
-  String get investmentFormBuyPrice => 'Buy Price per Unit (IDR)';
-
-  @override
-  String get investmentFormBuyPriceRequired => 'Buy price is required';
-
-  @override
-  String get investmentFormBuyPriceInvalid =>
-      'Buy price must be greater than 0';
-
-  @override
-  String get investmentFormCurrentPrice => 'Current Price (IDR)';
-
-  @override
-  String get investmentFormCurrentPriceHint => 'Optional — for custom assets';
-
-  @override
-  String get investmentFormDeductWallet => 'Deduct from Wallet';
-
-  @override
-  String get investmentFormDeductWalletSubtitle =>
-      'Wallet balance will be deducted automatically';
-
-  @override
-  String get investmentFormWallet => 'Select Wallet';
-
-  @override
-  String get investmentFormWalletRequired => 'Please select a wallet';
-
-  @override
-  String get investmentFormNotes => 'Notes';
-
-  @override
-  String get investmentFormNotesHint => 'Optional';
-
-  @override
-  String get investmentFormEstimatedCost => 'Estimated Total Cost';
-
-  @override
-  String get investmentSave => 'Save Investment';
-
-  @override
-  String get investmentSuccessAdd => 'Investment added successfully';
-
-  @override
-  String get investmentSuccessEdit => 'Investment updated successfully';
-
-  @override
-  String get investmentSuccessDelete => 'Investment deleted successfully';
-
-  @override
-  String get investmentErrorAdd => 'Failed to add investment';
-
-  @override
-  String get investmentErrorEdit => 'Failed to update investment';
-
-  @override
-  String get investmentErrorDelete => 'Failed to delete investment';
-
-  @override
-  String get investmentDeleteConfirmTitle => 'Delete Investment?';
-
-  @override
-  String investmentDeleteConfirmMessage(String name) {
-    return 'Asset \"$name\" will be permanently deleted.';
-  }
-
-  @override
-  String get investmentTotalUnits => 'Total Holdings';
-
-  @override
-  String get investmentGram => 'gram';
-
-  @override
   String get notifTitle => 'Notifications';
 
   @override
@@ -1243,9 +1092,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navBudget => 'Budget';
-
-  @override
-  String get navInvestment => 'Investment';
 
   @override
   String get profileTitle => 'Profile';
@@ -1756,128 +1602,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cannot delete wallet with existing transactions. Delete transactions first.';
 
   @override
-  String get investmentFormSymbol => 'Symbol';
-
-  @override
-  String get investmentFormSymbolHint => 'TSLA, AAPL, etc.';
-
-  @override
-  String get assetTypeTitle => 'Manage Asset Types';
-
-  @override
-  String get assetTypeAdd => 'Add Asset Type';
-
-  @override
-  String get assetTypeEdit => 'Edit Asset Type';
-
-  @override
-  String get assetTypeEmpty => 'No asset types yet';
-
-  @override
-  String get assetTypeEmptyHint => 'Tap + to create your first asset type';
-
-  @override
-  String get assetTypeFormName => 'Asset Name';
-
-  @override
-  String get assetTypeFormNameHint => 'e.g., BCA Stock, Land, Bonds';
-
-  @override
-  String get assetTypeFormSymbol => 'Symbol';
-
-  @override
-  String get assetTypeFormSymbolHint => 'e.g., BBCA, OBL';
-
-  @override
-  String get assetTypeFormCurrentPrice => 'Current Price (IDR)';
-
-  @override
-  String get assetTypeFormCurrentPriceHint => 'Price per unit right now';
-
-  @override
-  String get assetTypeSave => 'Save Asset Type';
-
-  @override
-  String get assetTypeSuccessAdd => 'Asset type added successfully';
-
-  @override
-  String get assetTypeSuccessEdit => 'Asset type updated successfully';
-
-  @override
-  String get assetTypeSuccessDelete => 'Asset type deleted successfully';
-
-  @override
-  String get assetTypeErrorAdd => 'Failed to add asset type';
-
-  @override
-  String get assetTypeErrorEdit => 'Failed to update asset type';
-
-  @override
-  String get assetTypeErrorDelete => 'Failed to delete asset type';
-
-  @override
-  String get assetTypeDeleteConfirmTitle => 'Delete Asset Type?';
-
-  @override
-  String assetTypeDeleteConfirmMessage(String name) {
-    return '\"$name\" and all investments using this asset type will be hidden.';
-  }
-
-  @override
-  String assetTypeErrorDuplicateName(String name) {
-    return 'Asset type name \"$name\" already exists';
-  }
-
-  @override
-  String get investmentFormAssetType => 'Asset Type';
-
-  @override
-  String get investmentFormAssetTypeHint => 'Select asset type';
-
-  @override
-  String get investmentFormAssetTypeEmpty =>
-      'No asset types available. Create one first.';
-
-  @override
-  String get investmentManageAssetTypes => 'Manage Asset Types';
-
-  @override
-  String get investmentFormCreateAssetType => 'Create New Asset Type';
-
-  @override
-  String get investmentFilterTitle => 'Filter & Sort';
-
-  @override
-  String get investmentFilterSort => 'Sort By';
-
-  @override
-  String get investmentFilterSortNewest => 'Newest';
-
-  @override
-  String get investmentFilterSortOldest => 'Oldest';
-
-  @override
-  String get investmentFilterSortHighest => 'Highest Value';
-
-  @override
-  String get investmentFilterSortLowest => 'Lowest Value';
-
-  @override
-  String get investmentFilterType => 'Type';
-
-  @override
-  String get investmentFilterAll => 'All';
-
-  @override
-  String get investmentFilterSearch => 'Search by name...';
-
-  @override
-  String get investmentFilterApply => 'Apply Filter';
-
-  @override
-  String get investmentFilterReset => 'Reset';
-
-  @override
   String get debtLoanTitle => 'Debt & Loan';
 
   @override
@@ -2089,4 +1813,501 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get textInputEmpty => 'Please enter a transaction description';
+
+  @override
+  String get navInvestment => 'Investment';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get investmentTitle => 'Investment Portfolio';
+
+  @override
+  String get investmentTotalValue => 'Total Portfolio Value';
+
+  @override
+  String get investmentTotalInvested => 'Total Invested';
+
+  @override
+  String get investmentProfitLoss => 'Profit/Loss';
+
+  @override
+  String get investmentProfit => 'Profit';
+
+  @override
+  String get investmentLoss => 'Loss';
+
+  @override
+  String get investmentEmpty => 'No investments yet';
+
+  @override
+  String get investmentEmptyHint =>
+      'Tap + to start recording your first investment';
+
+  @override
+  String get investmentAddAsset => 'Add Investment';
+
+  @override
+  String get investmentActiveAssets => 'Active Assets';
+
+  @override
+  String get investmentInactiveAssets => 'Inactive Assets';
+
+  @override
+  String get investmentViewInactive => 'View Inactive Assets';
+
+  @override
+  String get investmentSectionGold => 'Gold';
+
+  @override
+  String get investmentSectionBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentSectionCustom => 'Custom Assets';
+
+  @override
+  String get investmentTypeGold => 'Gold';
+
+  @override
+  String get investmentTypeBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentTypeCustom => 'Custom';
+
+  @override
+  String get investmentDetailTitle => 'Investment Detail';
+
+  @override
+  String get investmentDetailCurrentPrice => 'Current Price';
+
+  @override
+  String get investmentDetailAvgBuyPrice => 'Average Buy Price';
+
+  @override
+  String get investmentDetailTotalUnits => 'Total Units';
+
+  @override
+  String get investmentDetailTotalInvested => 'Total Invested';
+
+  @override
+  String get investmentDetailCurrentValue => 'Current Value';
+
+  @override
+  String get investmentDetailProfitLoss => 'Profit/Loss';
+
+  @override
+  String get investmentDetailTotalFee => 'Total Fees';
+
+  @override
+  String get investmentDetailTransactions => 'Transaction History';
+
+  @override
+  String get investmentDetailBuyHistory => 'Buy History';
+
+  @override
+  String get investmentDetailSellHistory => 'Sell History';
+
+  @override
+  String get investmentDetailNoTransactions => 'No transactions yet';
+
+  @override
+  String get investmentDetailTopUp => 'Top Up';
+
+  @override
+  String get investmentDetailSell => 'Sell';
+
+  @override
+  String get investmentDetailSettings => 'Settings';
+
+  @override
+  String get investmentFormCreateTitle => 'New Investment';
+
+  @override
+  String get investmentFormTopUpTitle => 'Top Up Investment';
+
+  @override
+  String get investmentFormEditTitle => 'Edit Transaction';
+
+  @override
+  String get investmentFormAssetName => 'Asset Name';
+
+  @override
+  String get investmentFormAssetNameHint =>
+      'e.g. Antam Gold, Bitcoin, BBCA Stock';
+
+  @override
+  String get investmentFormAssetNameRequired => 'Asset name is required';
+
+  @override
+  String get investmentFormType => 'Asset Type';
+
+  @override
+  String get investmentFormGoldType => 'Gold Type';
+
+  @override
+  String get investmentFormGoldTypeHint => 'Select gold type';
+
+  @override
+  String get investmentFormCustomCategory => 'Asset Category';
+
+  @override
+  String get investmentFormCustomCategoryHint => 'Select category';
+
+  @override
+  String get investmentFormUnits => 'Units';
+
+  @override
+  String get investmentFormUnitsHint => 'e.g. 1.5';
+
+  @override
+  String get investmentFormUnitsRequired => 'Units is required';
+
+  @override
+  String get investmentFormPricePerUnit => 'Price per Unit';
+
+  @override
+  String get investmentFormPricePerUnitRequired => 'Price per unit is required';
+
+  @override
+  String get investmentFormFee => 'Fee (optional)';
+
+  @override
+  String get investmentFormFeeHint => 'Admin/spread fee';
+
+  @override
+  String get investmentFormDate => 'Transaction Date';
+
+  @override
+  String get investmentFormNote => 'Note (optional)';
+
+  @override
+  String get investmentFormDeductWallet => 'Deduct from Wallet';
+
+  @override
+  String get investmentFormDeductWalletHint =>
+      'Reduce wallet balance by total purchase amount';
+
+  @override
+  String get investmentFormSelectWallet => 'Select Wallet';
+
+  @override
+  String get investmentFormWalletRequired => 'Please select a wallet';
+
+  @override
+  String get investmentFormSave => 'Save';
+
+  @override
+  String get investmentFormTotalCost => 'Total Purchase Cost';
+
+  @override
+  String get investmentFormCurrentPrice => 'Current Price (optional)';
+
+  @override
+  String get investmentSellTitle => 'Sell Investment';
+
+  @override
+  String get investmentSellUnits => 'Units to Sell';
+
+  @override
+  String investmentSellUnitsHint(String maxUnits) {
+    return 'Max: $maxUnits';
+  }
+
+  @override
+  String get investmentSellUnitsRequired => 'Units to sell is required';
+
+  @override
+  String investmentSellUnitsExceed(String available) {
+    return 'Sell units exceed available units ($available)';
+  }
+
+  @override
+  String get investmentSellPricePerUnit => 'Sell Price per Unit';
+
+  @override
+  String get investmentSellPriceRequired => 'Sell price is required';
+
+  @override
+  String get investmentSellFee => 'Sell Fee (optional)';
+
+  @override
+  String get investmentSellCreditWallet => 'Credit to Wallet';
+
+  @override
+  String get investmentSellCreditWalletHint =>
+      'Add sell proceeds to wallet balance';
+
+  @override
+  String get investmentSellTotal => 'Total Sell Proceeds';
+
+  @override
+  String get investmentSellConfirm => 'Confirm Sell';
+
+  @override
+  String get investmentSellAll => 'Sell All';
+
+  @override
+  String get investmentSettingsTitle => 'Asset Settings';
+
+  @override
+  String get investmentSettingsName => 'Asset Name';
+
+  @override
+  String get investmentSettingsCurrentPrice => 'Current Price';
+
+  @override
+  String get investmentSettingsCategory => 'Asset Category';
+
+  @override
+  String get investmentSettingsCategoryHint =>
+      'Select category to determine unit';
+
+  @override
+  String get investmentSettingsStatus => 'Status';
+
+  @override
+  String get investmentSettingsActive => 'Active';
+
+  @override
+  String get investmentSettingsInactive => 'Inactive';
+
+  @override
+  String get investmentSettingsSave => 'Save Changes';
+
+  @override
+  String get investmentSettingsDelete => 'Delete Investment';
+
+  @override
+  String investmentSettingsDeleteConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"? All transactions for this investment will also be deleted.';
+  }
+
+  @override
+  String get investmentSettingsDeleteWalletRevert =>
+      'Related wallet balances will be reverted.';
+
+  @override
+  String get investmentGoldTypeTitle => 'Custom Gold Types';
+
+  @override
+  String get investmentGoldTypeAdd => 'Add Gold Type';
+
+  @override
+  String get investmentGoldTypeEdit => 'Edit Gold Type';
+
+  @override
+  String get investmentGoldTypeName => 'Gold Type Name';
+
+  @override
+  String get investmentGoldTypeNameHint => 'e.g. UBS, Galeri 24';
+
+  @override
+  String get investmentGoldTypeNameRequired => 'Gold type name is required';
+
+  @override
+  String investmentGoldTypeMax(int max) {
+    return 'Maximum $max custom gold types';
+  }
+
+  @override
+  String investmentGoldTypeDeleteConfirm(String name) {
+    return 'Delete gold type \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryTitle => 'Custom Asset Categories';
+
+  @override
+  String get investmentCategoryAdd => 'Add Category';
+
+  @override
+  String get investmentCategoryEdit => 'Edit Category';
+
+  @override
+  String get investmentCategoryName => 'Category Name';
+
+  @override
+  String get investmentCategoryNameHint => 'e.g. Stocks, Mutual Funds';
+
+  @override
+  String get investmentCategoryNameRequired => 'Category name is required';
+
+  @override
+  String get investmentCategoryUnitLabel => 'Unit Label';
+
+  @override
+  String get investmentCategoryUnitLabelHint => 'e.g. lot, unit, share';
+
+  @override
+  String get investmentCategoryUnitLabelRequired => 'Unit label is required';
+
+  @override
+  String investmentCategoryMax(int max) {
+    return 'Maximum $max custom categories';
+  }
+
+  @override
+  String investmentCategoryDeleteConfirm(String name) {
+    return 'Delete category \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryManage => 'Manage Categories';
+
+  @override
+  String get investmentInactiveTitle => 'Inactive Assets';
+
+  @override
+  String get investmentInactiveEmpty => 'No inactive assets';
+
+  @override
+  String get investmentInactiveHint =>
+      'Assets that have been fully sold will appear here';
+
+  @override
+  String get investmentInactiveReactivate => 'Reactivate';
+
+  @override
+  String investmentSuccessCreate(String name) {
+    return 'Investment \"$name\" added successfully';
+  }
+
+  @override
+  String get investmentSuccessTopUp => 'Top up successful';
+
+  @override
+  String get investmentSuccessSell => 'Sell successful';
+
+  @override
+  String get investmentSuccessEdit => 'Transaction updated successfully';
+
+  @override
+  String get investmentSuccessDelete => 'Investment deleted successfully';
+
+  @override
+  String get investmentSuccessUpdate => 'Investment updated successfully';
+
+  @override
+  String get investmentSuccessDeleteTransaction =>
+      'Transaction deleted successfully';
+
+  @override
+  String get investmentErrorGeneric => 'Operation failed. Please try again.';
+
+  @override
+  String get investmentErrorLoad => 'Failed to load investment data';
+
+  @override
+  String get investmentErrorCreate => 'Failed to add investment';
+
+  @override
+  String get investmentErrorTopUp => 'Failed to top up investment';
+
+  @override
+  String get investmentErrorSell => 'Failed to sell investment';
+
+  @override
+  String get investmentErrorEdit => 'Failed to update transaction';
+
+  @override
+  String get investmentErrorDelete => 'Failed to delete investment';
+
+  @override
+  String get investmentErrorDeleteTransaction => 'Failed to delete transaction';
+
+  @override
+  String get investmentUnitGram => 'gram';
+
+  @override
+  String get investmentUnitBtc => 'BTC';
+
+  @override
+  String get investmentGoldAntam => 'Antam';
+
+  @override
+  String get investmentGoldPerhiasan => 'Perhiasan (Jewelry)';
+
+  @override
+  String investmentPriceSource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String investmentLastUpdated(String time) {
+    return 'Updated: $time';
+  }
+
+  @override
+  String get investmentBuyPrice => 'Buy Price';
+
+  @override
+  String get investmentSellPrice => 'Sell Price';
+
+  @override
+  String get investmentDirection => 'Type';
+
+  @override
+  String get investmentDirectionBuy => 'Buy';
+
+  @override
+  String get investmentDirectionSell => 'Sell';
+
+  @override
+  String investmentTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get investmentFormPriceSource => 'Price Source';
+
+  @override
+  String get investmentFormPriceSourceHint => 'Select price source';
+
+  @override
+  String get investmentPriceSourceAntaremas => 'antaremas.com';
+
+  @override
+  String get investmentPriceSourceLogammulia => 'logammulia.com';
+
+  @override
+  String get investmentPriceSourceManual => 'Manual Input';
+
+  @override
+  String get investmentPriceSourceIndodax => 'Indodax';
+
+  @override
+  String get investmentPriceSourceCoingecko => 'CoinGecko';
+
+  @override
+  String get investmentPriceSourceLocked =>
+      'Locked to Manual for this gold type';
+
+  @override
+  String get investmentManageGoldTypes => 'Manage Gold Types';
+
+  @override
+  String get investmentDeleteTransaction => 'Delete Transaction';
+
+  @override
+  String get investmentDeleteTransactionConfirm =>
+      'Are you sure you want to delete this transaction? Wallet balance will be reverted if applicable.';
+
+  @override
+  String get investmentSettingsRevertWallet => 'Revert related wallet balances';
+
+  @override
+  String get investmentEditCurrentPrice => 'Update Market Price';
+
+  @override
+  String get investmentEditCurrentPriceHint => 'Enter current market price';
+
+  @override
+  String get investmentSettingsGoldType => 'Gold Type';
+
+  @override
+  String get investmentSettingsPriceSource => 'Price Source';
+
+  @override
+  String get investmentWalletRequired => 'Please select a wallet first';
 }

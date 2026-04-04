@@ -6,7 +6,6 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
@@ -14,6 +13,7 @@ import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -602,11 +602,7 @@ class _GroupHeader extends StatelessWidget {
                   color: iconColor.withValues(alpha: 0.1),
                 ),
                 child: Center(
-                  child: FaIcon(
-                    _iconForTx(firstTransaction!),
-                    size: 14.w,
-                    color: iconColor,
-                  ),
+                  child: _buildTxIcon(firstTransaction!, iconColor),
                 ),
               );
             },
@@ -645,11 +641,16 @@ class _GroupHeader extends StatelessWidget {
     );
   }
 
-  IconData _iconForTx(TransactionModel tx) {
+  Widget _buildTxIcon(TransactionModel tx, Color fallbackColor) {
     if (tx.categoryIcon != null) {
-      return CategoryIconMapper.getIcon(tx.categoryIcon!);
+      return SakuCategoryIcon.withColor(
+        iconName: tx.categoryIcon!,
+        color: fallbackColor,
+        size: 14,
+        showBackground: false,
+      );
     }
-    return switch (tx.type) {
+    final iconData = switch (tx.type) {
       TransactionTypeEnum.income => FontAwesomeIcons.arrowTrendUp,
       TransactionTypeEnum.expense => FontAwesomeIcons.arrowTrendDown,
       TransactionTypeEnum.transfer => FontAwesomeIcons.arrowRightArrowLeft,
@@ -658,6 +659,7 @@ class _GroupHeader extends StatelessWidget {
       TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
       TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
     };
+    return FaIcon(iconData, size: 14.w, color: fallbackColor);
   }
 
   Color _resolveIconColor(TransactionModel tx, dynamic colors) {

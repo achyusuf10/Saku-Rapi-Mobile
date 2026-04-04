@@ -1,14 +1,13 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/features/investment/controllers/asset_type_controller.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
-import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
-import 'package:app_saku_rapi/features/investment/view/ui/asset_type_management_page.dart';
-import 'package:app_saku_rapi/features/investment/view/widgets/investment_asset_card.dart';
-import 'package:app_saku_rapi/features/investment/view/widgets/investment_filter_sheet.dart';
-import 'package:app_saku_rapi/features/investment/view/widgets/investment_portfolio_summary.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
+import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -18,10 +17,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-/// Halaman investasi (tab keempat bottom nav).
-///
-/// Menampilkan portfolio summary di atas dan daftar aset di bawah.
-/// Data di-load saat pertama kali halaman dibuka.
 class InvestmentPage extends ConsumerStatefulWidget {
   const InvestmentPage({super.key});
 
@@ -30,121 +25,17 @@ class InvestmentPage extends ConsumerStatefulWidget {
 }
 
 class _InvestmentPageState extends ConsumerState<InvestmentPage> {
-  InvestmentFilterState _filterState = const InvestmentFilterState();
+  static const _investmentTabIndex = 3;
 
   @override
   void initState() {
     super.initState();
-    // Load investasi saat page pertama kali dibuka.
-    Future.microtask(() {
-      ref.read(investmentControllerProvider.notifier).loadInvestments();
-      ref.read(assetTypeControllerProvider.notifier).loadAssetTypes();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final status = ref.read(investmentControllerProvider).status;
+      if (status == InvestmentStatus.initial) {
+        ref.read(investmentControllerProvider.notifier).loadDashboard();
+      }
     });
-  }
-
-  Future<void> _onRefresh() async {
-    await ref.read(investmentControllerProvider.notifier).refresh();
-  }
-
-  void _onAddTap() {
-    context.push(AppRouter.investmentForm);
-  }
-
-  void _onRefreshPrices() {
-    ref.read(investmentControllerProvider.notifier).refreshPrices();
-  }
-
-  void _onAssetTap(InvestmentModel investment) {
-    context.push(AppRouter.investmentForm, extra: investment);
-  }
-
-  void _onManageAssetTypes() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AssetTypeManagementPage()),
-    );
-  }
-
-  Future<void> _onFilterTap() async {
-    final result = await InvestmentFilterSheet.show(
-      context,
-      currentFilter: _filterState,
-      assetTypes: ref.read(assetTypeListProvider),
-    );
-    if (result != null) {
-      setState(() => _filterState = result);
-    }
-  }
-
-  /// Apply filter & sort to investment list.
-  List<InvestmentModel> _applyFilter(List<InvestmentModel> investments) {
-    var filtered = investments.toList();
-
-    // Type filter
-    if (_filterState.selectedType != null) {
-      filtered = filtered
-          .where((i) => i.type == _filterState.selectedType)
-          .toList();
-    }
-
-    // Asset type filter (specific custom asset type)
-    if (_filterState.selectedAssetTypeId != null) {
-      filtered = filtered
-          .where((i) => i.assetTypeId == _filterState.selectedAssetTypeId)
-          .toList();
-    }
-
-    // Search
-    if (_filterState.searchQuery.isNotEmpty) {
-      final query = _filterState.searchQuery.toLowerCase();
-      filtered = filtered
-          .where((i) => i.name.toLowerCase().contains(query))
-          .toList();
-    }
-
-    // Sort
-    switch (_filterState.sortOption) {
-      case InvestmentSortOption.newest:
-        filtered.sort(
-          (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
-            a.createdAt ?? DateTime(0),
-          ),
-        );
-      case InvestmentSortOption.oldest:
-        filtered.sort(
-          (a, b) => (a.createdAt ?? DateTime(0)).compareTo(
-            b.createdAt ?? DateTime(0),
-          ),
-        );
-      case InvestmentSortOption.highest:
-        filtered.sort((a, b) => b.currentValue.compareTo(a.currentValue));
-      case InvestmentSortOption.lowest:
-        filtered.sort((a, b) => a.currentValue.compareTo(b.currentValue));
-    }
-
-    return filtered;
-  }
-
-  /// Perform delete without confirmation (called after Dismissible confirmDismiss).
-  Future<void> _performDelete(InvestmentModel investment) async {
-    context.showLoadingOverlay();
-    try {
-      final result = await ref
-          .read(investmentControllerProvider.notifier)
-          .deleteInvestment(investment.id);
-
-      if (!mounted) return;
-      context.closeOverlay();
-
-      if (result.isSuccess()) {
-        context.showAppAlert(context.l10n.investmentSuccessDelete);
-      } else {
-        context.showAppAlert(context.l10n.investmentErrorDelete);
-      }
-    } finally {
-      if (mounted) {
-        context.closeOverlay();
-      }
-    }
   }
 
   @override
@@ -153,203 +44,460 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     final l10n = context.l10n;
     final state = ref.watch(investmentControllerProvider);
 
+    ref.listen<int>(currentTabIndexProvider, (prev, next) {
+      if (next == _investmentTabIndex && prev != _investmentTabIndex) {
+        ref.read(investmentControllerProvider.notifier).loadDashboard();
+      }
+    });
+
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
+        backgroundColor: colors.background,
         title: Text(l10n.investmentTitle),
         centerTitle: false,
-        actions: [
-          if (state.investments.isNotEmpty) ...[
-            // Filter button
-            IconButton(
-              onPressed: _onFilterTap,
-              tooltip: l10n.investmentFilterTitle,
-              icon: Badge(
-                isLabelVisible: _filterState.hasActiveFilter,
-                smallSize: 8.w,
-                backgroundColor: colors.primary,
-                child: FaIcon(
-                  FontAwesomeIcons.filter,
-                  size: 16.w,
-                  color: _filterState.hasActiveFilter
-                      ? colors.primary
-                      : colors.textSecondary,
-                ),
-              ),
-            ),
-            // Refresh prices button
-            IconButton(
-              onPressed: state.isPriceLoading ? null : _onRefreshPrices,
-              tooltip: l10n.investmentRefreshPrice,
-              icon: state.isPriceLoading
-                  ? SizedBox(
-                      width: 16.w,
-                      height: 16.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colors.primary,
-                      ),
-                    )
-                  : FaIcon(
-                      FontAwesomeIcons.arrowsRotate,
-                      size: 16.w,
-                      color: colors.primary,
-                    ),
-            ),
-          ],
-        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onAddTap,
-        backgroundColor: colors.primary,
-        child: FaIcon(
-          FontAwesomeIcons.plus,
-          color: colors.onPrimary,
-          size: 18.w,
-        ),
-      ),
-      body: _buildBody(state, l10n),
+      body: _buildBody(state),
+      floatingActionButton: state.status == InvestmentStatus.loaded
+          ? FloatingActionButton(
+              onPressed: () => context.push(AppRouter.investmentForm),
+              backgroundColor: colors.primary,
+              child: Icon(Icons.add, color: colors.onPrimary),
+            )
+          : null,
     );
   }
 
-  Widget _buildBody(InvestmentState state, dynamic l10n) {
-    if (state.isLoading && state.investments.isEmpty) {
-      return const Center(child: SakuLoadingIndicator());
-    }
+  Widget _buildBody(InvestmentState state) {
+    final l10n = context.l10n;
 
-    if (state.status == InvestmentStatus.error && state.investments.isEmpty) {
-      return Center(
-        child: SakuErrorState(
-          message: state.errorMessage ?? l10n.investmentErrorAdd,
-          onRetry: _onRefresh,
-        ),
-      );
-    }
+    switch (state.status) {
+      case InvestmentStatus.initial:
+      case InvestmentStatus.loading:
+        return const Center(child: SakuLoadingIndicator());
 
-    if (state.isEmpty) {
-      return Center(
-        child: SakuEmptyState(
-          icon: FontAwesomeIcons.chartColumn,
-          title: l10n.investmentEmptyTitle,
-          message: l10n.investmentEmptySubtitle,
-          actionLabel: l10n.investmentAdd,
-          onAction: _onAddTap,
-        ),
-      );
-    }
+      case InvestmentStatus.error:
+        return Center(
+          child: SakuErrorState(
+            message: state.errorMessage ?? l10n.investmentErrorLoad,
+            onRetry: () =>
+                ref.read(investmentControllerProvider.notifier).loadDashboard(),
+          ),
+        );
 
-    final filteredList = _applyFilter(state.investments);
+      case InvestmentStatus.loaded:
+        if (state.assets.isEmpty) {
+          return _buildEmptyState(l10n);
+        }
+        return _buildContent(state);
+    }
+  }
+
+  Widget _buildEmptyState(dynamic l10n) {
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(investmentControllerProvider.notifier).loadDashboard(),
+      child: ListView(
+        children: [
+          SizedBox(height: 80.h),
+          SakuEmptyState(
+            icon: FontAwesomeIcons.chartLine,
+            title: l10n.investmentEmpty,
+            message: l10n.investmentEmptyHint,
+          ),
+          SizedBox(height: 24.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.w),
+            child: SakuButton(
+              text: l10n.investmentAddAsset,
+              onPressed: () => context.push(AppRouter.investmentForm),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(InvestmentState state) {
+    final grouped = state.groupedActiveAssets;
 
     return RefreshIndicator(
-      onRefresh: _onRefresh,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(child: SizedBox(height: 16.h)),
+      onRefresh: () =>
+          ref.read(investmentControllerProvider.notifier).loadDashboard(),
+      child: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        children: [
+          _PortfolioSummaryCard(),
+          SizedBox(height: 16.h),
+          // Grouped assets by type
+          for (final entry in grouped.entries) ...[
+            _SectionHeader(type: entry.key),
+            SizedBox(height: 8.h),
+            for (final asset in entry.value) ...[
+              _AssetListItem(asset: asset),
+              SizedBox(height: 8.h),
+            ],
+            SizedBox(height: 8.h),
+          ],
+          // Link to inactive assets
+          if (state.inactiveAssets.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _InactiveAssetsLink(count: state.inactiveAssets.length),
+          ],
+          SizedBox(height: 80.h),
+        ],
+      ),
+    );
+  }
+}
 
-          // ─── Portfolio Summary ───
-          const SliverToBoxAdapter(child: InvestmentPortfolioSummary()),
+// ─── Portfolio Summary Card ─────────────────────────────
 
-          SliverToBoxAdapter(child: SizedBox(height: 20.h)),
+class _PortfolioSummaryCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalValue = ref.watch(investmentTotalValueProvider);
+    final totalInvested = ref.watch(investmentTotalInvestedProvider);
+    final pnl = ref.watch(investmentProfitLossProvider);
+    final isProfit = pnl >= 0;
+    final pnlPercent = totalInvested > 0 ? ((pnl / totalInvested) * 100) : 0.0;
 
-          // ─── Asset List Header + Manage Asset Types ───
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Row(
-                children: [
-                  Text(
-                    l10n.investmentTitle,
-                    style: TextStyleConstants.b1.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: context.colors.textPrimary,
-                    ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF1E3A5F), const Color(0xFF2563EB)]
+              : [colors.primaryDark, colors.primary],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? const Color(0xFF1E3A5F).withValues(alpha: 0.4)
+                : colors.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              FaIcon(
+                FontAwesomeIcons.chartLine,
+                size: 14.w,
+                color: colors.onPrimary.withValues(alpha: 0.85),
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                l10n.investmentTotalValue,
+                style: TextStyleConstants.label2.copyWith(
+                  color: colors.onPrimary.withValues(alpha: 0.85),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          // Total value
+          Text(
+            totalValue.toCurrency(),
+            style: TextStyleConstants.h4.copyWith(
+              color: colors.onPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          // P&L badge
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FaIcon(
+                  isProfit
+                      ? FontAwesomeIcons.arrowTrendUp
+                      : FontAwesomeIcons.arrowTrendDown,
+                  size: 12.w,
+                  color: isProfit
+                      ? const Color(0xFF86EFAC)
+                      : const Color(0xFFFCA5A5),
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  '${isProfit ? '+' : ''}${pnl.toCurrency()} (${pnlPercent.toStringAsFixed(1)}%)',
+                  style: TextStyleConstants.label2.copyWith(
+                    color: isProfit
+                        ? const Color(0xFF86EFAC)
+                        : const Color(0xFFFCA5A5),
+                    fontWeight: FontWeight.w600,
                   ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _onManageAssetTypes,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FaIcon(
-                          FontAwesomeIcons.layerGroup,
-                          size: 12.w,
-                          color: context.colors.primary,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          l10n.investmentManageAssetTypes,
-                          style: TextStyleConstants.label2.copyWith(
-                            color: context.colors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16.h),
+          // Bottom row: invested & profit
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.investmentTotalInvested,
+                      style: TextStyleConstants.label3.copyWith(
+                        color: colors.onPrimary.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 2.h),
+                    Text(
+                      totalInvested.toCurrency(),
+                      style: TextStyleConstants.b2.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.investmentProfitLoss,
+                      style: TextStyleConstants.label3.copyWith(
+                        color: colors.onPrimary.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      '${isProfit ? '+' : ''}${pnl.toCurrency()}',
+                      style: TextStyleConstants.b2.copyWith(
+                        color: isProfit
+                            ? const Color(0xFF86EFAC)
+                            : const Color(0xFFFCA5A5),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Section Header ─────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.type});
+  final InvestmentType type;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = context.colors;
+
+    String title;
+    IconData icon;
+    switch (type) {
+      case InvestmentType.gold:
+        title = l10n.investmentSectionGold;
+        icon = FontAwesomeIcons.coins;
+      case InvestmentType.bitcoin:
+        title = l10n.investmentSectionBitcoin;
+        icon = FontAwesomeIcons.bitcoin;
+      case InvestmentType.custom:
+        title = l10n.investmentSectionCustom;
+        icon = FontAwesomeIcons.boxesStacked;
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(left: 4.w),
+      child: Row(
+        children: [
+          FaIcon(icon, size: 14.w, color: colors.textSecondary),
+          SizedBox(width: 8.w),
+          Text(
+            title,
+            style: TextStyleConstants.label1.copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Asset List Item ────────────────────────────────────
+
+class _AssetListItem extends StatelessWidget {
+  const _AssetListItem({required this.asset});
+  final InvestmentAssetModel asset;
+
+  IconData _typeIcon(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.gold:
+        return FontAwesomeIcons.coins;
+      case InvestmentType.bitcoin:
+        return FontAwesomeIcons.bitcoin;
+      case InvestmentType.custom:
+        return FontAwesomeIcons.boxesStacked;
+    }
+  }
+
+  Color _typeColor(InvestmentType type, dynamic colors) {
+    switch (type) {
+      case InvestmentType.gold:
+        return const Color(0xFFD97706);
+      case InvestmentType.bitcoin:
+        return const Color(0xFFF7931A);
+      case InvestmentType.custom:
+        return colors.primary as Color;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final pnl = asset.profitLoss;
+    final isProfit = pnl >= 0;
+    final pnlPercent = asset.profitLossPercent * 100;
+    final typeColor = _typeColor(asset.type, colors);
+
+    return SakuCard(
+      onTap: () {
+        context.push(AppRouter.investmentDetail, extra: asset);
+      },
+      padding: EdgeInsets.all(12.w),
+      child: Row(
+        children: [
+          // Type icon badge
+          Container(
+            width: 40.w,
+            height: 40.w,
+            decoration: BoxDecoration(
+              color: typeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Center(
+              child: FaIcon(
+                _typeIcon(asset.type),
+                size: 16.w,
+                color: typeColor,
               ),
             ),
           ),
-
-          SliverToBoxAdapter(child: SizedBox(height: 8.h)),
-
-          // ─── Filtered empty / Asset List ───
-          if (filteredList.isEmpty && _filterState.hasActiveFilter)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(32.w),
-                child: SakuEmptyState(
-                  icon: FontAwesomeIcons.filterCircleXmark,
-                  message: l10n.investmentFilterSearch,
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  asset.name,
+                  style: TextStyleConstants.b1.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  '${asset.totalUnits.toStringAsFixed(asset.type == InvestmentType.bitcoin ? 8 : 2)} ${asset.unitLabel}',
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                asset.currentValue.toCurrency(),
+                style: TextStyleConstants.b2.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
                 ),
               ),
-            )
-          else
-            SliverList.builder(
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                final investment = filteredList[index];
-                return Dismissible(
-                  key: ValueKey(investment.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 24.w),
-                    margin: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.colors.expense.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    child: FaIcon(
-                      FontAwesomeIcons.trash,
-                      color: context.colors.expense,
-                      size: 18.w,
-                    ),
+              SizedBox(height: 2.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
+                decoration: BoxDecoration(
+                  color: (isProfit ? colors.success : colors.error).withValues(
+                    alpha: 0.1,
                   ),
-                  confirmDismiss: (_) async {
-                    final confirmed = await context.showConfirmDialog(
-                      title: l10n.investmentDeleteConfirmTitle,
-                      message: l10n.investmentDeleteConfirmMessage(
-                        investment.name,
-                      ),
-                    );
-                    return confirmed == true;
-                  },
-                  onDismissed: (_) => _performDelete(investment),
-                  child: InvestmentAssetCard(
-                    investment: investment,
-                    onTap: () => _onAssetTap(investment),
+                  borderRadius: BorderRadius.circular(4.r),
+                ),
+                child: Text(
+                  '${isProfit ? '+' : ''}${pnlPercent.toStringAsFixed(1)}%',
+                  style: TextStyleConstants.label3.copyWith(
+                    color: isProfit ? colors.success : colors.error,
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-            ),
-
-          SliverToBoxAdapter(child: SizedBox(height: 80.h)),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Inactive Assets Link ───────────────────────────────
+
+class _InactiveAssetsLink extends StatelessWidget {
+  const _InactiveAssetsLink({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+
+    return InkWell(
+      onTap: () => context.push(AppRouter.investmentInactive),
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FaIcon(
+              FontAwesomeIcons.boxArchive,
+              size: 14.w,
+              color: colors.textSecondary,
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              '${l10n.investmentViewInactive} ($count)',
+              style: TextStyleConstants.b2.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -154,7 +154,15 @@ class SakuTextField extends StatelessWidget {
                     ],
                   ),
             prefixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
-            suffixIcon: suffixIcon,
+            suffixIcon: suffixIcon == null
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(child: suffixIcon),
+                      10.horizontalSpace,
+                    ],
+                  ),
             filled: true,
             fillColor: colors.surfaceVariant,
             contentPadding: EdgeInsets.symmetric(

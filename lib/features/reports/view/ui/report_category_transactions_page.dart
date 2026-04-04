@@ -2,11 +2,11 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_remote_data_source.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
@@ -95,10 +95,11 @@ class _ReportCategoryTransactionsPageState
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Center(
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(arg.categoryIcon),
-                  size: 13.w,
+                child: SakuCategoryIcon.withColor(
+                  iconName: arg.categoryIcon,
                   color: catColor,
+                  size: 13,
+                  showBackground: false,
                 ),
               ),
             ),

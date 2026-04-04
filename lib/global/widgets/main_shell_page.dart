@@ -15,7 +15,7 @@ final currentTabIndexProvider = StateProvider<int>((ref) => 0);
 ///
 /// Digunakan oleh [StatefulShellRoute.indexedStack] untuk mempertahankan
 /// state tiap tab saat berpindah.
-/// 4 tab sesuai PRD: Dashboard, Riwayat, Anggaran, Investasi.
+/// 5 tab: Dashboard, Riwayat, Anggaran, Investasi, Settings.
 class MainShellPage extends ConsumerWidget {
   const MainShellPage({super.key, required this.navigationShell});
 
@@ -90,17 +90,18 @@ class MainShellPage extends ConsumerWidget {
             ),
             BottomNavigationBarItem(
               icon: FaIcon(
-                FontAwesomeIcons.chartColumn,
+                FontAwesomeIcons.chartLine,
                 size: 20.w,
                 color: colors.textSecondary,
               ),
               activeIcon: FaIcon(
-                FontAwesomeIcons.chartColumn,
+                FontAwesomeIcons.chartLine,
                 size: 20.w,
                 color: colors.primary,
               ),
               label: l10n.navInvestment,
             ),
+
             BottomNavigationBarItem(
               icon: FaIcon(
                 FontAwesomeIcons.gear,
@@ -112,7 +113,7 @@ class MainShellPage extends ConsumerWidget {
                 size: 20.w,
                 color: colors.primary,
               ),
-              label: 'Settings',
+              label: l10n.navSettings,
             ),
           ],
         ),

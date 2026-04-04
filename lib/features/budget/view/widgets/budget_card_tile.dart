@@ -2,13 +2,11 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Card tile untuk menampilkan satu budget dalam list.
 ///
@@ -30,7 +28,6 @@ class BudgetCardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final catColor = parseHexColor(budget.category?.color);
     final ratio = budget.usageRatio;
     final statusColor = BudgetProgressBar.colorForRatio(ratio, context);
 
@@ -52,22 +49,12 @@ class BudgetCardTile extends StatelessWidget {
             Row(
               children: [
                 // Category icon
-                Container(
-                  width: 42.w,
-                  height: 42.w,
-                  decoration: BoxDecoration(
-                    color: catColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Center(
-                    child: FaIcon(
-                      CategoryIconMapper.getIcon(
-                        budget.category?.icon ?? 'circle-question',
-                      ),
-                      size: 18.w,
-                      color: catColor,
-                    ),
-                  ),
+                SakuCategoryIcon.raw(
+                  iconName: budget.category?.icon ?? 'circleQuestion',
+                  colorHex: budget.category?.color ?? '#6B7280',
+                  size: 42,
+                  iconSize: 18,
+                  borderRadius: 12,
                 ),
                 SizedBox(width: 12.w),
 

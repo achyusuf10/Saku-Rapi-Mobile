@@ -3,10 +3,10 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -138,10 +138,11 @@ class _WalletMiniCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: walletColor.withValues(alpha: 0.15),
                 ),
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(wallet.icon),
-                  size: 12.w,
+                child: SakuCategoryIcon.withColor(
+                  iconName: wallet.icon,
                   color: walletColor,
+                  size: 12,
+                  showBackground: false,
                 ),
               ),
               SizedBox(width: 8.w),

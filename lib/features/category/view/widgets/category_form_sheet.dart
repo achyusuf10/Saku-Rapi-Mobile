@@ -5,15 +5,15 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/saku_dropdown.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Bottom sheet form untuk menambah atau edit kategori.
 ///
@@ -135,20 +135,12 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
                 // Preview
                 Center(
-                  child: Container(
-                    width: 56.w,
-                    height: 56.w,
-                    decoration: BoxDecoration(
-                      color: previewColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    child: Center(
-                      child: FaIcon(
-                        CategoryIconMapper.getIcon(_selectedIcon),
-                        size: 24.w,
-                        color: previewColor,
-                      ),
-                    ),
+                  child: SakuCategoryIcon.raw(
+                    iconName: _selectedIcon,
+                    colorHex: _selectedColor,
+                    size: 56,
+                    iconSize: 24,
+                    borderRadius: 16,
                   ),
                 ),
                 SizedBox(height: 20.h),
@@ -175,10 +167,11 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                     Expanded(
                       child: _PickerTile(
                         label: l10n.categoryIconPicker,
-                        child: FaIcon(
-                          CategoryIconMapper.getIcon(_selectedIcon),
-                          size: 18.w,
-                          color: previewColor,
+                        child: SakuCategoryIcon.raw(
+                          iconName: _selectedIcon,
+                          colorHex: _selectedColor,
+                          size: 18,
+                          showBackground: false,
                         ),
                         onTap: () => _pickIcon(context),
                       ),
@@ -209,73 +202,44 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
                 // Parent category dropdown
                 if (!_isEdit || widget.editCategory?.isParent == true) ...[
-                  Text(
-                    l10n.categoryParent,
-                    style: TextStyleConstants.label1.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: colors.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String?>(
-                        value: _selectedParentId,
-                        isExpanded: true,
-                        padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        borderRadius: BorderRadius.circular(12.r),
-                        icon: FaIcon(
-                          FontAwesomeIcons.chevronDown,
-                          size: 12.w,
-                          color: colors.textSecondary,
-                        ),
-                        hint: Text(
+                  SakuDropdown<String?>(
+                    label: l10n.categoryParent,
+                    value: _selectedParentId,
+                    hint: l10n.categoryNoParent,
+                    items: [
+                      DropdownItem<String?>(
+                        value: null,
+                        child: Text(
                           l10n.categoryNoParent,
-                          style: TextStyleConstants.b2.copyWith(
-                            color: colors.textSecondary,
+                          style: TextStyleConstants.b2,
+                        ),
+                      ),
+                      ...parentOptions.map(
+                        (p) => DropdownItem<String?>(
+                          value: p.id,
+                          child: Row(
+                            children: [
+                              SakuCategoryIcon(
+                                category: p,
+                                size: 14,
+                                showBackground: false,
+                              ),
+                              SizedBox(width: 8.w),
+                              Flexible(
+                                child: Text(
+                                  p.name,
+                                  style: TextStyleConstants.b2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        items: [
-                          DropdownMenuItem<String?>(
-                            value: null,
-                            child: Text(
-                              l10n.categoryNoParent,
-                              style: TextStyleConstants.b2,
-                            ),
-                          ),
-                          ...parentOptions.map(
-                            (p) => DropdownMenuItem<String?>(
-                              value: p.id,
-                              child: Row(
-                                children: [
-                                  FaIcon(
-                                    CategoryIconMapper.getIcon(p.icon),
-                                    size: 14.w,
-                                    color: parseHexColor(p.color),
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  Flexible(
-                                    child: Text(
-                                      p.name,
-                                      style: TextStyleConstants.b2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() => _selectedParentId = value);
-                        },
                       ),
-                    ),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _selectedParentId = value);
+                    },
                   ),
                   SizedBox(height: 24.h),
                 ],

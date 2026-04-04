@@ -14,9 +14,11 @@ import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_page.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_person_page.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/ui/settlement_history_page.dart';
 import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
-import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
-import 'package:app_saku_rapi/features/investment/view/ui/investment_form_page.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
 import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
@@ -71,6 +73,10 @@ class AppRouter {
   static const String history = '/history';
   static const String budget = '/budget';
   static const String investment = '/investment';
+  static const String investmentDetail = '/investment/detail';
+  static const String investmentForm = '/investment/form';
+  static const String investmentInactive = '/investment/inactive';
+
   static const String wallet = '/wallet';
   static const String transactionForm = '/transaction/form';
   static const String transactionDetail = '/transaction/detail';
@@ -83,7 +89,7 @@ class AppRouter {
   static const String reportCategoryTransactions =
       '/reports/category-transactions';
   static const String notificationSettings = '/notification-settings';
-  static const String investmentForm = '/investment/form';
+
   static const String debtLoan = '/debt-loan';
   static const String debtLoanPerson = '/debt-loan/person';
   static const String settlementHistory = '/debt-loan/settlement-history';
@@ -176,6 +182,7 @@ class AppRouter {
                 ),
               ],
             ),
+
             // Tab 3: Investment
             StatefulShellBranch(
               navigatorKey: _investmentNavKey,
@@ -186,6 +193,7 @@ class AppRouter {
                 ),
               ],
             ),
+            // Tab 4: Settings
             StatefulShellBranch(
               navigatorKey: _settingsNavKey,
               routes: [
@@ -264,13 +272,7 @@ class AppRouter {
           parentNavigatorKey: navigatorKey,
           builder: (context, state) => const NotificationSettingsPage(),
         ),
-        GoRoute(
-          path: investmentForm,
-          parentNavigatorKey: navigatorKey,
-          builder: (context, state) => InvestmentFormPage(
-            existingInvestment: state.extra as InvestmentModel?,
-          ),
-        ),
+
         GoRoute(
           path: debtLoan,
           parentNavigatorKey: navigatorKey,
@@ -298,6 +300,30 @@ class AppRouter {
               withPerson: extra.withPerson,
               type: extra.type,
             );
+          },
+        ),
+
+        // ─── Investment full-screen routes ───
+        GoRoute(
+          path: investmentDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final asset = state.extra! as InvestmentAssetModel;
+            return InvestmentDetailPage(asset: asset);
+          },
+        ),
+        GoRoute(
+          path: investmentForm,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            return InvestmentSmartFormPage(extra: state.extra);
+          },
+        ),
+        GoRoute(
+          path: investmentInactive,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            return const InvestmentInactivePage();
           },
         ),
       ],

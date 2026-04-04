@@ -2,9 +2,9 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,13 +73,22 @@ class SakuWalletFilterButton extends ConsumerWidget {
               (wallet) => PopupMenuItem<String>(
                 value: wallet.id,
                 child: _WalletMenuItem(
-                  icon: CategoryIconMapper.getIcon(wallet.icon),
+                  icon: FontAwesomeIcons.wallet,
                   iconColor: selectedWalletId == wallet.id
                       ? colors.primary
                       : parseHexColor(
                           wallet.color,
                           fallback: colors.textSecondary,
                         ),
+                  leading: SakuCategoryIcon.raw(
+                    iconName: wallet.icon,
+                    colorHex: wallet.color,
+                    size: 14,
+                    showBackground: false,
+                    colorOverride: selectedWalletId == wallet.id
+                        ? colors.primary
+                        : null,
+                  ),
                   label: wallet.name,
                   isSelected: selectedWalletId == wallet.id,
                 ),
@@ -95,27 +104,28 @@ class SakuWalletFilterButton extends ConsumerWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                FaIcon(
-                  selectedWalletId == null
-                      ? FontAwesomeIcons.globe
-                      : CategoryIconMapper.getIcon(
-                          wallets
-                                  .where((w) => w.id == selectedWalletId)
-                                  .firstOrNull
-                                  ?.icon ??
-                              'wallet',
-                        ),
-                  color: selectedWalletId == null
-                      ? colors.primary
-                      : parseHexColor(
-                          wallets
-                              .where((w) => w.id == selectedWalletId)
-                              .firstOrNull
-                              ?.color,
-                          fallback: colors.textSecondary,
-                        ),
-                  size: 16.w,
-                ),
+                selectedWalletId == null
+                    ? FaIcon(
+                        FontAwesomeIcons.globe,
+                        color: colors.primary,
+                        size: 16.w,
+                      )
+                    : SakuCategoryIcon.raw(
+                        iconName:
+                            wallets
+                                .where((w) => w.id == selectedWalletId)
+                                .firstOrNull
+                                ?.icon ??
+                            'wallet',
+                        colorHex:
+                            wallets
+                                .where((w) => w.id == selectedWalletId)
+                                .firstOrNull
+                                ?.color ??
+                            '#6B7280',
+                        size: 16,
+                        showBackground: false,
+                      ),
                 4.horizontalSpace,
                 Text(
                   ' ${wallets.where((w) => w.id == selectedWalletId).firstOrNull?.name ?? label}',
@@ -146,6 +156,7 @@ class _WalletMenuItem extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.isSelected,
+    this.leading,
   });
 
   final IconData icon;
@@ -153,13 +164,16 @@ class _WalletMenuItem extends StatelessWidget {
   final String label;
   final bool isSelected;
 
+  /// Widget custom leading (override icon + iconColor).
+  final Widget? leading;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return Row(
       children: [
-        FaIcon(icon, size: 14.w, color: iconColor),
+        leading ?? FaIcon(icon, size: 14.w, color: iconColor),
         SizedBox(width: 10.w),
         Expanded(
           child: Text(

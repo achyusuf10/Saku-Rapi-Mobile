@@ -5,9 +5,9 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/voice/controllers/text_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -462,12 +462,18 @@ class _TextPreviewCard extends ConsumerWidget {
                   result.categoryKeyword!.isNotEmpty)) ...[
             SizedBox(height: 8.h),
             _PreviewRow(
-              icon: matchedCategory != null
-                  ? CategoryIconMapper.getIcon(matchedCategory.icon)
-                  : FontAwesomeIcons.tag,
+              icon: FontAwesomeIcons.tag,
               iconColor: colors.accent,
               label: l10n.transactionCategory,
               value: matchedCategory?.name ?? result.categoryKeyword!,
+              leading: matchedCategory != null
+                  ? SakuCategoryIcon(
+                      category: matchedCategory,
+                      size: 14,
+                      showBackground: false,
+                      colorOverride: colors.accent,
+                    )
+                  : null,
             ),
           ],
 
@@ -605,12 +611,16 @@ class _PreviewRow extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
+    this.leading,
   });
 
   final IconData icon;
   final Color iconColor;
   final String label;
   final String value;
+
+  /// Widget custom leading (override icon + iconColor).
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -621,7 +631,7 @@ class _PreviewRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 20.w,
-          child: FaIcon(icon, size: 14.w, color: iconColor),
+          child: leading ?? FaIcon(icon, size: 14.w, color: iconColor),
         ),
         SizedBox(width: 8.w),
         SizedBox(

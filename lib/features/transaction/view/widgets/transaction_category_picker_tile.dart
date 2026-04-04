@@ -3,8 +3,8 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -54,13 +54,18 @@ class TransactionCategoryPickerTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: FaIcon(
-                  hasCategory
-                      ? CategoryIconMapper.getIcon(item!.categoryIcon!)
-                      : FontAwesomeIcons.layerGroup,
-                  size: 16.w,
-                  color: circleColor,
-                ),
+                child: hasCategory
+                    ? SakuCategoryIcon.withColor(
+                        iconName: item!.categoryIcon!,
+                        color: circleColor,
+                        size: 16,
+                        showBackground: false,
+                      )
+                    : FaIcon(
+                        FontAwesomeIcons.layerGroup,
+                        size: 16.w,
+                        color: circleColor,
+                      ),
               ),
             ),
             SizedBox(width: 12.w),

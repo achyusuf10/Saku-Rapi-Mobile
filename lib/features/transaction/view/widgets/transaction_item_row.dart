@@ -2,11 +2,10 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
@@ -233,12 +232,11 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
               child: Row(
                 children: [
                   if (widget.item.categoryIcon != null) ...[
-                    FaIcon(
-                      CategoryIconMapper.getIcon(widget.item.categoryIcon!),
-                      size: 16.w,
-                      color: widget.item.categoryColor != null
-                          ? parseHexColor(widget.item.categoryColor!)
-                          : colors.textSecondary,
+                    SakuCategoryIcon.raw(
+                      iconName: widget.item.categoryIcon!,
+                      colorHex: widget.item.categoryColor ?? '#6B7280',
+                      size: 16,
+                      showBackground: false,
                     ),
                     SizedBox(width: 8.w),
                   ],

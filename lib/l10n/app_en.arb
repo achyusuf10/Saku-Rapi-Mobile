@@ -457,62 +457,6 @@
   "budgetFormDiscardMessage": "You have unsaved changes. Are you sure you want to discard them?",
   "budgetFormDiscardConfirm": "Discard",
   "budgetUpcomingBudgets": "Upcoming Budgets",
-  "investmentTitle": "Investments",
-  "investmentAdd": "Add Investment",
-  "investmentEdit": "Edit Investment",
-  "investmentDelete": "Delete Investment",
-  "investmentPortfolio": "Total Portfolio",
-  "investmentTotalValue": "Current Value",
-  "investmentTotalPL": "Total P&L",
-  "investmentTypeGold": "Gold",
-  "investmentTypeBtc": "Bitcoin",
-  "investmentTypeCustom": "Custom",
-  "investmentBuyPrice": "Buy Price",
-  "investmentCurrentPrice": "Current Price",
-  "investmentAmount": "Amount",
-  "investmentUnit": "unit",
-  "investmentEmptyTitle": "No Investments Yet",
-  "investmentEmptySubtitle": "Tap + to add your first asset",
-  "investmentRefreshPrice": "Refresh Prices",
-  "investmentFormTitleAdd": "Add Investment",
-  "investmentFormTitleEdit": "Edit Investment",
-  "investmentFormType": "Asset Type",
-  "investmentFormName": "Asset Name",
-  "investmentFormNameHint": "e.g., Gold Bar, Bitcoin",
-  "investmentFormNameRequired": "Asset name is required",
-  "investmentFormAmount": "Amount (units)",
-  "investmentFormAmountRequired": "Amount is required",
-  "investmentFormAmountInvalid": "Amount must be greater than 0",
-  "investmentFormBuyPrice": "Buy Price per Unit (IDR)",
-  "investmentFormBuyPriceRequired": "Buy price is required",
-  "investmentFormBuyPriceInvalid": "Buy price must be greater than 0",
-  "investmentFormCurrentPrice": "Current Price (IDR)",
-  "investmentFormCurrentPriceHint": "Optional — for custom assets",
-  "investmentFormDeductWallet": "Deduct from Wallet",
-  "investmentFormDeductWalletSubtitle": "Wallet balance will be deducted automatically",
-  "investmentFormWallet": "Select Wallet",
-  "investmentFormWalletRequired": "Please select a wallet",
-  "investmentFormNotes": "Notes",
-  "investmentFormNotesHint": "Optional",
-  "investmentFormEstimatedCost": "Estimated Total Cost",
-  "investmentSave": "Save Investment",
-  "investmentSuccessAdd": "Investment added successfully",
-  "investmentSuccessEdit": "Investment updated successfully",
-  "investmentSuccessDelete": "Investment deleted successfully",
-  "investmentErrorAdd": "Failed to add investment",
-  "investmentErrorEdit": "Failed to update investment",
-  "investmentErrorDelete": "Failed to delete investment",
-  "investmentDeleteConfirmTitle": "Delete Investment?",
-  "investmentDeleteConfirmMessage": "Asset \"{name}\" will be permanently deleted.",
-  "@investmentDeleteConfirmMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "investmentTotalUnits": "Total Holdings",
-  "investmentGram": "gram",
   "notifTitle": "Notifications",
   "notifReminderTitle": "Daily Reminder",
   "notifReminderSubtitle": "Remind me to record transactions",
@@ -572,7 +516,6 @@
   "navDashboard": "Dashboard",
   "navHistory": "History",
   "navBudget": "Budget",
-  "navInvestment": "Investment",
   "profileTitle": "Profile",
   "profileEditName": "Edit Name",
   "profileEmail": "Email",
@@ -802,59 +745,6 @@
   "validationInitialBalanceNegative": "Initial balance cannot be negative",
   "validationWalletNameDuplicate": "Wallet name already in use",
   "validationWalletHasTransactions": "Cannot delete wallet with existing transactions. Delete transactions first.",
-  "investmentFormSymbol": "Symbol",
-  "investmentFormSymbolHint": "TSLA, AAPL, etc.",
-  "assetTypeTitle": "Manage Asset Types",
-  "assetTypeAdd": "Add Asset Type",
-  "assetTypeEdit": "Edit Asset Type",
-  "assetTypeEmpty": "No asset types yet",
-  "assetTypeEmptyHint": "Tap + to create your first asset type",
-  "assetTypeFormName": "Asset Name",
-  "assetTypeFormNameHint": "e.g., BCA Stock, Land, Bonds",
-  "assetTypeFormSymbol": "Symbol",
-  "assetTypeFormSymbolHint": "e.g., BBCA, OBL",
-  "assetTypeFormCurrentPrice": "Current Price (IDR)",
-  "assetTypeFormCurrentPriceHint": "Price per unit right now",
-  "assetTypeSave": "Save Asset Type",
-  "assetTypeSuccessAdd": "Asset type added successfully",
-  "assetTypeSuccessEdit": "Asset type updated successfully",
-  "assetTypeSuccessDelete": "Asset type deleted successfully",
-  "assetTypeErrorAdd": "Failed to add asset type",
-  "assetTypeErrorEdit": "Failed to update asset type",
-  "assetTypeErrorDelete": "Failed to delete asset type",
-  "assetTypeDeleteConfirmTitle": "Delete Asset Type?",
-  "assetTypeDeleteConfirmMessage": "\"{name}\" and all investments using this asset type will be hidden.",
-  "@assetTypeDeleteConfirmMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "assetTypeErrorDuplicateName": "Asset type name \"{name}\" already exists",
-  "@assetTypeErrorDuplicateName": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "investmentFormAssetType": "Asset Type",
-  "investmentFormAssetTypeHint": "Select asset type",
-  "investmentFormAssetTypeEmpty": "No asset types available. Create one first.",
-  "investmentManageAssetTypes": "Manage Asset Types",
-  "investmentFormCreateAssetType": "Create New Asset Type",
-  "investmentFilterTitle": "Filter & Sort",
-  "investmentFilterSort": "Sort By",
-  "investmentFilterSortNewest": "Newest",
-  "investmentFilterSortOldest": "Oldest",
-  "investmentFilterSortHighest": "Highest Value",
-  "investmentFilterSortLowest": "Lowest Value",
-  "investmentFilterType": "Type",
-  "investmentFilterAll": "All",
-  "investmentFilterSearch": "Search by name...",
-  "investmentFilterApply": "Apply Filter",
-  "investmentFilterReset": "Reset",
   "debtLoanTitle": "Debt & Loan",
   "debtLoanTabToPay": "To Pay",
   "debtLoanTabToReceive": "To Receive",
@@ -1000,5 +890,237 @@
   "textInputSubmit": "Analyze",
   "textInputAnalyzing": "Analyzing with AI...",
   "textInputError": "Failed to analyze text",
-  "textInputEmpty": "Please enter a transaction description"
+  "textInputEmpty": "Please enter a transaction description",
+  "navInvestment": "Investment",
+  "navSettings": "Settings",
+  "investmentTitle": "Investment Portfolio",
+  "investmentTotalValue": "Total Portfolio Value",
+  "investmentTotalInvested": "Total Invested",
+  "investmentProfitLoss": "Profit/Loss",
+  "investmentProfit": "Profit",
+  "investmentLoss": "Loss",
+  "investmentEmpty": "No investments yet",
+  "investmentEmptyHint": "Tap + to start recording your first investment",
+  "investmentAddAsset": "Add Investment",
+  "investmentActiveAssets": "Active Assets",
+  "investmentInactiveAssets": "Inactive Assets",
+  "investmentViewInactive": "View Inactive Assets",
+  "investmentSectionGold": "Gold",
+  "investmentSectionBitcoin": "Bitcoin",
+  "investmentSectionCustom": "Custom Assets",
+  "investmentTypeGold": "Gold",
+  "investmentTypeBitcoin": "Bitcoin",
+  "investmentTypeCustom": "Custom",
+  "investmentDetailTitle": "Investment Detail",
+  "investmentDetailCurrentPrice": "Current Price",
+  "investmentDetailAvgBuyPrice": "Average Buy Price",
+  "investmentDetailTotalUnits": "Total Units",
+  "investmentDetailTotalInvested": "Total Invested",
+  "investmentDetailCurrentValue": "Current Value",
+  "investmentDetailProfitLoss": "Profit/Loss",
+  "investmentDetailTotalFee": "Total Fees",
+  "investmentDetailTransactions": "Transaction History",
+  "investmentDetailBuyHistory": "Buy History",
+  "investmentDetailSellHistory": "Sell History",
+  "investmentDetailNoTransactions": "No transactions yet",
+  "investmentDetailTopUp": "Top Up",
+  "investmentDetailSell": "Sell",
+  "investmentDetailSettings": "Settings",
+  "investmentFormCreateTitle": "New Investment",
+  "investmentFormTopUpTitle": "Top Up Investment",
+  "investmentFormEditTitle": "Edit Transaction",
+  "investmentFormAssetName": "Asset Name",
+  "investmentFormAssetNameHint": "e.g. Antam Gold, Bitcoin, BBCA Stock",
+  "investmentFormAssetNameRequired": "Asset name is required",
+  "investmentFormType": "Asset Type",
+  "investmentFormGoldType": "Gold Type",
+  "investmentFormGoldTypeHint": "Select gold type",
+  "investmentFormCustomCategory": "Asset Category",
+  "investmentFormCustomCategoryHint": "Select category",
+  "investmentFormUnits": "Units",
+  "investmentFormUnitsHint": "e.g. 1.5",
+  "investmentFormUnitsRequired": "Units is required",
+  "investmentFormPricePerUnit": "Price per Unit",
+  "investmentFormPricePerUnitRequired": "Price per unit is required",
+  "investmentFormFee": "Fee (optional)",
+  "investmentFormFeeHint": "Admin/spread fee",
+  "investmentFormDate": "Transaction Date",
+  "investmentFormNote": "Note (optional)",
+  "investmentFormDeductWallet": "Deduct from Wallet",
+  "investmentFormDeductWalletHint": "Reduce wallet balance by total purchase amount",
+  "investmentFormSelectWallet": "Select Wallet",
+  "investmentFormWalletRequired": "Please select a wallet",
+  "investmentFormSave": "Save",
+  "investmentFormTotalCost": "Total Purchase Cost",
+  "investmentFormCurrentPrice": "Current Price (optional)",
+  "investmentSellTitle": "Sell Investment",
+  "investmentSellUnits": "Units to Sell",
+  "investmentSellUnitsHint": "Max: {maxUnits}",
+  "@investmentSellUnitsHint": {
+    "placeholders": {
+      "maxUnits": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSellUnitsRequired": "Units to sell is required",
+  "investmentSellUnitsExceed": "Sell units exceed available units ({available})",
+  "@investmentSellUnitsExceed": {
+    "placeholders": {
+      "available": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSellPricePerUnit": "Sell Price per Unit",
+  "investmentSellPriceRequired": "Sell price is required",
+  "investmentSellFee": "Sell Fee (optional)",
+  "investmentSellCreditWallet": "Credit to Wallet",
+  "investmentSellCreditWalletHint": "Add sell proceeds to wallet balance",
+  "investmentSellTotal": "Total Sell Proceeds",
+  "investmentSellConfirm": "Confirm Sell",
+  "investmentSellAll": "Sell All",
+  "investmentSettingsTitle": "Asset Settings",
+  "investmentSettingsName": "Asset Name",
+  "investmentSettingsCurrentPrice": "Current Price",
+  "investmentSettingsCategory": "Asset Category",
+  "investmentSettingsCategoryHint": "Select category to determine unit",
+  "investmentSettingsStatus": "Status",
+  "investmentSettingsActive": "Active",
+  "investmentSettingsInactive": "Inactive",
+  "investmentSettingsSave": "Save Changes",
+  "investmentSettingsDelete": "Delete Investment",
+  "investmentSettingsDeleteConfirm": "Are you sure you want to delete \"{name}\"? All transactions for this investment will also be deleted.",
+  "@investmentSettingsDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSettingsDeleteWalletRevert": "Related wallet balances will be reverted.",
+  "investmentGoldTypeTitle": "Custom Gold Types",
+  "investmentGoldTypeAdd": "Add Gold Type",
+  "investmentGoldTypeEdit": "Edit Gold Type",
+  "investmentGoldTypeName": "Gold Type Name",
+  "investmentGoldTypeNameHint": "e.g. UBS, Galeri 24",
+  "investmentGoldTypeNameRequired": "Gold type name is required",
+  "investmentGoldTypeMax": "Maximum {max} custom gold types",
+  "@investmentGoldTypeMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentGoldTypeDeleteConfirm": "Delete gold type \"{name}\"?",
+  "@investmentGoldTypeDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentCategoryTitle": "Custom Asset Categories",
+  "investmentCategoryAdd": "Add Category",
+  "investmentCategoryEdit": "Edit Category",
+  "investmentCategoryName": "Category Name",
+  "investmentCategoryNameHint": "e.g. Stocks, Mutual Funds",
+  "investmentCategoryNameRequired": "Category name is required",
+  "investmentCategoryUnitLabel": "Unit Label",
+  "investmentCategoryUnitLabelHint": "e.g. lot, unit, share",
+  "investmentCategoryUnitLabelRequired": "Unit label is required",
+  "investmentCategoryMax": "Maximum {max} custom categories",
+  "@investmentCategoryMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentCategoryDeleteConfirm": "Delete category \"{name}\"?",
+  "@investmentCategoryDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentCategoryManage": "Manage Categories",
+  "investmentInactiveTitle": "Inactive Assets",
+  "investmentInactiveEmpty": "No inactive assets",
+  "investmentInactiveHint": "Assets that have been fully sold will appear here",
+  "investmentInactiveReactivate": "Reactivate",
+  "investmentSuccessCreate": "Investment \"{name}\" added successfully",
+  "@investmentSuccessCreate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSuccessTopUp": "Top up successful",
+  "investmentSuccessSell": "Sell successful",
+  "investmentSuccessEdit": "Transaction updated successfully",
+  "investmentSuccessDelete": "Investment deleted successfully",
+  "investmentSuccessUpdate": "Investment updated successfully",
+  "investmentSuccessDeleteTransaction": "Transaction deleted successfully",
+  "investmentErrorGeneric": "Operation failed. Please try again.",
+  "investmentErrorLoad": "Failed to load investment data",
+  "investmentErrorCreate": "Failed to add investment",
+  "investmentErrorTopUp": "Failed to top up investment",
+  "investmentErrorSell": "Failed to sell investment",
+  "investmentErrorEdit": "Failed to update transaction",
+  "investmentErrorDelete": "Failed to delete investment",
+  "investmentErrorDeleteTransaction": "Failed to delete transaction",
+  "investmentUnitGram": "gram",
+  "investmentUnitBtc": "BTC",
+  "investmentGoldAntam": "Antam",
+  "investmentGoldPerhiasan": "Perhiasan (Jewelry)",
+  "investmentPriceSource": "Source: {source}",
+  "@investmentPriceSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentLastUpdated": "Updated: {time}",
+  "@investmentLastUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentBuyPrice": "Buy Price",
+  "investmentSellPrice": "Sell Price",
+  "investmentDirection": "Type",
+  "investmentDirectionBuy": "Buy",
+  "investmentDirectionSell": "Sell",
+  "investmentTransactionCount": "{count} transactions",
+  "@investmentTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentFormPriceSource": "Price Source",
+  "investmentFormPriceSourceHint": "Select price source",
+  "investmentPriceSourceAntaremas": "antaremas.com",
+  "investmentPriceSourceLogammulia": "logammulia.com",
+  "investmentPriceSourceManual": "Manual Input",
+  "investmentPriceSourceIndodax": "Indodax",
+  "investmentPriceSourceCoingecko": "CoinGecko",
+  "investmentPriceSourceLocked": "Locked to Manual for this gold type",
+  "investmentManageGoldTypes": "Manage Gold Types",
+  "investmentDeleteTransaction": "Delete Transaction",
+  "investmentDeleteTransactionConfirm": "Are you sure you want to delete this transaction? Wallet balance will be reverted if applicable.",
+  "investmentSettingsRevertWallet": "Revert related wallet balances",
+  "investmentEditCurrentPrice": "Update Market Price",
+  "investmentEditCurrentPriceHint": "Enter current market price",
+  "investmentSettingsGoldType": "Gold Type",
+  "investmentSettingsPriceSource": "Price Source",
+  "investmentWalletRequired": "Please select a wallet first"
 }

@@ -8,7 +8,6 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
@@ -20,6 +19,7 @@ import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -36,11 +36,6 @@ class TransactionDetailPage extends ConsumerWidget {
   const TransactionDetailPage({super.key, required this.transaction});
 
   final TransactionModel transaction;
-
-  static Color _parseHexColor(String hex) {
-    final hexCode = hex.replaceAll('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -155,13 +150,15 @@ class TransactionDetailPage extends ConsumerWidget {
             _DetailSection(
               label: l10n.transactionCategory,
               value: transaction.items.first.categoryName ?? '-',
-              icon: transaction.items.first.categoryIcon != null
-                  ? CategoryIconMapper.getIcon(
-                      transaction.items.first.categoryIcon!,
+              icon: FontAwesomeIcons.layerGroup,
+              leading: transaction.items.first.categoryIcon != null
+                  ? SakuCategoryIcon.raw(
+                      iconName: transaction.items.first.categoryIcon!,
+                      colorHex:
+                          transaction.items.first.categoryColor ?? '#6B7280',
+                      size: 14,
+                      showBackground: false,
                     )
-                  : FontAwesomeIcons.layerGroup,
-              iconColor: transaction.items.first.categoryColor != null
-                  ? _parseHexColor(transaction.items.first.categoryColor!)
                   : null,
             ),
             if (transaction.items.first.itemName != null)
@@ -432,12 +429,16 @@ class _DetailSection extends StatelessWidget {
     required this.value,
     required this.icon,
     this.iconColor,
+    this.leading,
   });
 
   final String label;
   final String value;
   final IconData icon;
   final Color? iconColor;
+
+  /// Widget custom leading (override icon + iconColor).
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +449,12 @@ class _DetailSection extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FaIcon(icon, size: 14.w, color: iconColor ?? colors.textSecondary),
+          leading ??
+              FaIcon(
+                icon,
+                size: 14.w,
+                color: iconColor ?? colors.textSecondary,
+              ),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -542,10 +548,11 @@ class _ItemRow extends StatelessWidget {
       child: Row(
         children: [
           if (item.categoryIcon != null)
-            FaIcon(
-              CategoryIconMapper.getIcon(item.categoryIcon!),
-              size: 14.w,
+            SakuCategoryIcon.withColor(
+              iconName: item.categoryIcon!,
               color: iconColor,
+              size: 14,
+              showBackground: false,
             )
           else
             FaIcon(

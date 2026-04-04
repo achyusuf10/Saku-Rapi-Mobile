@@ -2,12 +2,10 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Card tile untuk menampilkan satu wallet dalam list.
 ///
@@ -30,7 +28,6 @@ class WalletCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final walletColor = parseHexColor(wallet.color);
 
     return InkWell(
       onTap: onTap,
@@ -46,20 +43,12 @@ class WalletCardTile extends StatelessWidget {
         child: Row(
           children: [
             // Icon
-            Container(
-              width: 42.w,
-              height: 42.w,
-              decoration: BoxDecoration(
-                color: walletColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Center(
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(wallet.icon),
-                  size: 18.w,
-                  color: walletColor,
-                ),
-              ),
+            SakuCategoryIcon.raw(
+              iconName: wallet.icon,
+              colorHex: wallet.color,
+              size: 42,
+              iconSize: 18,
+              borderRadius: 12,
             ),
             SizedBox(width: 12.w),
 

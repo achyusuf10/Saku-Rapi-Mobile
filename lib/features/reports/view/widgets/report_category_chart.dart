@@ -2,8 +2,8 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -78,20 +78,12 @@ class _CategoryRow extends StatelessWidget {
       child: Row(
         children: [
           // Icon circle
-          Container(
-            width: 36.w,
-            height: 36.w,
-            decoration: BoxDecoration(
-              color: catColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Center(
-              child: FaIcon(
-                CategoryIconMapper.getIcon(category.categoryIcon),
-                size: 16.w,
-                color: catColor,
-              ),
-            ),
+          SakuCategoryIcon.withColor(
+            iconName: category.categoryIcon,
+            color: catColor,
+            size: 36,
+            iconSize: 16,
+            borderRadius: 10,
           ),
           SizedBox(width: 10.w),
           // Name + progress bar

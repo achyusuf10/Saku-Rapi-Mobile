@@ -457,62 +457,6 @@
   "budgetFormDiscardMessage": "Kamu punya perubahan yang belum disimpan. Yakin ingin membuangnya?",
   "budgetFormDiscardConfirm": "Buang",
   "budgetUpcomingBudgets": "Anggaran Mendatang",
-  "investmentTitle": "Investasi",
-  "investmentAdd": "Tambah Investasi",
-  "investmentEdit": "Edit Investasi",
-  "investmentDelete": "Hapus Investasi",
-  "investmentPortfolio": "Total Portofolio",
-  "investmentTotalValue": "Nilai Saat Ini",
-  "investmentTotalPL": "Total P&L",
-  "investmentTypeGold": "Emas",
-  "investmentTypeBtc": "Bitcoin",
-  "investmentTypeCustom": "Kustom",
-  "investmentBuyPrice": "Harga Beli",
-  "investmentCurrentPrice": "Harga Saat Ini",
-  "investmentAmount": "Jumlah",
-  "investmentUnit": "unit",
-  "investmentEmptyTitle": "Belum Ada Investasi",
-  "investmentEmptySubtitle": "Ketuk + untuk menambahkan aset pertama Anda",
-  "investmentRefreshPrice": "Perbarui Harga",
-  "investmentFormTitleAdd": "Tambah Investasi",
-  "investmentFormTitleEdit": "Edit Investasi",
-  "investmentFormType": "Tipe Aset",
-  "investmentFormName": "Nama Aset",
-  "investmentFormNameHint": "misal: Emas Antam, BTC",
-  "investmentFormNameRequired": "Nama aset wajib diisi",
-  "investmentFormAmount": "Jumlah Unit",
-  "investmentFormAmountRequired": "Jumlah wajib diisi",
-  "investmentFormAmountInvalid": "Jumlah harus lebih dari 0",
-  "investmentFormBuyPrice": "Harga Beli per Unit (IDR)",
-  "investmentFormBuyPriceRequired": "Harga beli wajib diisi",
-  "investmentFormBuyPriceInvalid": "Harga beli harus lebih dari 0",
-  "investmentFormCurrentPrice": "Harga Saat Ini (IDR)",
-  "investmentFormCurrentPriceHint": "Opsional — untuk aset kustom",
-  "investmentFormDeductWallet": "Potong dari Dompet",
-  "investmentFormDeductWalletSubtitle": "Saldo dompet akan dikurangi otomatis",
-  "investmentFormWallet": "Pilih Dompet",
-  "investmentFormWalletRequired": "Pilih dompet terlebih dahulu",
-  "investmentFormNotes": "Catatan",
-  "investmentFormNotesHint": "Opsional",
-  "investmentFormEstimatedCost": "Estimasi Total Biaya",
-  "investmentSave": "Simpan Investasi",
-  "investmentSuccessAdd": "Investasi berhasil ditambahkan",
-  "investmentSuccessEdit": "Investasi berhasil diperbarui",
-  "investmentSuccessDelete": "Investasi berhasil dihapus",
-  "investmentErrorAdd": "Gagal menambahkan investasi",
-  "investmentErrorEdit": "Gagal memperbarui investasi",
-  "investmentErrorDelete": "Gagal menghapus investasi",
-  "investmentDeleteConfirmTitle": "Hapus Investasi?",
-  "investmentDeleteConfirmMessage": "Aset \"{name}\" akan dihapus permanen.",
-  "@investmentDeleteConfirmMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "investmentTotalUnits": "Total Kepemilikan",
-  "investmentGram": "gram",
   "notifTitle": "Notifikasi",
   "notifReminderTitle": "Pengingat Harian",
   "notifReminderSubtitle": "Ingatkan saya untuk catat transaksi",
@@ -572,7 +516,6 @@
   "navDashboard": "Beranda",
   "navHistory": "Riwayat",
   "navBudget": "Anggaran",
-  "navInvestment": "Investasi",
   "profileTitle": "Profil",
   "profileEditName": "Ubah Nama",
   "profileEmail": "Email",
@@ -802,59 +745,6 @@
   "validationInitialBalanceNegative": "Saldo awal tidak boleh negatif",
   "validationWalletNameDuplicate": "Nama dompet sudah digunakan",
   "validationWalletHasTransactions": "Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.",
-  "investmentFormSymbol": "Symbol",
-  "investmentFormSymbolHint": "TSLA, AAPL, etc.",
-  "assetTypeTitle": "Kelola Jenis Aset",
-  "assetTypeAdd": "Tambah Jenis Aset",
-  "assetTypeEdit": "Edit Jenis Aset",
-  "assetTypeEmpty": "Belum ada jenis aset",
-  "assetTypeEmptyHint": "Ketuk + untuk membuat jenis aset pertama",
-  "assetTypeFormName": "Nama Aset",
-  "assetTypeFormNameHint": "misal: Saham BCA, Tanah, Obligasi",
-  "assetTypeFormSymbol": "Symbol",
-  "assetTypeFormSymbolHint": "misal: BBCA, OBL",
-  "assetTypeFormCurrentPrice": "Harga Saat Ini (IDR)",
-  "assetTypeFormCurrentPriceHint": "Harga per unit saat ini",
-  "assetTypeSave": "Simpan Jenis Aset",
-  "assetTypeSuccessAdd": "Jenis aset berhasil ditambahkan",
-  "assetTypeSuccessEdit": "Jenis aset berhasil diperbarui",
-  "assetTypeSuccessDelete": "Jenis aset berhasil dihapus",
-  "assetTypeErrorAdd": "Gagal menambahkan jenis aset",
-  "assetTypeErrorEdit": "Gagal memperbarui jenis aset",
-  "assetTypeErrorDelete": "Gagal menghapus jenis aset",
-  "assetTypeDeleteConfirmTitle": "Hapus Jenis Aset?",
-  "assetTypeDeleteConfirmMessage": "\"{name}\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.",
-  "@assetTypeDeleteConfirmMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "assetTypeErrorDuplicateName": "Nama jenis aset \"{name}\" sudah ada",
-  "@assetTypeErrorDuplicateName": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "investmentFormAssetType": "Jenis Aset",
-  "investmentFormAssetTypeHint": "Pilih jenis aset",
-  "investmentFormAssetTypeEmpty": "Belum ada jenis aset. Buat terlebih dahulu.",
-  "investmentManageAssetTypes": "Kelola Jenis Aset",
-  "investmentFormCreateAssetType": "Buat Jenis Aset Baru",
-  "investmentFilterTitle": "Filter & Urutkan",
-  "investmentFilterSort": "Urutkan",
-  "investmentFilterSortNewest": "Terbaru",
-  "investmentFilterSortOldest": "Terlama",
-  "investmentFilterSortHighest": "Nilai Terbesar",
-  "investmentFilterSortLowest": "Nilai Terendah",
-  "investmentFilterType": "Tipe",
-  "investmentFilterAll": "Semua",
-  "investmentFilterSearch": "Cari berdasarkan nama...",
-  "investmentFilterApply": "Terapkan Filter",
-  "investmentFilterReset": "Reset",
   "debtLoanTitle": "Hutang & Piutang",
   "debtLoanTabToPay": "Untuk Dibayar",
   "debtLoanTabToReceive": "Untuk Diterima",
@@ -1000,5 +890,237 @@
   "textInputSubmit": "Analisis",
   "textInputAnalyzing": "Menganalisis dengan AI...",
   "textInputError": "Gagal menganalisis teks",
-  "textInputEmpty": "Silakan masukkan deskripsi transaksi"
+  "textInputEmpty": "Silakan masukkan deskripsi transaksi",
+  "navInvestment": "Investasi",
+  "navSettings": "Pengaturan",
+  "investmentTitle": "Portofolio Investasi",
+  "investmentTotalValue": "Total Nilai Portofolio",
+  "investmentTotalInvested": "Total Modal",
+  "investmentProfitLoss": "Keuntungan/Kerugian",
+  "investmentProfit": "Untung",
+  "investmentLoss": "Rugi",
+  "investmentEmpty": "Belum ada investasi",
+  "investmentEmptyHint": "Tap + untuk mulai catat investasi pertamamu",
+  "investmentAddAsset": "Tambah Investasi",
+  "investmentActiveAssets": "Aset Aktif",
+  "investmentInactiveAssets": "Aset Tidak Aktif",
+  "investmentViewInactive": "Lihat Aset Tidak Aktif",
+  "investmentSectionGold": "Emas",
+  "investmentSectionBitcoin": "Bitcoin",
+  "investmentSectionCustom": "Aset Kustom",
+  "investmentTypeGold": "Emas",
+  "investmentTypeBitcoin": "Bitcoin",
+  "investmentTypeCustom": "Kustom",
+  "investmentDetailTitle": "Detail Investasi",
+  "investmentDetailCurrentPrice": "Harga Saat Ini",
+  "investmentDetailAvgBuyPrice": "Rata-rata Harga Beli",
+  "investmentDetailTotalUnits": "Total Unit",
+  "investmentDetailTotalInvested": "Total Modal",
+  "investmentDetailCurrentValue": "Nilai Saat Ini",
+  "investmentDetailProfitLoss": "Keuntungan/Kerugian",
+  "investmentDetailTotalFee": "Total Biaya",
+  "investmentDetailTransactions": "Riwayat Transaksi",
+  "investmentDetailBuyHistory": "Riwayat Beli",
+  "investmentDetailSellHistory": "Riwayat Jual",
+  "investmentDetailNoTransactions": "Belum ada transaksi",
+  "investmentDetailTopUp": "Top Up",
+  "investmentDetailSell": "Jual",
+  "investmentDetailSettings": "Pengaturan",
+  "investmentFormCreateTitle": "Investasi Baru",
+  "investmentFormTopUpTitle": "Top Up Investasi",
+  "investmentFormEditTitle": "Edit Transaksi",
+  "investmentFormAssetName": "Nama Aset",
+  "investmentFormAssetNameHint": "Contoh: Emas Antam, Bitcoin, Saham BBCA",
+  "investmentFormAssetNameRequired": "Nama aset tidak boleh kosong",
+  "investmentFormType": "Jenis Aset",
+  "investmentFormGoldType": "Jenis Emas",
+  "investmentFormGoldTypeHint": "Pilih jenis emas",
+  "investmentFormCustomCategory": "Kategori Aset",
+  "investmentFormCustomCategoryHint": "Pilih kategori",
+  "investmentFormUnits": "Jumlah Unit",
+  "investmentFormUnitsHint": "Contoh: 1.5",
+  "investmentFormUnitsRequired": "Jumlah unit tidak boleh kosong",
+  "investmentFormPricePerUnit": "Harga per Unit",
+  "investmentFormPricePerUnitRequired": "Harga per unit tidak boleh kosong",
+  "investmentFormFee": "Biaya (opsional)",
+  "investmentFormFeeHint": "Biaya admin/spread",
+  "investmentFormDate": "Tanggal Transaksi",
+  "investmentFormNote": "Catatan (opsional)",
+  "investmentFormDeductWallet": "Potong Saldo Dompet",
+  "investmentFormDeductWalletHint": "Kurangi saldo dompet sesuai total pembelian",
+  "investmentFormSelectWallet": "Pilih Dompet",
+  "investmentFormWalletRequired": "Pilih dompet terlebih dahulu",
+  "investmentFormSave": "Simpan",
+  "investmentFormTotalCost": "Total Biaya Pembelian",
+  "investmentFormCurrentPrice": "Harga Saat Ini (opsional)",
+  "investmentSellTitle": "Jual Investasi",
+  "investmentSellUnits": "Jumlah Unit Dijual",
+  "investmentSellUnitsHint": "Maks: {maxUnits}",
+  "@investmentSellUnitsHint": {
+    "placeholders": {
+      "maxUnits": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSellUnitsRequired": "Jumlah unit dijual tidak boleh kosong",
+  "investmentSellUnitsExceed": "Unit dijual melebihi unit tersedia ({available})",
+  "@investmentSellUnitsExceed": {
+    "placeholders": {
+      "available": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSellPricePerUnit": "Harga Jual per Unit",
+  "investmentSellPriceRequired": "Harga jual tidak boleh kosong",
+  "investmentSellFee": "Biaya Jual (opsional)",
+  "investmentSellCreditWallet": "Tambah ke Saldo Dompet",
+  "investmentSellCreditWalletHint": "Tambahkan hasil penjualan ke saldo dompet",
+  "investmentSellTotal": "Total Hasil Penjualan",
+  "investmentSellConfirm": "Konfirmasi Jual",
+  "investmentSellAll": "Jual Semua",
+  "investmentSettingsTitle": "Pengaturan Aset",
+  "investmentSettingsName": "Nama Aset",
+  "investmentSettingsCurrentPrice": "Harga Saat Ini",
+  "investmentSettingsCategory": "Kategori Aset",
+  "investmentSettingsCategoryHint": "Pilih kategori untuk menentukan satuan",
+  "investmentSettingsStatus": "Status",
+  "investmentSettingsActive": "Aktif",
+  "investmentSettingsInactive": "Tidak Aktif",
+  "investmentSettingsSave": "Simpan Perubahan",
+  "investmentSettingsDelete": "Hapus Investasi",
+  "investmentSettingsDeleteConfirm": "Yakin ingin menghapus \"{name}\"? Semua transaksi investasi ini juga akan terhapus.",
+  "@investmentSettingsDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSettingsDeleteWalletRevert": "Saldo dompet terkait akan dikembalikan.",
+  "investmentGoldTypeTitle": "Jenis Emas Kustom",
+  "investmentGoldTypeAdd": "Tambah Jenis Emas",
+  "investmentGoldTypeEdit": "Edit Jenis Emas",
+  "investmentGoldTypeName": "Nama Jenis Emas",
+  "investmentGoldTypeNameHint": "Contoh: UBS, Galeri 24",
+  "investmentGoldTypeNameRequired": "Nama jenis emas tidak boleh kosong",
+  "investmentGoldTypeMax": "Maksimal {max} jenis emas kustom",
+  "@investmentGoldTypeMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentGoldTypeDeleteConfirm": "Yakin hapus jenis emas \"{name}\"?",
+  "@investmentGoldTypeDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentCategoryTitle": "Kategori Aset Kustom",
+  "investmentCategoryAdd": "Tambah Kategori",
+  "investmentCategoryEdit": "Edit Kategori",
+  "investmentCategoryName": "Nama Kategori",
+  "investmentCategoryNameHint": "Contoh: Saham, Reksadana",
+  "investmentCategoryNameRequired": "Nama kategori tidak boleh kosong",
+  "investmentCategoryUnitLabel": "Satuan",
+  "investmentCategoryUnitLabelHint": "Contoh: lot, unit, lembar",
+  "investmentCategoryUnitLabelRequired": "Satuan tidak boleh kosong",
+  "investmentCategoryMax": "Maksimal {max} kategori kustom",
+  "@investmentCategoryMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentCategoryDeleteConfirm": "Yakin hapus kategori \"{name}\"?",
+  "@investmentCategoryDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentCategoryManage": "Kelola Kategori",
+  "investmentInactiveTitle": "Aset Tidak Aktif",
+  "investmentInactiveEmpty": "Tidak ada aset tidak aktif",
+  "investmentInactiveHint": "Aset yang telah dijual sepenuhnya akan muncul di sini",
+  "investmentInactiveReactivate": "Aktifkan Kembali",
+  "investmentSuccessCreate": "Investasi \"{name}\" berhasil ditambahkan",
+  "@investmentSuccessCreate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentSuccessTopUp": "Top up berhasil",
+  "investmentSuccessSell": "Penjualan berhasil",
+  "investmentSuccessEdit": "Transaksi berhasil diperbarui",
+  "investmentSuccessDelete": "Investasi berhasil dihapus",
+  "investmentSuccessUpdate": "Investasi berhasil diperbarui",
+  "investmentSuccessDeleteTransaction": "Transaksi berhasil dihapus",
+  "investmentErrorGeneric": "Gagal memproses. Coba lagi.",
+  "investmentErrorLoad": "Gagal memuat data investasi",
+  "investmentErrorCreate": "Gagal menambah investasi",
+  "investmentErrorTopUp": "Gagal top up investasi",
+  "investmentErrorSell": "Gagal menjual investasi",
+  "investmentErrorEdit": "Gagal memperbarui transaksi",
+  "investmentErrorDelete": "Gagal menghapus investasi",
+  "investmentErrorDeleteTransaction": "Gagal menghapus transaksi",
+  "investmentUnitGram": "gram",
+  "investmentUnitBtc": "BTC",
+  "investmentGoldAntam": "Antam",
+  "investmentGoldPerhiasan": "Perhiasan",
+  "investmentPriceSource": "Sumber: {source}",
+  "@investmentPriceSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentLastUpdated": "Diperbarui: {time}",
+  "@investmentLastUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "investmentBuyPrice": "Harga Beli",
+  "investmentSellPrice": "Harga Jual",
+  "investmentDirection": "Tipe",
+  "investmentDirectionBuy": "Beli",
+  "investmentDirectionSell": "Jual",
+  "investmentTransactionCount": "{count} transaksi",
+  "@investmentTransactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "investmentFormPriceSource": "Sumber Harga",
+  "investmentFormPriceSourceHint": "Pilih sumber harga",
+  "investmentPriceSourceAntaremas": "antaremas.com",
+  "investmentPriceSourceLogammulia": "logammulia.com",
+  "investmentPriceSourceManual": "Input Manual",
+  "investmentPriceSourceIndodax": "Indodax",
+  "investmentPriceSourceCoingecko": "CoinGecko",
+  "investmentPriceSourceLocked": "Terkunci ke Manual untuk jenis emas ini",
+  "investmentManageGoldTypes": "Kelola Jenis Emas",
+  "investmentDeleteTransaction": "Hapus Transaksi",
+  "investmentDeleteTransactionConfirm": "Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan jika terkait.",
+  "investmentSettingsRevertWallet": "Kembalikan saldo dompet terkait",
+  "investmentEditCurrentPrice": "Perbarui Harga Pasar",
+  "investmentEditCurrentPriceHint": "Masukkan harga pasar saat ini",
+  "investmentSettingsGoldType": "Jenis Emas",
+  "investmentSettingsPriceSource": "Sumber Harga",
+  "investmentWalletRequired": "Silakan pilih dompet terlebih dahulu"
 }

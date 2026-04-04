@@ -2,10 +2,9 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -147,7 +146,6 @@ class _WalletPickerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final walletColor = parseHexColor(wallet.color);
 
     return InkWell(
       onTap: onTap,
@@ -166,20 +164,12 @@ class _WalletPickerItem extends StatelessWidget {
         child: Row(
           children: [
             // Icon
-            Container(
-              width: 38.w,
-              height: 38.w,
-              decoration: BoxDecoration(
-                color: walletColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Center(
-                child: FaIcon(
-                  CategoryIconMapper.getIcon(wallet.icon),
-                  size: 16.w,
-                  color: walletColor,
-                ),
-              ),
+            SakuCategoryIcon.raw(
+              iconName: wallet.icon,
+              colorHex: wallet.color,
+              size: 38,
+              iconSize: 16,
+              borderRadius: 10,
             ),
             SizedBox(width: 12.w),
 

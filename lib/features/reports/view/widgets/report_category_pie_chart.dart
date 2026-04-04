@@ -1,11 +1,10 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 /// Pie chart breakdown per kategori menggunakan Syncfusion.
@@ -107,20 +106,12 @@ class ReportCategoryPieChart extends StatelessWidget {
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 18.w,
-                          height: 18.w,
-                          decoration: BoxDecoration(
-                            color: catColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4.r),
-                          ),
-                          child: Center(
-                            child: FaIcon(
-                              CategoryIconMapper.getIcon(cat.categoryIcon),
-                              size: 9.w,
-                              color: catColor,
-                            ),
-                          ),
+                        SakuCategoryIcon.withColor(
+                          iconName: cat.categoryIcon,
+                          color: catColor,
+                          size: 18,
+                          iconSize: 9,
+                          borderRadius: 4,
                         ),
                         SizedBox(width: 3.w),
                         Text(
@@ -158,7 +149,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 3.h),
                   child: _PieLegendItem(
-                    icon: CategoryIconMapper.getIcon(cat.categoryIcon),
+                    iconName: cat.categoryIcon,
                     color: catColor,
                     label: cat.categoryName,
                     textColor: colors.textSecondary,
@@ -175,13 +166,13 @@ class ReportCategoryPieChart extends StatelessWidget {
 
 class _PieLegendItem extends StatelessWidget {
   const _PieLegendItem({
-    required this.icon,
+    required this.iconName,
     required this.color,
     required this.label,
     required this.textColor,
   });
 
-  final IconData icon;
+  final String iconName;
   final Color color;
   final String label;
   final Color textColor;
@@ -191,16 +182,12 @@ class _PieLegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 24.w,
-          height: 24.w,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6.r),
-          ),
-          child: Center(
-            child: FaIcon(icon, size: 12.w, color: color),
-          ),
+        SakuCategoryIcon.withColor(
+          iconName: iconName,
+          color: color,
+          size: 24,
+          iconSize: 12,
+          borderRadius: 6,
         ),
         SizedBox(width: 5.w),
         Text(

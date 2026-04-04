@@ -2,7 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -94,29 +94,15 @@ class CategoryParentListTile extends StatelessWidget {
                 child: Row(
                   children: [
                     // Icon
-                    Container(
-                      width: 38.w,
-                      height: 38.w,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            categoryColor.withValues(alpha: 0.18),
-                            categoryColor.withValues(alpha: 0.08),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(11.r),
-                      ),
-                      child: Center(
-                        child: FaIcon(
-                          CategoryIconMapper.getIcon(category.icon),
-                          size: 15.w,
-                          color: category.isHidden
-                              ? colors.textSecondary.withValues(alpha: 0.5)
-                              : categoryColor,
-                        ),
-                      ),
+                    SakuCategoryIcon(
+                      category: category,
+                      size: 38,
+                      iconSize: 15,
+                      borderRadius: 11,
+                      useGradient: true,
+                      colorOverride: category.isHidden
+                          ? colors.textSecondary.withValues(alpha: 0.5)
+                          : null,
                     ),
                     SizedBox(width: 12.w),
 
@@ -289,22 +275,14 @@ class CategoryChildListTile extends StatelessWidget {
           child: Row(
             children: [
               // Small icon
-              Container(
-                width: 28.w,
-                height: 28.w,
-                decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Center(
-                  child: FaIcon(
-                    CategoryIconMapper.getIcon(category.icon),
-                    size: 11.w,
-                    color: category.isHidden
-                        ? colors.textSecondary.withValues(alpha: 0.5)
-                        : categoryColor,
-                  ),
-                ),
+              SakuCategoryIcon(
+                category: category,
+                size: 28,
+                iconSize: 11,
+                borderRadius: 8,
+                colorOverride: category.isHidden
+                    ? colors.textSecondary.withValues(alpha: 0.5)
+                    : null,
               ),
               SizedBox(width: 10.w),
 

@@ -157,24 +157,64 @@
 - `period_type` CHECK: salah satu dari `weekly`, `monthly`, `quarterly`, `yearly`, `custom`
 - tidak boleh ada duplikasi budget aktif dengan scope identik tanpa keputusan merge.
 
-## 2.7 `investments`
+## 2.7 `investment_assets`
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK | owner |
-| type | text not null | `gold`, `crypto`, `custom` |
+| id | uuid PK | default gen_random_uuid() |
+| user_id | uuid FK → auth.users | owner |
+| type | text not null | `gold`, `bitcoin`, `custom` CHECK |
 | name | text not null | nama aset |
-| symbol | text nullable | ticker/symbol |
-| amount | numeric not null | jumlah unit |
-| avg_buy_price | numeric not null | harga beli rata-rata |
-| custom_current_price | numeric nullable | fallback manual |
-| linked_wallet_id | uuid nullable FK | wallet referensi |
-| notes | text nullable | |
-| asset_type_id | uuid nullable FK | referensi ke `asset_types.id` untuk custom type |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| gold_type | text nullable | `antam`, `perhiasan`, `custom_1`, `custom_2` (for type=gold) |
+| unit_label | text not null default 'gram' | satuan (gram, btc, lembar, lot, dll) |
+| price_source | text not null default 'manual' | `antaremas`, `logammulia`, `indodax`, `coingecko`, `manual` |
+| current_price | numeric not null default 0 | harga terkini |
+| status | text not null default 'active' | `active`, `inactive` CHECK |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | auto update via trigger |
 
-## 2.8 `parsing_dictionaries`
+### Constraint
+- `type` CHECK: `gold`, `bitcoin`, `custom`
+- `status` CHECK: `active`, `inactive`
+- Max 3 custom assets per user (enforced via trigger `check_max_custom_assets`)
+- Max 2 custom gold types per user (enforced via trigger `check_max_custom_gold_types`)
+- Auto-inactive when net_units reaches 0 (trigger `update_investment_asset_status`)
+
+## 2.8 `investment_transactions`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| asset_id | uuid FK → investment_assets | ON DELETE CASCADE |
+| user_id | uuid FK → auth.users | owner |
+| direction | text not null | `buy`, `sell` CHECK |
+| units | numeric not null | jumlah unit, CHECK > 0 |
+| price_per_unit | numeric not null | harga per unit, CHECK > 0 |
+| fee | numeric not null default 0 | biaya/fee, CHECK >= 0 |
+| wallet_id | uuid nullable FK → wallets | wallet terkait |
+| date | date not null default CURRENT_DATE | tanggal transaksi |
+| note | text nullable | |
+| created_at | timestamptz | default now() |
+
+### Constraint
+- `direction` CHECK: `buy`, `sell`
+- `units > 0`, `price_per_unit > 0`, `fee >= 0`
+
+## 2.9 `gold_prices`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| source | text not null UNIQUE | `antaremas`, `logammulia` |
+| price_per_gram | numeric not null | harga per gram |
+| fetched_at | timestamptz | default now() |
+
+## 2.10 `bitcoin_prices`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| source | text not null UNIQUE | `indodax`, `coingecko` |
+| price_idr | numeric not null | harga BTC dalam IDR |
+| fetched_at | timestamptz | default now() |
+
+## 2.11 `parsing_dictionaries`
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | uuid PK | |
@@ -183,7 +223,7 @@
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-## 2.9 `notification_settings`
+## 2.12 `notification_settings`
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | uuid PK | |
@@ -197,7 +237,7 @@
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-## 2.10 `contacts`
+## 2.13 `contacts`
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | uuid PK | default gen_random_uuid() |
@@ -211,23 +251,6 @@
 - `name` wajib tidak kosong.
 - Digunakan sebagai referensi `transactions.contact_id` untuk hutang/piutang.
 - Data di-upsert dari phonebook device via RPC `upsert_contact`.
-
-## 2.11 `asset_types`
-| Kolom | Tipe | Keterangan |
-|---|---|---|
-| id | uuid PK | default gen_random_uuid() |
-| user_id | uuid FK | owner |
-| name | text not null | nama jenis aset |
-| symbol | text nullable | simbol/ticker |
-| current_price | numeric not null default 0 | harga terkini, CHECK >= 0 |
-| is_deleted | boolean not null default false | soft delete |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | auto update |
-
-### Constraint
-- `current_price >= 0`.
-- Soft delete via `is_deleted` flag.
-- Direferensi oleh `investments.asset_type_id`.
 
 ---
 
@@ -243,6 +266,9 @@
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
 | `set_updated_at()` | before update on all mutable tables | update timestamp |
 | `auto_renew_budgets()` | pg_cron daily | clone recurring budgets; period-aware date calculation (weekly +7d, monthly +1mo, quarterly +3mo, yearly +1yr, custom smart: end-of-month detection vs duration preservation); carry_forward support (sisa positif ditambah ke amount budget baru); reset notification_sent_50/80/100 |
+| `update_investment_asset_status()` | after insert/delete on `investment_transactions` | auto-set asset status to `inactive` when net_units ≤ 0, or `active` when net_units > 0 |
+| `check_max_custom_assets()` | before insert on `investment_assets` | max 3 custom assets per user |
+| `check_max_custom_gold_types()` | before insert on `investment_assets` | max 2 custom gold types per user |
 
 ## 3.2 RPC yang sudah diimplementasi
 Agar write atomik dan Copilot tidak menyebar logika:
@@ -271,8 +297,14 @@ Agar write atomik dan Copilot tidak menyebar logika:
 - `replace_budget(p_old_budget_id uuid, p_user_id uuid, p_category_id uuid, p_wallet_id uuid, p_amount numeric, p_start_date date, p_end_date date, p_is_recurring boolean, p_period_type text, p_carry_forward boolean)` → jsonb  
   Atomic DELETE old + INSERT new dalam satu transaction. Digunakan ketika user mengganti budget yang sudah ada (duplicate overlap).
 
-### Investment RPC
-- `create_investment_with_optional_wallet_deduction(p_type, p_name, p_amount, p_avg_buy_price, p_symbol?, p_custom_current_price?, p_linked_wallet_id?, p_deduct_from_wallet?, p_notes?, p_date?, p_asset_type_id?)` → jsonb
+### Investment RPCs
+- `get_investment_dashboard(p_user_id uuid)` → TABLE(asset_id, type, name, gold_type, unit_label, price_source, current_price, status, total_buy_units, total_sell_units, total_invested, net_units, created_at, updated_at)
+- `create_investment_asset(p_user_id, p_type, p_name, p_gold_type?, p_unit_label?, p_price_source?, p_current_price?, p_units, p_price_per_unit, p_fee?, p_wallet_id?, p_date?, p_note?)` → jsonb (creates asset + first buy transaction, optional wallet deduction via ledger)
+- `topup_investment(p_asset_id, p_user_id, p_units, p_price_per_unit, p_fee?, p_wallet_id?, p_date?, p_note?)` → jsonb (inserts buy transaction, optional wallet deduction)
+- `sell_investment(p_asset_id, p_user_id, p_units, p_price_per_unit, p_wallet_id?, p_date?, p_note?)` → jsonb (inserts sell transaction, optional wallet credit)
+- `edit_investment_transaction(p_transaction_id, p_user_id, p_units, p_price_per_unit, p_fee?, p_wallet_id?, p_date?, p_note?)` → jsonb (rewrites buy transaction, wallet delta handled)
+- `delete_investment_transaction(p_transaction_id, p_user_id)` → jsonb (deletes transaction, reverts wallet if applicable)
+- `delete_investment_asset(p_asset_id, p_user_id, p_revert_wallet?)` → jsonb (cascades all transactions, optionally reverts all wallet movements)
 
 ### Rule
 Flutter boleh memanggil RPC ini melalui RemoteDataSource.  
@@ -282,7 +314,7 @@ Jangan membangun multi-step write yang rentan race condition langsung dari clien
 
 ## 4. RLS Policy
 
-Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categories, transactions, transaction_items, budgets, investments, parsing_dictionaries, notification_settings, contacts, asset_types).
+Semua tabel business wajib mengaktifkan RLS (13 tabel: users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, parsing_dictionaries, notification_settings, contacts).
 
 ### Prinsip umum
 - user hanya boleh membaca/menulis data miliknya sendiri.
@@ -304,7 +336,9 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
 - `categories(user_id, type, parent_id)`
 - `wallets(user_id, sort_order)`
 - `contacts(user_id, name)`
-- `asset_types(user_id)`
+- `investment_assets(user_id, status)`
+- `investment_transactions(asset_id, direction)`
+- `investment_transactions(user_id, date desc)`
 
 ### Performance rules
 - History list wajib pagination / infinite scroll.
@@ -312,6 +346,8 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
 - Grouping history dilakukan lokal dari satu fetch source.
 - Cache dictionary 24 jam.
 - Cache harga investasi 12 jam (TTL-based di Hive, keys: `investment_btc_price`, `investment_gold_price`).
+- Harga emas di-fetch via Edge Function `gold-price` (pg_cron daily 09:00 WIB).
+- Harga bitcoin di-fetch via Edge Function `bitcoin-price` (pg_cron hourly).
 - Upload attachment dilakukan async dengan UI progress state.
 
 ---
@@ -329,7 +365,10 @@ Semua tabel business wajib mengaktifkan RLS (11 tabel: users, wallets, categorie
 - Settlement `loan_collection` hanya valid sebagai `type = 'income'`.
 - Settlement amount tidak boleh melebihi remaining dari transaksi referensi.
 - Budget hanya boleh terkait category `expense`.
-- Investasi tidak boleh memotong saldo wallet langsung tanpa ledger transaksi.
+- Investasi buy/sell yang melibatkan wallet harus melalui ledger transaksi (via RPC).
+- Investment asset auto-inactive ketika net_units ≤ 0.
+- Max 3 custom investment assets per user.
+- Max 2 custom gold types per user.
 - `contacts` di-upsert dari phonebook, referensi aman meskipun kontak diedit.
 
 ---

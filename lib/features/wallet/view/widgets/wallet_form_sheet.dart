@@ -3,18 +3,17 @@ import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Bottom sheet form untuk menambah atau mengedit wallet.
@@ -157,10 +156,12 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                     Expanded(
                       child: _PickerTile(
                         label: l10n.walletIcon,
-                        child: FaIcon(
-                          CategoryIconMapper.getIcon(_selectedIcon),
-                          size: 20.w,
-                          color: colors.textPrimary,
+                        child: SakuCategoryIcon.raw(
+                          iconName: _selectedIcon,
+                          colorHex: '#6B7280',
+                          size: 20,
+                          showBackground: false,
+                          colorOverride: colors.textPrimary,
                         ),
                         onTap: () => _pickIcon(context),
                       ),

@@ -2024,300 +2024,6 @@ abstract class AppLocalizations {
   /// **'Anggaran Mendatang'**
   String get budgetUpcomingBudgets;
 
-  /// No description provided for @investmentTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Investasi'**
-  String get investmentTitle;
-
-  /// No description provided for @investmentAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Tambah Investasi'**
-  String get investmentAdd;
-
-  /// No description provided for @investmentEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Edit Investasi'**
-  String get investmentEdit;
-
-  /// No description provided for @investmentDelete.
-  ///
-  /// In id, this message translates to:
-  /// **'Hapus Investasi'**
-  String get investmentDelete;
-
-  /// No description provided for @investmentPortfolio.
-  ///
-  /// In id, this message translates to:
-  /// **'Total Portofolio'**
-  String get investmentPortfolio;
-
-  /// No description provided for @investmentTotalValue.
-  ///
-  /// In id, this message translates to:
-  /// **'Nilai Saat Ini'**
-  String get investmentTotalValue;
-
-  /// No description provided for @investmentTotalPL.
-  ///
-  /// In id, this message translates to:
-  /// **'Total P&L'**
-  String get investmentTotalPL;
-
-  /// No description provided for @investmentTypeGold.
-  ///
-  /// In id, this message translates to:
-  /// **'Emas'**
-  String get investmentTypeGold;
-
-  /// No description provided for @investmentTypeBtc.
-  ///
-  /// In id, this message translates to:
-  /// **'Bitcoin'**
-  String get investmentTypeBtc;
-
-  /// No description provided for @investmentTypeCustom.
-  ///
-  /// In id, this message translates to:
-  /// **'Kustom'**
-  String get investmentTypeCustom;
-
-  /// No description provided for @investmentBuyPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga Beli'**
-  String get investmentBuyPrice;
-
-  /// No description provided for @investmentCurrentPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga Saat Ini'**
-  String get investmentCurrentPrice;
-
-  /// No description provided for @investmentAmount.
-  ///
-  /// In id, this message translates to:
-  /// **'Jumlah'**
-  String get investmentAmount;
-
-  /// No description provided for @investmentUnit.
-  ///
-  /// In id, this message translates to:
-  /// **'unit'**
-  String get investmentUnit;
-
-  /// No description provided for @investmentEmptyTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Belum Ada Investasi'**
-  String get investmentEmptyTitle;
-
-  /// No description provided for @investmentEmptySubtitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Ketuk + untuk menambahkan aset pertama Anda'**
-  String get investmentEmptySubtitle;
-
-  /// No description provided for @investmentRefreshPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Perbarui Harga'**
-  String get investmentRefreshPrice;
-
-  /// No description provided for @investmentFormTitleAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Tambah Investasi'**
-  String get investmentFormTitleAdd;
-
-  /// No description provided for @investmentFormTitleEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Edit Investasi'**
-  String get investmentFormTitleEdit;
-
-  /// No description provided for @investmentFormType.
-  ///
-  /// In id, this message translates to:
-  /// **'Tipe Aset'**
-  String get investmentFormType;
-
-  /// No description provided for @investmentFormName.
-  ///
-  /// In id, this message translates to:
-  /// **'Nama Aset'**
-  String get investmentFormName;
-
-  /// No description provided for @investmentFormNameHint.
-  ///
-  /// In id, this message translates to:
-  /// **'misal: Emas Antam, BTC'**
-  String get investmentFormNameHint;
-
-  /// No description provided for @investmentFormNameRequired.
-  ///
-  /// In id, this message translates to:
-  /// **'Nama aset wajib diisi'**
-  String get investmentFormNameRequired;
-
-  /// No description provided for @investmentFormAmount.
-  ///
-  /// In id, this message translates to:
-  /// **'Jumlah Unit'**
-  String get investmentFormAmount;
-
-  /// No description provided for @investmentFormAmountRequired.
-  ///
-  /// In id, this message translates to:
-  /// **'Jumlah wajib diisi'**
-  String get investmentFormAmountRequired;
-
-  /// No description provided for @investmentFormAmountInvalid.
-  ///
-  /// In id, this message translates to:
-  /// **'Jumlah harus lebih dari 0'**
-  String get investmentFormAmountInvalid;
-
-  /// No description provided for @investmentFormBuyPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga Beli per Unit (IDR)'**
-  String get investmentFormBuyPrice;
-
-  /// No description provided for @investmentFormBuyPriceRequired.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga beli wajib diisi'**
-  String get investmentFormBuyPriceRequired;
-
-  /// No description provided for @investmentFormBuyPriceInvalid.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga beli harus lebih dari 0'**
-  String get investmentFormBuyPriceInvalid;
-
-  /// No description provided for @investmentFormCurrentPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga Saat Ini (IDR)'**
-  String get investmentFormCurrentPrice;
-
-  /// No description provided for @investmentFormCurrentPriceHint.
-  ///
-  /// In id, this message translates to:
-  /// **'Opsional — untuk aset kustom'**
-  String get investmentFormCurrentPriceHint;
-
-  /// No description provided for @investmentFormDeductWallet.
-  ///
-  /// In id, this message translates to:
-  /// **'Potong dari Dompet'**
-  String get investmentFormDeductWallet;
-
-  /// No description provided for @investmentFormDeductWalletSubtitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Saldo dompet akan dikurangi otomatis'**
-  String get investmentFormDeductWalletSubtitle;
-
-  /// No description provided for @investmentFormWallet.
-  ///
-  /// In id, this message translates to:
-  /// **'Pilih Dompet'**
-  String get investmentFormWallet;
-
-  /// No description provided for @investmentFormWalletRequired.
-  ///
-  /// In id, this message translates to:
-  /// **'Pilih dompet terlebih dahulu'**
-  String get investmentFormWalletRequired;
-
-  /// No description provided for @investmentFormNotes.
-  ///
-  /// In id, this message translates to:
-  /// **'Catatan'**
-  String get investmentFormNotes;
-
-  /// No description provided for @investmentFormNotesHint.
-  ///
-  /// In id, this message translates to:
-  /// **'Opsional'**
-  String get investmentFormNotesHint;
-
-  /// No description provided for @investmentFormEstimatedCost.
-  ///
-  /// In id, this message translates to:
-  /// **'Estimasi Total Biaya'**
-  String get investmentFormEstimatedCost;
-
-  /// No description provided for @investmentSave.
-  ///
-  /// In id, this message translates to:
-  /// **'Simpan Investasi'**
-  String get investmentSave;
-
-  /// No description provided for @investmentSuccessAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Investasi berhasil ditambahkan'**
-  String get investmentSuccessAdd;
-
-  /// No description provided for @investmentSuccessEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Investasi berhasil diperbarui'**
-  String get investmentSuccessEdit;
-
-  /// No description provided for @investmentSuccessDelete.
-  ///
-  /// In id, this message translates to:
-  /// **'Investasi berhasil dihapus'**
-  String get investmentSuccessDelete;
-
-  /// No description provided for @investmentErrorAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal menambahkan investasi'**
-  String get investmentErrorAdd;
-
-  /// No description provided for @investmentErrorEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal memperbarui investasi'**
-  String get investmentErrorEdit;
-
-  /// No description provided for @investmentErrorDelete.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal menghapus investasi'**
-  String get investmentErrorDelete;
-
-  /// No description provided for @investmentDeleteConfirmTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Hapus Investasi?'**
-  String get investmentDeleteConfirmTitle;
-
-  /// No description provided for @investmentDeleteConfirmMessage.
-  ///
-  /// In id, this message translates to:
-  /// **'Aset \"{name}\" akan dihapus permanen.'**
-  String investmentDeleteConfirmMessage(String name);
-
-  /// No description provided for @investmentTotalUnits.
-  ///
-  /// In id, this message translates to:
-  /// **'Total Kepemilikan'**
-  String get investmentTotalUnits;
-
-  /// No description provided for @investmentGram.
-  ///
-  /// In id, this message translates to:
-  /// **'gram'**
-  String get investmentGram;
-
   /// No description provided for @notifTitle.
   ///
   /// In id, this message translates to:
@@ -2443,12 +2149,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Anggaran'**
   String get navBudget;
-
-  /// No description provided for @navInvestment.
-  ///
-  /// In id, this message translates to:
-  /// **'Investasi'**
-  String get navInvestment;
 
   /// No description provided for @profileTitle.
   ///
@@ -3388,240 +3088,6 @@ abstract class AppLocalizations {
   /// **'Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.'**
   String get validationWalletHasTransactions;
 
-  /// No description provided for @investmentFormSymbol.
-  ///
-  /// In id, this message translates to:
-  /// **'Symbol'**
-  String get investmentFormSymbol;
-
-  /// No description provided for @investmentFormSymbolHint.
-  ///
-  /// In id, this message translates to:
-  /// **'TSLA, AAPL, etc.'**
-  String get investmentFormSymbolHint;
-
-  /// No description provided for @assetTypeTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Kelola Jenis Aset'**
-  String get assetTypeTitle;
-
-  /// No description provided for @assetTypeAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Tambah Jenis Aset'**
-  String get assetTypeAdd;
-
-  /// No description provided for @assetTypeEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Edit Jenis Aset'**
-  String get assetTypeEdit;
-
-  /// No description provided for @assetTypeEmpty.
-  ///
-  /// In id, this message translates to:
-  /// **'Belum ada jenis aset'**
-  String get assetTypeEmpty;
-
-  /// No description provided for @assetTypeEmptyHint.
-  ///
-  /// In id, this message translates to:
-  /// **'Ketuk + untuk membuat jenis aset pertama'**
-  String get assetTypeEmptyHint;
-
-  /// No description provided for @assetTypeFormName.
-  ///
-  /// In id, this message translates to:
-  /// **'Nama Aset'**
-  String get assetTypeFormName;
-
-  /// No description provided for @assetTypeFormNameHint.
-  ///
-  /// In id, this message translates to:
-  /// **'misal: Saham BCA, Tanah, Obligasi'**
-  String get assetTypeFormNameHint;
-
-  /// No description provided for @assetTypeFormSymbol.
-  ///
-  /// In id, this message translates to:
-  /// **'Symbol'**
-  String get assetTypeFormSymbol;
-
-  /// No description provided for @assetTypeFormSymbolHint.
-  ///
-  /// In id, this message translates to:
-  /// **'misal: BBCA, OBL'**
-  String get assetTypeFormSymbolHint;
-
-  /// No description provided for @assetTypeFormCurrentPrice.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga Saat Ini (IDR)'**
-  String get assetTypeFormCurrentPrice;
-
-  /// No description provided for @assetTypeFormCurrentPriceHint.
-  ///
-  /// In id, this message translates to:
-  /// **'Harga per unit saat ini'**
-  String get assetTypeFormCurrentPriceHint;
-
-  /// No description provided for @assetTypeSave.
-  ///
-  /// In id, this message translates to:
-  /// **'Simpan Jenis Aset'**
-  String get assetTypeSave;
-
-  /// No description provided for @assetTypeSuccessAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Jenis aset berhasil ditambahkan'**
-  String get assetTypeSuccessAdd;
-
-  /// No description provided for @assetTypeSuccessEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Jenis aset berhasil diperbarui'**
-  String get assetTypeSuccessEdit;
-
-  /// No description provided for @assetTypeSuccessDelete.
-  ///
-  /// In id, this message translates to:
-  /// **'Jenis aset berhasil dihapus'**
-  String get assetTypeSuccessDelete;
-
-  /// No description provided for @assetTypeErrorAdd.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal menambahkan jenis aset'**
-  String get assetTypeErrorAdd;
-
-  /// No description provided for @assetTypeErrorEdit.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal memperbarui jenis aset'**
-  String get assetTypeErrorEdit;
-
-  /// No description provided for @assetTypeErrorDelete.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal menghapus jenis aset'**
-  String get assetTypeErrorDelete;
-
-  /// No description provided for @assetTypeDeleteConfirmTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Hapus Jenis Aset?'**
-  String get assetTypeDeleteConfirmTitle;
-
-  /// No description provided for @assetTypeDeleteConfirmMessage.
-  ///
-  /// In id, this message translates to:
-  /// **'\"{name}\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.'**
-  String assetTypeDeleteConfirmMessage(String name);
-
-  /// No description provided for @assetTypeErrorDuplicateName.
-  ///
-  /// In id, this message translates to:
-  /// **'Nama jenis aset \"{name}\" sudah ada'**
-  String assetTypeErrorDuplicateName(String name);
-
-  /// No description provided for @investmentFormAssetType.
-  ///
-  /// In id, this message translates to:
-  /// **'Jenis Aset'**
-  String get investmentFormAssetType;
-
-  /// No description provided for @investmentFormAssetTypeHint.
-  ///
-  /// In id, this message translates to:
-  /// **'Pilih jenis aset'**
-  String get investmentFormAssetTypeHint;
-
-  /// No description provided for @investmentFormAssetTypeEmpty.
-  ///
-  /// In id, this message translates to:
-  /// **'Belum ada jenis aset. Buat terlebih dahulu.'**
-  String get investmentFormAssetTypeEmpty;
-
-  /// No description provided for @investmentManageAssetTypes.
-  ///
-  /// In id, this message translates to:
-  /// **'Kelola Jenis Aset'**
-  String get investmentManageAssetTypes;
-
-  /// No description provided for @investmentFormCreateAssetType.
-  ///
-  /// In id, this message translates to:
-  /// **'Buat Jenis Aset Baru'**
-  String get investmentFormCreateAssetType;
-
-  /// No description provided for @investmentFilterTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Filter & Urutkan'**
-  String get investmentFilterTitle;
-
-  /// No description provided for @investmentFilterSort.
-  ///
-  /// In id, this message translates to:
-  /// **'Urutkan'**
-  String get investmentFilterSort;
-
-  /// No description provided for @investmentFilterSortNewest.
-  ///
-  /// In id, this message translates to:
-  /// **'Terbaru'**
-  String get investmentFilterSortNewest;
-
-  /// No description provided for @investmentFilterSortOldest.
-  ///
-  /// In id, this message translates to:
-  /// **'Terlama'**
-  String get investmentFilterSortOldest;
-
-  /// No description provided for @investmentFilterSortHighest.
-  ///
-  /// In id, this message translates to:
-  /// **'Nilai Terbesar'**
-  String get investmentFilterSortHighest;
-
-  /// No description provided for @investmentFilterSortLowest.
-  ///
-  /// In id, this message translates to:
-  /// **'Nilai Terendah'**
-  String get investmentFilterSortLowest;
-
-  /// No description provided for @investmentFilterType.
-  ///
-  /// In id, this message translates to:
-  /// **'Tipe'**
-  String get investmentFilterType;
-
-  /// No description provided for @investmentFilterAll.
-  ///
-  /// In id, this message translates to:
-  /// **'Semua'**
-  String get investmentFilterAll;
-
-  /// No description provided for @investmentFilterSearch.
-  ///
-  /// In id, this message translates to:
-  /// **'Cari berdasarkan nama...'**
-  String get investmentFilterSearch;
-
-  /// No description provided for @investmentFilterApply.
-  ///
-  /// In id, this message translates to:
-  /// **'Terapkan Filter'**
-  String get investmentFilterApply;
-
-  /// No description provided for @investmentFilterReset.
-  ///
-  /// In id, this message translates to:
-  /// **'Reset'**
-  String get investmentFilterReset;
-
   /// No description provided for @debtLoanTitle.
   ///
   /// In id, this message translates to:
@@ -3993,6 +3459,936 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Silakan masukkan deskripsi transaksi'**
   String get textInputEmpty;
+
+  /// No description provided for @navInvestment.
+  ///
+  /// In id, this message translates to:
+  /// **'Investasi'**
+  String get navInvestment;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan'**
+  String get navSettings;
+
+  /// No description provided for @investmentTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Portofolio Investasi'**
+  String get investmentTitle;
+
+  /// No description provided for @investmentTotalValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Nilai Portofolio'**
+  String get investmentTotalValue;
+
+  /// No description provided for @investmentTotalInvested.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Modal'**
+  String get investmentTotalInvested;
+
+  /// No description provided for @investmentProfitLoss.
+  ///
+  /// In id, this message translates to:
+  /// **'Keuntungan/Kerugian'**
+  String get investmentProfitLoss;
+
+  /// No description provided for @investmentProfit.
+  ///
+  /// In id, this message translates to:
+  /// **'Untung'**
+  String get investmentProfit;
+
+  /// No description provided for @investmentLoss.
+  ///
+  /// In id, this message translates to:
+  /// **'Rugi'**
+  String get investmentLoss;
+
+  /// No description provided for @investmentEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada investasi'**
+  String get investmentEmpty;
+
+  /// No description provided for @investmentEmptyHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Tap + untuk mulai catat investasi pertamamu'**
+  String get investmentEmptyHint;
+
+  /// No description provided for @investmentAddAsset.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Investasi'**
+  String get investmentAddAsset;
+
+  /// No description provided for @investmentActiveAssets.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset Aktif'**
+  String get investmentActiveAssets;
+
+  /// No description provided for @investmentInactiveAssets.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset Tidak Aktif'**
+  String get investmentInactiveAssets;
+
+  /// No description provided for @investmentViewInactive.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Aset Tidak Aktif'**
+  String get investmentViewInactive;
+
+  /// No description provided for @investmentSectionGold.
+  ///
+  /// In id, this message translates to:
+  /// **'Emas'**
+  String get investmentSectionGold;
+
+  /// No description provided for @investmentSectionBitcoin.
+  ///
+  /// In id, this message translates to:
+  /// **'Bitcoin'**
+  String get investmentSectionBitcoin;
+
+  /// No description provided for @investmentSectionCustom.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset Kustom'**
+  String get investmentSectionCustom;
+
+  /// No description provided for @investmentTypeGold.
+  ///
+  /// In id, this message translates to:
+  /// **'Emas'**
+  String get investmentTypeGold;
+
+  /// No description provided for @investmentTypeBitcoin.
+  ///
+  /// In id, this message translates to:
+  /// **'Bitcoin'**
+  String get investmentTypeBitcoin;
+
+  /// No description provided for @investmentTypeCustom.
+  ///
+  /// In id, this message translates to:
+  /// **'Kustom'**
+  String get investmentTypeCustom;
+
+  /// No description provided for @investmentDetailTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Investasi'**
+  String get investmentDetailTitle;
+
+  /// No description provided for @investmentDetailCurrentPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Saat Ini'**
+  String get investmentDetailCurrentPrice;
+
+  /// No description provided for @investmentDetailAvgBuyPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata Harga Beli'**
+  String get investmentDetailAvgBuyPrice;
+
+  /// No description provided for @investmentDetailTotalUnits.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Unit'**
+  String get investmentDetailTotalUnits;
+
+  /// No description provided for @investmentDetailTotalInvested.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Modal'**
+  String get investmentDetailTotalInvested;
+
+  /// No description provided for @investmentDetailCurrentValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Nilai Saat Ini'**
+  String get investmentDetailCurrentValue;
+
+  /// No description provided for @investmentDetailProfitLoss.
+  ///
+  /// In id, this message translates to:
+  /// **'Keuntungan/Kerugian'**
+  String get investmentDetailProfitLoss;
+
+  /// No description provided for @investmentDetailTotalFee.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Biaya'**
+  String get investmentDetailTotalFee;
+
+  /// No description provided for @investmentDetailTransactions.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Transaksi'**
+  String get investmentDetailTransactions;
+
+  /// No description provided for @investmentDetailBuyHistory.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Beli'**
+  String get investmentDetailBuyHistory;
+
+  /// No description provided for @investmentDetailSellHistory.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Jual'**
+  String get investmentDetailSellHistory;
+
+  /// No description provided for @investmentDetailNoTransactions.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada transaksi'**
+  String get investmentDetailNoTransactions;
+
+  /// No description provided for @investmentDetailTopUp.
+  ///
+  /// In id, this message translates to:
+  /// **'Top Up'**
+  String get investmentDetailTopUp;
+
+  /// No description provided for @investmentDetailSell.
+  ///
+  /// In id, this message translates to:
+  /// **'Jual'**
+  String get investmentDetailSell;
+
+  /// No description provided for @investmentDetailSettings.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan'**
+  String get investmentDetailSettings;
+
+  /// No description provided for @investmentFormCreateTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Investasi Baru'**
+  String get investmentFormCreateTitle;
+
+  /// No description provided for @investmentFormTopUpTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Top Up Investasi'**
+  String get investmentFormTopUpTitle;
+
+  /// No description provided for @investmentFormEditTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Transaksi'**
+  String get investmentFormEditTitle;
+
+  /// No description provided for @investmentFormAssetName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Aset'**
+  String get investmentFormAssetName;
+
+  /// No description provided for @investmentFormAssetNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: Emas Antam, Bitcoin, Saham BBCA'**
+  String get investmentFormAssetNameHint;
+
+  /// No description provided for @investmentFormAssetNameRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama aset tidak boleh kosong'**
+  String get investmentFormAssetNameRequired;
+
+  /// No description provided for @investmentFormType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis Aset'**
+  String get investmentFormType;
+
+  /// No description provided for @investmentFormGoldType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis Emas'**
+  String get investmentFormGoldType;
+
+  /// No description provided for @investmentFormGoldTypeHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih jenis emas'**
+  String get investmentFormGoldTypeHint;
+
+  /// No description provided for @investmentFormCustomCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Aset'**
+  String get investmentFormCustomCategory;
+
+  /// No description provided for @investmentFormCustomCategoryHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih kategori'**
+  String get investmentFormCustomCategoryHint;
+
+  /// No description provided for @investmentFormUnits.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah Unit'**
+  String get investmentFormUnits;
+
+  /// No description provided for @investmentFormUnitsHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: 1.5'**
+  String get investmentFormUnitsHint;
+
+  /// No description provided for @investmentFormUnitsRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah unit tidak boleh kosong'**
+  String get investmentFormUnitsRequired;
+
+  /// No description provided for @investmentFormPricePerUnit.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga per Unit'**
+  String get investmentFormPricePerUnit;
+
+  /// No description provided for @investmentFormPricePerUnitRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga per unit tidak boleh kosong'**
+  String get investmentFormPricePerUnitRequired;
+
+  /// No description provided for @investmentFormFee.
+  ///
+  /// In id, this message translates to:
+  /// **'Biaya (opsional)'**
+  String get investmentFormFee;
+
+  /// No description provided for @investmentFormFeeHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Biaya admin/spread'**
+  String get investmentFormFeeHint;
+
+  /// No description provided for @investmentFormDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal Transaksi'**
+  String get investmentFormDate;
+
+  /// No description provided for @investmentFormNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan (opsional)'**
+  String get investmentFormNote;
+
+  /// No description provided for @investmentFormDeductWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Potong Saldo Dompet'**
+  String get investmentFormDeductWallet;
+
+  /// No description provided for @investmentFormDeductWalletHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Kurangi saldo dompet sesuai total pembelian'**
+  String get investmentFormDeductWalletHint;
+
+  /// No description provided for @investmentFormSelectWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Dompet'**
+  String get investmentFormSelectWallet;
+
+  /// No description provided for @investmentFormWalletRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih dompet terlebih dahulu'**
+  String get investmentFormWalletRequired;
+
+  /// No description provided for @investmentFormSave.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan'**
+  String get investmentFormSave;
+
+  /// No description provided for @investmentFormTotalCost.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Biaya Pembelian'**
+  String get investmentFormTotalCost;
+
+  /// No description provided for @investmentFormCurrentPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Saat Ini (opsional)'**
+  String get investmentFormCurrentPrice;
+
+  /// No description provided for @investmentSellTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Jual Investasi'**
+  String get investmentSellTitle;
+
+  /// No description provided for @investmentSellUnits.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah Unit Dijual'**
+  String get investmentSellUnits;
+
+  /// No description provided for @investmentSellUnitsHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Maks: {maxUnits}'**
+  String investmentSellUnitsHint(String maxUnits);
+
+  /// No description provided for @investmentSellUnitsRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Jumlah unit dijual tidak boleh kosong'**
+  String get investmentSellUnitsRequired;
+
+  /// No description provided for @investmentSellUnitsExceed.
+  ///
+  /// In id, this message translates to:
+  /// **'Unit dijual melebihi unit tersedia ({available})'**
+  String investmentSellUnitsExceed(String available);
+
+  /// No description provided for @investmentSellPricePerUnit.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Jual per Unit'**
+  String get investmentSellPricePerUnit;
+
+  /// No description provided for @investmentSellPriceRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga jual tidak boleh kosong'**
+  String get investmentSellPriceRequired;
+
+  /// No description provided for @investmentSellFee.
+  ///
+  /// In id, this message translates to:
+  /// **'Biaya Jual (opsional)'**
+  String get investmentSellFee;
+
+  /// No description provided for @investmentSellCreditWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah ke Saldo Dompet'**
+  String get investmentSellCreditWallet;
+
+  /// No description provided for @investmentSellCreditWalletHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambahkan hasil penjualan ke saldo dompet'**
+  String get investmentSellCreditWalletHint;
+
+  /// No description provided for @investmentSellTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Hasil Penjualan'**
+  String get investmentSellTotal;
+
+  /// No description provided for @investmentSellConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi Jual'**
+  String get investmentSellConfirm;
+
+  /// No description provided for @investmentSellAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Jual Semua'**
+  String get investmentSellAll;
+
+  /// No description provided for @investmentSettingsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan Aset'**
+  String get investmentSettingsTitle;
+
+  /// No description provided for @investmentSettingsName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Aset'**
+  String get investmentSettingsName;
+
+  /// No description provided for @investmentSettingsCurrentPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Saat Ini'**
+  String get investmentSettingsCurrentPrice;
+
+  /// No description provided for @investmentSettingsCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Aset'**
+  String get investmentSettingsCategory;
+
+  /// No description provided for @investmentSettingsCategoryHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih kategori untuk menentukan satuan'**
+  String get investmentSettingsCategoryHint;
+
+  /// No description provided for @investmentSettingsStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get investmentSettingsStatus;
+
+  /// No description provided for @investmentSettingsActive.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktif'**
+  String get investmentSettingsActive;
+
+  /// No description provided for @investmentSettingsInactive.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak Aktif'**
+  String get investmentSettingsInactive;
+
+  /// No description provided for @investmentSettingsSave.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan Perubahan'**
+  String get investmentSettingsSave;
+
+  /// No description provided for @investmentSettingsDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Investasi'**
+  String get investmentSettingsDelete;
+
+  /// No description provided for @investmentSettingsDeleteConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Yakin ingin menghapus \"{name}\"? Semua transaksi investasi ini juga akan terhapus.'**
+  String investmentSettingsDeleteConfirm(String name);
+
+  /// No description provided for @investmentSettingsDeleteWalletRevert.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet terkait akan dikembalikan.'**
+  String get investmentSettingsDeleteWalletRevert;
+
+  /// No description provided for @investmentGoldTypeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis Emas Kustom'**
+  String get investmentGoldTypeTitle;
+
+  /// No description provided for @investmentGoldTypeAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Jenis Emas'**
+  String get investmentGoldTypeAdd;
+
+  /// No description provided for @investmentGoldTypeEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Jenis Emas'**
+  String get investmentGoldTypeEdit;
+
+  /// No description provided for @investmentGoldTypeName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Jenis Emas'**
+  String get investmentGoldTypeName;
+
+  /// No description provided for @investmentGoldTypeNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: UBS, Galeri 24'**
+  String get investmentGoldTypeNameHint;
+
+  /// No description provided for @investmentGoldTypeNameRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama jenis emas tidak boleh kosong'**
+  String get investmentGoldTypeNameRequired;
+
+  /// No description provided for @investmentGoldTypeMax.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal {max} jenis emas kustom'**
+  String investmentGoldTypeMax(int max);
+
+  /// No description provided for @investmentGoldTypeDeleteConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Yakin hapus jenis emas \"{name}\"?'**
+  String investmentGoldTypeDeleteConfirm(String name);
+
+  /// No description provided for @investmentCategoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Aset Kustom'**
+  String get investmentCategoryTitle;
+
+  /// No description provided for @investmentCategoryAdd.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Kategori'**
+  String get investmentCategoryAdd;
+
+  /// No description provided for @investmentCategoryEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Kategori'**
+  String get investmentCategoryEdit;
+
+  /// No description provided for @investmentCategoryName.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Kategori'**
+  String get investmentCategoryName;
+
+  /// No description provided for @investmentCategoryNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: Saham, Reksadana'**
+  String get investmentCategoryNameHint;
+
+  /// No description provided for @investmentCategoryNameRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama kategori tidak boleh kosong'**
+  String get investmentCategoryNameRequired;
+
+  /// No description provided for @investmentCategoryUnitLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Satuan'**
+  String get investmentCategoryUnitLabel;
+
+  /// No description provided for @investmentCategoryUnitLabelHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Contoh: lot, unit, lembar'**
+  String get investmentCategoryUnitLabelHint;
+
+  /// No description provided for @investmentCategoryUnitLabelRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Satuan tidak boleh kosong'**
+  String get investmentCategoryUnitLabelRequired;
+
+  /// No description provided for @investmentCategoryMax.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal {max} kategori kustom'**
+  String investmentCategoryMax(int max);
+
+  /// No description provided for @investmentCategoryDeleteConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Yakin hapus kategori \"{name}\"?'**
+  String investmentCategoryDeleteConfirm(String name);
+
+  /// No description provided for @investmentCategoryManage.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelola Kategori'**
+  String get investmentCategoryManage;
+
+  /// No description provided for @investmentInactiveTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset Tidak Aktif'**
+  String get investmentInactiveTitle;
+
+  /// No description provided for @investmentInactiveEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada aset tidak aktif'**
+  String get investmentInactiveEmpty;
+
+  /// No description provided for @investmentInactiveHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset yang telah dijual sepenuhnya akan muncul di sini'**
+  String get investmentInactiveHint;
+
+  /// No description provided for @investmentInactiveReactivate.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktifkan Kembali'**
+  String get investmentInactiveReactivate;
+
+  /// No description provided for @investmentSuccessCreate.
+  ///
+  /// In id, this message translates to:
+  /// **'Investasi \"{name}\" berhasil ditambahkan'**
+  String investmentSuccessCreate(String name);
+
+  /// No description provided for @investmentSuccessTopUp.
+  ///
+  /// In id, this message translates to:
+  /// **'Top up berhasil'**
+  String get investmentSuccessTopUp;
+
+  /// No description provided for @investmentSuccessSell.
+  ///
+  /// In id, this message translates to:
+  /// **'Penjualan berhasil'**
+  String get investmentSuccessSell;
+
+  /// No description provided for @investmentSuccessEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi berhasil diperbarui'**
+  String get investmentSuccessEdit;
+
+  /// No description provided for @investmentSuccessDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Investasi berhasil dihapus'**
+  String get investmentSuccessDelete;
+
+  /// No description provided for @investmentSuccessUpdate.
+  ///
+  /// In id, this message translates to:
+  /// **'Investasi berhasil diperbarui'**
+  String get investmentSuccessUpdate;
+
+  /// No description provided for @investmentSuccessDeleteTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi berhasil dihapus'**
+  String get investmentSuccessDeleteTransaction;
+
+  /// No description provided for @investmentErrorGeneric.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memproses. Coba lagi.'**
+  String get investmentErrorGeneric;
+
+  /// No description provided for @investmentErrorLoad.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat data investasi'**
+  String get investmentErrorLoad;
+
+  /// No description provided for @investmentErrorCreate.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menambah investasi'**
+  String get investmentErrorCreate;
+
+  /// No description provided for @investmentErrorTopUp.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal top up investasi'**
+  String get investmentErrorTopUp;
+
+  /// No description provided for @investmentErrorSell.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menjual investasi'**
+  String get investmentErrorSell;
+
+  /// No description provided for @investmentErrorEdit.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memperbarui transaksi'**
+  String get investmentErrorEdit;
+
+  /// No description provided for @investmentErrorDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menghapus investasi'**
+  String get investmentErrorDelete;
+
+  /// No description provided for @investmentErrorDeleteTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menghapus transaksi'**
+  String get investmentErrorDeleteTransaction;
+
+  /// No description provided for @investmentUnitGram.
+  ///
+  /// In id, this message translates to:
+  /// **'gram'**
+  String get investmentUnitGram;
+
+  /// No description provided for @investmentUnitBtc.
+  ///
+  /// In id, this message translates to:
+  /// **'BTC'**
+  String get investmentUnitBtc;
+
+  /// No description provided for @investmentGoldAntam.
+  ///
+  /// In id, this message translates to:
+  /// **'Antam'**
+  String get investmentGoldAntam;
+
+  /// No description provided for @investmentGoldPerhiasan.
+  ///
+  /// In id, this message translates to:
+  /// **'Perhiasan'**
+  String get investmentGoldPerhiasan;
+
+  /// No description provided for @investmentPriceSource.
+  ///
+  /// In id, this message translates to:
+  /// **'Sumber: {source}'**
+  String investmentPriceSource(String source);
+
+  /// No description provided for @investmentLastUpdated.
+  ///
+  /// In id, this message translates to:
+  /// **'Diperbarui: {time}'**
+  String investmentLastUpdated(String time);
+
+  /// No description provided for @investmentBuyPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Beli'**
+  String get investmentBuyPrice;
+
+  /// No description provided for @investmentSellPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Harga Jual'**
+  String get investmentSellPrice;
+
+  /// No description provided for @investmentDirection.
+  ///
+  /// In id, this message translates to:
+  /// **'Tipe'**
+  String get investmentDirection;
+
+  /// No description provided for @investmentDirectionBuy.
+  ///
+  /// In id, this message translates to:
+  /// **'Beli'**
+  String get investmentDirectionBuy;
+
+  /// No description provided for @investmentDirectionSell.
+  ///
+  /// In id, this message translates to:
+  /// **'Jual'**
+  String get investmentDirectionSell;
+
+  /// No description provided for @investmentTransactionCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} transaksi'**
+  String investmentTransactionCount(int count);
+
+  /// No description provided for @investmentFormPriceSource.
+  ///
+  /// In id, this message translates to:
+  /// **'Sumber Harga'**
+  String get investmentFormPriceSource;
+
+  /// No description provided for @investmentFormPriceSourceHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih sumber harga'**
+  String get investmentFormPriceSourceHint;
+
+  /// No description provided for @investmentPriceSourceAntaremas.
+  ///
+  /// In id, this message translates to:
+  /// **'antaremas.com'**
+  String get investmentPriceSourceAntaremas;
+
+  /// No description provided for @investmentPriceSourceLogammulia.
+  ///
+  /// In id, this message translates to:
+  /// **'logammulia.com'**
+  String get investmentPriceSourceLogammulia;
+
+  /// No description provided for @investmentPriceSourceManual.
+  ///
+  /// In id, this message translates to:
+  /// **'Input Manual'**
+  String get investmentPriceSourceManual;
+
+  /// No description provided for @investmentPriceSourceIndodax.
+  ///
+  /// In id, this message translates to:
+  /// **'Indodax'**
+  String get investmentPriceSourceIndodax;
+
+  /// No description provided for @investmentPriceSourceCoingecko.
+  ///
+  /// In id, this message translates to:
+  /// **'CoinGecko'**
+  String get investmentPriceSourceCoingecko;
+
+  /// No description provided for @investmentPriceSourceLocked.
+  ///
+  /// In id, this message translates to:
+  /// **'Terkunci ke Manual untuk jenis emas ini'**
+  String get investmentPriceSourceLocked;
+
+  /// No description provided for @investmentManageGoldTypes.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelola Jenis Emas'**
+  String get investmentManageGoldTypes;
+
+  /// No description provided for @investmentDeleteTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Transaksi'**
+  String get investmentDeleteTransaction;
+
+  /// No description provided for @investmentDeleteTransactionConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan jika terkait.'**
+  String get investmentDeleteTransactionConfirm;
+
+  /// No description provided for @investmentSettingsRevertWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Kembalikan saldo dompet terkait'**
+  String get investmentSettingsRevertWallet;
+
+  /// No description provided for @investmentEditCurrentPrice.
+  ///
+  /// In id, this message translates to:
+  /// **'Perbarui Harga Pasar'**
+  String get investmentEditCurrentPrice;
+
+  /// No description provided for @investmentEditCurrentPriceHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan harga pasar saat ini'**
+  String get investmentEditCurrentPriceHint;
+
+  /// No description provided for @investmentSettingsGoldType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis Emas'**
+  String get investmentSettingsGoldType;
+
+  /// No description provided for @investmentSettingsPriceSource.
+  ///
+  /// In id, this message translates to:
+  /// **'Sumber Harga'**
+  String get investmentSettingsPriceSource;
+
+  /// No description provided for @investmentWalletRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Silakan pilih dompet terlebih dahulu'**
+  String get investmentWalletRequired;
 }
 
 class _AppLocalizationsDelegate

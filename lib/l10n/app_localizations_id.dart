@@ -1019,157 +1019,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get budgetUpcomingBudgets => 'Anggaran Mendatang';
 
   @override
-  String get investmentTitle => 'Investasi';
-
-  @override
-  String get investmentAdd => 'Tambah Investasi';
-
-  @override
-  String get investmentEdit => 'Edit Investasi';
-
-  @override
-  String get investmentDelete => 'Hapus Investasi';
-
-  @override
-  String get investmentPortfolio => 'Total Portofolio';
-
-  @override
-  String get investmentTotalValue => 'Nilai Saat Ini';
-
-  @override
-  String get investmentTotalPL => 'Total P&L';
-
-  @override
-  String get investmentTypeGold => 'Emas';
-
-  @override
-  String get investmentTypeBtc => 'Bitcoin';
-
-  @override
-  String get investmentTypeCustom => 'Kustom';
-
-  @override
-  String get investmentBuyPrice => 'Harga Beli';
-
-  @override
-  String get investmentCurrentPrice => 'Harga Saat Ini';
-
-  @override
-  String get investmentAmount => 'Jumlah';
-
-  @override
-  String get investmentUnit => 'unit';
-
-  @override
-  String get investmentEmptyTitle => 'Belum Ada Investasi';
-
-  @override
-  String get investmentEmptySubtitle =>
-      'Ketuk + untuk menambahkan aset pertama Anda';
-
-  @override
-  String get investmentRefreshPrice => 'Perbarui Harga';
-
-  @override
-  String get investmentFormTitleAdd => 'Tambah Investasi';
-
-  @override
-  String get investmentFormTitleEdit => 'Edit Investasi';
-
-  @override
-  String get investmentFormType => 'Tipe Aset';
-
-  @override
-  String get investmentFormName => 'Nama Aset';
-
-  @override
-  String get investmentFormNameHint => 'misal: Emas Antam, BTC';
-
-  @override
-  String get investmentFormNameRequired => 'Nama aset wajib diisi';
-
-  @override
-  String get investmentFormAmount => 'Jumlah Unit';
-
-  @override
-  String get investmentFormAmountRequired => 'Jumlah wajib diisi';
-
-  @override
-  String get investmentFormAmountInvalid => 'Jumlah harus lebih dari 0';
-
-  @override
-  String get investmentFormBuyPrice => 'Harga Beli per Unit (IDR)';
-
-  @override
-  String get investmentFormBuyPriceRequired => 'Harga beli wajib diisi';
-
-  @override
-  String get investmentFormBuyPriceInvalid => 'Harga beli harus lebih dari 0';
-
-  @override
-  String get investmentFormCurrentPrice => 'Harga Saat Ini (IDR)';
-
-  @override
-  String get investmentFormCurrentPriceHint => 'Opsional — untuk aset kustom';
-
-  @override
-  String get investmentFormDeductWallet => 'Potong dari Dompet';
-
-  @override
-  String get investmentFormDeductWalletSubtitle =>
-      'Saldo dompet akan dikurangi otomatis';
-
-  @override
-  String get investmentFormWallet => 'Pilih Dompet';
-
-  @override
-  String get investmentFormWalletRequired => 'Pilih dompet terlebih dahulu';
-
-  @override
-  String get investmentFormNotes => 'Catatan';
-
-  @override
-  String get investmentFormNotesHint => 'Opsional';
-
-  @override
-  String get investmentFormEstimatedCost => 'Estimasi Total Biaya';
-
-  @override
-  String get investmentSave => 'Simpan Investasi';
-
-  @override
-  String get investmentSuccessAdd => 'Investasi berhasil ditambahkan';
-
-  @override
-  String get investmentSuccessEdit => 'Investasi berhasil diperbarui';
-
-  @override
-  String get investmentSuccessDelete => 'Investasi berhasil dihapus';
-
-  @override
-  String get investmentErrorAdd => 'Gagal menambahkan investasi';
-
-  @override
-  String get investmentErrorEdit => 'Gagal memperbarui investasi';
-
-  @override
-  String get investmentErrorDelete => 'Gagal menghapus investasi';
-
-  @override
-  String get investmentDeleteConfirmTitle => 'Hapus Investasi?';
-
-  @override
-  String investmentDeleteConfirmMessage(String name) {
-    return 'Aset \"$name\" akan dihapus permanen.';
-  }
-
-  @override
-  String get investmentTotalUnits => 'Total Kepemilikan';
-
-  @override
-  String get investmentGram => 'gram';
-
-  @override
   String get notifTitle => 'Notifikasi';
 
   @override
@@ -1241,9 +1090,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get navBudget => 'Anggaran';
-
-  @override
-  String get navInvestment => 'Investasi';
 
   @override
   String get profileTitle => 'Profil';
@@ -1754,128 +1600,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.';
 
   @override
-  String get investmentFormSymbol => 'Symbol';
-
-  @override
-  String get investmentFormSymbolHint => 'TSLA, AAPL, etc.';
-
-  @override
-  String get assetTypeTitle => 'Kelola Jenis Aset';
-
-  @override
-  String get assetTypeAdd => 'Tambah Jenis Aset';
-
-  @override
-  String get assetTypeEdit => 'Edit Jenis Aset';
-
-  @override
-  String get assetTypeEmpty => 'Belum ada jenis aset';
-
-  @override
-  String get assetTypeEmptyHint => 'Ketuk + untuk membuat jenis aset pertama';
-
-  @override
-  String get assetTypeFormName => 'Nama Aset';
-
-  @override
-  String get assetTypeFormNameHint => 'misal: Saham BCA, Tanah, Obligasi';
-
-  @override
-  String get assetTypeFormSymbol => 'Symbol';
-
-  @override
-  String get assetTypeFormSymbolHint => 'misal: BBCA, OBL';
-
-  @override
-  String get assetTypeFormCurrentPrice => 'Harga Saat Ini (IDR)';
-
-  @override
-  String get assetTypeFormCurrentPriceHint => 'Harga per unit saat ini';
-
-  @override
-  String get assetTypeSave => 'Simpan Jenis Aset';
-
-  @override
-  String get assetTypeSuccessAdd => 'Jenis aset berhasil ditambahkan';
-
-  @override
-  String get assetTypeSuccessEdit => 'Jenis aset berhasil diperbarui';
-
-  @override
-  String get assetTypeSuccessDelete => 'Jenis aset berhasil dihapus';
-
-  @override
-  String get assetTypeErrorAdd => 'Gagal menambahkan jenis aset';
-
-  @override
-  String get assetTypeErrorEdit => 'Gagal memperbarui jenis aset';
-
-  @override
-  String get assetTypeErrorDelete => 'Gagal menghapus jenis aset';
-
-  @override
-  String get assetTypeDeleteConfirmTitle => 'Hapus Jenis Aset?';
-
-  @override
-  String assetTypeDeleteConfirmMessage(String name) {
-    return '\"$name\" dan semua investasi yang menggunakan jenis aset ini akan disembunyikan.';
-  }
-
-  @override
-  String assetTypeErrorDuplicateName(String name) {
-    return 'Nama jenis aset \"$name\" sudah ada';
-  }
-
-  @override
-  String get investmentFormAssetType => 'Jenis Aset';
-
-  @override
-  String get investmentFormAssetTypeHint => 'Pilih jenis aset';
-
-  @override
-  String get investmentFormAssetTypeEmpty =>
-      'Belum ada jenis aset. Buat terlebih dahulu.';
-
-  @override
-  String get investmentManageAssetTypes => 'Kelola Jenis Aset';
-
-  @override
-  String get investmentFormCreateAssetType => 'Buat Jenis Aset Baru';
-
-  @override
-  String get investmentFilterTitle => 'Filter & Urutkan';
-
-  @override
-  String get investmentFilterSort => 'Urutkan';
-
-  @override
-  String get investmentFilterSortNewest => 'Terbaru';
-
-  @override
-  String get investmentFilterSortOldest => 'Terlama';
-
-  @override
-  String get investmentFilterSortHighest => 'Nilai Terbesar';
-
-  @override
-  String get investmentFilterSortLowest => 'Nilai Terendah';
-
-  @override
-  String get investmentFilterType => 'Tipe';
-
-  @override
-  String get investmentFilterAll => 'Semua';
-
-  @override
-  String get investmentFilterSearch => 'Cari berdasarkan nama...';
-
-  @override
-  String get investmentFilterApply => 'Terapkan Filter';
-
-  @override
-  String get investmentFilterReset => 'Reset';
-
-  @override
   String get debtLoanTitle => 'Hutang & Piutang';
 
   @override
@@ -2086,4 +1810,505 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get textInputEmpty => 'Silakan masukkan deskripsi transaksi';
+
+  @override
+  String get navInvestment => 'Investasi';
+
+  @override
+  String get navSettings => 'Pengaturan';
+
+  @override
+  String get investmentTitle => 'Portofolio Investasi';
+
+  @override
+  String get investmentTotalValue => 'Total Nilai Portofolio';
+
+  @override
+  String get investmentTotalInvested => 'Total Modal';
+
+  @override
+  String get investmentProfitLoss => 'Keuntungan/Kerugian';
+
+  @override
+  String get investmentProfit => 'Untung';
+
+  @override
+  String get investmentLoss => 'Rugi';
+
+  @override
+  String get investmentEmpty => 'Belum ada investasi';
+
+  @override
+  String get investmentEmptyHint =>
+      'Tap + untuk mulai catat investasi pertamamu';
+
+  @override
+  String get investmentAddAsset => 'Tambah Investasi';
+
+  @override
+  String get investmentActiveAssets => 'Aset Aktif';
+
+  @override
+  String get investmentInactiveAssets => 'Aset Tidak Aktif';
+
+  @override
+  String get investmentViewInactive => 'Lihat Aset Tidak Aktif';
+
+  @override
+  String get investmentSectionGold => 'Emas';
+
+  @override
+  String get investmentSectionBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentSectionCustom => 'Aset Kustom';
+
+  @override
+  String get investmentTypeGold => 'Emas';
+
+  @override
+  String get investmentTypeBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentTypeCustom => 'Kustom';
+
+  @override
+  String get investmentDetailTitle => 'Detail Investasi';
+
+  @override
+  String get investmentDetailCurrentPrice => 'Harga Saat Ini';
+
+  @override
+  String get investmentDetailAvgBuyPrice => 'Rata-rata Harga Beli';
+
+  @override
+  String get investmentDetailTotalUnits => 'Total Unit';
+
+  @override
+  String get investmentDetailTotalInvested => 'Total Modal';
+
+  @override
+  String get investmentDetailCurrentValue => 'Nilai Saat Ini';
+
+  @override
+  String get investmentDetailProfitLoss => 'Keuntungan/Kerugian';
+
+  @override
+  String get investmentDetailTotalFee => 'Total Biaya';
+
+  @override
+  String get investmentDetailTransactions => 'Riwayat Transaksi';
+
+  @override
+  String get investmentDetailBuyHistory => 'Riwayat Beli';
+
+  @override
+  String get investmentDetailSellHistory => 'Riwayat Jual';
+
+  @override
+  String get investmentDetailNoTransactions => 'Belum ada transaksi';
+
+  @override
+  String get investmentDetailTopUp => 'Top Up';
+
+  @override
+  String get investmentDetailSell => 'Jual';
+
+  @override
+  String get investmentDetailSettings => 'Pengaturan';
+
+  @override
+  String get investmentFormCreateTitle => 'Investasi Baru';
+
+  @override
+  String get investmentFormTopUpTitle => 'Top Up Investasi';
+
+  @override
+  String get investmentFormEditTitle => 'Edit Transaksi';
+
+  @override
+  String get investmentFormAssetName => 'Nama Aset';
+
+  @override
+  String get investmentFormAssetNameHint =>
+      'Contoh: Emas Antam, Bitcoin, Saham BBCA';
+
+  @override
+  String get investmentFormAssetNameRequired => 'Nama aset tidak boleh kosong';
+
+  @override
+  String get investmentFormType => 'Jenis Aset';
+
+  @override
+  String get investmentFormGoldType => 'Jenis Emas';
+
+  @override
+  String get investmentFormGoldTypeHint => 'Pilih jenis emas';
+
+  @override
+  String get investmentFormCustomCategory => 'Kategori Aset';
+
+  @override
+  String get investmentFormCustomCategoryHint => 'Pilih kategori';
+
+  @override
+  String get investmentFormUnits => 'Jumlah Unit';
+
+  @override
+  String get investmentFormUnitsHint => 'Contoh: 1.5';
+
+  @override
+  String get investmentFormUnitsRequired => 'Jumlah unit tidak boleh kosong';
+
+  @override
+  String get investmentFormPricePerUnit => 'Harga per Unit';
+
+  @override
+  String get investmentFormPricePerUnitRequired =>
+      'Harga per unit tidak boleh kosong';
+
+  @override
+  String get investmentFormFee => 'Biaya (opsional)';
+
+  @override
+  String get investmentFormFeeHint => 'Biaya admin/spread';
+
+  @override
+  String get investmentFormDate => 'Tanggal Transaksi';
+
+  @override
+  String get investmentFormNote => 'Catatan (opsional)';
+
+  @override
+  String get investmentFormDeductWallet => 'Potong Saldo Dompet';
+
+  @override
+  String get investmentFormDeductWalletHint =>
+      'Kurangi saldo dompet sesuai total pembelian';
+
+  @override
+  String get investmentFormSelectWallet => 'Pilih Dompet';
+
+  @override
+  String get investmentFormWalletRequired => 'Pilih dompet terlebih dahulu';
+
+  @override
+  String get investmentFormSave => 'Simpan';
+
+  @override
+  String get investmentFormTotalCost => 'Total Biaya Pembelian';
+
+  @override
+  String get investmentFormCurrentPrice => 'Harga Saat Ini (opsional)';
+
+  @override
+  String get investmentSellTitle => 'Jual Investasi';
+
+  @override
+  String get investmentSellUnits => 'Jumlah Unit Dijual';
+
+  @override
+  String investmentSellUnitsHint(String maxUnits) {
+    return 'Maks: $maxUnits';
+  }
+
+  @override
+  String get investmentSellUnitsRequired =>
+      'Jumlah unit dijual tidak boleh kosong';
+
+  @override
+  String investmentSellUnitsExceed(String available) {
+    return 'Unit dijual melebihi unit tersedia ($available)';
+  }
+
+  @override
+  String get investmentSellPricePerUnit => 'Harga Jual per Unit';
+
+  @override
+  String get investmentSellPriceRequired => 'Harga jual tidak boleh kosong';
+
+  @override
+  String get investmentSellFee => 'Biaya Jual (opsional)';
+
+  @override
+  String get investmentSellCreditWallet => 'Tambah ke Saldo Dompet';
+
+  @override
+  String get investmentSellCreditWalletHint =>
+      'Tambahkan hasil penjualan ke saldo dompet';
+
+  @override
+  String get investmentSellTotal => 'Total Hasil Penjualan';
+
+  @override
+  String get investmentSellConfirm => 'Konfirmasi Jual';
+
+  @override
+  String get investmentSellAll => 'Jual Semua';
+
+  @override
+  String get investmentSettingsTitle => 'Pengaturan Aset';
+
+  @override
+  String get investmentSettingsName => 'Nama Aset';
+
+  @override
+  String get investmentSettingsCurrentPrice => 'Harga Saat Ini';
+
+  @override
+  String get investmentSettingsCategory => 'Kategori Aset';
+
+  @override
+  String get investmentSettingsCategoryHint =>
+      'Pilih kategori untuk menentukan satuan';
+
+  @override
+  String get investmentSettingsStatus => 'Status';
+
+  @override
+  String get investmentSettingsActive => 'Aktif';
+
+  @override
+  String get investmentSettingsInactive => 'Tidak Aktif';
+
+  @override
+  String get investmentSettingsSave => 'Simpan Perubahan';
+
+  @override
+  String get investmentSettingsDelete => 'Hapus Investasi';
+
+  @override
+  String investmentSettingsDeleteConfirm(String name) {
+    return 'Yakin ingin menghapus \"$name\"? Semua transaksi investasi ini juga akan terhapus.';
+  }
+
+  @override
+  String get investmentSettingsDeleteWalletRevert =>
+      'Saldo dompet terkait akan dikembalikan.';
+
+  @override
+  String get investmentGoldTypeTitle => 'Jenis Emas Kustom';
+
+  @override
+  String get investmentGoldTypeAdd => 'Tambah Jenis Emas';
+
+  @override
+  String get investmentGoldTypeEdit => 'Edit Jenis Emas';
+
+  @override
+  String get investmentGoldTypeName => 'Nama Jenis Emas';
+
+  @override
+  String get investmentGoldTypeNameHint => 'Contoh: UBS, Galeri 24';
+
+  @override
+  String get investmentGoldTypeNameRequired =>
+      'Nama jenis emas tidak boleh kosong';
+
+  @override
+  String investmentGoldTypeMax(int max) {
+    return 'Maksimal $max jenis emas kustom';
+  }
+
+  @override
+  String investmentGoldTypeDeleteConfirm(String name) {
+    return 'Yakin hapus jenis emas \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryTitle => 'Kategori Aset Kustom';
+
+  @override
+  String get investmentCategoryAdd => 'Tambah Kategori';
+
+  @override
+  String get investmentCategoryEdit => 'Edit Kategori';
+
+  @override
+  String get investmentCategoryName => 'Nama Kategori';
+
+  @override
+  String get investmentCategoryNameHint => 'Contoh: Saham, Reksadana';
+
+  @override
+  String get investmentCategoryNameRequired =>
+      'Nama kategori tidak boleh kosong';
+
+  @override
+  String get investmentCategoryUnitLabel => 'Satuan';
+
+  @override
+  String get investmentCategoryUnitLabelHint => 'Contoh: lot, unit, lembar';
+
+  @override
+  String get investmentCategoryUnitLabelRequired => 'Satuan tidak boleh kosong';
+
+  @override
+  String investmentCategoryMax(int max) {
+    return 'Maksimal $max kategori kustom';
+  }
+
+  @override
+  String investmentCategoryDeleteConfirm(String name) {
+    return 'Yakin hapus kategori \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryManage => 'Kelola Kategori';
+
+  @override
+  String get investmentInactiveTitle => 'Aset Tidak Aktif';
+
+  @override
+  String get investmentInactiveEmpty => 'Tidak ada aset tidak aktif';
+
+  @override
+  String get investmentInactiveHint =>
+      'Aset yang telah dijual sepenuhnya akan muncul di sini';
+
+  @override
+  String get investmentInactiveReactivate => 'Aktifkan Kembali';
+
+  @override
+  String investmentSuccessCreate(String name) {
+    return 'Investasi \"$name\" berhasil ditambahkan';
+  }
+
+  @override
+  String get investmentSuccessTopUp => 'Top up berhasil';
+
+  @override
+  String get investmentSuccessSell => 'Penjualan berhasil';
+
+  @override
+  String get investmentSuccessEdit => 'Transaksi berhasil diperbarui';
+
+  @override
+  String get investmentSuccessDelete => 'Investasi berhasil dihapus';
+
+  @override
+  String get investmentSuccessUpdate => 'Investasi berhasil diperbarui';
+
+  @override
+  String get investmentSuccessDeleteTransaction => 'Transaksi berhasil dihapus';
+
+  @override
+  String get investmentErrorGeneric => 'Gagal memproses. Coba lagi.';
+
+  @override
+  String get investmentErrorLoad => 'Gagal memuat data investasi';
+
+  @override
+  String get investmentErrorCreate => 'Gagal menambah investasi';
+
+  @override
+  String get investmentErrorTopUp => 'Gagal top up investasi';
+
+  @override
+  String get investmentErrorSell => 'Gagal menjual investasi';
+
+  @override
+  String get investmentErrorEdit => 'Gagal memperbarui transaksi';
+
+  @override
+  String get investmentErrorDelete => 'Gagal menghapus investasi';
+
+  @override
+  String get investmentErrorDeleteTransaction => 'Gagal menghapus transaksi';
+
+  @override
+  String get investmentUnitGram => 'gram';
+
+  @override
+  String get investmentUnitBtc => 'BTC';
+
+  @override
+  String get investmentGoldAntam => 'Antam';
+
+  @override
+  String get investmentGoldPerhiasan => 'Perhiasan';
+
+  @override
+  String investmentPriceSource(String source) {
+    return 'Sumber: $source';
+  }
+
+  @override
+  String investmentLastUpdated(String time) {
+    return 'Diperbarui: $time';
+  }
+
+  @override
+  String get investmentBuyPrice => 'Harga Beli';
+
+  @override
+  String get investmentSellPrice => 'Harga Jual';
+
+  @override
+  String get investmentDirection => 'Tipe';
+
+  @override
+  String get investmentDirectionBuy => 'Beli';
+
+  @override
+  String get investmentDirectionSell => 'Jual';
+
+  @override
+  String investmentTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get investmentFormPriceSource => 'Sumber Harga';
+
+  @override
+  String get investmentFormPriceSourceHint => 'Pilih sumber harga';
+
+  @override
+  String get investmentPriceSourceAntaremas => 'antaremas.com';
+
+  @override
+  String get investmentPriceSourceLogammulia => 'logammulia.com';
+
+  @override
+  String get investmentPriceSourceManual => 'Input Manual';
+
+  @override
+  String get investmentPriceSourceIndodax => 'Indodax';
+
+  @override
+  String get investmentPriceSourceCoingecko => 'CoinGecko';
+
+  @override
+  String get investmentPriceSourceLocked =>
+      'Terkunci ke Manual untuk jenis emas ini';
+
+  @override
+  String get investmentManageGoldTypes => 'Kelola Jenis Emas';
+
+  @override
+  String get investmentDeleteTransaction => 'Hapus Transaksi';
+
+  @override
+  String get investmentDeleteTransactionConfirm =>
+      'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan jika terkait.';
+
+  @override
+  String get investmentSettingsRevertWallet =>
+      'Kembalikan saldo dompet terkait';
+
+  @override
+  String get investmentEditCurrentPrice => 'Perbarui Harga Pasar';
+
+  @override
+  String get investmentEditCurrentPriceHint => 'Masukkan harga pasar saat ini';
+
+  @override
+  String get investmentSettingsGoldType => 'Jenis Emas';
+
+  @override
+  String get investmentSettingsPriceSource => 'Sumber Harga';
+
+  @override
+  String get investmentWalletRequired => 'Silakan pilih dompet terlebih dahulu';
 }

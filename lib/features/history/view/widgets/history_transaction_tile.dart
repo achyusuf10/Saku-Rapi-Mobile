@@ -6,9 +6,9 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -71,13 +71,7 @@ class HistoryTransactionTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: typeColor.withValues(alpha: 0.1),
               ),
-              child: Center(
-                child: FaIcon(
-                  _iconForTransaction(transaction),
-                  size: 16.w,
-                  color: typeColor,
-                ),
-              ),
+              child: Center(child: _buildIcon(transaction, typeColor)),
             ),
             SizedBox(width: 12.w),
 
@@ -238,11 +232,16 @@ class HistoryTransactionTile extends StatelessWidget {
     return tx.note ?? tx.type.toDbValue();
   }
 
-  IconData _iconForTransaction(TransactionModel tx) {
+  Widget _buildIcon(TransactionModel tx, Color fallbackColor) {
     if (tx.categoryIcon != null) {
-      return CategoryIconMapper.getIcon(tx.categoryIcon!);
+      return SakuCategoryIcon.withColor(
+        iconName: tx.categoryIcon!,
+        color: fallbackColor,
+        size: 16,
+        showBackground: false,
+      );
     }
-    return switch (tx.type) {
+    final iconData = switch (tx.type) {
       TransactionTypeEnum.income => FontAwesomeIcons.arrowTrendUp,
       TransactionTypeEnum.expense => FontAwesomeIcons.arrowTrendDown,
       TransactionTypeEnum.transfer => FontAwesomeIcons.arrowRightArrowLeft,
@@ -251,6 +250,7 @@ class HistoryTransactionTile extends StatelessWidget {
       TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
       TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
     };
+    return FaIcon(iconData, size: 16.w, color: fallbackColor);
   }
 
   /// Warna icon: prioritaskan categoryColor, fallback ke warna tipe transaksi.

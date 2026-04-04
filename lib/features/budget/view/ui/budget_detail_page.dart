@@ -5,12 +5,11 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -86,26 +85,15 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
   Widget _buildHeader(BuildContext context) {
     final colors = context.colors;
-    final catColor = parseHexColor(_budget.category?.color);
 
     return Row(
       children: [
-        Container(
-          width: 52.w,
-          height: 52.w,
-          decoration: BoxDecoration(
-            color: catColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(14.r),
-          ),
-          child: Center(
-            child: FaIcon(
-              CategoryIconMapper.getIcon(
-                _budget.category?.icon ?? 'circle-question',
-              ),
-              size: 22.w,
-              color: catColor,
-            ),
-          ),
+        SakuCategoryIcon.raw(
+          iconName: _budget.category?.icon ?? 'circleQuestion',
+          colorHex: _budget.category?.color ?? '#6B7280',
+          size: 52,
+          iconSize: 22,
+          borderRadius: 14,
         ),
         SizedBox(width: 16.w),
         Expanded(

@@ -4,11 +4,11 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -273,7 +273,9 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
           icon: const Icon(Icons.close),
           onPressed: () => _handleClose(context),
         ),
-        title: Text(_isEditMode ? l10n.budgetFormTitleEdit : l10n.budgetFormTitleAdd),
+        title: Text(
+          _isEditMode ? l10n.budgetFormTitleEdit : l10n.budgetFormTitleAdd,
+        ),
         centerTitle: false,
       ),
       body: ListView(
@@ -283,12 +285,16 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
 
           // ─── Pilih Kategori Expense ───
           _BudgetFormSectionTile(
-            icon: _pickedCategory != null
-                ? CategoryIconMapper.getIcon(_pickedCategory!.icon)
-                : FontAwesomeIcons.circleQuestion,
-            iconColor: _pickedCategory != null
-                ? _parseHexColor(_pickedCategory!.color)
-                : colors.textSecondary,
+            icon: FontAwesomeIcons.circleQuestion,
+            iconColor: colors.textSecondary,
+            leading: _pickedCategory != null
+                ? SakuCategoryIcon(
+                    category: _pickedCategory!,
+                    size: 36,
+                    iconSize: 16,
+                    borderRadius: 10,
+                  )
+                : null,
             title: _pickedCategory?.name ?? l10n.budgetFormCategorySelect,
             titleColor: _pickedCategory != null
                 ? colors.textPrimary
@@ -372,22 +378,11 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
       return;
     }
     final l10n = context.l10n;
-    final shouldDiscard = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.budgetFormDiscardTitle),
-        content: Text(l10n.budgetFormDiscardMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.budgetCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.budgetFormDiscardConfirm),
-          ),
-        ],
-      ),
+    final shouldDiscard = await context.showConfirmDialog(
+      title: l10n.budgetFormDiscardTitle,
+      message: l10n.budgetFormDiscardMessage,
+      confirmLabel: l10n.budgetFormDiscardConfirm,
+      cancelLabel: l10n.budgetCancel,
     );
     if (shouldDiscard == true && context.mounted) {
       Navigator.of(context).pop();
@@ -666,22 +661,12 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
                   final isSelected =
                       !_appliesToAllWallets && _pickedWallet?.id == wallet.id;
                   return ListTile(
-                    leading: Container(
-                      width: 32.w,
-                      height: 32.w,
-                      decoration: BoxDecoration(
-                        color: _parseHexColor(
-                          wallet.color,
-                        ).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Center(
-                        child: FaIcon(
-                          CategoryIconMapper.getIcon(wallet.icon),
-                          size: 14.w,
-                          color: _parseHexColor(wallet.color),
-                        ),
-                      ),
+                    leading: SakuCategoryIcon.raw(
+                      iconName: wallet.icon,
+                      colorHex: wallet.color,
+                      size: 32,
+                      iconSize: 14,
+                      borderRadius: 8,
                     ),
                     title: Text(
                       wallet.name,
@@ -731,10 +716,14 @@ class _BudgetFormSectionTile extends StatelessWidget {
     this.iconColor,
     this.titleColor,
     this.onTap,
+    this.leading,
   });
 
-  /// Ikon yang ditampilkan di leading.
+  /// Ikon yang ditampilkan di leading (fallback jika [leading] null).
   final IconData icon;
+
+  /// Widget custom leading (override icon + iconColor).
+  final Widget? leading;
 
   /// Label utama yang ditampilkan.
   final String title;
@@ -753,21 +742,25 @@ class _BudgetFormSectionTile extends StatelessWidget {
     final colors = context.colors;
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 4.w),
-      leading: Container(
-        width: 36.w,
-        height: 36.w,
-        decoration: BoxDecoration(
-          color: (iconColor ?? colors.textSecondary).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: Center(
-          child: FaIcon(
-            icon,
-            size: 16.w,
-            color: iconColor ?? colors.textSecondary,
+      leading:
+          leading ??
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: (iconColor ?? colors.textSecondary).withValues(
+                alpha: 0.12,
+              ),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Center(
+              child: FaIcon(
+                icon,
+                size: 16.w,
+                color: iconColor ?? colors.textSecondary,
+              ),
+            ),
           ),
-        ),
-      ),
       title: Text(
         title,
         style: TextStyleConstants.b1.copyWith(
