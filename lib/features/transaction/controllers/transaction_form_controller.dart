@@ -228,7 +228,11 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         .copyWith(
           type: type,
           // Default sub-category saat masuk tab Hutang/Piutang
-          debtLoanKind: isDebtLoan ? DebtLoanKindEnum.debt : null,
+          debtLoanKind: isDebtLoan
+              ? (type == TransactionTypeEnum.loan
+                    ? DebtLoanKindEnum.loan
+                    : DebtLoanKindEnum.debt)
+              : null,
         )
         .clearFields(
           clearDestWallet: !type.requiresDestinationWallet,
@@ -493,11 +497,25 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   // ─── Load untuk mode edit ───
 
   /// Pre-fill form dari transaksi yang sudah ada (mode edit).
+  ///
+  /// Setelah dipanggil, caller WAJIB memanggil [resolveEditLookups]
+  /// untuk mengisi wallet, destinationWallet, dan category dari provider.
   void loadExistingTransaction(TransactionModel txn) {
     final items = txn.items.isNotEmpty
         ? txn.items
         : [TransactionItemModel(amount: txn.totalAmount)];
     final keys = List.generate(items.length, (_) => _generateKey());
+
+    // Tentukan debtLoanKind dari settlement_kind atau base type
+    DebtLoanKindEnum? debtLoanKind;
+    if (txn.settlementKind != null) {
+      debtLoanKind = txn.settlementKind;
+    } else if (txn.type == TransactionTypeEnum.debt) {
+      debtLoanKind = DebtLoanKindEnum.debt;
+    } else if (txn.type == TransactionTypeEnum.loan) {
+      debtLoanKind = DebtLoanKindEnum.loan;
+    }
+
     state = TransactionFormState(
       existingTransaction: txn,
       type: txn.type,
@@ -518,8 +536,36 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       dueDate: txn.dueDate,
       items: items,
       itemKeys: keys,
+      debtLoanKind: debtLoanKind,
     );
-    // Wallet and category are loaded separately via widget
+  }
+
+  /// Resolve wallet, destinationWallet, category setelah [loadExistingTransaction].
+  ///
+  /// Dipanggil dari UI layer yang punya akses ke provider wallet/category.
+  void resolveEditLookups({
+    WalletModel? wallet,
+    WalletModel? destinationWallet,
+    CategoryModel? category,
+  }) {
+    state = state.copyWith(
+      wallet: wallet,
+      destinationWallet: destinationWallet,
+      category: category,
+    );
+    // Jika single item dan category tersedia, sync ke item juga
+    if (category != null && state.items.length == 1) {
+      state = state.copyWith(
+        items: [
+          state.items.first.copyWith(
+            categoryId: category.id,
+            categoryName: category.name,
+            categoryIcon: category.icon,
+            categoryColor: category.color,
+          ),
+        ],
+      );
+    }
   }
 
   // ─── Submit ───

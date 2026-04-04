@@ -26,6 +26,7 @@ class VoiceParseResultModel {
     this.categoryKeyword,
     this.note,
     this.type = TransactionTypeEnum.expense,
+    this.debtLoanKind,
     this.provider,
     this.rawTranscript,
     this.suggestedWallet,
@@ -53,6 +54,12 @@ class VoiceParseResultModel {
 
   /// Tipe transaksi: expense, income, transfer, debt, loan.
   final TransactionTypeEnum type;
+
+  /// Jenis operasi hutang/piutang dari AI.
+  ///
+  /// Nilai: `null` (bukan debt/loan), `"debt"`, `"loan"`,
+  /// `"debt_payment"` (pelunasan hutang), `"loan_collection"` (penerimaan piutang).
+  final String? debtLoanKind;
 
   /// Provider AI yang digunakan: 'gemini', 'groq', atau 'local'.
   final String? provider;
@@ -101,6 +108,7 @@ class VoiceParseResultModel {
       categoryKeyword: data['categoryKeyword'] as String?,
       note: data['note'] as String?,
       type: type,
+      debtLoanKind: data['debtLoanKind'] as String?,
       provider: provider ?? json['provider'] as String?,
       rawTranscript: rawTranscript,
       suggestedWallet: data['suggestedWallet'] as String?,
@@ -119,6 +127,7 @@ class VoiceParseResultModel {
     String? categoryKeyword,
     String? note,
     TransactionTypeEnum type = TransactionTypeEnum.expense,
+    String? debtLoanKind,
     String? rawTranscript,
     String? suggestedWallet,
     String? destinationWallet,
@@ -133,6 +142,7 @@ class VoiceParseResultModel {
       categoryKeyword: categoryKeyword,
       note: note,
       type: type,
+      debtLoanKind: debtLoanKind,
       provider: 'local',
       rawTranscript: rawTranscript,
       suggestedWallet: suggestedWallet,
@@ -163,6 +173,7 @@ class VoiceParseResultModel {
       'categoryKeyword': categoryKeyword,
       'note': note,
       'type': type.toDbValue(),
+      'debtLoanKind': debtLoanKind,
       'provider': provider,
       'rawTranscript': rawTranscript,
       'suggestedWallet': suggestedWallet,
@@ -180,6 +191,7 @@ class VoiceParseResultModel {
     String? categoryKeyword,
     String? note,
     TransactionTypeEnum? type,
+    String? debtLoanKind,
     String? provider,
     String? rawTranscript,
     String? suggestedWallet,
@@ -195,6 +207,7 @@ class VoiceParseResultModel {
       categoryKeyword: categoryKeyword ?? this.categoryKeyword,
       note: note ?? this.note,
       type: type ?? this.type,
+      debtLoanKind: debtLoanKind ?? this.debtLoanKind,
       provider: provider ?? this.provider,
       rawTranscript: rawTranscript ?? this.rawTranscript,
       suggestedWallet: suggestedWallet ?? this.suggestedWallet,

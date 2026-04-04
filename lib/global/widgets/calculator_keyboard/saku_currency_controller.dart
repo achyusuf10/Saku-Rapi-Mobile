@@ -45,8 +45,14 @@ class SakuCurrencyController extends TextEditingController {
   @override
   void dispose() {
     _isDisposed = true;
-    // Clear active SEBELUM dispose untuk mencegah race condition
-    clearActive();
+    // Defer clearActive ke post-frame agar ValueNotifier tidak fire
+    // saat widget tree sedang unmount (menyebabkan assertion error).
+    // Keyboard sudah handle isDisposed check di ValueListenableBuilder.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (activeController.value == this) {
+        activeController.value = null;
+      }
+    });
     super.dispose();
   }
 

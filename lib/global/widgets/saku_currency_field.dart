@@ -164,13 +164,21 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
   @override
   void dispose() {
     // PENTING: Clear active dan evaluate SEBELUM dispose
-    // untuk mencegah keyboard widget akses disposed controller
+    // untuk mencegah keyboard widget akses disposed controller.
+    // Gunakan addPostFrameCallback agar ValueNotifier tidak fire
+    // saat widget tree sedang unmount (menyebabkan assertion error).
     if (!_controller.isDisposed) {
       // Auto-evaluate expression sebelum dispose
       if (_controller.hasOperator) {
         _controller.evaluate();
       }
-      _controller.clearActive();
+      // Defer clearActive agar tidak trigger rebuild saat unmount
+      final controllerRef = _controller;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!controllerRef.isDisposed) {
+          controllerRef.clearActive();
+        }
+      });
     }
     _focusNode.removeListener(_onFocusChanged);
     if (_isInternalFocusNode) {

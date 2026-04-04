@@ -33,9 +33,11 @@ import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_wall
 import 'package:app_saku_rapi/features/transaction/view/widgets/unpaid_transaction_picker_sheet.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:app_saku_rapi/utils/function/compress_image_func.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,11 +81,14 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
       if (widget.existingTransaction != null) {
-        ctrl.loadExistingTransaction(widget.existingTransaction!);
+        final txn = widget.existingTransaction!;
+        ctrl.loadExistingTransaction(txn);
         // Pre-fill text fields
-        _merchantController.text =
-            widget.existingTransaction!.merchantName ?? '';
-        _noteController.text = widget.existingTransaction!.note ?? '';
+        _merchantController.text = txn.merchantName ?? '';
+        _noteController.text = txn.note ?? '';
+
+        // ── Resolve wallet, destWallet, category dari provider ──
+        _resolveEditLookups(ctrl, txn);
       } else {
         // Single-item mode default
         ctrl.initSingleItem();
@@ -112,6 +117,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   ///
   /// Membaca [pendingVoicePrefillProvider], jika ada data:
   /// - Set type (expense/income/transfer/debt/loan)
+  /// - Set debtLoanKind (debt/loan/debt_payment/loan_collection)
   /// - Set total amount
   /// - Set note
   /// - Set date
@@ -130,6 +136,17 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     // Set type
     ctrl.setType(voiceResult.type);
+
+    // Set debtLoanKind (pelunasan/penerimaan dari AI)
+    if (voiceResult.debtLoanKind != null &&
+        voiceResult.debtLoanKind!.isNotEmpty) {
+      try {
+        final kind = DebtLoanKindEnum.fromString(voiceResult.debtLoanKind!);
+        ctrl.setDebtLoanKind(kind);
+      } catch (_) {
+        // Unknown kind → abaikan, pakai default dari setType
+      }
+    }
 
     // Set amount
     if (voiceResult.amount != null && voiceResult.amount! > 0) {
@@ -237,6 +254,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   ///
   /// Membaca [pendingOcrPrefillProvider], jika ada data:
   /// - Set type sesuai hasil AI (expense/income/transfer/debt/loan)
+  /// - Set debtLoanKind jika settlement (debt_payment/loan_collection)
   /// - Set merchant name
   /// - Set date
   /// - Set total amount
@@ -252,9 +270,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     // Clear provider agar tidak ke-apply ulang
     ref.read(pendingOcrPrefillProvider.notifier).state = null;
 
-    // Set type dari OCR result
+    // Set type dari OCR result (termasuk settlement → debt/loan)
     final type = _parseOcrType(ocrResult.type);
     ctrl.setType(type);
+
+    // Set debtLoanKind untuk settlement (debt_payment / loan_collection)
+    final ocrDebtLoanKind = _parseOcrDebtLoanKind(ocrResult.type);
+    if (ocrDebtLoanKind != null) {
+      ctrl.setDebtLoanKind(ocrDebtLoanKind);
+    }
 
     // Merchant / note
     if (ocrResult.merchantName != null && ocrResult.merchantName!.isNotEmpty) {
@@ -416,6 +440,44 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     ctrl.setLocalAttachment(imageFile.path);
   }
 
+  /// Resolve wallet, destination wallet, dan category untuk mode edit.
+  ///
+  /// Dipanggil setelah [TransactionFormController.loadExistingTransaction]
+  /// karena controller tidak punya akses ke provider wallet/category.
+  void _resolveEditLookups(
+    TransactionFormController ctrl,
+    TransactionModel txn,
+  ) {
+    // ── Wallet ──
+    final wallets = ref.read(walletListProvider);
+    final wallet = wallets.where((w) => w.id == txn.walletId).firstOrNull;
+
+    // ── Destination wallet (transfer) ──
+    WalletModel? destWallet;
+    if (txn.destinationWalletId != null) {
+      destWallet = wallets
+          .where((w) => w.id == txn.destinationWalletId)
+          .firstOrNull;
+    }
+
+    // ── Category (dari item pertama — single-item atau top-level) ──
+    CategoryModel? category;
+    final firstCatId = txn.items.isNotEmpty ? txn.items.first.categoryId : null;
+    if (firstCatId != null) {
+      category = ref
+          .read(categoryControllerProvider)
+          .categories
+          .where((c) => c.id == firstCatId)
+          .firstOrNull;
+    }
+
+    ctrl.resolveEditLookups(
+      wallet: wallet,
+      destinationWallet: destWallet,
+      category: category,
+    );
+  }
+
   /// Match top-level categoryId/categoryKeyword ke kategori user.
   void _matchOcrTopLevelCategory(
     TransactionFormController ctrl,
@@ -459,14 +521,33 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   }
 
   /// Parse OCR type string ke [TransactionTypeEnum].
+  ///
+  /// Settlement types (debt_payment, loan_collection) di-map ke base type
+  /// (debt, loan). Gunakan [_parseOcrDebtLoanKind] untuk mendapatkan
+  /// [DebtLoanKindEnum] yang spesifik.
   TransactionTypeEnum _parseOcrType(String rawType) {
     return switch (rawType.toLowerCase()) {
       'income' => TransactionTypeEnum.income,
       'expense' => TransactionTypeEnum.expense,
       'transfer' => TransactionTypeEnum.transfer,
       'debt' => TransactionTypeEnum.debt,
+      'debt_payment' => TransactionTypeEnum.debt,
       'loan' => TransactionTypeEnum.loan,
+      'loan_collection' => TransactionTypeEnum.loan,
       _ => TransactionTypeEnum.expense,
+    };
+  }
+
+  /// Parse OCR type string ke [DebtLoanKindEnum] jika applicable.
+  ///
+  /// Returns null untuk non-debt/loan types.
+  DebtLoanKindEnum? _parseOcrDebtLoanKind(String rawType) {
+    return switch (rawType.toLowerCase()) {
+      'debt' => DebtLoanKindEnum.debt,
+      'loan' => DebtLoanKindEnum.loan,
+      'debt_payment' => DebtLoanKindEnum.debtPayment,
+      'loan_collection' => DebtLoanKindEnum.loanCollection,
+      _ => null,
     };
   }
 
@@ -702,33 +783,13 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                     // ─── Settlement note (simplified) ───
                     if (formState.isSettlementMode) ...[
                       SizedBox(height: 6.h),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.surface,
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                        child: TextField(
-                          controller: _noteController,
-                          style: TextStyleConstants.b2.copyWith(
-                            color: colors.textPrimary,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: l10n.debtLoanSettlementNote,
-                            hintStyle: TextStyleConstants.b2.copyWith(
-                              color: colors.textSecondary,
-                            ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          onChanged: (val) => ref
-                              .read(transactionFormControllerProvider.notifier)
-                              .setNote(val.isEmpty ? null : val),
-                        ),
+                      SakuTextField(
+                        controller: _noteController,
+
+                        hint: l10n.debtLoanSettlementNote,
+                        onChanged: (val) => ref
+                            .read(transactionFormControllerProvider.notifier)
+                            .setNote(val.isEmpty ? null : val),
                       ),
                     ],
 

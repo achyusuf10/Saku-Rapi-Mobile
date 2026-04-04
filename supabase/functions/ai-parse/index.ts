@@ -122,31 +122,46 @@ function buildVoiceSystemPrompt(): string {
   return `You are a financial transaction parser for an Indonesian personal finance app. Parse voice input text (Indonesian/English) into structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"amount":<number|null>,"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>"}
+{"isTransaction":<bool>,"amount":<number|null>,"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>"}
 
 CORE RULES:
 1. "isTransaction": true ONLY if input describes a financial event. Random words, greetings, nonsense → false, all other fields null/default.
 2. Type detection (default "expense"):
    - income: gaji, terima uang, dapat uang, masuk, bonus, thr, pendapatan, freelance, dividen
    - transfer: transfer, kirim uang, pindah saldo, pindahin, kirim ke
-   - debt: hutang, ngutang, pinjem uang, pinjam
-   - loan: piutang, kasih pinjam, minjemin, dipinjam, kasih hutang
-3. Amount — convert Indonesian shorthand: "25rb"→25000, "1.5jt"→1500000, "150ribu"→150000, "2juta"→2000000. Return plain number.
-4. "categoryId": pick the best matching category short ID from the provided list. ONLY pick IDs whose prefix matches the type (e-prefix for expense, i-prefix for income). For transfer/debt/loan → null.
-5. "categoryKeyword": always provide a single lowercase keyword fallback (e.g. makan, transportasi, belanja, gaji).
-6. "suggestedWallet": wallet/payment method if mentioned (e.g. "pakai GoPay"→"GoPay", "dari BCA"→"BCA").
-7. "destinationWallet": ONLY for transfer (e.g. "transfer dari BCA ke GoPay"→"GoPay").
-8. "withPerson": person name for debt/loan (e.g. "hutang ke Budi"→"Budi"). null if none.
-9. "date": today is ${today}. Convert: "kemarin"→yesterday, "tadi"/"barusan"→today, "2 hari lalu"→2 days ago, "minggu lalu"→7 days ago. No reference → null.
-10. "note": remaining descriptive text not captured by other fields.
+   - debt: hutang, ngutang, pinjem uang, pinjam (BUAT HUTANG BARU — user berhutang ke orang lain)
+   - loan: piutang, kasih pinjam, minjemin, dipinjam, kasih hutang (BUAT PIUTANG BARU — orang lain berhutang ke user)
+3. "debtLoanKind" — for debt/loan transactions, detect sub-type:
+   - "debt": hutang baru (user berhutang, e.g. "hutang ke Budi 50rb", "pinjam uang dari Ani")
+   - "loan": piutang baru (orang lain berhutang ke user, e.g. "Budi pinjam 100rb", "kasih pinjam ke Ani")
+   - "debt_payment": PELUNASAN hutang (user membayar kembali, e.g. "bayar hutang ke Budi", "lunasi hutang", "cicil hutang Ani 50rb")
+   - "loan_collection": PENERIMAAN piutang (orang lain membayar ke user, e.g. "terima piutang dari Budi", "Ani bayar hutang 100rb", "tagih piutang")
+   - null: for non-debt/loan types (expense, income, transfer)
+4. Amount — convert Indonesian shorthand: "25rb"→25000, "1.5jt"→1500000, "150ribu"→150000, "2juta"→2000000. Return plain number.
+5. "categoryId": pick the best matching category short ID from the provided list. ONLY pick IDs whose prefix matches the type (e-prefix for expense, i-prefix for income). For transfer/debt/loan → null.
+6. "categoryKeyword": always provide a single lowercase keyword fallback (e.g. makan, transportasi, belanja, gaji).
+7. "suggestedWallet": wallet/payment method if mentioned (e.g. "pakai GoPay"→"GoPay", "dari BCA"→"BCA").
+8. "destinationWallet": ONLY for transfer (e.g. "transfer dari BCA ke GoPay"→"GoPay").
+9. "withPerson": person name for debt/loan and settlements (e.g. "hutang ke Budi"→"Budi", "bayar hutang Ani"→"Ani"). null if none.
+10. "date": today is ${today}. Convert: "kemarin"→yesterday, "tadi"/"barusan"→today, "2 hari lalu"→2 days ago, "minggu lalu"→7 days ago. No reference → null.
+11. "note": remaining descriptive text not captured by other fields.
 
 FEW-SHOT EXAMPLES:
 
 Input: "beli makan 25rb pakai gopay"
-Output: {"isTransaction":true,"amount":25000,"categoryId":"e1","categoryKeyword":"makan","note":null,"type":"expense","suggestedWallet":"GoPay","destinationWallet":null,"withPerson":null,"merchantName":null,"date":null}
+Output: {"isTransaction":true,"amount":25000,"categoryId":"e1","categoryKeyword":"makan","note":null,"type":"expense","debtLoanKind":null,"suggestedWallet":"GoPay","destinationWallet":null,"withPerson":null,"merchantName":null,"date":null}
 
 Input: "gaji masuk 5.5jt kemarin di BCA"
-Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
+Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","debtLoanKind":null,"suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
+
+Input: "hutang ke Budi 200rb"
+Output: {"isTransaction":true,"amount":200000,"categoryId":null,"categoryKeyword":"hutang","note":null,"type":"debt","debtLoanKind":"debt","suggestedWallet":null,"destinationWallet":null,"withPerson":"Budi","merchantName":null,"date":null}
+
+Input: "bayar hutang ke Ani 150rb"
+Output: {"isTransaction":true,"amount":150000,"categoryId":null,"categoryKeyword":"hutang","note":"pelunasan hutang","type":"debt","debtLoanKind":"debt_payment","suggestedWallet":null,"destinationWallet":null,"withPerson":"Ani","merchantName":null,"date":null}
+
+Input: "terima piutang dari Budi 100rb"
+Output: {"isTransaction":true,"amount":100000,"categoryId":null,"categoryKeyword":"piutang","note":"penerimaan piutang","type":"loan","debtLoanKind":"loan_collection","suggestedWallet":null,"destinationWallet":null,"withPerson":"Budi","merchantName":null,"date":null}
 
 Return ONLY the JSON object.`;
 }
@@ -168,7 +183,7 @@ function buildOcrSystemPrompt(): string {
   return `You are a financial document parser for an Indonesian personal finance app. Analyze receipt/invoice/document images and extract structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","note":"<string|null>"}
+{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","note":"<string|null>"}
 
 CORE RULES:
 1. "isTransaction": true ONLY if image shows a financial document (receipt, invoice, transfer proof, salary slip, etc). Random photos, memes, selfies → false.
@@ -176,16 +191,18 @@ CORE RULES:
    - expense: purchase receipts, bills, invoices
    - income: salary slips, payment received, "LUNAS/PAID" invoices, freelance payment proof
    - transfer: bank/e-wallet transfer proofs ("Transfer berhasil", "Kirim ke ...")
-   - debt: IOUs, "hutang" documents, loan agreements where user owes someone
-   - loan: IOUs where someone owes user, "piutang" documents
+   - debt: IOUs, "hutang" documents, loan agreements where user owes someone (HUTANG BARU)
+   - loan: IOUs where someone owes user, "piutang" documents (PIUTANG BARU)
+   - debt_payment: proof of paying back a debt ("bayar hutang", "pelunasan", "cicilan hutang")
+   - loan_collection: proof of receiving payment for a loan ("terima piutang", "penerimaan piutang", "tagihan dibayar")
 3. EXPENSE items: extract line items with name, qty (default 1), unitPrice, subtotal. Ignore tax/discount/change/subtotal summary lines. subtotal = qty × unitPrice.
-4. INCOME/TRANSFER/DEBT/LOAN: "items" must be empty array [].
-5. "categoryId": for expense items, pick best matching category short ID (e-prefix). For income top-level, pick i-prefix ID. For transfer/debt/loan → null.
+4. INCOME/TRANSFER/DEBT/LOAN/DEBT_PAYMENT/LOAN_COLLECTION: "items" must be empty array [].
+5. "categoryId": for expense items, pick best matching category short ID (e-prefix). For income top-level, pick i-prefix ID. For transfer/debt/loan/debt_payment/loan_collection → null.
 6. "categoryKeyword": always provide a single lowercase keyword fallback.
 7. All amounts as plain numbers (15000 not "Rp 15.000"). Indonesian patterns: "Rp", "x", "@" for qty/unit.
 8. "suggestedWallet": payment method if visible (BCA, GoPay, OVO, DANA, Cash, Tunai).
 9. "destinationWallet": ONLY for transfer type.
-10. "withPerson": person name for debt/loan.
+10. "withPerson": person name for debt/loan/debt_payment/loan_collection.
 11. "date": extract as yyyy-MM-dd. Today is ${today}. If not visible → null.
 12. "note": additional context not captured by other fields.
 
