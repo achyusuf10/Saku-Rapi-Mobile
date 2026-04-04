@@ -2,7 +2,12 @@
 
 ## State Management
 Menggunakan package : flutter_riverpod ^3.3.1
-**TIDAK MENGGUNAKAN** Riverpod Generator, jadi jangan nulis controllernya kayak yang pakai generator
+**TIDAK MENGGUNAKAN** Riverpod Generator, jadi jangan nulis controllernya kayak yang pakai generator.
+
+* **Aturan Provider:** Gunakan `StateNotifierProvider`, `FutureProvider`, atau `Provider` biasa sesuai kebutuhan.
+* **Auto Dispose:** Jika sebuah Provider/Controller hanya digunakan di satu layar tertentu dan tidak perlu menyimpan *state* saat layar ditutup, **WAJIB** gunakan `.autoDispose` (contoh: `StateNotifierProvider.autoDispose<...>`). Ini krusial untuk mencegah kebocoran memori (*memory leak*).
+* **Bentuk State:** Saat mengambil data dari Supabase, biasakan menggunakan `AsyncValue<T>` untuk *state* di dalam UI, dan selalu tangani ketiga kondisinya dengan `.when(data: ..., loading: ..., error: ...)`.
+
 
 ## 1. Aturan Dasar, Konvensi & Kualitas Kode
 * **Framework & Tooling:** WAJIB gunakan FVM (`fvm flutter <command>`). State Management menggunakan Riverpod. Routing menggunakan GoRouter.
@@ -235,3 +240,34 @@ Text(DateFormat('dd MMMM yyyy').format(date))
 
 ### Catatan Locale
 Semua extension di `date_time_ext.dart` secara otomatis mengikuti locale aktif aplikasi (`appContext?.locale.languageCode`), sehingga nama hari dan bulan otomatis tampil dalam Bahasa Indonesia atau Bahasa Inggris sesuai pengaturan user — **tanpa hardcode locale**.
+
+## 12. Aturan Supabase Edge Functions & Sinkronisasi Offline
+
+* **Teknologi Edge Functions:** Fitur AI (Gemini/Grok) menggunakan Supabase Edge Functions. Ingat, Edge Functions berjalan di atas **Deno dan TypeScript**, bukan Node.js. Saat men-generate kode fungsi, pastikan menggunakan *syntax* Deno (misal: `Deno.env.get('GEMINI_API_KEY')`).
+
+## 13. Penanganan Edge Cases di UI (Wajib Diterapkan)
+
+Untuk menjaga kualitas visual aplikasi (sesuai tema *simpel & elegan*), dilarang membiarkan layar kosong atau menampilkan komponen *default* bawaan Flutter saat memuat data atau terjadi *error*.
+
+* **Empty State:** Jika `ListView` atau data kosong, DILARANG menampilkan layar putih kosong. WAJIB tampilkan widget `SakuEmptyState` (berisi ilustrasi dan pesan persuasif).
+* **Shimmer Loading:** Saat memuat (*fetch*) data dari server (terutama di Dashboard, History, atau list transaksi), WAJIB gunakan efek `Shimmer` sebagai *placeholder*. DILARANG menggunakan `CircularProgressIndicator` standar di tengah layar.
+* **Error State:** Jika pemanggilan ke Supabase atau API gagal, tangkap pesan *error* tersebut dan tampilkan dalam bentuk `SakuErrorWidget` yang dilengkapi dengan tombol "Coba Lagi" (*Retry*).
+
+## 14. Kontrak DataState (Untuk Layer Repository)
+
+Sebagai pengingat untuk AI/Copilot, fungsi di `RemoteDataSource` mengembalikan `DataState<T>`, dan `Repository` memprosesnya. Format kasar dari `DataState` yang kita gunakan adalah *sealed class* (atau *pattern matching* sejenisnya). Saat men-generate kode di *Repository*, pastikan selalu menggunakan `.map()` atau `.when()` untuk membedah *success* dan *error*:
+
+```dart
+// Contoh penerapan di dalam Repository
+final response = await remoteDataSource.getWallets();
+
+return response.map(
+  success: (data) {
+    // Lakukan pemetaan data ke model UI jika perlu
+    return data.value; 
+  },
+  error: (err) {
+    AppLogger.call('[Sync] [WalletRepository] Error: ${err.message}');
+    throw Exception(err.message); // Atau lempar custom exception
+  },
+);
