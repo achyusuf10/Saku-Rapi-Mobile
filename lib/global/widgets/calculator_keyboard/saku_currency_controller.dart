@@ -36,6 +36,20 @@ class SakuCurrencyController extends TextEditingController {
     }
   }
 
+  /// Flag untuk mengecek apakah controller sudah di-dispose.
+  bool _isDisposed = false;
+
+  /// Apakah controller sudah di-dispose.
+  bool get isDisposed => _isDisposed;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    // Clear active SEBELUM dispose untuk mencegah race condition
+    clearActive();
+    super.dispose();
+  }
+
   // ═══════════════════════════════════════════════════════════
   //  Static Active Controller Management
   // ═══════════════════════════════════════════════════════════
@@ -153,7 +167,9 @@ class SakuCurrencyController extends TextEditingController {
   /// Cek apakah text mengandung operator matematika.
   ///
   /// Return true jika ada operator (+, -, ×, ÷) yang bukan leading minus.
+  /// Return false jika controller sudah di-dispose.
   bool get hasOperator {
+    if (_isDisposed) return false;
     if (text.isEmpty) return false;
     // Match operator yang ada setelah digit (bukan leading minus)
     return RegExp(r'\d\s*[+\-×÷]\s*').hasMatch(text);
@@ -161,9 +177,10 @@ class SakuCurrencyController extends TextEditingController {
 
   /// Nilai numerik hasil evaluasi ekspresi.
   ///
-  /// Return 0.0 jika ekspresi invalid atau kosong.
+  /// Return 0.0 jika ekspresi invalid, kosong, atau controller sudah di-dispose.
   /// Jika ada operator, akan dievaluasi. Jika tidak, parse langsung.
   double get numericValue {
+    if (_isDisposed) return 0.0;
     final cleaned = _cleanForEvaluation(text);
     if (cleaned.isEmpty) return 0.0;
 

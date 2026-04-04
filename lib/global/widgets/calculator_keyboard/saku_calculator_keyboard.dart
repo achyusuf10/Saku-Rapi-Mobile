@@ -58,8 +58,8 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
     return ValueListenableBuilder<SakuCurrencyController?>(
       valueListenable: SakuCurrencyController.activeController,
       builder: (context, controller, _) {
-        // Jika tidak ada controller aktif, tampilkan placeholder
-        if (controller == null) {
+        // Jika tidak ada controller aktif atau sudah di-dispose, tampilkan placeholder
+        if (controller == null || controller.isDisposed) {
           return SizedBox(height: height);
         }
 
