@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/features/investment/controllers/investment_control
 import 'package:app_saku_rapi/features/investment/models/custom_asset_category_model.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/custom_asset_category_dialog.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_bottom_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
@@ -42,7 +43,7 @@ class _InvestmentSettingsSheetState
     extends ConsumerState<InvestmentSettingsSheet> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _priceController;
+  late SakuCurrencyController _priceController;
 
   String? _selectedCategoryId;
   String? _selectedPriceSource;
@@ -55,10 +56,8 @@ class _InvestmentSettingsSheetState
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: _asset.name);
-    _priceController = TextEditingController(
-      text: _asset.currentPrice > 0
-          ? _asset.currentPrice.toStringAsFixed(0)
-          : '',
+    _priceController = SakuCurrencyController(
+      initialValue: _asset.currentPrice > 0 ? _asset.currentPrice : null,
     );
     _selectedCategoryId = _asset.customCategoryId;
     _selectedPriceSource = _asset.priceSource;
@@ -261,7 +260,7 @@ class _InvestmentSettingsSheetState
 
     final updated = _asset.copyWith(
       name: _nameController.text.trim(),
-      currentPrice: _parseCurrency(_priceController.text),
+      currentPrice: _priceController.numericValue,
       customCategoryId: categoryId,
       unitLabel: unitLabel,
       priceSource: _selectedPriceSource ?? _asset.priceSource,
@@ -362,11 +361,5 @@ class _InvestmentSettingsSheetState
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
-  }
-
-  double _parseCurrency(String text) {
-    if (text.isEmpty) return 0;
-    final cleaned = text.replaceAll(RegExp(r'[^0-9]'), '');
-    return double.tryParse(cleaned) ?? 0;
   }
 }

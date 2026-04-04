@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +41,7 @@ class WalletAdjustSheet extends ConsumerStatefulWidget {
 
 class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _balanceController;
+  late final SakuCurrencyController _balanceController;
   double _targetBalance = 0;
   bool _isSaving = false;
 
@@ -49,7 +50,7 @@ class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
   @override
   void initState() {
     super.initState();
-    _balanceController = TextEditingController();
+    _balanceController = SakuCurrencyController();
   }
 
   @override

@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
@@ -84,7 +85,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   late final String _snapshotPeriodKey;
 
   /// Controller untuk text field jumlah anggaran.
-  final _amountTextController = TextEditingController();
+  final _amountTextController = SakuCurrencyController();
 
   // ═══════════════ Lifecycle ═══════════════
 

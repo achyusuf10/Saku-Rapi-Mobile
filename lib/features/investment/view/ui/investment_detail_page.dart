@@ -10,6 +10,7 @@ import 'package:app_saku_rapi/features/investment/models/investment_asset_model.
 import 'package:app_saku_rapi/features/investment/models/investment_transaction_model.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_sell_sheet.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_settings_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_dialog.dart';
@@ -259,8 +260,8 @@ class _AssetSummaryCard extends ConsumerWidget {
 
   void _showEditPriceDialog(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final priceController = TextEditingController(
-      text: asset.currentPrice > 0 ? asset.currentPrice.toStringAsFixed(0) : '',
+    final priceController = SakuCurrencyController(
+      initialValue: asset.currentPrice > 0 ? asset.currentPrice : null,
     );
 
     SakuDialog.show(
@@ -278,8 +279,7 @@ class _AssetSummaryCard extends ConsumerWidget {
       },
       labelPositive: l10n.investmentFormSave,
       onTapPositive: () async {
-        final cleaned = priceController.text.replaceAll(RegExp(r'[^0-9]'), '');
-        final price = double.tryParse(cleaned) ?? 0;
+        final price = priceController.numericValue;
         priceController.dispose();
         Navigator.of(context).pop();
         if (price <= 0) return;

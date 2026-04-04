@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_mo
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
@@ -88,7 +89,7 @@ class DebtLoanSettlementSheet extends ConsumerStatefulWidget {
 
 class _DebtLoanSettlementSheetState
     extends ConsumerState<DebtLoanSettlementSheet> {
-  final _amountController = TextEditingController();
+  final _amountController = SakuCurrencyController();
   final _noteController = TextEditingController();
   DebtLoanTransactionModel? _selectedTransaction;
   WalletModel? _selectedWallet;
@@ -97,9 +98,7 @@ class _DebtLoanSettlementSheetState
   void initState() {
     super.initState();
     if (widget.isEditMode) {
-      _amountController.text = widget.settlement!.totalAmount
-          .toInt()
-          .toString();
+      _amountController.setDoubleValue(widget.settlement!.totalAmount);
       _noteController.text = widget.settlement!.note ?? '';
     } else {
       _selectedTransaction = widget.transactions.first;
@@ -273,9 +272,7 @@ class _DebtLoanSettlementSheetState
               hint: '0',
               suffixIcon: GestureDetector(
                 onTap: () {
-                  _amountController.text = _maxAmount.toCurrency(
-                    withPrefix: false,
-                  );
+                  _amountController.setDoubleValue(_maxAmount);
                 },
                 child: Padding(
                   padding: EdgeInsets.only(right: 8.w),
@@ -355,7 +352,7 @@ class _DebtLoanSettlementSheetState
 
   Future<void> _submit() async {
     final l10n = context.l10n;
-    final amount = ThousandInputFormatter.parseNumber(_amountController.text);
+    final amount = _amountController.numericValue;
 
     if (amount <= 0) {
       context.showAppAlert(

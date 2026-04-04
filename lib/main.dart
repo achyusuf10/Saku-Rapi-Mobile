@@ -5,9 +5,11 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
 import 'package:app_saku_rapi/features/notification/services/notification_service.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:app_saku_rapi/utils/services/screen_util_service.dart';
+import 'package:customized_keyboard/customized_keyboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -119,6 +121,12 @@ class SakuRapiApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           title: 'SakuRapi',
           themeMode: themeMode,
+          builder: (context, child) {
+            return KeyboardWrapper(
+              keyboards: [SakuCalculatorKeyboard()],
+              child: child ?? SizedBox(),
+            );
+          },
           theme: AppThemes.lightTheme(context),
           darkTheme: AppThemes.darkTheme(context),
           locale: locale,

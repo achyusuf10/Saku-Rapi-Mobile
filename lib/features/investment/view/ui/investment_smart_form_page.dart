@@ -9,6 +9,7 @@ import 'package:app_saku_rapi/features/investment/models/investment_asset_model.
 import 'package:app_saku_rapi/features/investment/view/widgets/custom_asset_category_dialog.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/custom_gold_type_dialog.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_dialog.dart';
@@ -43,10 +44,10 @@ class _InvestmentSmartFormPageState
   // mereka manage text state sendiri (tidak perlu masuk Riverpod).
   final _nameController = TextEditingController();
   final _unitsController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _feeController = TextEditingController();
+  final _priceController = SakuCurrencyController();
+  final _feeController = SakuCurrencyController();
   final _noteController = TextEditingController();
-  final _currentPriceController = TextEditingController();
+  final _currentPriceController = SakuCurrencyController();
 
   @override
   void initState() {
@@ -65,9 +66,9 @@ class _InvestmentSmartFormPageState
         formState.existingTx != null) {
       final tx = formState.existingTx!;
       _unitsController.text = tx.units.toString();
-      _priceController.text = tx.pricePerUnit.toStringAsFixed(0);
+      _priceController.setDoubleValue(tx.pricePerUnit);
       if (tx.fee > 0) {
-        _feeController.text = tx.fee.toStringAsFixed(0);
+        _feeController.setDoubleValue(tx.fee);
       }
       _noteController.text = tx.note ?? '';
     }
@@ -649,7 +650,7 @@ class _CustomCategoryDropdown extends ConsumerWidget {
 class _CurrentPriceSection extends ConsumerWidget {
   const _CurrentPriceSection({required this.controller});
 
-  final TextEditingController controller;
+  final SakuCurrencyController controller;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -851,10 +852,10 @@ class _SubmitButtonSection extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController unitsController;
-  final TextEditingController priceController;
-  final TextEditingController feeController;
+  final SakuCurrencyController priceController;
+  final SakuCurrencyController feeController;
   final TextEditingController noteController;
-  final TextEditingController currentPriceController;
+  final SakuCurrencyController currentPriceController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -919,19 +920,13 @@ class _SubmitButtonSection extends ConsumerWidget {
     ctrl.submit(
       name: nameController.text.trim(),
       units: double.tryParse(unitsController.text) ?? 0,
-      pricePerUnit: _parseCurrency(priceController.text),
-      fee: _parseCurrency(feeController.text),
-      currentPrice: _parseCurrency(currentPriceController.text),
+      pricePerUnit: priceController.numericValue,
+      fee: feeController.numericValue,
+      currentPrice: currentPriceController.numericValue,
       note: noteController.text.trim().isNotEmpty
           ? noteController.text.trim()
           : null,
     );
-  }
-
-  double _parseCurrency(String text) {
-    if (text.isEmpty) return 0;
-    final cleaned = text.replaceAll(RegExp(r'[^0-9]'), '');
-    return double.tryParse(cleaned) ?? 0;
   }
 }
 

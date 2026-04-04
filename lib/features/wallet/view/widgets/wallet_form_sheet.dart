@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/features/category/view/widgets/category_color_pick
 import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
@@ -44,7 +45,7 @@ class WalletFormSheet extends ConsumerStatefulWidget {
 class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
-  late final TextEditingController _balanceController;
+  late final SakuCurrencyController _balanceController;
 
   late String _selectedIcon;
   late String _selectedColor;
@@ -59,10 +60,8 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
     super.initState();
     final w = widget.editWallet;
     _nameController = TextEditingController(text: w?.name ?? '');
-    _balanceController = TextEditingController(
-      text: w != null && w.initialBalance > 0
-          ? ThousandInputFormatter.formatNumber(w.initialBalance)
-          : '',
+    _balanceController = SakuCurrencyController(
+      initialValue: w?.initialBalance,
     );
     _selectedIcon = w?.icon ?? 'wallet';
     _selectedColor = w?.color ?? '#10B981';

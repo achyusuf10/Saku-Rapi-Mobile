@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/features/investment/controllers/investment_control
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_bottom_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
@@ -37,7 +38,7 @@ class InvestmentSellSheet extends ConsumerStatefulWidget {
 class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
   final _formKey = GlobalKey<FormState>();
   final _unitsController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _priceController = SakuCurrencyController();
   final _noteController = TextEditingController();
   late final TextEditingController _dateController;
 
@@ -57,7 +58,7 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
     );
     // Pre-fill sell price with current market price
     if (_asset.currentPrice > 0) {
-      _priceController.text = _asset.currentPrice.toStringAsFixed(0);
+      _priceController.setDoubleValue(_asset.currentPrice);
     }
   }
 
@@ -316,7 +317,7 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
       listenable: Listenable.merge([_unitsController, _priceController]),
       builder: (context, _) {
         final units = double.tryParse(_unitsController.text) ?? 0;
-        final price = _parseCurrency(_priceController.text);
+        final price = _priceController.numericValue;
         final total = units * price;
 
         return Row(
@@ -349,7 +350,7 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
     final l10n = context.l10n;
     final controller = ref.read(investmentControllerProvider.notifier);
     final units = double.parse(_unitsController.text);
-    final pricePerUnit = _parseCurrency(_priceController.text);
+    final pricePerUnit = _priceController.numericValue;
 
     try {
       final result = await controller.sellAsset(
@@ -378,11 +379,5 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
-  }
-
-  double _parseCurrency(String text) {
-    if (text.isEmpty) return 0;
-    final cleaned = text.replaceAll(RegExp(r'[^0-9]'), '');
-    return double.tryParse(cleaned) ?? 0;
   }
 }
