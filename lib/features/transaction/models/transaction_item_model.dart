@@ -1,71 +1,161 @@
-/// Model data untuk tabel `transaction_items` di Supabase.
+/// Model data untuk item/detail dalam satu transaksi.
 ///
-/// Setiap transaksi MINIMAL memiliki 1 item.
-/// Multi-item hanya berlaku untuk tipe 'expense'.
+/// Merepresentasikan satu record dari tabel `public.transaction_items`.
+/// Setiap transaksi wajib punya minimal 1 item.
+/// `sum(amount)` semua item harus sama dengan `transactions.total_amount`.
 class TransactionItemModel {
   const TransactionItemModel({
-    required this.id,
-    required this.transactionId,
-    required this.amount,
-    required this.sortOrder,
+    this.id,
+    this.transactionId,
     this.categoryId,
+    this.itemName,
+    this.qty = 1,
+    this.unitPrice,
+    required this.amount,
     this.note,
+    this.sortOrder = 0,
+    // Joined display fields
+    this.categoryName,
+    this.categoryIcon,
+    this.categoryColor,
   });
 
-  /// Primary key (uuid).
-  final String id;
-
-  /// FK ke `transactions.id`.
-  final String transactionId;
-
-  /// FK ke `categories.id`. Nullable (misal untuk adjustment).
+  final String? id;
+  final String? transactionId;
   final String? categoryId;
+  final String? itemName;
+  final double qty;
+  final double? unitPrice;
 
-  /// Nominal item ini.
+  /// Subtotal authoritative. Jika qty * unitPrice tersedia, harus = amount.
   final double amount;
-
-  /// Catatan per-item (opsional).
   final String? note;
-
-  /// Urutan tampilan dalam list multi-item.
   final int sortOrder;
 
+  // ─── Display-only joined fields ───
+  final String? categoryName;
+  final String? categoryIcon;
+  final String? categoryColor;
+
+  // ───────────────── Factory ─────────────────
+
   factory TransactionItemModel.fromMap(Map<String, dynamic> map) {
+    // Handle nested category from Supabase join
+    final catData = map['categories'];
+    String? catName;
+    String? catIcon;
+    String? catColor;
+    if (catData is Map<String, dynamic>) {
+      catName = catData['name'] as String?;
+      catIcon = catData['icon'] as String?;
+      catColor = catData['color'] as String?;
+    }
+
     return TransactionItemModel(
-      id: map['id'] as String,
-      transactionId: map['transaction_id'] as String,
+      id: map['id'] as String?,
+      transactionId: map['transaction_id'] as String?,
       categoryId: map['category_id'] as String?,
-      amount: (map['amount'] as num).toDouble(),
+      itemName: map['item_name'] as String?,
+      qty: _toDouble(map['qty']),
+      unitPrice: map['unit_price'] != null
+          ? _toDouble(map['unit_price'])
+          : null,
+      amount: _toDouble(map['amount']),
       note: map['note'] as String?,
-      sortOrder: map['sort_order'] as int? ?? 0,
+      sortOrder: (map['sort_order'] as int?) ?? 0,
+      categoryName: catName,
+      categoryIcon: catIcon,
+      categoryColor: catColor,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // ───────────────── Serialization ─────────────────
+
+  /// Map untuk RPC `p_items` JSONB array element.
+  Map<String, dynamic> toRpcMap() {
     return {
-      'transaction_id': transactionId,
-      if (categoryId != null) 'category_id': categoryId,
+      'category_id': categoryId,
+      'item_name': itemName,
+      'qty': qty,
+      'unit_price': unitPrice,
       'amount': amount,
-      if (note != null) 'note': note,
+      'note': note,
       'sort_order': sortOrder,
     };
   }
+
+  /// Map untuk Hive cache (full data termasuk ID).
+  Map<String, dynamic> toFullMap() {
+    return {
+      'id': id,
+      'transaction_id': transactionId,
+      'category_id': categoryId,
+      'item_name': itemName,
+      'qty': qty,
+      'unit_price': unitPrice,
+      'amount': amount,
+      'note': note,
+      'sort_order': sortOrder,
+    };
+  }
+
+  // ───────────────── CopyWith ─────────────────
 
   TransactionItemModel copyWith({
     String? id,
     String? transactionId,
     String? categoryId,
+    String? itemName,
+    double? qty,
+    double? unitPrice,
     double? amount,
     String? note,
     int? sortOrder,
+    String? categoryName,
+    String? categoryIcon,
+    String? categoryColor,
   }) {
     return TransactionItemModel(
       id: id ?? this.id,
       transactionId: transactionId ?? this.transactionId,
       categoryId: categoryId ?? this.categoryId,
+      itemName: itemName ?? this.itemName,
+      qty: qty ?? this.qty,
+      unitPrice: unitPrice ?? this.unitPrice,
       amount: amount ?? this.amount,
       note: note ?? this.note,
       sortOrder: sortOrder ?? this.sortOrder,
+      categoryName: categoryName ?? this.categoryName,
+      categoryIcon: categoryIcon ?? this.categoryIcon,
+      categoryColor: categoryColor ?? this.categoryColor,
     );
+  }
+
+  /// Hapus semua field kategori (categoryId, categoryName, icon, color).
+  TransactionItemModel clearCategory() {
+    return TransactionItemModel(
+      id: id,
+      transactionId: transactionId,
+      categoryId: null,
+      itemName: itemName,
+      qty: qty,
+      unitPrice: unitPrice,
+      amount: amount,
+      note: note,
+      sortOrder: sortOrder,
+      categoryName: null,
+      categoryIcon: null,
+      categoryColor: null,
+    );
+  }
+
+  // ───────────────── Helpers ─────────────────
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }

@@ -27,9 +27,12 @@ class AppThemes {
       thumbColor: WidgetStateProperty.resolveWith<Color>(
         (states) => AppColorScheme.light.primary,
       ),
-      trackColor: WidgetStateProperty.resolveWith<Color>(
-        (states) => AppColorScheme.light.primaryLight.withOpacity(0.5),
-      ),
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.light.primary.withValues(alpha: 0.5);
+        }
+        return AppColorScheme.light.border.withValues(alpha: 0.9);
+      }),
     ),
     colorScheme: ColorScheme.light(
       primary: AppColorScheme.light.primary,
@@ -230,6 +233,16 @@ class AppThemes {
       rangePickerShape: const RoundedRectangleBorder(),
       rangePickerSurfaceTintColor: Colors.transparent,
     ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      fillColor: AppColorScheme.light.primary.withValues(alpha: 0.12),
+      selectedColor: AppColorScheme.light.primary,
+      color: AppColorScheme.light.textPrimary,
+      borderRadius: BorderRadius.circular(8.r),
+      borderColor: AppColorScheme.light.border,
+      selectedBorderColor: AppColorScheme.light.primary,
+      disabledBorderColor: AppColorScheme.light.border.withValues(alpha: 0.5),
+      disabledColor: AppColorScheme.light.textSecondary.withValues(alpha: 0.5),
+    ),
   );
 
   // dark theme
@@ -248,9 +261,15 @@ class AppThemes {
     brightness: Brightness.dark,
     scaffoldBackgroundColor: const Color.fromARGB(255, 41, 41, 41),
     switchTheme: SwitchThemeData(
-      trackColor: WidgetStateProperty.resolveWith<Color>(
+      thumbColor: WidgetStateProperty.resolveWith<Color>(
         (states) => AppColorScheme.dark.primary,
       ),
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.dark.primary.withValues(alpha: 0.5);
+        }
+        return AppColorScheme.dark.border.withValues(alpha: 0.9);
+      }),
     ),
     textTheme: GoogleFonts.nunitoSansTextTheme(
       TextTheme(
@@ -274,10 +293,9 @@ class AppThemes {
       scrolledUnderElevation: 0,
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.6),
-      titleTextStyle: GoogleFonts.nunitoSans(
-        fontWeight: FontWeight.w500,
+      titleTextStyle: TextStyleConstants.h7.copyWith(
+        fontWeight: FontWeight.bold,
         color: Colors.white,
-        fontSize: 18.sp, //20
       ),
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFF2F2F31),

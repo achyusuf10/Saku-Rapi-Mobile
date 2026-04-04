@@ -1,212 +1,257 @@
+import 'dart:async';
+
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/auth/datasource/auth_local_datasource.dart';
-import 'package:app_saku_rapi/features/auth/datasource/auth_remote_data_source.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:app_saku_rapi/features/auth/repositories/auth_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-// ─────────────────────────────────────────────────────────────
-// State
-// ─────────────────────────────────────────────────────────────
-
-/// Status otentikasi aplikasi.
-///
-/// Digunakan oleh GoRouter untuk redirect guard.
-enum AuthStatus {
-  /// Sedang mengecek session awal.
-  loading,
-
-  /// User sudah login (session aktif).
-  authenticated,
-
-  /// User belum login / session kosong.
-  unauthenticated,
-}
-
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 // Providers
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 
-/// Provider untuk [AuthLocalDataSource].
-final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
-  return AuthLocalDataSource();
-});
-
-/// Provider untuk [AuthRemoteDataSource].
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  return AuthRemoteDataSource();
-});
-
-/// Provider untuk [AuthRepository].
+/// Provider untuk [AuthRepository] singleton.
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(
-    remoteDataSource: ref.watch(authRemoteDataSourceProvider),
-    localDataSource: ref.watch(authLocalDataSourceProvider),
-  );
+  return AuthRepository();
 });
 
 /// Provider utama untuk [AuthController].
 ///
-/// State berupa [AsyncValue<UserModel?>]:
-/// - `AsyncLoading` saat cek sesi awal
-/// - `AsyncData(UserModel)` jika sudah login
-/// - `AsyncData(null)` jika belum login
+/// Mengelola state autentikasi seluruh aplikasi.
 final authControllerProvider =
-    AsyncNotifierProvider<AuthController, UserModel?>(() {
-      return AuthController();
+    StateNotifierProvider<AuthController, AppAuthState>((ref) {
+      final repository = ref.watch(authRepositoryProvider);
+      return AuthController(repository);
     });
 
-// ─────────────────────────────────────────────────────────────
-// Controller
-// ─────────────────────────────────────────────────────────────
-
-/// Riverpod [AsyncNotifier] untuk mengelola state autentikasi.
+/// Provider untuk mendapatkan [UserModel] saat ini (nullable).
 ///
-/// Mengecek session Supabase saat inisialisasi, dan menyediakan
-/// fungsi `signIn()`, `signOut()`, dan `refreshProfile()`.
+/// Digunakan di widget yang hanya perlu data user tanpa
+/// peduli state loading/error.
+final currentUserProvider = Provider<UserModel?>((ref) {
+  final authState = ref.watch(authControllerProvider);
+  return authState.user;
+});
+
+/// [ChangeNotifier] yang di-trigger saat auth state berubah.
 ///
-/// [authListenable] digunakan oleh GoRouter `refreshListenable`
-/// agar redirect otomatis bereaksi terhadap perubahan status auth.
-class AuthController extends AsyncNotifier<UserModel?> {
-  late final AuthRepository _repository;
-
-  /// [ChangeNotifier] terpisah agar GoRouter bisa listen perubahan auth.
-  final ChangeNotifier authListenable = ChangeNotifier();
-
-  static const String _tag = 'Auth';
-
-  /// Notify GoRouter bahwa auth state berubah.
-  void _notifyRouter() {
-    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-    authListenable.notifyListeners();
-  }
-
-  @override
-  Future<UserModel?> build() async {
-    _repository = ref.watch(authRepositoryProvider);
-
-    _listenAuthChanges();
-
-    // Cek apakah ada session Supabase aktif
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      AppLogger.call(
-        '[$_tag] Session aktif ditemukan: ${session.user.email}',
-        colorLog: ColorLog.green,
-      );
-
-      final result = await _repository.getCurrentUser();
-      if (result.isSuccess()) {
-        state = AsyncData(result.dataSuccess());
-        _notifyRouter();
-        return result.dataSuccess();
-      }
-    }
-
+/// Digunakan sebagai `refreshListenable` di GoRouter agar
+/// redirect otomatis terjadi saat login/logout.
+final authChangeNotifierProvider = ChangeNotifierProvider<AuthChangeNotifier>((
+  ref,
+) {
+  final notifier = AuthChangeNotifier();
+  // Listen ke auth state changes dari Supabase
+  final repository = ref.watch(authRepositoryProvider);
+  final subscription = repository.onAuthStateChange().listen((event) {
     AppLogger.call(
-      '[$_tag] Tidak ada session aktif.',
-      colorLog: ColorLog.yellow,
+      '[Auth] [AuthChangeNotifier] Auth event: ${event.event}',
+      colorLog: ColorLog.blue,
     );
-    _notifyRouter();
-    return null;
+    notifier.notify();
+  });
+
+  ref.onDispose(() => subscription.cancel());
+
+  return notifier;
+});
+
+// ─────────────────────────────────────────────────────────
+// Auth State
+// ─────────────────────────────────────────────────────────
+
+/// State untuk modul auth.
+///
+/// Encapsulates status autentikasi dan data user dalam satu objek.
+class AppAuthState {
+  const AppAuthState({
+    this.status = AuthStatus.initial,
+    this.user,
+    this.errorMessage,
+  });
+
+  /// Status autentikasi saat ini.
+  final AuthStatus status;
+
+  /// Data user yang sedang login (null jika belum login).
+  final UserModel? user;
+
+  /// Pesan error terakhir (null jika tidak ada error).
+  final String? errorMessage;
+
+  /// Apakah sedang dalam proses autentikasi.
+  bool get isLoading => status == AuthStatus.loading;
+
+  /// Apakah user sudah terautentikasi.
+  bool get isAuthenticated => status == AuthStatus.authenticated;
+
+  /// Membuat salinan [AppAuthState] dengan field yang diubah.
+  AppAuthState copyWith({
+    AuthStatus? status,
+    UserModel? user,
+    String? errorMessage,
+  }) {
+    return AppAuthState(
+      status: status ?? this.status,
+      user: user ?? this.user,
+      errorMessage: errorMessage,
+    );
   }
+}
 
-  /// Subscribe ke perubahan auth state dari Supabase secara real-time.
-  void _listenAuthChanges() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      final AuthChangeEvent event = data.event;
+/// Enum status autentikasi.
+enum AuthStatus {
+  /// State awal saat app baru dibuka.
+  initial,
 
-      AppLogger.call(
-        '[$_tag] Auth event: ${event.name}',
-        colorLog: ColorLog.blue,
-      );
+  /// Sedang memproses (login, logout, restore session).
+  loading,
 
-      switch (event) {
-        case AuthChangeEvent.signedOut:
-          state = const AsyncData(null);
-          _notifyRouter();
-        default:
-          break;
-      }
-    });
-  }
+  /// User berhasil terautentikasi.
+  authenticated,
 
-  /// Mendapatkan [AuthStatus] saat ini berdasarkan state.
+  /// User tidak terautentikasi.
+  unauthenticated,
+
+  /// Terjadi error saat proses autentikasi.
+  error,
+}
+
+// ─────────────────────────────────────────────────────────
+// Controller
+// ─────────────────────────────────────────────────────────
+
+/// Controller autentikasi menggunakan [StateNotifier].
+///
+/// Mengelola lifecycle autentikasi:
+/// - `restoreSession()` → dipanggil saat splash
+/// - `signInWithGoogle()` → dipanggil dari login page
+/// - `signOut()` → dipanggil dari settings/profile
+///
+/// Tidak menggunakan Riverpod Generator sesuai aturan SakuRapi.
+class AuthController extends StateNotifier<AppAuthState> {
+  AuthController(this._repository) : super(const AppAuthState());
+
+  final AuthRepository _repository;
+
+  /// Cek session existing saat splash screen.
   ///
-  /// Digunakan oleh GoRouter redirect.
-  AuthStatus get authStatus {
-    return state.when(
-      data: (user) =>
-          user != null ? AuthStatus.authenticated : AuthStatus.unauthenticated,
-      loading: () => AuthStatus.loading,
-      error: (_, _) => AuthStatus.unauthenticated,
+  /// Jika ada session aktif, set status ke [AuthStatus.authenticated].
+  /// Jika tidak ada, set ke [AuthStatus.unauthenticated].
+  Future<void> restoreSession() async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await _repository.restoreSession();
+
+    result.map(
+      success: (success) {
+        if (success.data != null) {
+          state = state.copyWith(
+            status: AuthStatus.authenticated,
+            user: success.data,
+          );
+          AppLogger.logSuccess(
+            'Session restored: ${success.data!.email}',
+            runtimeType: AuthController,
+          );
+        } else {
+          state = state.copyWith(status: AuthStatus.unauthenticated);
+          AppLogger.call(
+            '[Auth] [AuthController] No session to restore',
+            colorLog: ColorLog.yellow,
+          );
+        }
+      },
+      error: (error) {
+        state = state.copyWith(
+          status: AuthStatus.unauthenticated,
+          errorMessage: error.message,
+        );
+      },
     );
   }
 
-  /// Login menggunakan akun Google.
+  /// Login via Google Sign-In.
   ///
-  /// Menampilkan loading state, lalu update state dengan [UserModel]
-  /// jika berhasil.
-  Future<void> signIn() async {
-    AppLogger.call('[$_tag] Google Sign-In triggered', colorLog: ColorLog.blue);
-
-    state = const AsyncLoading();
+  /// Returns `true` jika berhasil, `false` jika gagal.
+  /// UI bisa check [state.errorMessage] untuk pesan error.
+  Future<bool> signInWithGoogle() async {
+    state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _repository.signInWithGoogle();
 
-    result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Sign-In sukses: userId=${data.data.id}',
-          colorLog: ColorLog.green,
+    return result.map(
+      success: (success) {
+        state = state.copyWith(
+          status: AuthStatus.authenticated,
+          user: success.data,
         );
-        state = AsyncData(data.data);
-        _notifyRouter();
+        return true;
       },
-      error: (err) {
-        AppLogger.call(
-          '[$_tag] Error Sign-In: ${err.message}',
-          colorLog: ColorLog.red,
+      error: (error) {
+        state = state.copyWith(
+          status: AuthStatus.unauthenticated,
+          errorMessage: error.message,
         );
-        state = AsyncError(err.message, StackTrace.current);
-        // Fallback ke unauthenticated agar redirect ke login
-        state = const AsyncData(null);
-        _notifyRouter();
+        return false;
       },
     );
   }
 
-  /// Logout user, clear cache.
-  Future<void> signOut() async {
-    AppLogger.call('[$_tag] Logout...', colorLog: ColorLog.blue);
+  /// Sign out user.
+  ///
+  /// Returns `true` jika lancar, `false` jika ada error.
+  Future<bool> signOut() async {
+    state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _repository.signOut();
 
-    result.map(
+    return result.map(
       success: (_) {
-        state = const AsyncData(null);
-        _notifyRouter();
+        state = const AppAuthState(status: AuthStatus.unauthenticated);
+        return true;
       },
-      error: (err) {
-        AppLogger.logError('[$_tag] Logout error: ${err.message}');
+      error: (error) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: error.message,
+        );
+        return false;
       },
     );
   }
 
-  /// Refresh profil user dari Supabase.
+  /// Refresh profil user dari remote.
   Future<void> refreshProfile() async {
-    final result = await _repository.getCurrentUser();
+    final currentUser = state.user;
+    if (currentUser == null) return;
+
+    final result = await _repository.getCurrentUserProfile();
 
     result.map(
-      success: (data) {
-        state = AsyncData(data.data);
+      success: (success) {
+        state = state.copyWith(user: success.data);
       },
-      error: (err) {
-        AppLogger.logError('[$_tag] Refresh profil gagal: ${err.message}');
+      error: (_) {
+        // Silently fail, keep existing profile
       },
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Auth Change Notifier (untuk GoRouter refreshListenable)
+// ─────────────────────────────────────────────────────────
+
+/// [ChangeNotifier] untuk GoRouter `refreshListenable`.
+///
+/// Saat dipanggil `notify()`, GoRouter akan re-evaluate
+/// semua redirect rules.
+class AuthChangeNotifier extends ChangeNotifier {
+  /// Trigger re-evaluation redirect GoRouter.
+  void notify() {
+    notifyListeners();
   }
 }

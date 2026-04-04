@@ -16,6 +16,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// - Alert: `context.showAppAlert(message)`
 /// - Konfirmasi: `context.showConfirmDialog(title, message)`
 extension ContextExt on BuildContext {
+  /// similar to [MediaQuery.of(context).padding]
+  ThemeData get theme => Theme.of(this);
+
+  /// Check if dark mode theme is enable
+  bool get isDarkMode => (theme.brightness == Brightness.dark);
+
   /// Akses cepat ke [AppColorScheme] kustom SakuRapi.
   ///
   /// Contoh: `context.colors.primary`, `context.colors.income`.
@@ -111,7 +117,7 @@ extension ContextExt on BuildContext {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                       if (title.isNotEmpty) SizedBox(height: 4.w),
@@ -120,7 +126,7 @@ extension ContextExt on BuildContext {
                             .replaceAll('Exception:', '')
                             .replaceAll('Exception :', ''),
                         style: TextStyleConstants.caption.copyWith(
-                          color: Colors.black,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ],
@@ -180,7 +186,7 @@ extension ContextExt on BuildContext {
           ),
         );
       },
-      pageBuilder: (_, __, ___) {
+      pageBuilder: (ctx, __, ___) {
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 340.w),
@@ -244,7 +250,7 @@ extension ContextExt on BuildContext {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => Navigator.of(this).pop(false),
+                            onPressed: () => Navigator.of(ctx).pop(false),
                             style: OutlinedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 12.h),
                               side: BorderSide(
@@ -268,7 +274,7 @@ extension ContextExt on BuildContext {
                         SizedBox(width: 12.w),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () => Navigator.of(this).pop(true),
+                            onPressed: () => Navigator.of(ctx).pop(true),
                             style: FilledButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 12.h),
                               backgroundColor: appColors.primary,

@@ -1,11 +1,15 @@
+import 'package:app_saku_rapi/core/config/app_flavor.dart';
+import 'package:app_saku_rapi/core/localization/locale_controller.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
-import 'package:app_saku_rapi/global/services/notification_service.dart';
+import 'package:app_saku_rapi/features/notification/services/notification_service.dart';
+import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:app_saku_rapi/utils/services/screen_util_service.dart';
+import 'package:customized_keyboard/customized_keyboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,11 +37,17 @@ void _workmanagerCallbackDispatcher() {
     );
     // Re-inisialisasi timezone di isolate WorkManager.
     tz.initializeTimeZones();
+    tzLocal.setLocalLocation(tzLocal.getLocation('Asia/Jakarta'));
+
+    // Re-inisialisasi Hive dan notification untuk re-sync jadwal.
+    await HiveService.instance();
+    await NotificationService.instance.init();
+
     return Future.value(true);
   });
 }
 
-Future<void> main() async {
+Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inisialisasi timezone untuk scheduled notifications.
@@ -46,24 +56,20 @@ Future<void> main() async {
 
   // Inisialisasi Hive (encrypted box).
   await HiveService.instance();
+
+  // Inisialisasi notification service.
+  await NotificationService.instance.init();
+
   AppLogger.call(
-    'Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
+    'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
   );
   // Inisialisasi Supabase.
   await Supabase.initialize(
-    debug: true,
+    debug: AppFlavorConfig.isDev,
     url: const String.fromEnvironment('SUPABASE_URL'),
     anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
 
-  // Inisialisasi local notifications service.
-  await NotificationService().initialize();
-
-  // Inisialisasi WorkManager untuk background task (boot-complete reschedule).
-  await Workmanager().initialize(
-    _workmanagerCallbackDispatcher,
-    isInDebugMode: kDebugMode,
-  );
   if (kDebugMode) {
     hierarchicalLoggingEnabled = true;
     final supabaseLogger = Logger('supabase');
@@ -99,6 +105,7 @@ class SakuRapiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeControllerProvider);
+    final locale = ref.watch(localeControllerProvider);
     final designSize = getDesignSize(context);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return ScreenUtilInit(
@@ -114,8 +121,16 @@ class SakuRapiApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           title: 'SakuRapi',
           themeMode: themeMode,
+          builder: (context, child) {
+            return KeyboardWrapper(
+              keyboards: [SakuCalculatorKeyboard()],
+              child: child ?? SizedBox(),
+            );
+          },
           theme: AppThemes.lightTheme(context),
           darkTheme: AppThemes.darkTheme(context),
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: ref.watch(routerProvider),
           localizationsDelegates: const [
             // 1. Delegate untuk teks custom aplikasi kamu (dari ARB)

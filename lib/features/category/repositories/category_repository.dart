@@ -1,239 +1,305 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/category/datasource/category_remote_datasource.dart';
+import 'package:app_saku_rapi/features/category/datasource/category_local_data_source.dart';
+import 'package:app_saku_rapi/features/category/datasource/category_remote_data_source.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 
-/// Orkestrator utama untuk fitur Kategori.
+/// Repository utama untuk modul kategori.
 ///
-/// Memanggil [CategoryRemoteDataSource] dan menangani hasilnya
-/// menggunakan pattern matching `.map(success:, error:)` dari [DataState].
+/// Mengorkestrasikan [CategoryRemoteDataSource] dan [CategoryLocalDataSource]
+/// sesuai 3-file pattern SakuRapi.
 ///
-/// Juga bertanggung jawab membangun hierarki parent-child dari flat list.
+/// Bertanggung jawab atas:
+/// - Fetch & cache kategori
+/// - CRUD kategori user
+/// - Parent-child grouping (max 2 level)
+/// - Validasi constraint sebelum dikirim ke server
 class CategoryRepository {
-  CategoryRepository({required CategoryRemoteDataSource remoteDataSource})
-    : _remoteDataSource = remoteDataSource;
+  CategoryRepository({
+    CategoryRemoteDataSource? remoteDataSource,
+    CategoryLocalDataSource? localDataSource,
+  }) : _remoteDataSource = remoteDataSource ?? CategoryRemoteDataSource(),
+       _localDataSource = localDataSource ?? CategoryLocalDataSource();
 
   final CategoryRemoteDataSource _remoteDataSource;
+  final CategoryLocalDataSource _localDataSource;
 
-  static const String _tag = 'Category';
-
-  // ─────────────────────────────────────────────────────────────
-  // Read
-  // ─────────────────────────────────────────────────────────────
-
-  /// Mengambil semua kategori dan membangun tree parent-child.
+  /// Fetch semua kategori dari remote, cache ke lokal, dan return.
   ///
-  /// Return flat list parent categories yang sudah diisi [children].
-  Future<DataState<List<CategoryModel>>> getCategories({
-    required String userId,
-    String? type,
-    bool includeHidden = true,
-  }) async {
-    final result = await _remoteDataSource.getCategories(
-      userId: userId,
-      type: type,
-      includeHidden: includeHidden,
-    );
+  /// Jika remote gagal, fallback ke cache lokal.
+  Future<DataState<List<CategoryModel>>> getCategories() async {
+    final cached = _localDataSource.getCachedCategories();
+    if (cached.isNotEmpty) {
+      AppLogger.call(
+        '[Category] [CategoryRepository] Serving cached categories, refreshing in background',
+        colorLog: ColorLog.yellow,
+      );
+      // Background refresh: update cache with remote data
+      _refreshCache();
+      return DataState<List<CategoryModel>>.success(data: cached);
+    }
+    final result = await _remoteDataSource.getCategories();
 
     return result.map(
-      success: (data) {
-        final tree = _buildTree(data.data);
-        AppLogger.call(
-          '[$_tag] Berhasil memuat ${data.data.length} kategori '
-          '(${tree.length} parent)',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: tree);
+      success: (success) {
+        _localDataSource.cacheCategories(success.data);
+        return DataState<List<CategoryModel>>.success(data: success.data);
       },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memuat kategori: ${err.message}',
-          runtimeType: CategoryRepository,
+      error: (error) {
+        // Fallback ke cache
+        final cached = _localDataSource.getCachedCategories();
+        if (cached.isNotEmpty) {
+          AppLogger.call(
+            '[Category] [CategoryRepository] Using cached categories as fallback',
+            colorLog: ColorLog.yellow,
+          );
+          return DataState<List<CategoryModel>>.success(data: cached);
+        }
+        return DataState<List<CategoryModel>>.error(
+          message: error.message,
+          exception: error.exception,
+          stackTrace: error.stackTrace,
         );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  /// Mengambil flat list kategori TANPA tree (untuk picker).
-  Future<DataState<List<CategoryModel>>> getCategoriesFlat({
-    required String userId,
-    String? type,
-    bool includeHidden = false,
-  }) async {
-    final result = await _remoteDataSource.getCategories(
-      userId: userId,
-      type: type,
-      includeHidden: includeHidden,
-    );
-
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Flat list: ${data.data.length} kategori',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memuat kategori flat: ${err.message}',
-          runtimeType: CategoryRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
       },
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Create
-  // ─────────────────────────────────────────────────────────────
-
-  /// Membuat kategori baru.
-  Future<DataState<CategoryModel>> createCategory(
-    CategoryModel category,
-  ) async {
-    final result = await _remoteDataSource.createCategory(category);
-
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Kategori "${data.data.name}" berhasil dibuat',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal membuat kategori: ${err.message}',
-          runtimeType: CategoryRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Update
-  // ─────────────────────────────────────────────────────────────
-
-  /// Memperbarui data kategori.
-  Future<DataState<CategoryModel>> updateCategory(
-    CategoryModel category,
-  ) async {
-    final result = await _remoteDataSource.updateCategory(category);
-
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Kategori "${data.data.name}" berhasil diperbarui',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memperbarui kategori: ${err.message}',
-          runtimeType: CategoryRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Delete
-  // ─────────────────────────────────────────────────────────────
-
-  /// Menghapus kategori berdasarkan [categoryId].
-  Future<DataState<void>> deleteCategory(String categoryId) async {
-    final result = await _remoteDataSource.deleteCategory(categoryId);
-
-    return result.map(
-      success: (_) {
-        AppLogger.call(
-          '[$_tag] Kategori ($categoryId) berhasil dihapus',
-          colorLog: ColorLog.green,
-        );
-        return const DataState.success(data: null);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal menghapus kategori ($categoryId): ${err.message}',
-          runtimeType: CategoryRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Toggle Hide
-  // ─────────────────────────────────────────────────────────────
-
-  /// Toggle visibility kategori.
-  Future<DataState<void>> toggleHideCategory(
-    String categoryId,
-    bool isHidden,
-  ) async {
-    final result = await _remoteDataSource.toggleHideCategory(
-      categoryId,
-      isHidden,
-    );
-
-    return result.map(
-      success: (_) {
-        AppLogger.call(
-          '[$_tag] Kategori ($categoryId) '
-          '${isHidden ? 'disembunyikan' : 'ditampilkan'}',
-          colorLog: ColorLog.green,
-        );
-        return const DataState.success(data: null);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal toggle hide ($categoryId): ${err.message}',
-          runtimeType: CategoryRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Check Usage
-  // ─────────────────────────────────────────────────────────────
-
-  /// Cek apakah kategori digunakan di transaksi.
-  Future<DataState<bool>> isCategoryUsed(String categoryId) async {
-    return _remoteDataSource.isCategoryUsed(categoryId);
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Tree Builder
-  // ─────────────────────────────────────────────────────────────
-
-  /// Membangun tree parent-child dari flat list.
+  /// Fetch kategori berdasarkan [type] (income/expense/system).
   ///
-  /// Return: list parent categories, masing-masing sudah diisi [children].
-  List<CategoryModel> _buildTree(List<CategoryModel> flatList) {
-    // Group children by parentId
-    final Map<String, List<CategoryModel>> childrenMap = {};
-    final List<CategoryModel> parents = [];
+  /// Prioritas: remote → cache lokal (filtered by type).
+  Future<DataState<List<CategoryModel>>> getCategoriesByType(
+    CategoryType type,
+  ) async {
+    final result = await _remoteDataSource.getCategoriesByType(type);
 
-    for (final cat in flatList) {
-      if (cat.parentId != null) {
-        childrenMap.putIfAbsent(cat.parentId!, () => []).add(cat);
-      } else {
-        parents.add(cat);
+    return result.map(
+      success: (success) {
+        return DataState<List<CategoryModel>>.success(data: success.data);
+      },
+      error: (error) {
+        // Fallback ke cache filtered
+        final cached = _localDataSource
+            .getCachedCategories()
+            .where((c) => c.type == type)
+            .toList();
+        if (cached.isNotEmpty) {
+          AppLogger.call(
+            '[Category] [CategoryRepository] Using cached ${type.value} categories',
+            colorLog: ColorLog.yellow,
+          );
+          return DataState<List<CategoryModel>>.success(data: cached);
+        }
+        return DataState<List<CategoryModel>>.error(
+          message: error.message,
+          exception: error.exception,
+          stackTrace: error.stackTrace,
+        );
+      },
+    );
+  }
+
+  /// Buat kategori baru setelah validasi constraint.
+  ///
+  /// Validasi:
+  /// - Jika [parentId] diberikan, cek parent valid & type sama.
+  /// - Child tidak boleh punya child (max 2 level).
+  /// - Nama tidak boleh duplikat dalam scope yang sama.
+  Future<DataState<CategoryModel>> createCategory({
+    required String name,
+    required String icon,
+    required String color,
+    required CategoryType type,
+    String? parentId,
+    List<CategoryModel>? existingCategories,
+  }) async {
+    // Validasi parent-child constraint
+    if (parentId != null && existingCategories != null) {
+      final validationError = _validateParentChild(
+        parentId: parentId,
+        type: type,
+        categories: existingCategories,
+      );
+      if (validationError != null) {
+        return DataState<CategoryModel>.error(message: validationError);
       }
     }
 
-    // Attach children to parents
+    // Validasi duplikat nama di scope yang sama
+    if (existingCategories != null) {
+      final isDuplicate = _isDuplicateName(
+        name: name,
+        type: type,
+        parentId: parentId,
+        categories: existingCategories,
+      );
+      if (isDuplicate) {
+        return const DataState<CategoryModel>.error(
+          message: 'Nama kategori sudah ada',
+        );
+      }
+    }
+
+    final result = await _remoteDataSource.createCategory(
+      name: name,
+      icon: icon,
+      color: color,
+      type: type,
+      parentId: parentId,
+    );
+
+    // Refresh cache setelah berhasil create
+    if (result.isSuccess()) {
+      _refreshCache();
+    }
+
+    return result;
+  }
+
+  /// Update kategori existing.
+  Future<DataState<CategoryModel>> updateCategory({
+    required String categoryId,
+    String? name,
+    String? icon,
+    String? color,
+    bool? isHidden,
+    int? sortOrder,
+  }) async {
+    final result = await _remoteDataSource.updateCategory(
+      categoryId: categoryId,
+      name: name,
+      icon: icon,
+      color: color,
+      isHidden: isHidden,
+      sortOrder: sortOrder,
+    );
+
+    if (result.isSuccess()) {
+      _refreshCache();
+    }
+
+    return result;
+  }
+
+  /// Hapus kategori (hard delete).
+  ///
+  /// Hanya untuk kategori non-default milik user.
+  Future<DataState<void>> deleteCategory(String categoryId) async {
+    final result = await _remoteDataSource.deleteCategory(categoryId);
+
+    if (result.isSuccess()) {
+      _refreshCache();
+    }
+
+    return result;
+  }
+
+  /// Toggle hide/show kategori.
+  Future<DataState<CategoryModel>> toggleHidden({
+    required String categoryId,
+    required bool isHidden,
+  }) async {
+    final result = await _remoteDataSource.toggleHidden(
+      categoryId: categoryId,
+      isHidden: isHidden,
+    );
+
+    if (result.isSuccess()) {
+      _refreshCache();
+    }
+
+    return result;
+  }
+
+  /// Bersihkan cache lokal (dipanggil saat sign out).
+  void clearCache() {
+    _localDataSource.clearCategoryCache();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────────────────
+
+  /// Grouping flat list menjadi hierarki parent → children.
+  ///
+  /// Mengembalikan hanya parent categories, masing-masing
+  /// sudah terisi `children` yang sesuai.
+  /// Kategori hidden bisa difilter sesuai kebutuhan.
+  static List<CategoryModel> groupParentChild(
+    List<CategoryModel> flatList, {
+    bool includeHidden = true,
+  }) {
+    final filtered = includeHidden
+        ? flatList
+        : flatList.where((c) => !c.isHidden).toList();
+
+    final parents = filtered.where((c) => c.isParent).toList();
+    final childMap = <String, List<CategoryModel>>{};
+
+    for (final child in filtered.where((c) => c.isChild)) {
+      childMap.putIfAbsent(child.parentId!, () => []).add(child);
+    }
+
     return parents.map((parent) {
-      final kids = childrenMap[parent.id] ?? [];
-      kids.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-      return parent.copyWith(children: kids);
+      final children = childMap[parent.id] ?? [];
+      children.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      return parent.copyWith(children: children);
     }).toList();
+  }
+
+  /// Refresh cache di background setelah mutasi.
+  void _refreshCache() {
+    _remoteDataSource.getCategories().then((result) {
+      result.map(
+        success: (success) {
+          _localDataSource.cacheCategories(success.data);
+        },
+        error: (_) {},
+      );
+    });
+  }
+
+  /// Validasi parent-child constraint.
+  ///
+  /// - Parent harus ada dan bertipe sama.
+  /// - Parent tidak boleh punya parent sendiri (max 2 level).
+  String? _validateParentChild({
+    required String parentId,
+    required CategoryType type,
+    required List<CategoryModel> categories,
+  }) {
+    final parent = categories.where((c) => c.id == parentId).firstOrNull;
+
+    if (parent == null) {
+      return 'Kategori induk tidak ditemukan';
+    }
+
+    if (parent.type != type) {
+      return 'Tipe kategori harus sama dengan kategori induk';
+    }
+
+    // Max 2 level: parent tidak boleh punya parent sendiri
+    if (parent.parentId != null) {
+      return 'Kategori maksimal 2 level (induk → anak)';
+    }
+
+    return null;
+  }
+
+  /// Cek duplikat nama di scope yang sama (type + parent level).
+  bool _isDuplicateName({
+    required String name,
+    required CategoryType type,
+    String? parentId,
+    required List<CategoryModel> categories,
+    String? excludeId,
+  }) {
+    final normalizedName = name.trim().toLowerCase();
+    return categories.any(
+      (c) =>
+          c.type == type &&
+          c.parentId == parentId &&
+          c.name.trim().toLowerCase() == normalizedName &&
+          c.id != excludeId,
+    );
   }
 }

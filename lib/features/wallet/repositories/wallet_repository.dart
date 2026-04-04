@@ -1,161 +1,241 @@
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
+import 'package:app_saku_rapi/features/wallet/datasource/wallet_local_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/datasource/wallet_remote_data_source.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 
-/// Orkestrator utama untuk fitur Wallet.
+/// Repository utama untuk fitur wallet.
 ///
-/// Memanggil [WalletRemoteDataSource] dan menangani hasilnya
-/// menggunakan pattern matching `.map(success:, error:)` dari [DataState].
+/// Mengorkestrasikan [WalletRemoteDataSource] dan [WalletLocalDataSource]:
+/// - Online: fetch dari Supabase, cache ke Hive.
+/// - Offline fallback: sajikan dari Hive cache.
+///
+/// Validasi domain dilakukan di sini, bukan di widget.
 class WalletRepository {
-  WalletRepository({required WalletRemoteDataSource remoteDataSource})
-    : _remoteDataSource = remoteDataSource;
+  WalletRepository({
+    WalletRemoteDataSource? remoteDataSource,
+    WalletLocalDataSource? localDataSource,
+  }) : _remote = remoteDataSource ?? WalletRemoteDataSource(),
+       _local = localDataSource ?? WalletLocalDataSource();
 
-  final WalletRemoteDataSource _remoteDataSource;
+  final WalletRemoteDataSource _remote;
+  final WalletLocalDataSource _local;
 
-  static const String _tag = 'Wallet';
+  static const _tag = '[Wallet] [WalletRepository]';
 
-  /// Mengambil semua wallet milik user.
+  // ───────────────── READ ─────────────────
+
+  /// Ambil semua wallet. Fetch remote lalu cache; fallback ke cache jika gagal.
   Future<DataState<List<WalletModel>>> getWallets() async {
-    final result = await _remoteDataSource.getWallets();
+    final result = await _remote.getWallets();
 
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Berhasil memuat ${data.data.length} wallet',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memuat wallet: ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
+    if (result.isSuccess()) {
+      final wallets = result.dataSuccess()!;
+      _local.cacheWallets(wallets);
+      return result;
+    }
+
+    // Offline fallback
+    final cached = _local.getCachedWallets();
+    if (cached != null) {
+      AppLogger.call('$_tag getWallets: serving from cache');
+      return DataState.success(data: cached);
+    }
+
+    return result;
   }
 
-  /// Mengambil satu wallet berdasarkan [walletId].
-  Future<DataState<WalletModel>> getWalletById(String walletId) async {
-    final result = await _remoteDataSource.getWalletById(walletId);
+  // ───────────────── CREATE ─────────────────
 
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Berhasil memuat wallet: ${data.data.name}',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memuat wallet ($walletId): ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  /// Membuat wallet baru.
-  Future<DataState<WalletModel>> createWallet(WalletModel wallet) async {
-    final result = await _remoteDataSource.createWallet(wallet);
-
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Wallet "${data.data.name}" berhasil dibuat',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal membuat wallet: ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  /// Memperbarui data wallet.
-  Future<DataState<WalletModel>> updateWallet(WalletModel wallet) async {
-    final result = await _remoteDataSource.updateWallet(wallet);
-
-    return result.map(
-      success: (data) {
-        AppLogger.call(
-          '[$_tag] Wallet "${data.data.name}" berhasil diperbarui',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: data.data);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal memperbarui wallet: ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  /// Menghapus wallet berdasarkan [walletId].
-  Future<DataState<String>> deleteWallet(String walletId) async {
-    final result = await _remoteDataSource.deleteWallet(walletId);
-
-    return result.map(
-      success: (_) {
-        AppLogger.call(
-          '[$_tag] Wallet ($walletId) berhasil dihapus',
-          colorLog: ColorLog.green,
-        );
-        return DataState.success(data: 'Berhasil menghapus wallet ($walletId)');
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal menghapus wallet ($walletId): ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
-    );
-  }
-
-  /// Menyesuaikan saldo wallet dengan membuat transaksi adjustment.
-  ///
-  /// [walletId] — wallet yang dikoreksi.
-  /// [userId] — user ID pemilik wallet.
-  /// [delta] — selisih saldo (actual - current).
-  Future<DataState<void>> adjustBalance({
-    required String walletId,
+  /// Buat wallet baru setelah validasi nama unik.
+  Future<DataState<WalletModel>> createWallet({
     required String userId,
-    required double delta,
+    required String name,
+    required String icon,
+    required String color,
+    required double initialBalance,
+    bool excludeFromTotal = false,
+    int sortOrder = 0,
   }) async {
-    final result = await _remoteDataSource.adjustBalance(
-      walletId: walletId,
+    // Validasi: nama tidak boleh kosong
+    if (name.trim().isEmpty) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameEmpty ?? 'Nama dompet tidak boleh kosong',
+      );
+    }
+
+    // Validasi: initial_balance >= 0
+    if (initialBalance < 0) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationInitialBalanceNegative ??
+            'Saldo awal tidak boleh negatif',
+      );
+    }
+
+    // Validasi: nama unik per user
+    final dupCheck = await _isDuplicateName(name, excludeId: null);
+    if (dupCheck) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameDuplicate ??
+            'Nama dompet sudah digunakan',
+      );
+    }
+
+    final wallet = WalletModel(
+      id: '', // server-generated
       userId: userId,
-      delta: delta,
+      name: name.trim(),
+      icon: icon,
+      color: color,
+      balance: initialBalance,
+      initialBalance: initialBalance,
+      currency: 'IDR',
+      excludeFromTotal: excludeFromTotal,
+      sortOrder: sortOrder,
+      createdAt: null,
+      updatedAt: null,
     );
 
-    return result.map(
-      success: (_) {
-        AppLogger.call(
-          '[$_tag] Saldo wallet ($walletId) disesuaikan: delta=$delta',
-          colorLog: ColorLog.green,
-        );
-        return const DataState.success(data: null);
-      },
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal menyesuaikan saldo ($walletId): ${err.message}',
-          runtimeType: WalletRepository,
-        );
-        return DataState.error(message: err.message, errorData: err.errorData);
-      },
+    final result = await _remote.createWallet(wallet);
+    return result;
+  }
+
+  // ───────────────── UPDATE ─────────────────
+
+  /// Update metadata wallet (name, icon, color, excludeFromTotal).
+  /// **TIDAK** mengubah balance atau initial_balance.
+  Future<DataState<WalletModel>> updateWallet({
+    required String walletId,
+    required String name,
+    required String icon,
+    required String color,
+    required bool excludeFromTotal,
+    required int sortOrder,
+    required WalletModel existing,
+  }) async {
+    if (name.trim().isEmpty) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameEmpty ?? 'Nama dompet tidak boleh kosong',
+      );
+    }
+
+    // Validasi: nama unik, exclude self
+    final dupCheck = await _isDuplicateName(name, excludeId: walletId);
+    if (dupCheck) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletNameDuplicate ??
+            'Nama dompet sudah digunakan',
+      );
+    }
+
+    final updated = existing.copyWith(
+      name: name.trim(),
+      icon: icon,
+      color: color,
+      excludeFromTotal: excludeFromTotal,
+      sortOrder: sortOrder,
+    );
+
+    final result = await _remote.updateWallet(updated);
+    return result;
+  }
+
+  // ───────────────── DELETE ─────────────────
+
+  /// Hapus wallet dengan guard: blokir jika wallet memiliki transaksi.
+  Future<DataState<void>> deleteWallet(String walletId) async {
+    // Guard: cek apakah wallet punya transaksi
+    final hasResult = await _remote.hasTransactions(walletId);
+    if (hasResult.isSuccess() && hasResult.dataSuccess() == true) {
+      final l10n = appContext?.l10n;
+      return DataState.error(
+        message:
+            l10n?.validationWalletHasTransactions ??
+            'Dompet tidak bisa dihapus karena masih memiliki transaksi. '
+                'Hapus transaksi terlebih dahulu.',
+      );
+    }
+
+    final result = await _remote.deleteWallet(walletId);
+    return result;
+  }
+
+  // ───────────────── TOGGLE ─────────────────
+
+  /// Toggle exclude_from_total.
+  Future<DataState<void>> toggleExcludeFromTotal({
+    required String walletId,
+    required bool exclude,
+  }) async {
+    final result = await _remote.toggleExcludeFromTotal(
+      walletId: walletId,
+      exclude: exclude,
+    );
+    return result;
+  }
+
+  // ───────────────── ADJUST BALANCE ─────────────────
+
+  /// Sesuaikan saldo wallet ke nilai target via RPC adjustment.
+  Future<DataState<Map<String, dynamic>>> adjustBalance({
+    required String walletId,
+    required double targetBalance,
+    String? note,
+  }) async {
+    final result = await TransactionRemoteDataSource().createAdjustment(
+      walletId: walletId,
+      targetBalance: targetBalance,
+      note: note,
+    );
+    return result;
+  }
+
+  // ───────────────── COMPUTED ─────────────────
+
+  /// Hitung total saldo dari wallet yang tidak di-exclude.
+  static double calculateTotalBalance(List<WalletModel> wallets) {
+    return wallets
+        .where((w) => !w.excludeFromTotal)
+        .fold(0.0, (sum, w) => sum + w.balance);
+  }
+
+  /// Cache helper
+  void clearCache() {
+    _local.clearWalletCache();
+  }
+
+  /// Simpan list wallet langsung ke cache lokal (tanpa fetch remote).
+  void cacheWalletList(List<WalletModel> wallets) {
+    _local.cacheWallets(wallets);
+  }
+
+  // ───────────────── PRIVATE ─────────────────
+
+  /// Cek duplikasi nama wallet per user (case-insensitive).
+  Future<bool> _isDuplicateName(String name, {String? excludeId}) async {
+    final result = await _remote.getWallets();
+    if (!result.isSuccess()) return false;
+
+    final wallets = result.dataSuccess()!;
+    final nameLower = name.trim().toLowerCase();
+
+    return wallets.any(
+      (w) =>
+          w.name.toLowerCase() == nameLower &&
+          (excludeId == null || w.id != excludeId),
     );
   }
 }

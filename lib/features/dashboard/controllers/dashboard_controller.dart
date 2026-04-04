@@ -1,360 +1,166 @@
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
-import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_datasource.dart';
-import 'package:app_saku_rapi/features/transaction/models/category_model.dart';
+import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
+import 'package:app_saku_rapi/features/dashboard/repositories/dashboard_repository.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-// ─────────────────────────────────────────────────────────────
-// Model
-// ─────────────────────────────────────────────────────────────
+// ───────────────── Providers ─────────────────
 
-/// Data satu kategori dalam top expenses.
-class TopExpenseCategory {
-  const TopExpenseCategory({
-    required this.categoryId,
-    required this.categoryName,
-    required this.categoryIcon,
-    required this.categoryColor,
-    required this.amount,
-    required this.percentage,
-  });
-
-  final String categoryId;
-  final String categoryName;
-  final String categoryIcon;
-  final String categoryColor;
-  final double amount;
-
-  /// Persentase terhadap total expense bulan ini (0.0 – 1.0).
-  final double percentage;
-}
-
-/// Data bar chart income vs expense per minggu.
-class WeeklyChartData {
-  const WeeklyChartData({
-    required this.weekNumber,
-    required this.income,
-    required this.expense,
-  });
-
-  final int weekNumber;
-  final double income;
-  final double expense;
-}
-
-/// State keseluruhan dashboard.
-class DashboardData {
-  const DashboardData({
-    required this.totalBalance,
-    required this.wallets,
-    required this.monthlyIncome,
-    required this.monthlyExpense,
-    required this.topExpenseCategories,
-    required this.recentTransactions,
-    required this.chartData,
-  });
-
-  /// Sum saldo wallet non-excluded.
-  final double totalBalance;
-
-  /// Semua wallet user.
-  final List<WalletModel> wallets;
-
-  /// Sum pemasukan bulan ini.
-  final double monthlyIncome;
-
-  /// Sum pengeluaran bulan ini.
-  final double monthlyExpense;
-
-  /// Top 5 kategori expense bulan ini.
-  final List<TopExpenseCategory> topExpenseCategories;
-
-  /// 3 transaksi terbaru.
-  final List<TransactionModel> recentTransactions;
-
-  /// Income vs expense per minggu (4-5 titik).
-  final List<WeeklyChartData> chartData;
-
-  DashboardData copyWith({
-    double? totalBalance,
-    List<WalletModel>? wallets,
-    double? monthlyIncome,
-    double? monthlyExpense,
-    List<TopExpenseCategory>? topExpenseCategories,
-    List<TransactionModel>? recentTransactions,
-    List<WeeklyChartData>? chartData,
-  }) {
-    return DashboardData(
-      totalBalance: totalBalance ?? this.totalBalance,
-      wallets: wallets ?? this.wallets,
-      monthlyIncome: monthlyIncome ?? this.monthlyIncome,
-      monthlyExpense: monthlyExpense ?? this.monthlyExpense,
-      topExpenseCategories: topExpenseCategories ?? this.topExpenseCategories,
-      recentTransactions: recentTransactions ?? this.recentTransactions,
-      chartData: chartData ?? this.chartData,
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────
-// Provider
-// ─────────────────────────────────────────────────────────────
+/// Provider singleton untuk [DashboardRepository].
+final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
+  return DashboardRepository();
+});
 
 /// Provider utama untuk [DashboardController].
+///
+/// Mengelola state inti dashboard: status loading, recent transactions,
+/// error message, dan visibility saldo.
+///
+/// **Tidak** mengelola data chart/period — tanggung jawab tersebut
+/// didelegasikan ke [dashboardChartControllerProvider] agar widget chart
+/// bisa di-rebuild secara independen tanpa mempengaruhi widget lain.
 final dashboardControllerProvider =
-    AsyncNotifierProvider<DashboardController, DashboardData>(
-      () => DashboardController(),
-    );
-
-// ─────────────────────────────────────────────────────────────
-// Controller
-// ─────────────────────────────────────────────────────────────
-
-/// Riverpod [AsyncNotifier] yang mengagregasi data dari Wallet + Transaction
-/// untuk kebutuhan semua widget dashboard.
-class DashboardController extends AsyncNotifier<DashboardData> {
-  late final TransactionRemoteDataSource _txRemote;
-
-  static const String _tag = 'Dashboard';
-
-  @override
-  Future<DashboardData> build() async {
-    _txRemote = TransactionRemoteDataSource(client: Supabase.instance.client);
-
-    return _fetchDashboardData();
-  }
-
-  /// Fetch ulang seluruh data dashboard (untuk pull-to-refresh).
-  Future<void> refresh() async {
-    // Refresh wallet juga
-    await ref.read(walletControllerProvider.notifier).refresh();
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _fetchDashboardData());
-  }
-
-  /// Aggregasi semua data dashboard.
-  Future<DashboardData> _fetchDashboardData() async {
-    AppLogger.call(
-      '[$_tag] Memulai fetch dashboard...',
-      colorLog: ColorLog.blue,
-    );
-
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-
-    final now = DateTime.now();
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-    // 1. Wallet data (dari wallet controller)
-    final walletController = ref.read(walletControllerProvider);
-    final wallets = walletController.value ?? [];
-    final totalBalance = wallets
-        .where((w) => !w.excludeFromTotal)
-        .fold(0.0, (sum, w) => sum + w.balance);
-
-    // 2. Transaksi bulan ini (ambil semua untuk aggregate)
-    final txResult = await _txRemote.getTransactions(
-      userId: userId,
-      startDate: firstDayOfMonth,
-      endDate: lastDayOfMonth,
-      page: 0,
-      limit: 500, // Ambil cukup banyak untuk aggregate
-    );
-
-    List<TransactionModel> monthlyTransactions = [];
-    txResult.map(
-      success: (data) => monthlyTransactions = data.data,
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal fetch transaksi: ${err.message}',
-          runtimeType: DashboardController,
-        );
-      },
-    );
-
-    // 3. Hitung monthly income & expense
-    double monthlyIncome = 0;
-    double monthlyExpense = 0;
-    for (final tx in monthlyTransactions) {
-      if (tx.type == 'income') {
-        monthlyIncome += tx.totalAmount;
-      } else if (tx.type == 'expense') {
-        monthlyExpense += tx.totalAmount;
-      }
-    }
-
-    // 4. Chart data: income vs expense per minggu
-    final chartData = _buildWeeklyChartData(
-      transactions: monthlyTransactions,
-      firstDayOfMonth: firstDayOfMonth,
-      lastDayOfMonth: lastDayOfMonth,
-    );
-
-    // 5. Top expense categories
-    final topExpenses = await _buildTopExpenseCategories(
-      transactions: monthlyTransactions,
-      userId: userId,
-      totalExpense: monthlyExpense,
-    );
-
-    // 6. Recent transactions (3 terbaru)
-    final recentResult = await _txRemote.getTransactions(
-      userId: userId,
-      startDate: DateTime(2000),
-      endDate: now,
-      page: 0,
-      limit: 3,
-    );
-
-    List<TransactionModel> recentTransactions = [];
-    recentResult.map(
-      success: (data) => recentTransactions = data.data,
-      error: (_) {},
-    );
-
-    AppLogger.call(
-      '[$_tag] Dashboard loaded: ${wallets.length} wallets, '
-      '${monthlyTransactions.length} tx bulan ini, '
-      'income=${monthlyIncome.toStringAsFixed(0)}, '
-      'expense=${monthlyExpense.toStringAsFixed(0)}',
-      colorLog: ColorLog.green,
-    );
-
-    return DashboardData(
-      totalBalance: totalBalance,
-      wallets: wallets,
-      monthlyIncome: monthlyIncome,
-      monthlyExpense: monthlyExpense,
-      topExpenseCategories: topExpenses,
-      recentTransactions: recentTransactions,
-      chartData: chartData,
-    );
-  }
-
-  /// Mengelompokkan transaksi ke minggu-minggu dalam bulan ini.
-  List<WeeklyChartData> _buildWeeklyChartData({
-    required List<TransactionModel> transactions,
-    required DateTime firstDayOfMonth,
-    required DateTime lastDayOfMonth,
-  }) {
-    // Hitung jumlah minggu dalam bulan
-    final totalDays = lastDayOfMonth.day;
-    final weekCount = ((totalDays - 1) ~/ 7) + 1;
-
-    final incomeByWeek = List<double>.filled(weekCount, 0);
-    final expenseByWeek = List<double>.filled(weekCount, 0);
-
-    for (final tx in transactions) {
-      if (tx.type != 'income' && tx.type != 'expense') continue;
-
-      final dayOfMonth = tx.date.day;
-      final weekIndex = ((dayOfMonth - 1) ~/ 7).clamp(0, weekCount - 1);
-
-      if (tx.type == 'income') {
-        incomeByWeek[weekIndex] += tx.totalAmount;
-      } else {
-        expenseByWeek[weekIndex] += tx.totalAmount;
-      }
-    }
-
-    return List.generate(weekCount, (i) {
-      return WeeklyChartData(
-        weekNumber: i + 1,
-        income: incomeByWeek[i],
-        expense: expenseByWeek[i],
-      );
+    StateNotifierProvider<DashboardController, DashboardState>((ref) {
+      final repository = ref.watch(dashboardRepositoryProvider);
+      return DashboardController(repository, ref);
     });
+
+/// Provider computed: wallet included in total (reuses wallet state).
+final dashboardWalletsProvider = Provider<List<WalletModel>>((ref) {
+  final walletState = ref.watch(walletControllerProvider);
+  return walletState.wallets;
+});
+
+/// Provider computed: total balance excluding `exclude_from_total` wallets.
+final dashboardTotalBalanceProvider = Provider<double>((ref) {
+  final wallets = ref.watch(dashboardWalletsProvider);
+  return wallets
+      .where((w) => !w.excludeFromTotal)
+      .fold<double>(0, (sum, w) => sum + w.balance);
+});
+
+// ───────────────── Enums ─────────────────
+
+/// Status loading dashboard.
+enum DashboardStatus { initial, loading, loaded, error }
+
+// ───────────────── State ─────────────────
+
+/// Immutable state inti dashboard.
+///
+/// Hanya menyimpan data yang dibutuhkan oleh widget non-chart:
+/// - Status loading halaman
+/// - Recent transactions preview (5 terbaru)
+/// - Error message
+/// - Balance visibility toggle
+///
+/// Data chart (period summary, daily aggregation, chart mode) dikelola
+/// terpisah oleh [DashboardChartState] untuk optimasi rebuild.
+class DashboardState {
+  const DashboardState({
+    this.status = DashboardStatus.initial,
+    this.recentTransactions = const [],
+    this.errorMessage,
+    this.isBalanceHidden = false,
+  });
+
+  /// Status loading halaman dashboard secara keseluruhan.
+  final DashboardStatus status;
+
+  /// 5 transaksi terbaru untuk preview.
+  final List<TransactionModel> recentTransactions;
+
+  /// Error message jika gagal load data inti.
+  final String? errorMessage;
+
+  /// User toggle: sembunyikan saldo di balance card.
+  final bool isBalanceHidden;
+
+  DashboardState copyWith({
+    DashboardStatus? status,
+    List<TransactionModel>? recentTransactions,
+    String? errorMessage,
+    bool? isBalanceHidden,
+  }) {
+    return DashboardState(
+      status: status ?? this.status,
+      recentTransactions: recentTransactions ?? this.recentTransactions,
+      errorMessage: errorMessage,
+      isBalanceHidden: isBalanceHidden ?? this.isBalanceHidden,
+    );
   }
+}
 
-  /// Mengagregasi top 5 kategori expense menggunakan transaction_items.
-  Future<List<TopExpenseCategory>> _buildTopExpenseCategories({
-    required List<TransactionModel> transactions,
-    required String userId,
-    required double totalExpense,
-  }) async {
-    if (totalExpense == 0) return [];
+// ───────────────── Controller ─────────────────
 
-    // Ambil items dari semua transaksi expense
-    final expenseTransactions = transactions
-        .where((tx) => tx.type == 'expense')
-        .toList();
+/// Controller inti (parent) untuk dashboard.
+///
+/// Bertanggung jawab atas:
+/// - Load recent transactions preview
+/// - Orchestrate chart data loading via [DashboardChartController]
+/// - Toggle balance visibility
+///
+/// Saat `loadDashboard()` dipanggil (termasuk dari fitur lain seperti
+/// TransactionFormPage, HistoryPage, dll.), controller ini secara otomatis
+/// juga men-trigger reload data chart melalui
+/// [dashboardChartControllerProvider].
+///
+/// **Arsitektur rebuild:**
+/// ```
+/// DashboardController (core)
+///   → DashboardPage (status, loading/error)
+///   → DashboardBalanceCard (isBalanceHidden)
+///   → DashboardWalletSection (isBalanceHidden)
+///   → DashboardRecentTransactions (recentTransactions)
+///
+/// DashboardChartController (chart)
+///   → DashboardChartCarousel (chartMode)
+///   → DashboardComparisonChart (chartMode, income/expense)
+///   → DashboardTrendReportChart (chartMode, daily data)
+///   → DashboardPeriodSummary (chartMode, income/expense)
+/// ```
+class DashboardController extends StateNotifier<DashboardState> {
+  DashboardController(this._repository, this._ref)
+    : super(const DashboardState());
 
-    // Aggregate amount per kategori — menggunakan transaction header saja
-    // untuk transaksi single-item, dan items untuk multi-item
-    final Map<String, double> categoryAmounts = {};
+  final DashboardRepository _repository;
 
-    for (final tx in expenseTransactions) {
-      if (tx.isMultiItem) {
-        // Ambil items untuk multi-item transaksi
-        final itemsResult = await _txRemote.getTransactionItems(tx.id);
-        itemsResult.map(
-          success: (data) {
-            for (final item in data.data) {
-              if (item.categoryId != null) {
-                categoryAmounts.update(
-                  item.categoryId!,
-                  (v) => v + item.amount,
-                  ifAbsent: () => item.amount,
-                );
-              }
-            }
-          },
-          error: (_) {},
-        );
-      } else {
-        // Single item: ambil items untuk mendapatkan categoryId
-        final itemsResult = await _txRemote.getTransactionItems(tx.id);
-        itemsResult.map(
-          success: (data) {
-            if (data.data.isNotEmpty) {
-              final item = data.data.first;
-              if (item.categoryId != null) {
-                categoryAmounts.update(
-                  item.categoryId!,
-                  (v) => v + tx.totalAmount,
-                  ifAbsent: () => tx.totalAmount,
-                );
-              }
-            }
-          },
-          error: (_) {},
-        );
-      }
+  /// Riverpod ref untuk mengakses chart controller.
+  final Ref _ref;
+
+  /// Load semua data dashboard.
+  ///
+  /// Fetch recent transactions dan secara paralel trigger chart data loading.
+  /// External callers (TransactionFormPage, HistoryPage, dll.) cukup
+  /// memanggil method ini — chart data otomatis ikut di-refresh.
+  Future<void> loadDashboard() async {
+    state = state.copyWith(status: DashboardStatus.loading);
+
+    // Trigger chart data loading secara paralel (non-blocking)
+    _ref.read(dashboardChartControllerProvider.notifier).loadChartData();
+
+    // Fetch recent transactions
+    final recentResult = await _repository.getRecentTransactions(limit: 5);
+
+    if (recentResult.isError()) {
+      final (message, _, _, _) = recentResult.dataError()!;
+      state = state.copyWith(
+        status: DashboardStatus.error,
+        errorMessage: message,
+      );
+      return;
     }
 
-    if (categoryAmounts.isEmpty) return [];
-
-    // Ambil kategori metadata
-    final catResult = await _txRemote.getCategories(userId: userId);
-    Map<String, CategoryModel> categoryMap = {};
-    catResult.map(
-      success: (data) {
-        for (final cat in data.data) {
-          categoryMap[cat.id] = cat;
-        }
-      },
-      error: (_) {},
+    state = state.copyWith(
+      status: DashboardStatus.loaded,
+      recentTransactions: recentResult.dataSuccess() ?? [],
     );
+  }
 
-    // Sort by amount descending
-    final sorted = categoryAmounts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    // Top 5
-    return sorted.take(5).map((entry) {
-      final cat = categoryMap[entry.key];
-      return TopExpenseCategory(
-        categoryId: entry.key,
-        categoryName: cat?.name ?? 'Unknown',
-        categoryIcon: cat?.icon ?? 'tag',
-        categoryColor: cat?.color ?? '#6B7280',
-        amount: entry.value,
-        percentage: entry.value / totalExpense,
-      );
-    }).toList();
+  /// Toggle visibility saldo di balance card.
+  void toggleBalanceVisibility() {
+    state = state.copyWith(isBalanceHidden: !state.isBalanceHidden);
   }
 }

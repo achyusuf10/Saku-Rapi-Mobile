@@ -1,58 +1,53 @@
+import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Data source untuk operasi CRUD wallet ke Supabase.
+/// Remote data source untuk operasi CRUD wallet di Supabase.
 ///
-/// Semua fungsi dibungkus dengan [SupabaseHandler.call] dan
-/// mengembalikan [DataState<T>] sesuai aturan arsitektur.
+/// Semua request dibungkus [SupabaseHandler.call] agar return type
+/// konsisten `DataState<T>`.
 class WalletRemoteDataSource {
-  WalletRemoteDataSource({required SupabaseClient client}) : _client = client;
+  WalletRemoteDataSource({SupabaseClient? client})
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
-  static const String _table = 'wallets';
-  static const String _txTable = 'transactions';
+  static const _table = 'wallets';
+  static const _tag = '[Wallet] [WalletRemoteDataSource]';
 
-  /// Mengambil semua wallet milik user yang sedang login,
-  /// diurutkan berdasarkan `sort_order` lalu `created_at`.
+  String get _userId => _client.auth.currentUser!.id;
+
+  // ───────────────── READ ─────────────────
+
+  /// Ambil semua wallet milik user, diurutkan sesuai [sort_order].
   Future<DataState<List<WalletModel>>> getWallets() {
     return SupabaseHandler.call<List<WalletModel>>(
       function: () async {
+        AppLogger.call('$_tag getWallets');
         final response = await _client
             .from(_table)
             .select()
+            .eq('user_id', _userId)
             .order('sort_order', ascending: true)
             .order('created_at', ascending: true);
 
-        return response.map(WalletModel.fromMap).toList();
+        return response.map((e) => WalletModel.fromMap(e)).toList();
       },
     );
   }
 
-  /// Mengambil satu wallet berdasarkan [walletId].
-  Future<DataState<WalletModel>> getWalletById(String walletId) {
-    return SupabaseHandler.call<WalletModel>(
-      function: () async {
-        final response = await _client
-            .from(_table)
-            .select()
-            .eq('id', walletId)
-            .single();
+  // ───────────────── CREATE ─────────────────
 
-        return WalletModel.fromMap(response);
-      },
-    );
-  }
-
-  /// Membuat wallet baru. Mengembalikan wallet yang baru dibuat.
+  /// Buat wallet baru. `balance` diset = `initial_balance` pada insert.
   Future<DataState<WalletModel>> createWallet(WalletModel wallet) {
     return SupabaseHandler.call<WalletModel>(
       function: () async {
+        AppLogger.call('$_tag createWallet: ${wallet.name}');
         final response = await _client
             .from(_table)
-            .insert(wallet.toMap())
+            .insert(wallet.toInsertMap())
             .select()
             .single();
 
@@ -61,13 +56,17 @@ class WalletRemoteDataSource {
     );
   }
 
-  /// Memperbarui data wallet. Mengembalikan wallet yang sudah diperbarui.
+  // ───────────────── UPDATE ─────────────────
+
+  /// Update metadata wallet (name, icon, color, exclude_from_total, sort_order).
+  /// **TIDAK** mengubah balance — itu hanya lewat trigger.
   Future<DataState<WalletModel>> updateWallet(WalletModel wallet) {
     return SupabaseHandler.call<WalletModel>(
       function: () async {
+        AppLogger.call('$_tag updateWallet: ${wallet.id}');
         final response = await _client
             .from(_table)
-            .update(wallet.toMap())
+            .update(wallet.toUpdateMap())
             .eq('id', wallet.id)
             .select()
             .single();
@@ -77,36 +76,49 @@ class WalletRemoteDataSource {
     );
   }
 
-  /// Menghapus wallet berdasarkan [walletId].
+  /// Toggle flag exclude_from_total.
+  Future<DataState<void>> toggleExcludeFromTotal({
+    required String walletId,
+    required bool exclude,
+  }) {
+    return SupabaseHandler.call<void>(
+      function: () async {
+        AppLogger.call('$_tag toggleExcludeFromTotal: $walletId → $exclude');
+        await _client
+            .from(_table)
+            .update({'exclude_from_total': exclude})
+            .eq('id', walletId);
+      },
+    );
+  }
+
+  // ───────────────── DELETE ─────────────────
+
+  /// Hapus wallet berdasarkan ID.
   Future<DataState<void>> deleteWallet(String walletId) {
     return SupabaseHandler.call<void>(
       function: () async {
+        AppLogger.call('$_tag deleteWallet: $walletId');
         await _client.from(_table).delete().eq('id', walletId);
       },
     );
   }
 
-  /// Menyesuaikan saldo wallet dengan cara menyisipkan transaksi
-  /// bertipe `adjustment`.
-  ///
-  /// [walletId] — wallet yang dikoreksi.
-  /// [delta] — selisih saldo (actual - current). Bisa positif/negatif.
-  ///
-  /// Trigger DB `update_wallet_balance` akan otomatis mengubah
-  /// kolom `balance` pada tabel wallets.
-  Future<DataState<void>> adjustBalance({
-    required String walletId,
-    required String userId,
-    required double delta,
-  }) {
-    return SupabaseHandler.call<void>(
+  // ───────────────── GUARD ─────────────────
+
+  /// Cek apakah wallet memiliki transaksi.
+  /// Digunakan sebagai guard sebelum delete.
+  Future<DataState<bool>> hasTransactions(String walletId) {
+    return SupabaseHandler.call<bool>(
       function: () async {
-        await _client.from(_txTable).insert({
-          'user_id': userId,
-          'wallet_id': walletId,
-          'type': 'adjustment',
-          'total_amount': delta,
-        });
+        AppLogger.call('$_tag hasTransactions: $walletId');
+        final response = await _client
+            .from('transactions')
+            .select('id')
+            .or('wallet_id.eq.$walletId,destination_wallet_id.eq.$walletId')
+            .limit(1);
+
+        return (response as List).isNotEmpty;
       },
     );
   }

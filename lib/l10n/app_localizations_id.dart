@@ -315,6 +315,30 @@ class AppLocalizationsId extends AppLocalizations {
       'Nama kontak wajib diisi untuk hutang/piutang';
 
   @override
+  String get contactPickerTitle => 'Pilih Kontak';
+
+  @override
+  String get contactPickerFromPhonebook => 'Dari Kontak HP';
+
+  @override
+  String get contactPickerSaved => 'Kontak Tersimpan';
+
+  @override
+  String get contactPickerSearch => 'Cari kontak...';
+
+  @override
+  String get contactPickerEmpty => 'Belum ada kontak tersimpan';
+
+  @override
+  String get contactPickerPhonePermissionDenied => 'Izin akses kontak ditolak';
+
+  @override
+  String get contactPickerNoPhone => 'Tidak ada nomor HP';
+
+  @override
+  String get contactPickerSelected => 'Kontak';
+
+  @override
   String get transactionDestWalletRequired => 'Pilih dompet tujuan';
 
   @override
@@ -343,6 +367,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get transactionNewTitle => 'Transaksi Baru';
 
   @override
+  String get transactionEditTitle => 'Edit Transaksi';
+
+  @override
+  String get transactionSettleDebt => 'Lunasi Hutang';
+
+  @override
+  String get transactionSettleLoan => 'Tagih Piutang';
+
+  @override
+  String get transactionSettleAmount => 'Jumlah Pelunasan';
+
+  @override
+  String get transactionSettleSuccess => 'Pelunasan berhasil disimpan';
+
+  @override
   String get transactionAttachmentAdd => 'Tambah Lampiran';
 
   @override
@@ -364,7 +403,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashboardSeeAll => 'Lihat Semua';
 
   @override
-  String get dashboardSnapshotTitle => 'Ringkasan Bulan Ini';
+  String dashboardSnapshotTitle(String period) {
+    return 'Ringkasan $period';
+  }
 
   @override
   String get dashboardTopExpenses => 'Pengeluaran Terbesar';
@@ -399,6 +440,64 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashboardComingSoon => 'Segera Hadir';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Halo, $name 👋';
+  }
+
+  @override
+  String get dashboardEmptyWallets => 'Belum ada dompet';
+
+  @override
+  String get dashboardMonthlyIncome => 'Pemasukan Bulan Ini';
+
+  @override
+  String get dashboardMonthlyExpense => 'Pengeluaran Bulan Ini';
+
+  @override
+  String get dashboardChartTitle => 'Pemasukan vs Pengeluaran';
+
+  @override
+  String get dashboardThisMonth => 'Bulan Ini';
+
+  @override
+  String get dashboardLastMonth => 'Bulan Lalu';
+
+  @override
+  String get dashboardThisWeek => 'Minggu Ini';
+
+  @override
+  String get dashboardLastWeek => 'Minggu Lalu';
+
+  @override
+  String get dashboardMonthlyMode => 'Bulanan';
+
+  @override
+  String get dashboardWeeklyMode => 'Mingguan';
+
+  @override
+  String get dashboardDailyMode => 'Harian';
+
+  @override
+  String get dashboardToday => 'Hari Ini';
+
+  @override
+  String get dashboardYesterday => 'Kemarin';
+
+  @override
+  String get dashboardQuickAdd => 'Tambah Cepat';
+
+  @override
+  String get dashboardNetFlow => 'Netto';
+
+  @override
+  String get dashboardNoChange => 'Tidak berubah';
+
+  @override
+  String dashboardVsPrevious(String period) {
+    return 'vs $period';
+  }
+
+  @override
   String get historyTitle => 'Riwayat';
 
   @override
@@ -430,6 +529,72 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get historyResetFilter => 'Reset';
+
+  @override
+  String get historyDaily => 'Harian';
+
+  @override
+  String get historyWeekly => 'Mingguan';
+
+  @override
+  String get historyMonthly => 'Bulanan';
+
+  @override
+  String get historyQuarterly => '3 Bulanan';
+
+  @override
+  String get historyYearly => 'Tahunan';
+
+  @override
+  String get historyCustomRange => 'Kustom';
+
+  @override
+  String get historyGroupByDate => 'Berdasarkan Tanggal';
+
+  @override
+  String get historyGroupByCategory => 'Berdasarkan Kategori';
+
+  @override
+  String get historyAllTypes => 'Semua Tipe';
+
+  @override
+  String get historySelectType => 'Tipe Transaksi';
+
+  @override
+  String get historyPeriod => 'Periode';
+
+  @override
+  String get historyLoadMore => 'Muat lebih banyak';
+
+  @override
+  String historyTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get historyFilterEmpty => 'Tidak ada transaksi dengan filter ini';
+
+  @override
+  String get historyViewReport => 'Lihat Laporan';
+
+  @override
+  String get historyDeleteSuccess => 'Transaksi berhasil dihapus';
+
+  @override
+  String get historyDeleteConfirm => 'Hapus Transaksi';
+
+  @override
+  String get historyDeleteConfirmMessage =>
+      'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan.';
+
+  @override
+  String get historySelectDateRange => 'Pilih Rentang Tanggal';
+
+  @override
+  String get historyStartDate => 'Tanggal Mulai';
+
+  @override
+  String get historyEndDate => 'Tanggal Akhir';
 
   @override
   String get breakdownTitle => 'Rincian Biaya';
@@ -637,6 +802,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get budgetEndOfMonthLabel => 'Akhir Bulan';
 
   @override
+  String get budgetEndOfPeriodLabel => 'Akhir Periode';
+
+  @override
   String budgetDaysRemaining(int days) {
     return '$days hari';
   }
@@ -757,149 +925,98 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get investmentTitle => 'Investasi';
+  String get budgetFilterAll => 'Semua Dompet';
 
   @override
-  String get investmentAdd => 'Tambah Investasi';
+  String get budgetCompletedTitle => 'Anggaran Selesai';
 
   @override
-  String get investmentEdit => 'Edit Investasi';
+  String get budgetCompletedEmpty => 'Belum ada anggaran yang selesai';
 
   @override
-  String get investmentDelete => 'Hapus Investasi';
+  String get budgetCompleted => 'Selesai';
 
   @override
-  String get investmentPortfolio => 'Total Portofolio';
+  String get budgetDuplicateTitle => 'Anggaran Sudah Ada';
 
   @override
-  String get investmentTotalValue => 'Nilai Saat Ini';
-
-  @override
-  String get investmentTotalPL => 'Total P&L';
-
-  @override
-  String get investmentTypeGold => 'Emas';
-
-  @override
-  String get investmentTypeBtc => 'Bitcoin';
-
-  @override
-  String get investmentTypeCustom => 'Kustom';
-
-  @override
-  String get investmentBuyPrice => 'Harga Beli';
-
-  @override
-  String get investmentCurrentPrice => 'Harga Saat Ini';
-
-  @override
-  String get investmentAmount => 'Jumlah';
-
-  @override
-  String get investmentUnit => 'unit';
-
-  @override
-  String get investmentEmptyTitle => 'Belum Ada Investasi';
-
-  @override
-  String get investmentEmptySubtitle =>
-      'Ketuk + untuk menambahkan aset pertama Anda';
-
-  @override
-  String get investmentRefreshPrice => 'Perbarui Harga';
-
-  @override
-  String get investmentFormTitleAdd => 'Tambah Investasi';
-
-  @override
-  String get investmentFormTitleEdit => 'Edit Investasi';
-
-  @override
-  String get investmentFormType => 'Tipe Aset';
-
-  @override
-  String get investmentFormName => 'Nama Aset';
-
-  @override
-  String get investmentFormNameHint => 'misal: Emas Antam, BTC';
-
-  @override
-  String get investmentFormNameRequired => 'Nama aset wajib diisi';
-
-  @override
-  String get investmentFormAmount => 'Jumlah Unit';
-
-  @override
-  String get investmentFormAmountRequired => 'Jumlah wajib diisi';
-
-  @override
-  String get investmentFormAmountInvalid => 'Jumlah harus lebih dari 0';
-
-  @override
-  String get investmentFormBuyPrice => 'Harga Beli per Unit (IDR)';
-
-  @override
-  String get investmentFormBuyPriceRequired => 'Harga beli wajib diisi';
-
-  @override
-  String get investmentFormBuyPriceInvalid => 'Harga beli harus lebih dari 0';
-
-  @override
-  String get investmentFormCurrentPrice => 'Harga Saat Ini (IDR)';
-
-  @override
-  String get investmentFormCurrentPriceHint => 'Opsional — untuk aset kustom';
-
-  @override
-  String get investmentFormDeductWallet => 'Potong dari Dompet';
-
-  @override
-  String get investmentFormDeductWalletSubtitle =>
-      'Saldo dompet akan dikurangi otomatis';
-
-  @override
-  String get investmentFormWallet => 'Pilih Dompet';
-
-  @override
-  String get investmentFormWalletRequired => 'Pilih dompet terlebih dahulu';
-
-  @override
-  String get investmentFormNotes => 'Catatan';
-
-  @override
-  String get investmentFormNotesHint => 'Opsional';
-
-  @override
-  String get investmentFormEstimatedCost => 'Estimasi Total Biaya';
-
-  @override
-  String get investmentSave => 'Simpan Investasi';
-
-  @override
-  String get investmentSuccessAdd => 'Investasi berhasil ditambahkan';
-
-  @override
-  String get investmentSuccessEdit => 'Investasi berhasil diperbarui';
-
-  @override
-  String get investmentSuccessDelete => 'Investasi berhasil dihapus';
-
-  @override
-  String get investmentErrorAdd => 'Gagal menambahkan investasi';
-
-  @override
-  String get investmentErrorEdit => 'Gagal memperbarui investasi';
-
-  @override
-  String get investmentErrorDelete => 'Gagal menghapus investasi';
-
-  @override
-  String get investmentDeleteConfirmTitle => 'Hapus Investasi?';
-
-  @override
-  String investmentDeleteConfirmMessage(String name) {
-    return 'Aset \"$name\" akan dihapus permanen.';
+  String budgetDuplicateMessage(String category, String wallet) {
+    return 'Sudah ada anggaran aktif untuk kategori \"$category\" di $wallet. Ganti dengan yang baru?';
   }
+
+  @override
+  String get budgetDuplicateReplace => 'Ganti';
+
+  @override
+  String get budgetDuplicateKeep => 'Batal';
+
+  @override
+  String get budgetTabWeekly => 'Mingguan';
+
+  @override
+  String get budgetTabMonthly => 'Bulanan';
+
+  @override
+  String get budgetTabQuarterly => 'Kuartalan';
+
+  @override
+  String get budgetTabYearly => 'Tahunan';
+
+  @override
+  String get budgetTabCustom => 'Kustom';
+
+  @override
+  String get budgetDetailTitle => 'Detail Anggaran';
+
+  @override
+  String get budgetDetailSpent => 'Terpakai';
+
+  @override
+  String get budgetDetailRemaining => 'Sisa';
+
+  @override
+  String get budgetDetailPeriod => 'Periode';
+
+  @override
+  String get budgetDetailDaysLeft => 'Sisa Hari';
+
+  @override
+  String get budgetDetailWallet => 'Dompet';
+
+  @override
+  String get budgetDetailDailyRecommended => 'Rekomendasi Harian';
+
+  @override
+  String get budgetDetailProjectedSpend => 'Proyeksi Pengeluaran';
+
+  @override
+  String get budgetDetailActualDaily => 'Rata-rata Harian';
+
+  @override
+  String get budgetDetailTransactions => 'Transaksi';
+
+  @override
+  String get budgetDetailTransactionsEmpty => 'Belum ada transaksi';
+
+  @override
+  String get budgetFormCarryForwardTitle => 'Carry Forward';
+
+  @override
+  String get budgetFormCarryForwardSubtitle =>
+      'Bawa sisa anggaran ke periode berikutnya saat diperpanjang';
+
+  @override
+  String get budgetFormDiscardTitle => 'Buang Perubahan?';
+
+  @override
+  String get budgetFormDiscardMessage =>
+      'Kamu punya perubahan yang belum disimpan. Yakin ingin membuangnya?';
+
+  @override
+  String get budgetFormDiscardConfirm => 'Buang';
+
+  @override
+  String get budgetUpcomingBudgets => 'Anggaran Mendatang';
 
   @override
   String get notifTitle => 'Notifikasi';
@@ -941,6 +1058,17 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String notifBudgetAlert50(String category) {
+    return 'Anggaran $category sudah 50% terpakai';
+  }
+
+  @override
+  String get notifBudget50Title => 'Alert Anggaran 50%';
+
+  @override
+  String get notifBudget50Subtitle => 'Notif saat anggaran mencapai 50%';
+
+  @override
   String notifDebtDue(String person, int days) {
     return 'Piutang ke $person jatuh tempo $days hari lagi';
   }
@@ -962,9 +1090,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get navBudget => 'Anggaran';
-
-  @override
-  String get navInvestment => 'Investasi';
 
   @override
   String get profileTitle => 'Profil';
@@ -1006,6 +1131,48 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileLanguage => 'Bahasa';
 
   @override
+  String get profileThemeSystem => 'Ikuti Sistem';
+
+  @override
+  String get profileThemeLight => 'Terang';
+
+  @override
+  String get profileThemeDark => 'Gelap';
+
+  @override
+  String get profileThemeTitle => 'Tema Aplikasi';
+
+  @override
+  String get profileLanguageIndonesian => 'Indonesia';
+
+  @override
+  String get profileLanguageEnglish => 'English';
+
+  @override
+  String get profileLanguageTitle => 'Pilih Bahasa';
+
+  @override
+  String get profileExportImport => 'Export / Import';
+
+  @override
+  String get profileComingSoon => 'Segera Hadir';
+
+  @override
+  String get profileAppVersion => 'Versi Aplikasi';
+
+  @override
+  String get profileSectionAccount => 'Akun';
+
+  @override
+  String get profileSectionPreferences => 'Preferensi';
+
+  @override
+  String get profileSectionData => 'Data';
+
+  @override
+  String get profileSectionOther => 'Lainnya';
+
+  @override
   String get pickerChooseIcon => 'Pilih Ikon';
 
   @override
@@ -1013,4 +1180,1135 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get pickerSearchCategory => 'Cari kategori...';
+
+  @override
+  String get voiceInitializing => 'Mempersiapkan mikrofon...';
+
+  @override
+  String get voiceAnalyzingAi => 'Menganalisis dengan AI...';
+
+  @override
+  String get voiceDoneButton => 'Selesai';
+
+  @override
+  String get voicePleaseWait => 'Mohon tunggu...';
+
+  @override
+  String get voiceNoSpeech => 'Tidak ada suara terdeteksi';
+
+  @override
+  String get voiceOpenSettings => 'Buka Pengaturan';
+
+  @override
+  String get voicePermissionExplainer =>
+      'Izin mikrofon diperlukan untuk fitur input suara. Silakan aktifkan di pengaturan.';
+
+  @override
+  String get voiceParseFailed =>
+      'Gagal menganalisis, data dari suara diisi manual';
+
+  @override
+  String get voiceAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+
+  @override
+  String get voiceTapToSpeak => 'Tekan & tahan untuk bicara';
+
+  @override
+  String get voiceTranscript => 'Teks terdengar';
+
+  @override
+  String get voiceNotTransaction =>
+      'Input tidak terdeteksi sebagai transaksi. Coba ucapkan ulang dengan menyebutkan nominal atau jenis transaksi.';
+
+  @override
+  String get voiceContinueButton => 'Lanjutkan';
+
+  @override
+  String get voiceRetryButton => 'Ulangi';
+
+  @override
+  String get voicePreviewTitle => 'Preview Transaksi';
+
+  @override
+  String get voicePreviewType => 'Tipe';
+
+  @override
+  String get voicePreviewDestWallet => 'Wallet Tujuan';
+
+  @override
+  String get ocrExtractingText => 'Membaca teks dari struk...';
+
+  @override
+  String get ocrAnalyzingAi => 'Menganalisis dengan AI...';
+
+  @override
+  String get ocrPickerTitle => 'Scan Struk Belanja';
+
+  @override
+  String get ocrCropToolbar => 'Pilih Area Struk';
+
+  @override
+  String get ocrErrorGeneric => 'Gagal memproses gambar';
+
+  @override
+  String get ocrPermissionDenied => 'Izin kamera ditolak';
+
+  @override
+  String get ocrPermissionExplainer =>
+      'Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.';
+
+  @override
+  String get ocrAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+
+  @override
+  String get ocrPartialResult => 'Sebagian data berhasil dibaca';
+
+  @override
+  String ocrTotalMismatch(String itemsTotal, String receiptTotal) {
+    return 'Total item ($itemsTotal) tidak cocok dengan total struk ($receiptTotal)';
+  }
+
+  @override
+  String get ocrDate => 'Tanggal';
+
+  @override
+  String get ocrItemsSection => 'Daftar Item';
+
+  @override
+  String get ocrProcessing => 'Memproses...';
+
+  @override
+  String get ocrImageBlurry => 'Gambar tidak terbaca, coba foto ulang';
+
+  @override
+  String get ocrNotTransaction =>
+      'Gambar ini bukan dokumen transaksi keuangan. Coba foto struk, bukti transfer, atau nota lainnya.';
+
+  @override
+  String get ocrTypeExpense => 'Pengeluaran';
+
+  @override
+  String get ocrTypeIncome => 'Pemasukan';
+
+  @override
+  String get ocrTypeTransfer => 'Transfer';
+
+  @override
+  String get ocrTypeDebt => 'Hutang';
+
+  @override
+  String get ocrTypeLoan => 'Piutang';
+
+  @override
+  String get ocrSourceWallet => 'Dari';
+
+  @override
+  String get ocrDestWallet => 'Ke';
+
+  @override
+  String get ocrWithPerson => 'Orang';
+
+  @override
+  String get ocrPaymentMethod => 'Pembayaran';
+
+  @override
+  String get ocrUseResult => 'Gunakan Hasil';
+
+  @override
+  String get transactionListTitle => 'Transaksi';
+
+  @override
+  String get transactionRangeTitle => 'Pilih Rentang Waktu';
+
+  @override
+  String get transactionRangeHari => 'Hari Ini';
+
+  @override
+  String get transactionRangeMinggu => 'Minggu Ini';
+
+  @override
+  String get transactionRangeBulan => 'Bulan Ini';
+
+  @override
+  String get transactionRangeKuartal => 'Kuartal Ini';
+
+  @override
+  String get transactionRangeTahun => 'Tahun Ini';
+
+  @override
+  String get transactionRangeSemua => 'Semua';
+
+  @override
+  String get transactionRangeSesuaikan => 'Sesuaikan';
+
+  @override
+  String get transactionViewByCategory => 'Lihat per Kategori';
+
+  @override
+  String get transactionViewByTransaction => 'Lihat per Transaksi';
+
+  @override
+  String get transactionTransferMoney => 'Transfer Uang';
+
+  @override
+  String get transactionDetailTitle => 'Detail Transaksi';
+
+  @override
+  String get transactionDuplicate => 'Duplikasi';
+
+  @override
+  String get transactionShareDetail => 'Bagikan';
+
+  @override
+  String get transactionDeleteSuccess => 'Transaksi berhasil dihapus';
+
+  @override
+  String get transactionItemQty => 'Jumlah';
+
+  @override
+  String get transactionItemUnitPrice => 'Harga Satuan';
+
+  @override
+  String get transactionItemSubtotal => 'Subtotal';
+
+  @override
+  String get transactionItemName => 'Nama Item';
+
+  @override
+  String get transactionItemNameHint => 'Contoh: Kopi, Nasi Goreng';
+
+  @override
+  String get transactionTotalMismatch =>
+      'Total item tidak cocok dengan total transaksi';
+
+  @override
+  String get transactionReorderHint => 'Geser untuk mengatur urutan';
+
+  @override
+  String get transactionRemoveItem => 'Hapus Item';
+
+  @override
+  String get transactionItemNote => 'Catatan item';
+
+  @override
+  String get dashboardExpenseReport => 'Laporan Pengeluaran';
+
+  @override
+  String get dashboardTrendReport => 'Laporan Tren';
+
+  @override
+  String get dashboardTotalExpenseLabel => 'Total pengeluaran';
+
+  @override
+  String get dashboardTotalIncomeLabel => 'Total pendapatan';
+
+  @override
+  String get dashboardThisMonthCumulative => 'Bulan ini';
+
+  @override
+  String get dashboardAvg3MonthLabel => 'Rata-rata 3 bulan lalu';
+
+  @override
+  String get dashboardPrevMonthLabel => 'Bulan lalu';
+
+  @override
+  String get dashboardAvg3WeekLabel => 'Rata-rata 3 minggu lalu';
+
+  @override
+  String get dashboardAvg3DayLabel => 'Rata-rata 3 hari lalu';
+
+  @override
+  String dashboardInsightExpenseDown(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Pengeluaranmu $period ini $percent% lebih rendah dari $prevPeriod. Bagus, terus pertahankan!';
+  }
+
+  @override
+  String dashboardInsightExpenseUp(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Pengeluaranmu $period ini $percent% lebih tinggi dari $prevPeriod. Coba kurangi pengeluaran yang tidak perlu.';
+  }
+
+  @override
+  String dashboardInsightExpenseSame(String prevPeriod) {
+    return 'Pengeluaranmu stabil dibandingkan $prevPeriod.';
+  }
+
+  @override
+  String get dashboardInsightTrendBelowAvg =>
+      'Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!';
+
+  @override
+  String get dashboardInsightTrendAboveAvg =>
+      'Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.';
+
+  @override
+  String get dashboardInsightNoData =>
+      'Mulai catat transaksi untuk melihat insight.';
+
+  @override
+  String get reportTitle => 'Laporan';
+
+  @override
+  String get reportNet => 'Selisih Bersih';
+
+  @override
+  String get reportIncome => 'Pemasukan';
+
+  @override
+  String get reportExpense => 'Pengeluaran';
+
+  @override
+  String get reportPeriodWeekly => 'Mingguan';
+
+  @override
+  String get reportPeriodMonthly => 'Bulanan';
+
+  @override
+  String get reportPeriodQuarterly => 'Kuartal';
+
+  @override
+  String get reportPeriodYearly => 'Tahunan';
+
+  @override
+  String get reportAllWallets => 'Semua Dompet';
+
+  @override
+  String get reportCategoryBreakdown => 'Breakdown Kategori';
+
+  @override
+  String get reportDailyTrend => 'Tren Harian';
+
+  @override
+  String get reportNoCategory => 'Belum ada data kategori.';
+
+  @override
+  String get reportNoTrendData => 'Belum ada data tren.';
+
+  @override
+  String get reportEmptyTitle => 'Belum Ada Data';
+
+  @override
+  String get reportEmptyMessage =>
+      'Mulai catat transaksi untuk melihat laporan lengkap.';
+
+  @override
+  String get reportErrorGeneric => 'Gagal memuat laporan. Coba lagi.';
+
+  @override
+  String reportInsightExpenseDown(String percent) {
+    return 'Pengeluaranmu turun $percent% dari periode sebelumnya. Bagus!';
+  }
+
+  @override
+  String reportInsightExpenseUp(String percent) {
+    return 'Pengeluaranmu naik $percent% dari periode sebelumnya. Perhatikan lebih.';
+  }
+
+  @override
+  String get reportInsightStable =>
+      'Pengeluaranmu relatif stabil dibanding periode sebelumnya.';
+
+  @override
+  String get reportInsightNoData =>
+      'Mulai catat transaksi untuk melihat insight laporan.';
+
+  @override
+  String get reportSeeFullReport => 'Lihat Laporan Lengkap';
+
+  @override
+  String get thisQuarter => 'Kuartal Ini';
+
+  @override
+  String get transactionDeleteConfirmTitle => 'Hapus Transaksi?';
+
+  @override
+  String get transactionDeleteConfirmMessage =>
+      'Transaksi ini akan dihapus permanen dan saldo dompet akan disesuaikan.';
+
+  @override
+  String get transactionTransferToAsset => 'Transfer ke Aset';
+
+  @override
+  String transactionItemCount(int count) {
+    return '$count item';
+  }
+
+  @override
+  String get reportOthersCategory => 'Lainnya';
+
+  @override
+  String get reportTransactionCountLabel => 'transaksi';
+
+  @override
+  String get ocrBalanceItem => 'Item lainnya';
+
+  @override
+  String get ocrDiscountItem => 'Diskon/potongan';
+
+  @override
+  String get validationAmountPositive => 'Nominal harus lebih dari 0';
+
+  @override
+  String get validationTransferNeedsDest => 'Transfer memerlukan dompet tujuan';
+
+  @override
+  String get validationMinOneItem => 'Transaksi harus memiliki minimal 1 item';
+
+  @override
+  String validationItemsTotalMismatch(String itemsSum, String totalAmount) {
+    return 'Total item ($itemsSum) tidak sama dengan total transaksi ($totalAmount)';
+  }
+
+  @override
+  String get validationCategoryRequired =>
+      'Kategori wajib dipilih untuk setiap item';
+
+  @override
+  String get validationBudgetAmountPositive =>
+      'Nominal anggaran harus lebih dari 0';
+
+  @override
+  String get validationEndBeforeStart =>
+      'Tanggal akhir tidak boleh sebelum tanggal mulai';
+
+  @override
+  String get validationBudgetDuplicate =>
+      'Sudah ada anggaran aktif untuk kategori dan periode yang sama';
+
+  @override
+  String get validationDeleteOldBudgetFailed => 'Gagal menghapus anggaran lama';
+
+  @override
+  String get validationWalletNameEmpty => 'Nama dompet tidak boleh kosong';
+
+  @override
+  String get validationInitialBalanceNegative =>
+      'Saldo awal tidak boleh negatif';
+
+  @override
+  String get validationWalletNameDuplicate => 'Nama dompet sudah digunakan';
+
+  @override
+  String get validationWalletHasTransactions =>
+      'Dompet tidak bisa dihapus karena masih memiliki transaksi. Hapus transaksi terlebih dahulu.';
+
+  @override
+  String get debtLoanTitle => 'Hutang & Piutang';
+
+  @override
+  String get debtLoanTabToPay => 'Untuk Dibayar';
+
+  @override
+  String get debtLoanTabToReceive => 'Untuk Diterima';
+
+  @override
+  String get debtLoanUnpaid => 'BELUM LUNAS';
+
+  @override
+  String get debtLoanPaid => 'LUNAS';
+
+  @override
+  String get debtLoanAllWallets => 'Semua Dompet';
+
+  @override
+  String debtLoanTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get debtLoanRemaining => 'tersisa';
+
+  @override
+  String get debtLoanSettled => 'terlunasi';
+
+  @override
+  String get debtLoanPersonTitle => 'Daftar Transaksi';
+
+  @override
+  String debtLoanPersonResult(int count) {
+    return '$count hasil';
+  }
+
+  @override
+  String get debtLoanPersonIncome => 'Pemasukan';
+
+  @override
+  String get debtLoanPersonExpense => 'Pengeluaran';
+
+  @override
+  String get debtLoanSettlementTitle => 'Pelunasan';
+
+  @override
+  String get debtLoanSettlementAmount => 'Jumlah Pelunasan';
+
+  @override
+  String get debtLoanSettlementWallet => 'Dompet Pembayaran';
+
+  @override
+  String get debtLoanSettlementNote => 'Catatan (opsional)';
+
+  @override
+  String get debtLoanSettlementSubmit => 'Simpan Pelunasan';
+
+  @override
+  String get debtLoanSettlementSuccess => 'Pelunasan berhasil disimpan';
+
+  @override
+  String debtLoanSettlementRemainder(String amount) {
+    return 'Sisa: $amount';
+  }
+
+  @override
+  String get debtLoanPayDebt => 'Lunasi Hutang';
+
+  @override
+  String get debtLoanCollectLoan => 'Terima Pembayaran';
+
+  @override
+  String get debtLoanSettlementHistory => 'DAFTAR TRANSAKSI';
+
+  @override
+  String get debtLoanLender => 'Pemberi Pinjaman';
+
+  @override
+  String get debtLoanBorrower => 'Peminjam';
+
+  @override
+  String get debtLoanStatusPaid => 'Lunas';
+
+  @override
+  String get debtLoanStatusRemaining => 'Tersisa';
+
+  @override
+  String debtLoanDebtPaymentDesc(String person) {
+    return 'Hutang dibayar ke $person';
+  }
+
+  @override
+  String debtLoanLoanCollectionDesc(String person) {
+    return 'Piutang diterima dari $person';
+  }
+
+  @override
+  String get debtLoanRepayment => 'Pembayaran kembali';
+
+  @override
+  String get debtLoanCollection => 'Penerimaan';
+
+  @override
+  String get debtLoanEmpty => 'Belum ada catatan hutang atau piutang';
+
+  @override
+  String get debtLoanEmptyPerson => 'Belum ada transaksi';
+
+  @override
+  String get debtLoanSomeone => 'Seseorang';
+
+  @override
+  String get debtLoanExcludedFromReport =>
+      'Transaksi ini dikecualikan dari laporan';
+
+  @override
+  String get debtLoanSettlementHistoryTitle => 'Riwayat Pelunasan';
+
+  @override
+  String debtLoanTitleDebt(String person) {
+    return 'Hutang ke $person';
+  }
+
+  @override
+  String debtLoanTitleLoan(String person) {
+    return 'Piutang ke $person';
+  }
+
+  @override
+  String debtLoanTitlePayment(String person) {
+    return 'Pelunasan ke $person';
+  }
+
+  @override
+  String debtLoanTitleReceipt(String person) {
+    return 'Penerimaan dari $person';
+  }
+
+  @override
+  String get profileDebtLoan => 'Hutang & Piutang';
+
+  @override
+  String get debtLoanFormSubCategory => 'Kategori';
+
+  @override
+  String get debtLoanFormPickTransaction => 'Pilih Transaksi';
+
+  @override
+  String get debtLoanFormNoUnpaidDebt => 'Tidak ada hutang yang belum lunas';
+
+  @override
+  String get debtLoanFormNoUnpaidLoan => 'Tidak ada piutang yang belum lunas';
+
+  @override
+  String debtLoanFormAmountExceedsRemaining(String amount) {
+    return 'Nominal melebihi sisa $amount';
+  }
+
+  @override
+  String get debtLoanFormTabLabel => 'Hutang/Piutang';
+
+  @override
+  String get debtLoanFormSelectedTransaction => 'Transaksi Terpilih';
+
+  @override
+  String debtLoanFormRemainingAmount(String amount) {
+    return 'Sisa: $amount';
+  }
+
+  @override
+  String get debtLoanSettlementEditTitle => 'Edit Pelunasan';
+
+  @override
+  String get debtLoanSettlementEditSuccess => 'Pelunasan berhasil diperbarui';
+
+  @override
+  String get debtLoanSettlementDeleteConfirm => 'Hapus pelunasan ini?';
+
+  @override
+  String get debtLoanSettlementDeleteMessage =>
+      'Saldo dompet akan dikembalikan dan status hutang/piutang akan dihitung ulang.';
+
+  @override
+  String get debtLoanSettlementDeleteSuccess => 'Pelunasan berhasil dihapus';
+
+  @override
+  String debtLoanSettlementMaxAmount(String amount) {
+    return 'Maks: $amount';
+  }
+
+  @override
+  String get fabTextInput => 'Input Teks';
+
+  @override
+  String get textInputTitle => 'Input via Teks';
+
+  @override
+  String get textInputHint => 'cth. Makan siang di warteg 15rb';
+
+  @override
+  String get textInputSubmit => 'Analisis';
+
+  @override
+  String get textInputAnalyzing => 'Menganalisis dengan AI...';
+
+  @override
+  String get textInputError => 'Gagal menganalisis teks';
+
+  @override
+  String get textInputEmpty => 'Silakan masukkan deskripsi transaksi';
+
+  @override
+  String get navInvestment => 'Investasi';
+
+  @override
+  String get navSettings => 'Pengaturan';
+
+  @override
+  String get investmentTitle => 'Portofolio Investasi';
+
+  @override
+  String get investmentTotalValue => 'Total Nilai Portofolio';
+
+  @override
+  String get investmentTotalInvested => 'Total Modal';
+
+  @override
+  String get investmentProfitLoss => 'Keuntungan/Kerugian';
+
+  @override
+  String get investmentProfit => 'Untung';
+
+  @override
+  String get investmentLoss => 'Rugi';
+
+  @override
+  String get investmentEmpty => 'Belum ada investasi';
+
+  @override
+  String get investmentEmptyHint =>
+      'Tap + untuk mulai catat investasi pertamamu';
+
+  @override
+  String get investmentAddAsset => 'Tambah Investasi';
+
+  @override
+  String get investmentActiveAssets => 'Aset Aktif';
+
+  @override
+  String get investmentInactiveAssets => 'Aset Tidak Aktif';
+
+  @override
+  String get investmentViewInactive => 'Lihat Aset Tidak Aktif';
+
+  @override
+  String get investmentSectionGold => 'Emas';
+
+  @override
+  String get investmentSectionBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentSectionCustom => 'Aset Kustom';
+
+  @override
+  String get investmentTypeGold => 'Emas';
+
+  @override
+  String get investmentTypeBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentTypeCustom => 'Kustom';
+
+  @override
+  String get investmentDetailTitle => 'Detail Investasi';
+
+  @override
+  String get investmentDetailCurrentPrice => 'Harga Saat Ini';
+
+  @override
+  String get investmentDetailAvgBuyPrice => 'Rata-rata Harga Beli';
+
+  @override
+  String get investmentDetailTotalUnits => 'Total Unit';
+
+  @override
+  String get investmentDetailTotalInvested => 'Total Modal';
+
+  @override
+  String get investmentDetailCurrentValue => 'Nilai Saat Ini';
+
+  @override
+  String get investmentDetailProfitLoss => 'Keuntungan/Kerugian';
+
+  @override
+  String get investmentDetailTotalFee => 'Total Biaya';
+
+  @override
+  String get investmentDetailTransactions => 'Riwayat Transaksi';
+
+  @override
+  String get investmentDetailBuyHistory => 'Riwayat Beli';
+
+  @override
+  String get investmentDetailSellHistory => 'Riwayat Jual';
+
+  @override
+  String get investmentDetailNoTransactions => 'Belum ada transaksi';
+
+  @override
+  String get investmentDetailTopUp => 'Top Up';
+
+  @override
+  String get investmentDetailSell => 'Jual';
+
+  @override
+  String get investmentDetailSettings => 'Pengaturan';
+
+  @override
+  String get investmentFormCreateTitle => 'Investasi Baru';
+
+  @override
+  String get investmentFormTopUpTitle => 'Top Up Investasi';
+
+  @override
+  String get investmentFormEditTitle => 'Edit Transaksi';
+
+  @override
+  String get investmentFormAssetName => 'Nama Aset';
+
+  @override
+  String get investmentFormAssetNameHint =>
+      'Contoh: Emas Antam, Bitcoin, Saham BBCA';
+
+  @override
+  String get investmentFormAssetNameRequired => 'Nama aset tidak boleh kosong';
+
+  @override
+  String get investmentFormType => 'Jenis Aset';
+
+  @override
+  String get investmentFormGoldType => 'Jenis Emas';
+
+  @override
+  String get investmentFormGoldTypeHint => 'Pilih jenis emas';
+
+  @override
+  String get investmentFormCustomCategory => 'Kategori Aset';
+
+  @override
+  String get investmentFormCustomCategoryHint => 'Pilih kategori';
+
+  @override
+  String get investmentFormUnits => 'Jumlah Unit';
+
+  @override
+  String get investmentFormUnitsHint => 'Contoh: 1.5';
+
+  @override
+  String get investmentFormUnitsRequired => 'Jumlah unit tidak boleh kosong';
+
+  @override
+  String get investmentFormPricePerUnit => 'Harga per Unit';
+
+  @override
+  String get investmentFormPricePerUnitRequired =>
+      'Harga per unit tidak boleh kosong';
+
+  @override
+  String get investmentFormFee => 'Biaya (opsional)';
+
+  @override
+  String get investmentFormFeeHint => 'Biaya admin/spread';
+
+  @override
+  String get investmentFormDate => 'Tanggal Transaksi';
+
+  @override
+  String get investmentFormNote => 'Catatan (opsional)';
+
+  @override
+  String get investmentFormDeductWallet => 'Potong Saldo Dompet';
+
+  @override
+  String get investmentFormDeductWalletHint =>
+      'Kurangi saldo dompet sesuai total pembelian';
+
+  @override
+  String get investmentFormSelectWallet => 'Pilih Dompet';
+
+  @override
+  String get investmentFormWalletRequired => 'Pilih dompet terlebih dahulu';
+
+  @override
+  String get investmentFormSave => 'Simpan';
+
+  @override
+  String get investmentFormTotalCost => 'Total Biaya Pembelian';
+
+  @override
+  String get investmentFormCurrentPrice => 'Harga Saat Ini (opsional)';
+
+  @override
+  String get investmentSellTitle => 'Jual Investasi';
+
+  @override
+  String get investmentSellUnits => 'Jumlah Unit Dijual';
+
+  @override
+  String investmentSellUnitsHint(String maxUnits) {
+    return 'Maks: $maxUnits';
+  }
+
+  @override
+  String get investmentSellUnitsRequired =>
+      'Jumlah unit dijual tidak boleh kosong';
+
+  @override
+  String investmentSellUnitsExceed(String available) {
+    return 'Unit dijual melebihi unit tersedia ($available)';
+  }
+
+  @override
+  String get investmentSellPricePerUnit => 'Harga Jual per Unit';
+
+  @override
+  String get investmentSellPriceRequired => 'Harga jual tidak boleh kosong';
+
+  @override
+  String get investmentSellFee => 'Biaya Jual (opsional)';
+
+  @override
+  String get investmentSellCreditWallet => 'Tambah ke Saldo Dompet';
+
+  @override
+  String get investmentSellCreditWalletHint =>
+      'Tambahkan hasil penjualan ke saldo dompet';
+
+  @override
+  String get investmentSellTotal => 'Total Hasil Penjualan';
+
+  @override
+  String get investmentSellConfirm => 'Konfirmasi Jual';
+
+  @override
+  String get investmentSellAll => 'Jual Semua';
+
+  @override
+  String get investmentSettingsTitle => 'Pengaturan Aset';
+
+  @override
+  String get investmentSettingsName => 'Nama Aset';
+
+  @override
+  String get investmentSettingsCurrentPrice => 'Harga Saat Ini';
+
+  @override
+  String get investmentSettingsCategory => 'Kategori Aset';
+
+  @override
+  String get investmentSettingsCategoryHint =>
+      'Pilih kategori untuk menentukan satuan';
+
+  @override
+  String get investmentSettingsStatus => 'Status';
+
+  @override
+  String get investmentSettingsActive => 'Aktif';
+
+  @override
+  String get investmentSettingsInactive => 'Tidak Aktif';
+
+  @override
+  String get investmentSettingsSave => 'Simpan Perubahan';
+
+  @override
+  String get investmentSettingsDelete => 'Hapus Investasi';
+
+  @override
+  String investmentSettingsDeleteConfirm(String name) {
+    return 'Yakin ingin menghapus \"$name\"? Semua transaksi investasi ini juga akan terhapus.';
+  }
+
+  @override
+  String get investmentSettingsDeleteWalletRevert =>
+      'Saldo dompet terkait akan dikembalikan.';
+
+  @override
+  String get investmentGoldTypeTitle => 'Jenis Emas Kustom';
+
+  @override
+  String get investmentGoldTypeAdd => 'Tambah Jenis Emas';
+
+  @override
+  String get investmentGoldTypeEdit => 'Edit Jenis Emas';
+
+  @override
+  String get investmentGoldTypeName => 'Nama Jenis Emas';
+
+  @override
+  String get investmentGoldTypeNameHint => 'Contoh: UBS, Galeri 24';
+
+  @override
+  String get investmentGoldTypeNameRequired =>
+      'Nama jenis emas tidak boleh kosong';
+
+  @override
+  String investmentGoldTypeMax(int max) {
+    return 'Maksimal $max jenis emas kustom';
+  }
+
+  @override
+  String investmentGoldTypeDeleteConfirm(String name) {
+    return 'Yakin hapus jenis emas \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryTitle => 'Kategori Aset Kustom';
+
+  @override
+  String get investmentCategoryAdd => 'Tambah Kategori';
+
+  @override
+  String get investmentCategoryEdit => 'Edit Kategori';
+
+  @override
+  String get investmentCategoryName => 'Nama Kategori';
+
+  @override
+  String get investmentCategoryNameHint => 'Contoh: Saham, Reksadana';
+
+  @override
+  String get investmentCategoryNameRequired =>
+      'Nama kategori tidak boleh kosong';
+
+  @override
+  String get investmentCategoryUnitLabel => 'Satuan';
+
+  @override
+  String get investmentCategoryUnitLabelHint => 'Contoh: lot, unit, lembar';
+
+  @override
+  String get investmentCategoryUnitLabelRequired => 'Satuan tidak boleh kosong';
+
+  @override
+  String investmentCategoryMax(int max) {
+    return 'Maksimal $max kategori kustom';
+  }
+
+  @override
+  String investmentCategoryDeleteConfirm(String name) {
+    return 'Yakin hapus kategori \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryManage => 'Kelola Kategori';
+
+  @override
+  String get investmentInactiveTitle => 'Aset Tidak Aktif';
+
+  @override
+  String get investmentInactiveEmpty => 'Tidak ada aset tidak aktif';
+
+  @override
+  String get investmentInactiveHint =>
+      'Aset yang telah dijual sepenuhnya akan muncul di sini';
+
+  @override
+  String get investmentInactiveReactivate => 'Aktifkan Kembali';
+
+  @override
+  String investmentSuccessCreate(String name) {
+    return 'Investasi \"$name\" berhasil ditambahkan';
+  }
+
+  @override
+  String get investmentSuccessTopUp => 'Top up berhasil';
+
+  @override
+  String get investmentSuccessSell => 'Penjualan berhasil';
+
+  @override
+  String get investmentSuccessEdit => 'Transaksi berhasil diperbarui';
+
+  @override
+  String get investmentSuccessDelete => 'Investasi berhasil dihapus';
+
+  @override
+  String get investmentSuccessUpdate => 'Investasi berhasil diperbarui';
+
+  @override
+  String get investmentSuccessDeleteTransaction => 'Transaksi berhasil dihapus';
+
+  @override
+  String get investmentErrorGeneric => 'Gagal memproses. Coba lagi.';
+
+  @override
+  String get investmentErrorLoad => 'Gagal memuat data investasi';
+
+  @override
+  String get investmentErrorCreate => 'Gagal menambah investasi';
+
+  @override
+  String get investmentErrorTopUp => 'Gagal top up investasi';
+
+  @override
+  String get investmentErrorSell => 'Gagal menjual investasi';
+
+  @override
+  String get investmentErrorEdit => 'Gagal memperbarui transaksi';
+
+  @override
+  String get investmentErrorDelete => 'Gagal menghapus investasi';
+
+  @override
+  String get investmentErrorDeleteTransaction => 'Gagal menghapus transaksi';
+
+  @override
+  String get investmentUnitGram => 'gram';
+
+  @override
+  String get investmentUnitBtc => 'BTC';
+
+  @override
+  String get investmentGoldAntam => 'Antam';
+
+  @override
+  String get investmentGoldPerhiasan => 'Perhiasan';
+
+  @override
+  String investmentPriceSource(String source) {
+    return 'Sumber: $source';
+  }
+
+  @override
+  String investmentLastUpdated(String time) {
+    return 'Diperbarui: $time';
+  }
+
+  @override
+  String get investmentBuyPrice => 'Harga Beli';
+
+  @override
+  String get investmentSellPrice => 'Harga Jual';
+
+  @override
+  String get investmentDirection => 'Tipe';
+
+  @override
+  String get investmentDirectionBuy => 'Beli';
+
+  @override
+  String get investmentDirectionSell => 'Jual';
+
+  @override
+  String investmentTransactionCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get investmentFormPriceSource => 'Sumber Harga';
+
+  @override
+  String get investmentFormPriceSourceHint => 'Pilih sumber harga';
+
+  @override
+  String get investmentPriceSourceAntaremas => 'antaremas.com';
+
+  @override
+  String get investmentPriceSourceLogammulia => 'logammulia.com';
+
+  @override
+  String get investmentPriceSourceManual => 'Input Manual';
+
+  @override
+  String get investmentPriceSourceIndodax => 'Indodax';
+
+  @override
+  String get investmentPriceSourceCoingecko => 'CoinGecko';
+
+  @override
+  String get investmentPriceSourceLocked =>
+      'Terkunci ke Manual untuk jenis emas ini';
+
+  @override
+  String get investmentManageGoldTypes => 'Kelola Jenis Emas';
+
+  @override
+  String get investmentDeleteTransaction => 'Hapus Transaksi';
+
+  @override
+  String get investmentDeleteTransactionConfirm =>
+      'Yakin ingin menghapus transaksi ini? Saldo dompet akan dikembalikan jika terkait.';
+
+  @override
+  String get investmentSettingsRevertWallet =>
+      'Kembalikan saldo dompet terkait';
+
+  @override
+  String get investmentEditCurrentPrice => 'Perbarui Harga Pasar';
+
+  @override
+  String get investmentEditCurrentPriceHint => 'Masukkan harga pasar saat ini';
+
+  @override
+  String get investmentSettingsGoldType => 'Jenis Emas';
+
+  @override
+  String get investmentSettingsPriceSource => 'Sumber Harga';
+
+  @override
+  String get investmentWalletRequired => 'Silakan pilih dompet terlebih dahulu';
 }

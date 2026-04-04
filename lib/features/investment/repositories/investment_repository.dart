@@ -1,200 +1,287 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/investment/datasources/investment_local_datasource.dart';
-import 'package:app_saku_rapi/features/investment/datasources/investment_remote_datasource.dart';
-import 'package:app_saku_rapi/features/investment/models/asset_price_model.dart';
-import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
+import 'package:app_saku_rapi/features/investment/datasource/investment_local_data_source.dart';
+import 'package:app_saku_rapi/features/investment/datasource/investment_remote_data_source.dart';
+import 'package:app_saku_rapi/features/investment/models/bitcoin_price_model.dart';
+import 'package:app_saku_rapi/features/investment/models/custom_asset_category_model.dart';
+import 'package:app_saku_rapi/features/investment/models/custom_gold_type_model.dart';
+import 'package:app_saku_rapi/features/investment/models/gold_price_model.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_transaction_model.dart';
 
-/// Repository untuk fitur investasi.
+/// Repository utama untuk fitur investasi.
 ///
-/// Mengorkestrasi [InvestmentRemoteDataSource] (Supabase + API)
-/// dan [InvestmentLocalDataSource] (cache Hive).
+/// Mengorkestrasikan [InvestmentRemoteDataSource] dan [InvestmentLocalDataSource]:
+/// - Online: fetch dari Supabase, cache ke Hive.
+/// - Offline fallback: sajikan dari Hive cache.
 class InvestmentRepository {
   InvestmentRepository({
-    required InvestmentRemoteDataSource remoteDataSource,
-    required InvestmentLocalDataSource localDataSource,
-  }) : _remote = remoteDataSource,
-       _local = localDataSource;
+    InvestmentRemoteDataSource? remoteDataSource,
+    InvestmentLocalDataSource? localDataSource,
+  }) : _remote = remoteDataSource ?? InvestmentRemoteDataSource(),
+       _local = localDataSource ?? InvestmentLocalDataSource();
 
   final InvestmentRemoteDataSource _remote;
   final InvestmentLocalDataSource _local;
 
-  static const String _tag = 'InvestmentRepo';
+  static const _tag = '[Investment] [InvestmentRepository]';
 
-  // ─────────────────────────────────────────────────────────────
-  // Investasi CRUD
-  // ─────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // DASHBOARD
+  // ═══════════════════════════════════════════════════════════════
 
-  /// Mengambil semua investasi milik [userId].
-  ///
-  /// Jika remote gagal, fallback ke cache Hive.
-  Future<DataState<List<InvestmentModel>>> getInvestments({
-    required String userId,
-  }) async {
-    final result = await _remote.getInvestments(userId: userId);
+  /// Ambil semua aset + data agregat. Fallback ke cache jika gagal.
+  Future<DataState<List<InvestmentAssetModel>>> getDashboard() async {
+    final result = await _remote.getDashboard();
 
     if (result.isSuccess()) {
-      final investments = result.dataSuccess()!;
-      _local.saveInvestments(investments);
-      AppLogger.call(
-        '[$_tag] Memuat ${investments.length} investasi',
-        colorLog: ColorLog.green,
-      );
-      return DataState<List<InvestmentModel>>.success(data: investments);
+      final assets = result.dataSuccess()!;
+      _local.cacheDashboard(assets);
+      return result;
     }
 
-    // Remote gagal — coba cache
-    final cached = _local.getCachedInvestments();
-    if (cached.isNotEmpty) {
-      AppLogger.call(
-        '[$_tag] Remote gagal, fallback cache: ${cached.length} investasi',
-        colorLog: ColorLog.yellow,
-      );
-      return DataState<List<InvestmentModel>>.success(data: cached);
+    // Offline fallback
+    final cached = _local.getCachedDashboard();
+    if (cached != null) {
+      AppLogger.call('$_tag getDashboard: serving from cache');
+      return DataState.success(data: cached);
     }
 
-    final error = result.dataError()!;
-    AppLogger.logError(
-      '[$_tag] Gagal memuat investasi: ${error.$1}',
-      runtimeType: InvestmentRepository,
-    );
-    return DataState<List<InvestmentModel>>.error(message: error.$1);
+    return result;
   }
 
-  /// Menambah investasi baru dan opsional memotong saldo dompet.
-  ///
-  /// Jika [deductFromWallet] true dan [walletId] diberikan,
-  /// akan di-INSERT satu transaksi `transfer_to_asset` ke DB,
-  /// yang secara otomatis mengurangi saldo dompet via trigger.
-  Future<DataState<InvestmentModel>> addInvestment({
-    required InvestmentModel investment,
-    required bool deductFromWallet,
+  // ═══════════════════════════════════════════════════════════════
+  // ASSET CRUD
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Buat aset baru + first buy transaction (atomic).
+  Future<DataState<Map<String, dynamic>>> createAsset({
+    required String type,
+    required String name,
+    String? goldType,
+    String? customGoldTypeId,
+    String? customCategoryId,
+    String unitLabel = 'unit',
+    String priceSource = 'manual',
+    double currentPrice = 0,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
     String? walletId,
-    required String userId,
   }) async {
-    final result = await _remote.createInvestment(investment);
-
-    if (result.isError()) {
-      final error = result.dataError()!;
-      AppLogger.logError(
-        '[$_tag] Gagal menambah investasi: ${error.$1}',
-        runtimeType: InvestmentRepository,
-      );
-      return DataState<InvestmentModel>.error(message: error.$1);
-    }
-
-    final created = result.dataSuccess()!;
-
-    if (deductFromWallet && walletId != null) {
-      final totalCost = investment.amount * investment.avgBuyPrice;
-      final deductResult = await _remote.deductFromWallet(
-        userId: userId,
-        walletId: walletId,
-        totalAmount: totalCost,
-        assetName: investment.name,
-      );
-
-      if (deductResult.isError()) {
-        AppLogger.logError(
-          '[$_tag] Investasi dibuat tapi pemotongan dompet gagal',
-          runtimeType: InvestmentRepository,
-        );
-      }
-    }
-
-    _local.clearInvestmentCache();
-    AppLogger.logSuccess('[$_tag] Investasi berhasil ditambahkan');
-    return DataState<InvestmentModel>.success(data: created);
-  }
-
-  /// Memperbarui investasi yang sudah ada.
-  Future<DataState<InvestmentModel>> updateInvestment(
-    InvestmentModel investment,
-  ) async {
-    final result = await _remote.updateInvestment(investment);
-
-    if (result.isError()) {
-      final error = result.dataError()!;
-      AppLogger.logError(
-        '[$_tag] Gagal memperbarui investasi: ${error.$1}',
-        runtimeType: InvestmentRepository,
-      );
-      return DataState<InvestmentModel>.error(message: error.$1);
-    }
-
-    _local.clearInvestmentCache();
-    AppLogger.logSuccess('[$_tag] Investasi berhasil diperbarui');
-    return DataState<InvestmentModel>.success(data: result.dataSuccess()!);
-  }
-
-  /// Menghapus investasi berdasarkan [id].
-  Future<DataState<void>> deleteInvestment(String id) async {
-    final result = await _remote.deleteInvestment(id);
-
-    if (result.isError()) {
-      final error = result.dataError()!;
-      AppLogger.logError(
-        '[$_tag] Gagal menghapus investasi: ${error.$1}',
-        runtimeType: InvestmentRepository,
-      );
-      return DataState<void>.error(message: error.$1);
-    }
-
-    _local.clearInvestmentCache();
-    AppLogger.logSuccess('[$_tag] Investasi berhasil dihapus');
-    return const DataState<void>.success(data: null);
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Harga aset
-  // ─────────────────────────────────────────────────────────────
-
-  /// Mengambil harga aset dari cache (jika masih valid) atau dari API.
-  ///
-  /// Jika [forceRefresh] true, selalu fetch dari API dan perbarui cache.
-  /// Jika API gagal, fallback ke cache lama (meskipun sudah expired).
-  Future<DataState<AssetPriceModel?>> getAssetPrice({
-    required String assetType,
-    bool forceRefresh = false,
-  }) async {
-    // Gunakan cache jika masih valid dan tidak diminta force-refresh
-    if (!forceRefresh && !_local.isPriceCacheExpired(assetType)) {
-      final cached = _local.getCachedPrice(assetType);
-      if (cached != null) {
-        AppLogger.call(
-          '[$_tag] Menggunakan cache harga $assetType',
-          colorLog: ColorLog.blue,
-        );
-        return DataState<AssetPriceModel?>.success(data: cached);
-      }
-    }
-
-    // Fetch dari API
-    final result = assetType == 'btc'
-        ? await _remote.fetchBtcPriceFromApi()
-        : await _remote.fetchGoldPriceFromApi();
-
-    if (result.isSuccess()) {
-      final price = result.dataSuccess()!;
-      _local.savePrice(price);
-      return DataState<AssetPriceModel?>.success(data: price);
-    }
-
-    // API gagal — fallback ke cache lama jika ada
-    final staleCache = _local.getCachedPrice(assetType);
-    if (staleCache != null) {
-      AppLogger.call(
-        '[$_tag] API harga $assetType gagal, pakai cache lama',
-        colorLog: ColorLog.yellow,
-      );
-      return DataState<AssetPriceModel?>.success(data: staleCache);
-    }
-
-    final error = result.dataError()!;
-    AppLogger.logError(
-      '[$_tag] Gagal memuat harga $assetType: ${error.$1}',
-      runtimeType: InvestmentRepository,
+    return _remote.createAsset(
+      type: type,
+      name: name,
+      goldType: goldType,
+      customGoldTypeId: customGoldTypeId,
+      customCategoryId: customCategoryId,
+      unitLabel: unitLabel,
+      priceSource: priceSource,
+      currentPrice: currentPrice,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
+      walletId: walletId,
     );
-    return DataState<AssetPriceModel?>.success(data: null);
+  }
+
+  /// Top up aset eksisting.
+  Future<DataState<Map<String, dynamic>>> topupAsset({
+    required String assetId,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
+    String? walletId,
+  }) async {
+    return _remote.topupAsset(
+      assetId: assetId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
+      walletId: walletId,
+    );
+  }
+
+  /// Jual unit aset.
+  Future<DataState<Map<String, dynamic>>> sellAsset({
+    required String assetId,
+    required double units,
+    required double pricePerUnit,
+    DateTime? date,
+    String? note,
+    bool creditWallet = false,
+    String? walletId,
+  }) async {
+    return _remote.sellAsset(
+      assetId: assetId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      date: date,
+      note: note,
+      creditWallet: creditWallet,
+      walletId: walletId,
+    );
+  }
+
+  /// Edit transaksi buy.
+  Future<DataState<Map<String, dynamic>>> editTransaction({
+    required String transactionId,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
+    String? walletId,
+  }) async {
+    return _remote.editTransaction(
+      transactionId: transactionId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
+      walletId: walletId,
+    );
+  }
+
+  /// Hapus transaksi buy.
+  Future<DataState<Map<String, dynamic>>> deleteTransaction(
+    String transactionId,
+  ) async {
+    return _remote.deleteTransaction(transactionId);
+  }
+
+  /// Hapus master aset beserta semua transaksi.
+  Future<DataState<Map<String, dynamic>>> deleteAsset({
+    required String assetId,
+    bool revertWallet = false,
+  }) async {
+    return _remote.deleteAsset(assetId: assetId, revertWallet: revertWallet);
+  }
+
+  /// Update metadata aset (settings).
+  Future<DataState<InvestmentAssetModel>> updateAsset(
+    InvestmentAssetModel asset,
+  ) async {
+    return _remote.updateAsset(asset);
+  }
+
+  /// Update current_price pada aset (manual input harga jual custom).
+  Future<DataState<void>> updateCurrentPrice({
+    required String assetId,
+    required double price,
+  }) async {
+    return _remote.updateCurrentPrice(assetId: assetId, price: price);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TRANSACTIONS
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Ambil transaksi untuk satu aset.
+  Future<DataState<List<InvestmentTransactionModel>>> getTransactions({
+    required String assetId,
+    String? direction,
+  }) async {
+    return _remote.getTransactions(assetId: assetId, direction: direction);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // PRICES
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Ambil harga emas terbaru.
+  Future<DataState<GoldPriceModel?>> getLatestGoldPrice(String source) async {
+    return _remote.getLatestGoldPrice(source);
+  }
+
+  /// Ambil harga Bitcoin terbaru.
+  Future<DataState<BitcoinPriceModel?>> getLatestBitcoinPrice(
+    String source,
+  ) async {
+    return _remote.getLatestBitcoinPrice(source);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CUSTOM GOLD TYPES
+  // ═══════════════════════════════════════════════════════════════
+
+  Future<DataState<List<CustomGoldTypeModel>>> getCustomGoldTypes() async {
+    return _remote.getCustomGoldTypes();
+  }
+
+  Future<DataState<CustomGoldTypeModel>> createCustomGoldType(
+    String name,
+  ) async {
+    return _remote.createCustomGoldType(name);
+  }
+
+  Future<DataState<CustomGoldTypeModel>> updateCustomGoldType({
+    required String id,
+    required String name,
+  }) async {
+    return _remote.updateCustomGoldType(id: id, name: name);
+  }
+
+  Future<DataState<void>> deleteCustomGoldType(String id) async {
+    return _remote.deleteCustomGoldType(id);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CUSTOM ASSET CATEGORIES
+  // ═══════════════════════════════════════════════════════════════
+
+  Future<DataState<List<CustomAssetCategoryModel>>>
+  getCustomAssetCategories() async {
+    return _remote.getCustomAssetCategories();
+  }
+
+  Future<DataState<CustomAssetCategoryModel>> createCustomAssetCategory({
+    required String name,
+    required String unitLabel,
+  }) async {
+    return _remote.createCustomAssetCategory(name: name, unitLabel: unitLabel);
+  }
+
+  Future<DataState<CustomAssetCategoryModel>> updateCustomAssetCategory({
+    required String id,
+    required String name,
+    required String unitLabel,
+  }) async {
+    return _remote.updateCustomAssetCategory(
+      id: id,
+      name: name,
+      unitLabel: unitLabel,
+    );
+  }
+
+  Future<DataState<void>> deleteCustomAssetCategory(String id) async {
+    return _remote.deleteCustomAssetCategory(id);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CACHE
+  // ═══════════════════════════════════════════════════════════════
+
+  void clearCache() {
+    _local.clearDashboardCache();
+  }
+
+  void cacheDashboard(List<InvestmentAssetModel> assets) {
+    _local.cacheDashboard(assets);
   }
 }

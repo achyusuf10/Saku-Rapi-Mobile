@@ -1,4 +1,8 @@
 class AppConstants {
+  // static const String appwriteProjectId = '69c51cfe0014a6885baa';
+  // static const String appwriteProjectName = 'Dev-SakuRapi';
+  // static const String appwritePublicEndpoint =
+  //     'https://sgp.cloud.appwrite.io/v1';
   static List<String> videoExtension = [
     'mp4',
     'avi',

@@ -1,297 +1,286 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
-import 'package:app_saku_rapi/features/transaction/models/category_model.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_form_state.dart';
-import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_category_picker.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
+import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Parsing hex color ke [Color], fallback abu-abu.
-Color _hexColor(String? hex) {
-  if (hex == null || hex.isEmpty) return const Color(0xFF6B7280);
-  final cleaned = hex.replaceAll('#', '');
-  if (cleaned.length == 6) {
-    return Color(int.parse('FF$cleaned', radix: 16));
-  }
-  return const Color(0xFF6B7280);
-}
-
-/// Memetakan nama ikon string kategori ke [IconData] FontAwesome.
-IconData _categoryIcon(String? icon) {
-  return switch (icon) {
-    'tag' => FontAwesomeIcons.tag,
-    'utensils' || 'food' => FontAwesomeIcons.utensils,
-    'car' => FontAwesomeIcons.car,
-    'house' || 'home' => FontAwesomeIcons.house,
-    'shirt' || 'tshirt' => FontAwesomeIcons.shirt,
-    'heart-pulse' || 'health' => FontAwesomeIcons.heartPulse,
-    'graduation-cap' => FontAwesomeIcons.graduationCap,
-    'gamepad' || 'entertainment' => FontAwesomeIcons.gamepad,
-    'briefcase' || 'work' => FontAwesomeIcons.briefcase,
-    'gift' => FontAwesomeIcons.gift,
-    'plane' || 'travel' => FontAwesomeIcons.plane,
-    'bolt' || 'electric' => FontAwesomeIcons.bolt,
-    'sack-dollar' || 'salary' => FontAwesomeIcons.sackDollar,
-    'cart-shopping' || 'shopping' => FontAwesomeIcons.cartShopping,
-    'coins' => FontAwesomeIcons.coins,
-    'chart-line' => FontAwesomeIcons.chartLine,
-    _ => FontAwesomeIcons.tag,
-  };
-}
-
-/// Satu baris item transaksi dalam mode multi-item.
+/// Widget baris item untuk mode multi-item pada form transaksi.
 ///
-/// Menampilkan:
-/// - Nomor urut item
-/// - Chip kategori (tap untuk membuka category picker)
-/// - Field input nominal
-/// - Field catatan per-item (opsional)
-/// - Tombol hapus (jika [canDelete] true)
-class TransactionItemRow extends ConsumerStatefulWidget {
+/// Menampilkan: drag handle, nama item, qty, unit price, category picker.
+/// Subtotal dihitung otomatis jika qty & unitPrice tersedia.
+/// Bisa dihapus kecuali baris terakhir.
+class TransactionItemRow extends StatefulWidget {
   const TransactionItemRow({
     super.key,
-    required this.index,
     required this.item,
-    required this.categories,
-    required this.typeColor,
-    required this.canDelete,
-    required this.onDelete,
+    required this.index,
+    required this.onChanged,
+    required this.onRemove,
+    required this.canRemove,
+    required this.categoryType,
   });
 
+  final TransactionItemModel item;
   final int index;
-  final TransactionItemFormState item;
-  final List<CategoryModel> categories;
-  final Color typeColor;
-  final bool canDelete;
-  final VoidCallback onDelete;
+  final ValueChanged<TransactionItemModel> onChanged;
+  final VoidCallback onRemove;
+  final bool canRemove;
+  final CategoryType categoryType;
 
   @override
-  ConsumerState<TransactionItemRow> createState() => _TransactionItemRowState();
+  State<TransactionItemRow> createState() => _TransactionItemRowState();
 }
 
-class _TransactionItemRowState extends ConsumerState<TransactionItemRow> {
-  late final TextEditingController _amountCtrl;
-  late final TextEditingController _noteCtrl;
+class _TransactionItemRowState extends State<TransactionItemRow> {
+  late TextEditingController _nameController;
+  late TextEditingController _qtyController;
 
   @override
   void initState() {
     super.initState();
-    final amt = widget.item.amount;
-    _amountCtrl = TextEditingController(
-      text: amt != null && amt > 0 ? amt.toInt().toString() : '',
+    _nameController = TextEditingController(text: widget.item.itemName ?? '');
+    _qtyController = TextEditingController(
+      text: widget.item.qty != 1 ? _formatQty(widget.item.qty) : '',
     );
-    _noteCtrl = TextEditingController(text: widget.item.note ?? '');
   }
 
   @override
   void dispose() {
-    _amountCtrl.dispose();
-    _noteCtrl.dispose();
+    _nameController.dispose();
+    _qtyController.dispose();
     super.dispose();
   }
 
-  void _openCategoryPicker() async {
-    final cat = await TransactionCategoryPicker.show(
-      context,
-      categories: widget.categories,
-      selectedId: widget.item.categoryId,
-      filterType: _currentFormType(),
-    );
-    if (!mounted) return;
-    final notifier = ref.read(transactionFormControllerProvider.notifier);
-    if (cat != null) {
-      notifier.updateItemCategory(
-        widget.index,
-        categoryId: cat.id,
-        categoryName: cat.name,
-        categoryColor: cat.color,
-        categoryIcon: cat.icon,
-      );
-    }
-  }
-
-  String? _currentFormType() {
-    final type = ref.read(transactionFormControllerProvider).type;
-    if (type == 'expense') return 'expense';
-    if (type == 'income') return 'income';
-    return null;
+  /// Format qty: tampilkan tanpa desimal jika bulat.
+  String _formatQty(double qty) {
+    return qty == qty.truncateToDouble()
+        ? qty.toInt().toString()
+        : qty.toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.colors;
+    final colors = context.colors;
     final l10n = context.l10n;
-    final notifier = ref.read(transactionFormControllerProvider.notifier);
-    final hasCategory = widget.item.categoryId != null;
-    final catColor = _hexColor(widget.item.categoryColor);
+    final hasQtyPrice = widget.item.unitPrice != null && widget.item.qty > 0;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.all(12.r),
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: appColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: appColors.border),
+        border: Border.all(color: colors.border.withValues(alpha: 0.3)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row: item number + delete button
+          // ─── Header: drag handle + item number + delete ───
           Row(
             children: [
-              Container(
-                width: 22.r,
-                height: 22.r,
-                decoration: BoxDecoration(
-                  color: widget.typeColor.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+              // Drag handle
+              ReorderableDragStartListener(
+                index: widget.index,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: FaIcon(
+                    FontAwesomeIcons.gripVertical,
+                    size: 14.w,
+                    color: colors.textSecondary.withValues(alpha: 0.5),
+                  ),
                 ),
-                child: Center(
-                  child: Text(
-                    '${widget.index + 1}',
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w700,
-                      color: widget.typeColor,
-                    ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  'Item ${widget.index + 1}',
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               const Spacer(),
-              if (widget.canDelete)
+              if (widget.canRemove)
                 GestureDetector(
-                  onTap: widget.onDelete,
+                  onTap: widget.onRemove,
                   child: FaIcon(
-                    FontAwesomeIcons.trashCan,
-                    size: 14.r,
-                    color: appColors.error,
+                    FontAwesomeIcons.circleXmark,
+                    size: 18.w,
+                    color: colors.error,
                   ),
                 ),
             ],
           ),
           SizedBox(height: 10.h),
 
-          // Category chip
-          GestureDetector(
-            onTap: _openCategoryPicker,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-              decoration: BoxDecoration(
-                color: hasCategory
-                    ? catColor.withValues(alpha: 0.1)
-                    : appColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(
-                  color: hasCategory ? catColor : appColors.border,
+          // ─── Item name ───
+          SakuTextField(
+            controller: _nameController,
+            label: l10n.transactionItemName,
+            hint: l10n.transactionItemNameHint,
+            onChanged: (val) {
+              widget.onChanged(widget.item.copyWith(itemName: val));
+            },
+          ),
+          SizedBox(height: 10.h),
+
+          // ─── Qty + Unit Price (side by side) ───
+          Row(
+            children: [
+              // Qty
+              SizedBox(
+                width: 90.w,
+                child: SakuTextField(
+                  controller: _qtyController,
+                  label: l10n.transactionItemQty,
+                  hint: '1',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*\.?\d{0,2}'),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    final qty = double.tryParse(val) ?? 1;
+                    widget.onChanged(widget.item.copyWith(qty: qty));
+                  },
                 ),
+              ),
+              SizedBox(width: 10.w),
+              // Unit price
+              Expanded(
+                child: SakuCurrencyField(
+                  label: l10n.transactionItemUnitPrice,
+                  initialValue: widget.item.unitPrice,
+                  onChanged: (val) {
+                    widget.onChanged(
+                      widget.item.copyWith(unitPrice: val > 0 ? val : null),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+
+          // ─── Amount / Subtotal ───
+          if (hasQtyPrice) ...[
+            // Show computed subtotal read-only
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: Row(
                 children: [
-                  FaIcon(
-                    hasCategory
-                        ? _categoryIcon(widget.item.categoryIcon)
-                        : FontAwesomeIcons.tag,
-                    size: 12.r,
-                    color: hasCategory ? catColor : appColors.textSecondary,
+                  Text(
+                    l10n.transactionItemSubtotal,
+                    style: TextStyleConstants.label1.copyWith(
+                      color: colors.textSecondary,
+                    ),
                   ),
-                  SizedBox(width: 6.w),
+                  const Spacer(),
+                  Text(
+                    widget.item.amount.toCurrency(),
+                    style: TextStyleConstants.b1.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Manual amount input
+            SakuCurrencyField(
+              label: l10n.transactionItemSubtotal,
+              initialValue: widget.item.amount > 0 ? widget.item.amount : null,
+              onChanged: (val) {
+                widget.onChanged(widget.item.copyWith(amount: val));
+              },
+            ),
+          ],
+          SizedBox(height: 10.h),
+
+          // ─── Category picker ───
+          GestureDetector(
+            onTap: _pickCategory,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+              decoration: BoxDecoration(
+                color: colors.background,
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  if (widget.item.categoryIcon != null) ...[
+                    SakuCategoryIcon.raw(
+                      iconName: widget.item.categoryIcon!,
+                      colorHex: widget.item.categoryColor ?? '#6B7280',
+                      size: 16,
+                      showBackground: false,
+                    ),
+                    SizedBox(width: 8.w),
+                  ],
                   Expanded(
                     child: Text(
                       widget.item.categoryName ??
                           l10n.transactionSelectCategory,
-                      style: TextStyleConstants.caption.copyWith(
-                        color: hasCategory
-                            ? appColors.textPrimary
-                            : appColors.textSecondary,
-                        fontWeight: hasCategory
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                      style: TextStyleConstants.b2.copyWith(
+                        color: widget.item.categoryName != null
+                            ? colors.textPrimary
+                            : colors.textSecondary,
                       ),
                     ),
                   ),
                   FaIcon(
-                    FontAwesomeIcons.chevronDown,
-                    size: 10.r,
-                    color: appColors.textSecondary,
+                    FontAwesomeIcons.chevronRight,
+                    size: 12.w,
+                    color: colors.textSecondary,
                   ),
                 ],
               ),
             ),
           ),
-          SizedBox(height: 8.h),
-
-          // Amount field
-          TextField(
-            controller: _amountCtrl,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: TextStyleConstants.b1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: appColors.textPrimary,
-            ),
-            onChanged: (v) {
-              final amount = double.tryParse(v);
-              notifier.updateItemAmount(widget.index, amount);
-            },
-            decoration: InputDecoration(
-              hintText: '0',
-              prefixText: 'Rp ',
-              prefixStyle: TextStyleConstants.b1.copyWith(
-                color: appColors.textSecondary,
-              ),
-              hintStyle: TextStyleConstants.b1.copyWith(
-                color: appColors.textSecondary.withValues(alpha: 0.4),
-              ),
-              filled: true,
-              fillColor: appColors.surfaceVariant,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12.w,
-                vertical: 10.h,
-              ),
-              isDense: true,
-            ),
-          ),
-          SizedBox(height: 6.h),
-
-          // Note field (opsional)
-          TextField(
-            controller: _noteCtrl,
-            textCapitalization: TextCapitalization.sentences,
-            style: TextStyleConstants.caption.copyWith(
-              color: appColors.textPrimary,
-            ),
-            onChanged: (v) {
-              notifier.updateItemNote(widget.index, v.isEmpty ? null : v);
-            },
-            decoration: InputDecoration(
-              hintText: l10n.transactionNote,
-              hintStyle: TextStyleConstants.caption.copyWith(
-                color: appColors.textSecondary.withValues(alpha: 0.5),
-              ),
-              filled: true,
-              fillColor: appColors.surfaceVariant,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12.w,
-                vertical: 8.h,
-              ),
-              isDense: true,
-            ),
-          ),
         ],
       ),
     );
+  }
+
+  Future<void> _pickCategory() async {
+    final selected = await CategoryPickerSheet.show(
+      context: context,
+      type: widget.categoryType,
+      selectedId: widget.item.categoryId,
+    );
+
+    if (selected != null) {
+      widget.onChanged(
+        widget.item.copyWith(
+          categoryId: selected.id,
+          categoryName: selected.name,
+          categoryIcon: selected.icon,
+          categoryColor: selected.color,
+        ),
+      );
+    }
   }
 }

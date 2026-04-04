@@ -1,268 +1,527 @@
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/investment/datasources/investment_local_datasource.dart';
-import 'package:app_saku_rapi/features/investment/datasources/investment_remote_datasource.dart';
-import 'package:app_saku_rapi/features/investment/models/asset_price_model.dart';
-import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
+import 'package:app_saku_rapi/features/investment/models/bitcoin_price_model.dart';
+import 'package:app_saku_rapi/features/investment/models/custom_asset_category_model.dart';
+import 'package:app_saku_rapi/features/investment/models/custom_gold_type_model.dart';
+import 'package:app_saku_rapi/features/investment/models/gold_price_model.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_transaction_model.dart';
 import 'package:app_saku_rapi/features/investment/repositories/investment_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-// ─────────────────────────────────────────────────────────────
-// Providers
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// PROVIDERS
+// ═══════════════════════════════════════════════════════════════
 
-/// Provider untuk [InvestmentRepository].
+/// Singleton repository.
 final investmentRepositoryProvider = Provider<InvestmentRepository>((ref) {
-  return InvestmentRepository(
-    remoteDataSource: InvestmentRemoteDataSource(),
-    localDataSource: InvestmentLocalDataSource(),
-  );
+  return InvestmentRepository();
 });
 
-/// Provider utama untuk [InvestmentController].
-///
-/// State berupa `AsyncValue<InvestmentState>` yang memuat daftar investasi
-/// beserta harga aset terkini (BTC dan Emas).
+/// Dashboard (list aset + data agregat).
 final investmentControllerProvider =
-    AsyncNotifierProvider<InvestmentController, InvestmentState>(() {
-      return InvestmentController();
+    StateNotifierProvider<InvestmentController, InvestmentState>((ref) {
+      final repository = ref.watch(investmentRepositoryProvider);
+      return InvestmentController(repository);
     });
 
-// ─────────────────────────────────────────────────────────────
-// State
-// ─────────────────────────────────────────────────────────────
+/// Total portofolio (semua aset aktif).
+final investmentTotalValueProvider = Provider<double>((ref) {
+  final state = ref.watch(investmentControllerProvider);
+  if (state.status != InvestmentStatus.loaded) return 0;
+  return state.activeAssets.fold(0.0, (sum, a) => sum + a.currentValue);
+});
 
-/// State gabungan untuk halaman investasi.
+/// Total modal (semua aset aktif).
+final investmentTotalInvestedProvider = Provider<double>((ref) {
+  final state = ref.watch(investmentControllerProvider);
+  if (state.status != InvestmentStatus.loaded) return 0;
+  return state.activeAssets.fold(0.0, (sum, a) => sum + a.totalInvested);
+});
+
+/// Total profit/loss.
+final investmentProfitLossProvider = Provider<double>((ref) {
+  return ref.watch(investmentTotalValueProvider) -
+      ref.watch(investmentTotalInvestedProvider);
+});
+
+/// Aset aktif saja.
+final activeInvestmentAssetsProvider = Provider<List<InvestmentAssetModel>>((
+  ref,
+) {
+  final state = ref.watch(investmentControllerProvider);
+  return state.activeAssets;
+});
+
+/// Aset inaktif saja.
+final inactiveInvestmentAssetsProvider = Provider<List<InvestmentAssetModel>>((
+  ref,
+) {
+  final state = ref.watch(investmentControllerProvider);
+  return state.inactiveAssets;
+});
+
+/// Transaksi per aset (di-manage per detail page).
+final investmentTransactionsProvider =
+    StateNotifierProvider.family<
+      InvestmentTransactionsController,
+      InvestmentTransactionsState,
+      String
+    >((ref, assetId) {
+      final repository = ref.watch(investmentRepositoryProvider);
+      return InvestmentTransactionsController(repository, assetId);
+    });
+
+/// Custom gold types.
+final customGoldTypesProvider =
+    StateNotifierProvider<
+      CustomGoldTypesController,
+      DataState<List<CustomGoldTypeModel>>
+    >((ref) {
+      final repository = ref.watch(investmentRepositoryProvider);
+      return CustomGoldTypesController(repository);
+    });
+
+/// Custom asset categories.
+final customAssetCategoriesProvider =
+    StateNotifierProvider<
+      CustomAssetCategoriesController,
+      DataState<List<CustomAssetCategoryModel>>
+    >((ref) {
+      final repository = ref.watch(investmentRepositoryProvider);
+      return CustomAssetCategoriesController(repository);
+    });
+
+/// Harga emas terbaru (by source).
+final goldPriceProvider = FutureProvider.family<GoldPriceModel?, String>((
+  ref,
+  source,
+) async {
+  final repo = ref.watch(investmentRepositoryProvider);
+  final result = await repo.getLatestGoldPrice(source);
+  return result.isSuccess() ? result.dataSuccess() : null;
+});
+
+/// Harga Bitcoin terbaru (by source).
+final bitcoinPriceProvider = FutureProvider.family<BitcoinPriceModel?, String>((
+  ref,
+  source,
+) async {
+  final repo = ref.watch(investmentRepositoryProvider);
+  final result = await repo.getLatestBitcoinPrice(source);
+  return result.isSuccess() ? result.dataSuccess() : null;
+});
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD STATE & CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+
+enum InvestmentStatus { initial, loading, loaded, error }
+
+/// Immutable state untuk investment dashboard.
 class InvestmentState {
   const InvestmentState({
-    this.investments = const [],
-    this.btcPrice,
-    this.goldPrice,
-    this.isPriceRefreshing = false,
+    this.status = InvestmentStatus.initial,
+    this.assets = const [],
+    this.errorMessage,
   });
 
-  /// Daftar investasi milik user, sudah disuntik [livePrice].
-  final List<InvestmentModel> investments;
+  final InvestmentStatus status;
+  final List<InvestmentAssetModel> assets;
+  final String? errorMessage;
 
-  /// Harga Bitcoin terkini (null jika belum berhasil di-fetch).
-  final AssetPriceModel? btcPrice;
+  List<InvestmentAssetModel> get activeAssets =>
+      assets.where((a) => a.isActive).toList();
 
-  /// Harga Emas terkini per gram (null jika belum berhasil di-fetch).
-  final AssetPriceModel? goldPrice;
+  List<InvestmentAssetModel> get inactiveAssets =>
+      assets.where((a) => !a.isActive).toList();
 
-  /// Sedang melakukan refresh harga di background.
-  final bool isPriceRefreshing;
-
-  // ── Computed ──
-
-  /// Total nilai portofolio seluruh aset.
-  double get totalPortfolioValue =>
-      investments.fold(0.0, (sum, inv) => sum + inv.currentValue);
-
-  /// Total profit/loss absolut (IDR).
-  double get totalProfitLoss =>
-      investments.fold(0.0, (sum, inv) => sum + inv.profitLoss);
-
-  /// Total modal pembelian.
-  double get totalBuyCost =>
-      investments.fold(0.0, (sum, inv) => sum + inv.totalBuyCost);
-
-  /// Persentase profit/loss keseluruhan.
-  double get totalProfitLossPercentage =>
-      totalBuyCost > 0 ? (totalProfitLoss / totalBuyCost * 100) : 0;
-
-  bool get isOverallProfit => totalProfitLoss >= 0;
+  /// Group aset aktif berdasarkan type.
+  Map<InvestmentType, List<InvestmentAssetModel>> get groupedActiveAssets {
+    final active = activeAssets;
+    return {
+      for (final type in InvestmentType.values)
+        if (active.any((a) => a.type == type))
+          type: active.where((a) => a.type == type).toList(),
+    };
+  }
 
   InvestmentState copyWith({
-    List<InvestmentModel>? investments,
-    AssetPriceModel? btcPrice,
-    AssetPriceModel? goldPrice,
-    bool? isPriceRefreshing,
-    bool clearBtcPrice = false,
-    bool clearGoldPrice = false,
+    InvestmentStatus? status,
+    List<InvestmentAssetModel>? assets,
+    String? errorMessage,
   }) {
     return InvestmentState(
-      investments: investments ?? this.investments,
-      btcPrice: clearBtcPrice ? null : (btcPrice ?? this.btcPrice),
-      goldPrice: clearGoldPrice ? null : (goldPrice ?? this.goldPrice),
-      isPriceRefreshing: isPriceRefreshing ?? this.isPriceRefreshing,
+      status: status ?? this.status,
+      assets: assets ?? this.assets,
+      errorMessage: errorMessage,
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Controller
-// ─────────────────────────────────────────────────────────────
+/// Controller dashboard investasi.
+class InvestmentController extends StateNotifier<InvestmentState> {
+  InvestmentController(this._repository) : super(const InvestmentState());
 
-/// Riverpod [AsyncNotifier] untuk mengelola CRUD investasi dan harga aset.
-class InvestmentController extends AsyncNotifier<InvestmentState> {
-  late final InvestmentRepository _repository;
+  final InvestmentRepository _repository;
 
-  static const String _tag = 'Investment';
+  /// Load semua aset dari server/cache.
+  Future<void> loadDashboard() async {
+    state = state.copyWith(status: InvestmentStatus.loading);
 
-  @override
-  Future<InvestmentState> build() async {
-    _repository = ref.watch(investmentRepositoryProvider);
-    return _fetchAll();
+    final result = await _repository.getDashboard();
+
+    if (result.isSuccess()) {
+      state = state.copyWith(
+        status: InvestmentStatus.loaded,
+        assets: result.dataSuccess()!,
+      );
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      state = state.copyWith(
+        status: InvestmentStatus.error,
+        errorMessage: message,
+      );
+    }
   }
 
-  /// Fetch investasi dan kedua harga aset secara paralel.
-  Future<InvestmentState> _fetchAll({bool forceRefreshPrices = false}) async {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-
-    AppLogger.call(
-      '[$_tag] Memuat investasi dan harga aset…',
-      colorLog: ColorLog.blue,
-    );
-
-    final results = await Future.wait([
-      _repository.getInvestments(userId: userId),
-      _repository.getAssetPrice(
-        assetType: 'btc',
-        forceRefresh: forceRefreshPrices,
-      ),
-      _repository.getAssetPrice(
-        assetType: 'gold',
-        forceRefresh: forceRefreshPrices,
-      ),
-    ]);
-
-    final investmentsResult = results[0] as DataState<List<InvestmentModel>>;
-    final btcResult = results[1] as DataState<AssetPriceModel?>;
-    final goldResult = results[2] as DataState<AssetPriceModel?>;
-
-    final btcPrice = btcResult.dataSuccess() ?? btcResult.dataSuccess();
-    final goldPrice = goldResult.dataSuccess() ?? goldResult.dataSuccess();
-
-    List<InvestmentModel> investments = investmentsResult.isSuccess()
-        ? investmentsResult.dataSuccess()!
-        : [];
-
-    // Suntikkan livePrice ke masing-masing investasi
-    investments = _injectLivePrices(
-      investments: investments,
-      btcPrice: btcResult.dataSuccess(),
-      goldPrice: goldResult.dataSuccess(),
-    );
-
-    AppLogger.call(
-      '[$_tag] Loaded: ${investments.length} investasi, '
-      'BTC=${btcPrice?.priceIdr}, Gold=${goldPrice?.priceIdr}',
-      colorLog: ColorLog.green,
-    );
-
-    return InvestmentState(
-      investments: investments,
-      btcPrice: btcPrice,
-      goldPrice: goldPrice,
-    );
-  }
-
-  /// Menyuntikkan `livePrice` ke investasi berdasarkan tipe aset.
-  List<InvestmentModel> _injectLivePrices({
-    required List<InvestmentModel> investments,
-    AssetPriceModel? btcPrice,
-    AssetPriceModel? goldPrice,
-  }) {
-    return investments.map((inv) {
-      switch (inv.type) {
-        case InvestmentType.btc:
-          return btcPrice != null
-              ? inv.copyWith(livePrice: btcPrice.priceIdr)
-              : inv.copyWith(clearLivePrice: true);
-        case InvestmentType.gold:
-          return goldPrice != null
-              ? inv.copyWith(livePrice: goldPrice.priceIdr)
-              : inv.copyWith(clearLivePrice: true);
-        case InvestmentType.custom:
-          // Custom selalu pakai customCurrentPrice (sudah di getter)
-          return inv.copyWith(clearLivePrice: true);
-      }
-    }).toList();
-  }
-
-  /// Refresh penuh (investasi + harga).
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _fetchAll());
-  }
-
-  /// Refresh harga aset saja (tanpa reload investasi), jalankan di background.
-  Future<void> refreshPrices() async {
-    final currentData = state.value;
-    if (currentData == null) return;
-
-    // Tandai sedang refresh harga
-    state = AsyncData(currentData.copyWith(isPriceRefreshing: true));
-
-    final results = await Future.wait([
-      _repository.getAssetPrice(assetType: 'btc', forceRefresh: true),
-      _repository.getAssetPrice(assetType: 'gold', forceRefresh: true),
-    ]);
-
-    final btcResult = results[0];
-    final goldResult = results[1];
-
-    final latestState = state.value ?? currentData;
-    final investments = _injectLivePrices(
-      investments: latestState.investments,
-      btcPrice: btcResult.dataSuccess(),
-      goldPrice: goldResult.dataSuccess(),
-    );
-
-    state = AsyncData(
-      latestState.copyWith(
-        investments: investments,
-        btcPrice: btcResult.dataSuccess() ?? latestState.btcPrice,
-        goldPrice: goldResult.dataSuccess() ?? latestState.goldPrice,
-        isPriceRefreshing: false,
-      ),
-    );
-  }
-
-  /// Menambah investasi baru.
-  Future<DataState<InvestmentModel>> addInvestment({
-    required InvestmentModel investment,
-    required bool deductFromWallet,
+  /// Buat aset baru lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> createAsset({
+    required String type,
+    required String name,
+    String? goldType,
+    String? customGoldTypeId,
+    String? customCategoryId,
+    String unitLabel = 'unit',
+    String priceSource = 'manual',
+    double currentPrice = 0,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
     String? walletId,
-    required String userId,
   }) async {
-    final result = await _repository.addInvestment(
-      investment: investment,
-      deductFromWallet: deductFromWallet,
+    final result = await _repository.createAsset(
+      type: type,
+      name: name,
+      goldType: goldType,
+      customGoldTypeId: customGoldTypeId,
+      customCategoryId: customCategoryId,
+      unitLabel: unitLabel,
+      priceSource: priceSource,
+      currentPrice: currentPrice,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
       walletId: walletId,
-      userId: userId,
     );
 
     if (result.isSuccess()) {
-      await refresh();
+      await loadDashboard();
     }
-
     return result;
   }
 
-  /// Memperbarui investasi yang sudah ada.
-  Future<DataState<InvestmentModel>> editInvestment(
-    InvestmentModel investment,
+  /// Top up aset lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> topupAsset({
+    required String assetId,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
+    String? walletId,
+  }) async {
+    final result = await _repository.topupAsset(
+      assetId: assetId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
+      walletId: walletId,
+    );
+
+    if (result.isSuccess()) {
+      await loadDashboard();
+    }
+    return result;
+  }
+
+  /// Jual unit aset lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> sellAsset({
+    required String assetId,
+    required double units,
+    required double pricePerUnit,
+    DateTime? date,
+    String? note,
+    bool creditWallet = false,
+    String? walletId,
+  }) async {
+    final result = await _repository.sellAsset(
+      assetId: assetId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      date: date,
+      note: note,
+      creditWallet: creditWallet,
+      walletId: walletId,
+    );
+
+    if (result.isSuccess()) {
+      await loadDashboard();
+    }
+    return result;
+  }
+
+  /// Edit transaksi buy lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> editTransaction({
+    required String transactionId,
+    required double units,
+    required double pricePerUnit,
+    double fee = 0,
+    DateTime? date,
+    String? note,
+    bool deductWallet = false,
+    String? walletId,
+  }) async {
+    final result = await _repository.editTransaction(
+      transactionId: transactionId,
+      units: units,
+      pricePerUnit: pricePerUnit,
+      fee: fee,
+      date: date,
+      note: note,
+      deductWallet: deductWallet,
+      walletId: walletId,
+    );
+
+    if (result.isSuccess()) {
+      await loadDashboard();
+    }
+    return result;
+  }
+
+  /// Hapus transaksi buy lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> deleteTransaction(
+    String transactionId,
   ) async {
-    final result = await _repository.updateInvestment(investment);
+    final result = await _repository.deleteTransaction(transactionId);
 
     if (result.isSuccess()) {
-      await refresh();
+      await loadDashboard();
     }
-
     return result;
   }
 
-  /// Menghapus investasi.
-  Future<DataState<void>> removeInvestment(String id) async {
-    final result = await _repository.deleteInvestment(id);
+  /// Hapus master aset lalu refresh dashboard.
+  Future<DataState<Map<String, dynamic>>> deleteAsset({
+    required String assetId,
+    bool revertWallet = false,
+  }) async {
+    final result = await _repository.deleteAsset(
+      assetId: assetId,
+      revertWallet: revertWallet,
+    );
 
     if (result.isSuccess()) {
-      await refresh();
+      await loadDashboard();
     }
+    return result;
+  }
 
+  /// Update metadata aset lalu refresh dashboard.
+  Future<DataState<InvestmentAssetModel>> updateAsset(
+    InvestmentAssetModel asset,
+  ) async {
+    final result = await _repository.updateAsset(asset);
+
+    if (result.isSuccess()) {
+      await loadDashboard();
+    }
+    return result;
+  }
+
+  /// Update current_price lalu refresh dashboard.
+  Future<DataState<void>> updateCurrentPrice({
+    required String assetId,
+    required double price,
+  }) async {
+    final result = await _repository.updateCurrentPrice(
+      assetId: assetId,
+      price: price,
+    );
+
+    if (result.isSuccess()) {
+      await loadDashboard();
+    }
+    return result;
+  }
+
+  void clearCache() {
+    _repository.clearCache();
+    state = const InvestmentState();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRANSACTIONS CONTROLLER (per asset)
+// ═══════════════════════════════════════════════════════════════
+
+class InvestmentTransactionsState {
+  const InvestmentTransactionsState({
+    this.status = InvestmentStatus.initial,
+    this.buyTransactions = const [],
+    this.sellTransactions = const [],
+    this.errorMessage,
+  });
+
+  final InvestmentStatus status;
+  final List<InvestmentTransactionModel> buyTransactions;
+  final List<InvestmentTransactionModel> sellTransactions;
+  final String? errorMessage;
+
+  InvestmentTransactionsState copyWith({
+    InvestmentStatus? status,
+    List<InvestmentTransactionModel>? buyTransactions,
+    List<InvestmentTransactionModel>? sellTransactions,
+    String? errorMessage,
+  }) {
+    return InvestmentTransactionsState(
+      status: status ?? this.status,
+      buyTransactions: buyTransactions ?? this.buyTransactions,
+      sellTransactions: sellTransactions ?? this.sellTransactions,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+class InvestmentTransactionsController
+    extends StateNotifier<InvestmentTransactionsState> {
+  InvestmentTransactionsController(this._repository, this._assetId)
+    : super(const InvestmentTransactionsState());
+
+  final InvestmentRepository _repository;
+  final String _assetId;
+
+  /// Load semua transaksi (buy + sell) untuk aset ini.
+  Future<void> loadTransactions() async {
+    state = state.copyWith(status: InvestmentStatus.loading);
+
+    final buyResult = await _repository.getTransactions(
+      assetId: _assetId,
+      direction: 'buy',
+    );
+    final sellResult = await _repository.getTransactions(
+      assetId: _assetId,
+      direction: 'sell',
+    );
+
+    if (buyResult.isSuccess() && sellResult.isSuccess()) {
+      state = state.copyWith(
+        status: InvestmentStatus.loaded,
+        buyTransactions: buyResult.dataSuccess()!,
+        sellTransactions: sellResult.dataSuccess()!,
+      );
+    } else {
+      final msg = buyResult.isError()
+          ? buyResult.dataError()!.$1
+          : sellResult.dataError()!.$1;
+      state = state.copyWith(status: InvestmentStatus.error, errorMessage: msg);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM GOLD TYPES CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+
+class CustomGoldTypesController
+    extends StateNotifier<DataState<List<CustomGoldTypeModel>>> {
+  CustomGoldTypesController(this._repository)
+    : super(const DataState.success(data: []));
+
+  final InvestmentRepository _repository;
+
+  Future<void> load() async {
+    final result = await _repository.getCustomGoldTypes();
+    state = result;
+  }
+
+  Future<DataState<CustomGoldTypeModel>> create(String name) async {
+    final result = await _repository.createCustomGoldType(name);
+    if (result.isSuccess()) await load();
+    return result;
+  }
+
+  Future<DataState<CustomGoldTypeModel>> update({
+    required String id,
+    required String name,
+  }) async {
+    final result = await _repository.updateCustomGoldType(id: id, name: name);
+    if (result.isSuccess()) await load();
+    return result;
+  }
+
+  Future<DataState<void>> delete(String id) async {
+    final result = await _repository.deleteCustomGoldType(id);
+    if (result.isSuccess()) await load();
+    return result;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM ASSET CATEGORIES CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+
+class CustomAssetCategoriesController
+    extends StateNotifier<DataState<List<CustomAssetCategoryModel>>> {
+  CustomAssetCategoriesController(this._repository)
+    : super(const DataState.success(data: []));
+
+  final InvestmentRepository _repository;
+
+  Future<void> load() async {
+    final result = await _repository.getCustomAssetCategories();
+    state = result;
+  }
+
+  Future<DataState<CustomAssetCategoryModel>> create({
+    required String name,
+    required String unitLabel,
+  }) async {
+    final result = await _repository.createCustomAssetCategory(
+      name: name,
+      unitLabel: unitLabel,
+    );
+    if (result.isSuccess()) await load();
+    return result;
+  }
+
+  Future<DataState<CustomAssetCategoryModel>> update({
+    required String id,
+    required String name,
+    required String unitLabel,
+  }) async {
+    final result = await _repository.updateCustomAssetCategory(
+      id: id,
+      name: name,
+      unitLabel: unitLabel,
+    );
+    if (result.isSuccess()) await load();
+    return result;
+  }
+
+  Future<DataState<void>> delete(String id) async {
+    final result = await _repository.deleteCustomAssetCategory(id);
+    if (result.isSuccess()) await load();
     return result;
   }
 }

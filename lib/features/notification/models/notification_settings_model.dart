@@ -1,152 +1,137 @@
 import 'package:flutter/material.dart';
 
-/// Model untuk tabel `notification_settings`.
+/// Model data untuk pengaturan notifikasi user.
 ///
-/// Skema DB:
-/// - id: uuid (PK, default uuid_generate_v4())
-/// - user_id: uuid (FK → auth.users)
-/// - reminder_enabled: boolean (default false)
-/// - reminder_time: time without time zone (default '21:00:00')
-/// - budget_alert_enabled: boolean (default true)
-/// - debt_reminder_enabled: boolean (default true)
-/// - debt_reminder_days_before: integer (default 3)
-/// - updated_at: timestamptz (default now())
+/// Merepresentasikan satu record dari tabel `public.notification_settings`.
+/// Setiap user punya tepat satu row (di-seed saat user pertama kali register).
 class NotificationSettingsModel {
   const NotificationSettingsModel({
     required this.id,
     required this.userId,
-    required this.reminderEnabled,
-    required this.reminderTime,
-    required this.budgetAlertEnabled,
-    required this.debtReminderEnabled,
-    required this.debtReminderDaysBefore,
-    required this.updatedAt,
+    this.reminderEnabled = false,
+    this.reminderTime,
+    this.budgetAlertEnabled = true,
+    this.budgetAlert50Enabled = false,
+    this.debtReminderEnabled = true,
+    this.debtReminderDaysBefore = 3,
+    this.createdAt,
+    this.updatedAt,
   });
 
   final String id;
   final String userId;
 
-  /// Apakah reminder harian aktif.
+  /// Aktifkan pengingat harian catat transaksi.
   final bool reminderEnabled;
 
-  /// Jam pengingat harian (misal: 21:00).
-  final TimeOfDay reminderTime;
+  /// Jam pengingat harian (nullable — belum diset).
+  final TimeOfDay? reminderTime;
 
-  /// Apakah notifikasi budget alert aktif.
+  /// Aktifkan alert saat budget 80% / 100%.
   final bool budgetAlertEnabled;
 
-  /// Apakah pengingat piutang jatuh tempo aktif.
+  /// Aktifkan alert saat budget 50%.
+  final bool budgetAlert50Enabled;
+
+  /// Aktifkan pengingat piutang sebelum jatuh tempo.
   final bool debtReminderEnabled;
 
-  /// Berapa hari sebelum jatuh tempo untuk mengirim pengingat piutang.
+  /// Berapa hari sebelum jatuh tempo reminder dikirim.
   final int debtReminderDaysBefore;
 
-  /// Waktu terakhir diperbarui.
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  // ── Factory Defaults ───────────────────────────────────────
+  // ───────────────── Factory ─────────────────
 
-  /// Buat model dengan nilai default (digunakan sebelum data dari Supabase tersedia).
-  factory NotificationSettingsModel.defaults({required String userId}) {
-    return NotificationSettingsModel(
-      id: '',
-      userId: userId,
-      reminderEnabled: false,
-      reminderTime: const TimeOfDay(hour: 21, minute: 0),
-      budgetAlertEnabled: true,
-      debtReminderEnabled: true,
-      debtReminderDaysBefore: 3,
-      updatedAt: DateTime.now(),
-    );
-  }
-
-  // ── Serialization ──────────────────────────────────────────
-
-  /// Parsing dari Map Supabase.
-  ///
-  /// Field `reminder_time` di-parse dari string format `HH:MM:SS`.
   factory NotificationSettingsModel.fromMap(Map<String, dynamic> map) {
     return NotificationSettingsModel(
-      id: map['id'] as String? ?? '',
-      userId: map['user_id'] as String? ?? '',
-      reminderEnabled: map['reminder_enabled'] as bool? ?? false,
-      reminderTime: _parseTime(map['reminder_time'] as String? ?? '21:00:00'),
-      budgetAlertEnabled: map['budget_alert_enabled'] as bool? ?? true,
-      debtReminderEnabled: map['debt_reminder_enabled'] as bool? ?? true,
-      debtReminderDaysBefore: map['debt_reminder_days_before'] as int? ?? 3,
+      id: map['id'] as String,
+      userId: map['user_id'] as String,
+      reminderEnabled: (map['reminder_enabled'] as bool?) ?? false,
+      reminderTime: _parseTime(map['reminder_time'] as String?),
+      budgetAlertEnabled: (map['budget_alert_enabled'] as bool?) ?? true,
+      budgetAlert50Enabled: (map['budget_alert_50_enabled'] as bool?) ?? false,
+      debtReminderEnabled: (map['debt_reminder_enabled'] as bool?) ?? true,
+      debtReminderDaysBefore: (map['debt_reminder_days_before'] as int?) ?? 3,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String)
+          : null,
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'] as String)
-          : DateTime.now(),
+          : null,
     );
   }
 
-  /// Konversi ke Map untuk update Supabase (excludes id & user_id).
+  /// Map untuk UPDATE — hanya field yang boleh diubah user.
   Map<String, dynamic> toUpdateMap() {
     return {
       'reminder_enabled': reminderEnabled,
-      'reminder_time': _formatTime(reminderTime),
+      'reminder_time': reminderTime != null
+          ? '${reminderTime!.hour.toString().padLeft(2, '0')}:${reminderTime!.minute.toString().padLeft(2, '0')}:00'
+          : null,
       'budget_alert_enabled': budgetAlertEnabled,
+      'budget_alert_50_enabled': budgetAlert50Enabled,
       'debt_reminder_enabled': debtReminderEnabled,
       'debt_reminder_days_before': debtReminderDaysBefore,
-      'updated_at': DateTime.now().toIso8601String(),
     };
   }
 
-  /// Konversi ke Map penuh (termasuk id & user_id) untuk cache Hive.
-  Map<String, dynamic> toMap() {
+  /// Map lengkap untuk local cache (Hive).
+  Map<String, dynamic> toFullMap() {
     return {
       'id': id,
       'user_id': userId,
       'reminder_enabled': reminderEnabled,
-      'reminder_time': _formatTime(reminderTime),
+      'reminder_time': reminderTime != null
+          ? '${reminderTime!.hour.toString().padLeft(2, '0')}:${reminderTime!.minute.toString().padLeft(2, '0')}:00'
+          : null,
       'budget_alert_enabled': budgetAlertEnabled,
+      'budget_alert_50_enabled': budgetAlert50Enabled,
       'debt_reminder_enabled': debtReminderEnabled,
       'debt_reminder_days_before': debtReminderDaysBefore,
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
-
-  // ── CopyWith ───────────────────────────────────────────────
 
   NotificationSettingsModel copyWith({
     String? id,
     String? userId,
     bool? reminderEnabled,
     TimeOfDay? reminderTime,
+    bool clearReminderTime = false,
     bool? budgetAlertEnabled,
+    bool? budgetAlert50Enabled,
     bool? debtReminderEnabled,
     int? debtReminderDaysBefore,
+    DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return NotificationSettingsModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
-      reminderTime: reminderTime ?? this.reminderTime,
+      reminderTime: clearReminderTime
+          ? null
+          : (reminderTime ?? this.reminderTime),
       budgetAlertEnabled: budgetAlertEnabled ?? this.budgetAlertEnabled,
+      budgetAlert50Enabled: budgetAlert50Enabled ?? this.budgetAlert50Enabled,
       debtReminderEnabled: debtReminderEnabled ?? this.debtReminderEnabled,
       debtReminderDaysBefore:
           debtReminderDaysBefore ?? this.debtReminderDaysBefore,
+      createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  // ── Private Helpers ────────────────────────────────────────
+  // ───────────────── Helpers ─────────────────
 
-  /// Parse `'HH:MM:SS'` atau `'HH:MM'` ke [TimeOfDay].
-  static TimeOfDay _parseTime(String timeStr) {
-    final parts = timeStr.split(':');
-    if (parts.length < 2) return const TimeOfDay(hour: 21, minute: 0);
-    return TimeOfDay(
-      hour: int.tryParse(parts[0]) ?? 21,
-      minute: int.tryParse(parts[1]) ?? 0,
-    );
-  }
-
-  /// Format [TimeOfDay] ke `'HH:MM:00'` untuk disimpan ke Supabase.
-  static String _formatTime(TimeOfDay time) {
-    final hh = time.hour.toString().padLeft(2, '0');
-    final mm = time.minute.toString().padLeft(2, '0');
-    return '$hh:$mm:00';
+  /// Parse "HH:mm:ss" → TimeOfDay.
+  static TimeOfDay? _parseTime(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    final parts = raw.split(':');
+    if (parts.length < 2) return null;
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 }

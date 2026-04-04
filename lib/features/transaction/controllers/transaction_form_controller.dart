@@ -1,313 +1,650 @@
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/transaction/datasource/transaction_local_datasource.dart';
-import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_datasource.dart';
-import 'package:app_saku_rapi/features/transaction/models/category_model.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_form_state.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-// ─────────────────────────────────────────────────────────────
-// Providers
-// ─────────────────────────────────────────────────────────────
+// ═══════════════ Providers ═══════════════
 
-/// Provider untuk [TransactionRepository].
-final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
-  return TransactionRepository(
-    remoteDataSource: TransactionRemoteDataSource(),
-    localDataSource: TransactionLocalDataSource(),
-  );
-});
+/// Singleton repo provider.
+final transactionRepositoryProvider = Provider<TransactionRepository>(
+  (ref) => TransactionRepository(),
+);
 
-/// Provider untuk state form transaksi.
-///
-/// State direset setiap kali screen form ditutup (auto-dispose by default di
-/// Riverpod 3).
+/// Form controller provider, auto-disposed saat page ditutup.
 final transactionFormControllerProvider =
-    NotifierProvider<TransactionFormController, TransactionFormState>(
-      () => TransactionFormController(),
+    StateNotifierProvider.autoDispose<
+      TransactionFormController,
+      TransactionFormState
+    >(
+      (ref) => TransactionFormController(
+        repository: ref.watch(transactionRepositoryProvider),
+      ),
     );
 
-/// Provider untuk daftar kategori yang sudah dikelompokkan (parent + children).
+// ═══════════════ State ═══════════════
+
+/// Status form transaksi.
+enum TransactionFormStatus { idle, saving, saved, error }
+
+/// Immutable state untuk form transaksi.
 ///
-/// Di-cache dengan autoDispose agar tidak terus hidup setelah form tutup.
-final transactionCategoriesProvider = FutureProvider<List<CategoryModel>>((
-  ref,
-) async {
-  final repo = ref.read(transactionRepositoryProvider);
-  final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
-  final result = await repo.getCategories(userId: userId);
-  return result.map(
-    success: (data) => data.data,
-    error: (err) => throw Exception(err.message),
-  );
-});
+/// Menyimpan semua field form: type, wallet, amount, items, dsb.
+/// Controller memodifikasi via `copyWith`.
+class TransactionFormState {
+  const TransactionFormState({
+    this.status = TransactionFormStatus.idle,
+    this.type = TransactionTypeEnum.expense,
+    this.wallet,
+    this.destinationWallet,
+    this.totalAmount = 0,
+    this.date,
+    this.merchantName,
+    this.note,
+    this.attachmentUrl,
+    this.localAttachmentPath,
+    this.withPerson,
+    this.contact,
+    this.dueDate,
+    this.category,
+    this.items = const [],
+    this.itemKeys = const [],
+    this.errorMessage,
+    this.existingTransaction,
+    this.debtLoanKind,
+    this.referenceTransaction,
+  });
 
-// ─────────────────────────────────────────────────────────────
-// Controller
-// ─────────────────────────────────────────────────────────────
+  final TransactionFormStatus status;
+  final TransactionTypeEnum type;
+  final WalletModel? wallet;
+  final WalletModel? destinationWallet;
+  final double totalAmount;
+  final DateTime? date;
+  final String? merchantName;
+  final String? note;
+  final String? attachmentUrl;
 
-/// Riverpod [Notifier] untuk mengelola state form transaksi.
-///
-/// State direset otomatis saat form screen ditutup (auto-dispose default di
-/// Riverpod 3).
-class TransactionFormController extends Notifier<TransactionFormState> {
-  static const String _tag = 'TransactionForm';
+  /// Path lokal file lampiran yang belum di-upload.
+  /// Diisi saat user pilih foto; di-upload saat simpan transaksi.
+  final String? localAttachmentPath;
 
-  @override
-  TransactionFormState build() {
-    return TransactionFormState(date: DateTime.now());
-  }
+  final String? withPerson;
+  final ContactModel? contact;
+  final DateTime? dueDate;
+  final CategoryModel? category;
+  final List<TransactionItemModel> items;
 
-  // ─────────────────────────────────────────────────────────────
-  // Initialization
-  // ─────────────────────────────────────────────────────────────
+  /// Stable identity keys per item untuk widget keying.
+  /// Setiap item punya key unik yang tidak berubah saat content berubah.
+  final List<int> itemKeys;
+  final String? errorMessage;
 
-  /// Inisialisasi form dari state awal (pre-fill dari Voice/OCR atau edit).
-  void initialize(TransactionFormState initialState) {
-    state = initialState;
-    AppLogger.call(
-      '[$_tag] Form diinisialisasi: type=${initialState.type}, '
-      'prefillSource=${initialState.prefillSource}',
-      colorLog: ColorLog.blue,
+  /// Jika ada, berarti mode edit.
+  final TransactionModel? existingTransaction;
+
+  /// Jenis operasi untuk tab Hutang/Piutang (debt, loan, debtPayment, loanCollection).
+  final DebtLoanKindEnum? debtLoanKind;
+
+  /// Transaksi referensi yang dipilih untuk pelunasan/penerimaan.
+  final DebtLoanTransactionModel? referenceTransaction;
+
+  bool get isEditing => existingTransaction != null;
+  bool get isSaving => status == TransactionFormStatus.saving;
+  bool get isMultiItem => items.length > 1;
+
+  /// Apakah sedang di tab Hutang/Piutang.
+  bool get isDebtLoanTab =>
+      type == TransactionTypeEnum.debt || type == TransactionTypeEnum.loan;
+
+  /// Apakah sedang mode pelunasan/penerimaan.
+  bool get isSettlementMode => debtLoanKind?.isSettlement ?? false;
+
+  /// Hitung total dari items.
+  double get itemsTotal => items.fold(0.0, (sum, i) => sum + i.amount);
+
+  /// Apakah items total cocok dengan total amount.
+  bool get isTotalMatched => (itemsTotal - totalAmount).abs() < 0.01;
+
+  TransactionFormState copyWith({
+    TransactionFormStatus? status,
+    TransactionTypeEnum? type,
+    WalletModel? wallet,
+    WalletModel? destinationWallet,
+    double? totalAmount,
+    DateTime? date,
+    String? merchantName,
+    String? note,
+    String? attachmentUrl,
+    String? localAttachmentPath,
+    String? withPerson,
+    ContactModel? contact,
+    DateTime? dueDate,
+    CategoryModel? category,
+    List<TransactionItemModel>? items,
+    List<int>? itemKeys,
+    String? errorMessage,
+    TransactionModel? existingTransaction,
+    DebtLoanKindEnum? debtLoanKind,
+    DebtLoanTransactionModel? referenceTransaction,
+  }) {
+    return TransactionFormState(
+      status: status ?? this.status,
+      type: type ?? this.type,
+      wallet: wallet ?? this.wallet,
+      destinationWallet: destinationWallet ?? this.destinationWallet,
+      totalAmount: totalAmount ?? this.totalAmount,
+      date: date ?? this.date,
+      merchantName: merchantName ?? this.merchantName,
+      note: note ?? this.note,
+      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      localAttachmentPath: localAttachmentPath ?? this.localAttachmentPath,
+      withPerson: withPerson ?? this.withPerson,
+      contact: contact ?? this.contact,
+      dueDate: dueDate ?? this.dueDate,
+      category: category ?? this.category,
+      items: items ?? this.items,
+      itemKeys: itemKeys ?? this.itemKeys,
+      errorMessage: errorMessage ?? this.errorMessage,
+      existingTransaction: existingTransaction ?? this.existingTransaction,
+      debtLoanKind: debtLoanKind ?? this.debtLoanKind,
+      referenceTransaction: referenceTransaction ?? this.referenceTransaction,
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Type
-  // ─────────────────────────────────────────────────────────────
-
-  /// Ubah tipe transaksi.
-  ///
-  /// Saat berganti tipe, item non-compatible (multi-item untuk non-expense)
-  /// direset menjadi 1 item kosong.
-  void setType(String type) {
-    final resetItems = type != 'expense' && state.items.length > 1;
-    state = state.copyWith(
+  /// Create fresh copy with nullable fields explicitly cleared.
+  TransactionFormState clearFields({
+    bool clearDestWallet = false,
+    bool clearWithPerson = false,
+    bool clearContact = false,
+    bool clearDueDate = false,
+    bool clearCategory = false,
+    bool clearMerchant = false,
+    bool clearNote = false,
+    bool clearAttachment = false,
+    bool clearError = false,
+    bool clearDebtLoanKind = false,
+    bool clearReferenceTransaction = false,
+  }) {
+    return TransactionFormState(
+      status: status,
       type: type,
-      items: resetItems ? [const TransactionItemFormState()] : null,
-      clearDestinationWallet: type != 'transfer',
+      wallet: wallet,
+      destinationWallet: clearDestWallet ? null : destinationWallet,
+      totalAmount: totalAmount,
+      date: date,
+      merchantName: clearMerchant ? null : merchantName,
+      note: clearNote ? null : note,
+      attachmentUrl: clearAttachment ? null : attachmentUrl,
+      localAttachmentPath: clearAttachment ? null : localAttachmentPath,
+      withPerson: clearWithPerson ? null : withPerson,
+      contact: clearContact ? null : contact,
+      dueDate: clearDueDate ? null : dueDate,
+      category: clearCategory ? null : category,
+      items: clearCategory
+          ? items.map((item) => item.clearCategory()).toList()
+          : items,
+      itemKeys: itemKeys,
+      errorMessage: clearError ? null : errorMessage,
+      existingTransaction: existingTransaction,
+      debtLoanKind: clearDebtLoanKind ? null : debtLoanKind,
+      referenceTransaction: clearReferenceTransaction
+          ? null
+          : referenceTransaction,
     );
   }
+}
 
-  // ─────────────────────────────────────────────────────────────
-  // Wallet
-  // ─────────────────────────────────────────────────────────────
+// ═══════════════ Controller ═══════════════
 
-  /// Set dompet sumber transaksi.
-  void setWallet(String walletId, String walletName) {
-    state = state.copyWith(walletId: walletId, walletName: walletName);
+/// Controller form transaksi.
+///
+/// Mengelola semua state form: type selection, wallet/category picker,
+/// multi-item management, dan submit create/update/delete.
+class TransactionFormController extends StateNotifier<TransactionFormState> {
+  TransactionFormController({required TransactionRepository repository})
+    : _repository = repository,
+      super(TransactionFormState(date: DateTime.now()));
+
+  final TransactionRepository _repository;
+  int _nextItemKey = 0;
+
+  int _generateKey() => _nextItemKey++;
+
+  // ─── Setters ───
+
+  void setType(TransactionTypeEnum type) {
+    // Saat ganti type, clear field yang tidak relevan
+    final isDebtLoan =
+        type == TransactionTypeEnum.debt || type == TransactionTypeEnum.loan;
+    state = state
+        .copyWith(
+          type: type,
+          // Default sub-category saat masuk tab Hutang/Piutang
+          debtLoanKind: isDebtLoan ? DebtLoanKindEnum.debt : null,
+        )
+        .clearFields(
+          clearDestWallet: !type.requiresDestinationWallet,
+          clearWithPerson: !type.requiresWithPerson,
+          clearContact: !type.requiresWithPerson,
+          clearDueDate: !type.requiresWithPerson,
+          clearCategory: true,
+          clearError: true,
+          clearDebtLoanKind: !isDebtLoan,
+          clearReferenceTransaction: true,
+        );
   }
 
-  /// Set dompet tujuan (untuk transfer).
-  void setDestinationWallet(String? walletId, String? walletName) {
-    if (walletId == null) {
-      state = state.copyWith(clearDestinationWallet: true);
+  /// Set sub-kategori untuk tab Hutang/Piutang.
+  ///
+  /// Mengubah type sesuai sub-kategori:
+  /// - debt / debtPayment → TransactionTypeEnum.debt
+  /// - loan / loanCollection → TransactionTypeEnum.loan
+  /// Clear referenceTransaction saat ganti sub-kategori.
+  void setDebtLoanKind(DebtLoanKindEnum subCat) {
+    final newType =
+        (subCat == DebtLoanKindEnum.loan ||
+            subCat == DebtLoanKindEnum.loanCollection)
+        ? TransactionTypeEnum.loan
+        : TransactionTypeEnum.debt;
+
+    state = state
+        .copyWith(type: newType, debtLoanKind: subCat)
+        .clearFields(clearReferenceTransaction: true, clearError: true);
+  }
+
+  /// Set transaksi referensi untuk mode pelunasan/penerimaan.
+  void setReferenceTransaction(DebtLoanTransactionModel? txn) {
+    if (txn == null) {
+      state = state.clearFields(clearReferenceTransaction: true);
     } else {
+      state = state.copyWith(referenceTransaction: txn);
+    }
+  }
+
+  void setWallet(WalletModel wallet) {
+    state = state.copyWith(wallet: wallet).clearFields(clearError: true);
+  }
+
+  void setDestinationWallet(WalletModel wallet) {
+    state = state
+        .copyWith(destinationWallet: wallet)
+        .clearFields(clearError: true);
+  }
+
+  /// Tukar dompet sumber dan dompet tujuan.
+  void swapWallets() {
+    final source = state.wallet;
+    final dest = state.destinationWallet;
+    if (source == null && dest == null) return;
+    state = state.copyWith(wallet: dest, destinationWallet: source);
+  }
+
+  void setTotalAmount(double amount) {
+    state = state.copyWith(totalAmount: amount);
+    // Jika single item, juga update item amount agar match
+    if (state.items.length == 1) {
       state = state.copyWith(
-        destinationWalletId: walletId,
-        destinationWalletName: walletName,
+        items: [state.items.first.copyWith(amount: amount)],
       );
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Date
-  // ─────────────────────────────────────────────────────────────
-
-  /// Set tanggal transaksi.
   void setDate(DateTime date) {
     state = state.copyWith(date: date);
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Optional fields
-  // ─────────────────────────────────────────────────────────────
-
-  void setMerchantName(String? name) {
-    if (name == null || name.trim().isEmpty) {
-      state = state.copyWith(clearMerchantName: true);
-    } else {
-      state = state.copyWith(merchantName: name.trim());
-    }
+  void setMerchant(String? merchant) {
+    state = state.copyWith(merchantName: merchant);
   }
 
   void setNote(String? note) {
-    if (note == null || note.trim().isEmpty) {
-      state = state.copyWith(clearNote: true);
+    state = state.copyWith(note: note);
+  }
+
+  void setAttachmentUrl(String? url) {
+    if (url == null) {
+      state = state.clearFields(clearAttachment: true);
     } else {
-      state = state.copyWith(note: note.trim());
+      state = state.copyWith(attachmentUrl: url);
     }
   }
 
-  void setAttachmentLocalPath(String? path) {
+  /// Simpan path lokal lampiran (belum upload).
+  void setLocalAttachment(String? path) {
     if (path == null) {
-      state = state.copyWith(clearAttachment: true);
+      state = state.clearFields(clearAttachment: true);
     } else {
-      state = state.copyWith(attachmentLocalPath: path);
+      // Simpan path lokal, hapus URL lama (akan di-upload saat simpan)
+      state = TransactionFormState(
+        status: state.status,
+        type: state.type,
+        wallet: state.wallet,
+        destinationWallet: state.destinationWallet,
+        totalAmount: state.totalAmount,
+        date: state.date,
+        merchantName: state.merchantName,
+        note: state.note,
+        attachmentUrl: null,
+        localAttachmentPath: path,
+        withPerson: state.withPerson,
+        contact: state.contact,
+        dueDate: state.dueDate,
+        category: state.category,
+        items: state.items,
+        itemKeys: state.itemKeys,
+        errorMessage: state.errorMessage,
+        existingTransaction: state.existingTransaction,
+        debtLoanKind: state.debtLoanKind,
+        referenceTransaction: state.referenceTransaction,
+      );
     }
   }
 
-  void setWithPerson(String? withPerson) {
-    if (withPerson == null || withPerson.trim().isEmpty) {
-      state = state.copyWith(clearWithPerson: true);
-    } else {
-      state = state.copyWith(withPerson: withPerson.trim());
-    }
+  void setWithPerson(String? person) {
+    state = state.copyWith(withPerson: person);
   }
 
-  void setStatus(String? status) {
-    state = state.copyWith(status: status);
+  /// Pilih kontak (dari picker sheet). Juga sync withPerson ke nama kontak.
+  void setContact(ContactModel? contact) {
+    if (contact == null) {
+      state = state.clearFields(clearWithPerson: true, clearContact: true);
+    } else {
+      state = state.copyWith(contact: contact, withPerson: contact.name);
+    }
   }
 
   void setDueDate(DateTime? dueDate) {
-    if (dueDate == null) {
-      state = state.copyWith(clearDueDate: true);
-    } else {
-      state = state.copyWith(dueDate: dueDate);
-    }
+    state = state.copyWith(dueDate: dueDate);
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Single-item helpers
-  // ─────────────────────────────────────────────────────────────
-
-  /// Set nominal item pertama (mode single-item).
-  void setAmount(double? amount) {
-    _updateItem(0, state.items.first.copyWith(amount: amount));
-  }
-
-  /// Set kategori item pertama (mode single-item).
-  void setCategory({
-    required String? categoryId,
-    required String? categoryName,
-    required String? categoryColor,
-    required String? categoryIcon,
-  }) {
-    if (categoryId == null) {
-      _updateItem(0, state.items.first.copyWith(clearCategory: true));
-    } else {
-      _updateItem(
-        0,
-        state.items.first.copyWith(
-          categoryId: categoryId,
-          categoryName: categoryName,
-          categoryColor: categoryColor,
-          categoryIcon: categoryIcon,
-        ),
+  void setCategory(CategoryModel category) {
+    state = state.copyWith(category: category);
+    // Jika single item, update category di item juga
+    if (state.items.length == 1) {
+      state = state.copyWith(
+        items: [
+          state.items.first.copyWith(
+            categoryId: category.id,
+            categoryName: category.name,
+            categoryIcon: category.icon,
+            categoryColor: category.color,
+          ),
+        ],
       );
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Multi-item operations
-  // ─────────────────────────────────────────────────────────────
+  // ─── Item Management ───
 
-  /// Tambah item baru (kosong) — otomatis switch ke mode multi-item.
+  /// Inisialisasi 1 item default (single-item mode).
+  void initSingleItem() {
+    if (state.items.isEmpty) {
+      state = state.copyWith(
+        items: [const TransactionItemModel(amount: 0)],
+        itemKeys: [_generateKey()],
+      );
+    }
+  }
+
+  /// Tambah item baru (switch ke multi-item mode).
   void addItem() {
+    final newItems = [
+      ...state.items,
+      TransactionItemModel(amount: 0, sortOrder: state.items.length),
+    ];
     state = state.copyWith(
-      items: [...state.items, const TransactionItemFormState()],
+      items: newItems,
+      itemKeys: [...state.itemKeys, _generateKey()],
     );
   }
 
-  /// Hapus item berdasarkan index.
+  /// Update item di index tertentu.
   ///
-  /// Minimal selalu ada 1 item — tidak bisa menghapus jika hanya tersisa 1.
+  /// Jika `qty` dan `unitPrice` keduanya tersedia, `amount = qty * unitPrice`.
+  /// Jika hanya `amount` yang diisi manual, tetap pakai amount apa adanya.
+  /// Auto-recalc total dari semua items.
+  void updateItem(int index, TransactionItemModel item) {
+    if (index < 0 || index >= state.items.length) return;
+
+    // Auto-calc amount dari qty * unitPrice jika keduanya ada
+    final resolved = _resolveItemAmount(item);
+
+    final newItems = [...state.items];
+    newItems[index] = resolved;
+
+    final total = _sumItems(newItems);
+    state = state.copyWith(items: newItems, totalAmount: total);
+  }
+
+  /// Hapus item di index tertentu. Minimal 1 item harus tetap ada.
   void removeItem(int index) {
     if (state.items.length <= 1) return;
-    final updated = List<TransactionItemFormState>.from(state.items)
-      ..removeAt(index);
-    state = state.copyWith(items: updated);
+    final newItems = [...state.items]..removeAt(index);
+    final newKeys = [...state.itemKeys]..removeAt(index);
+    final total = _sumItems(newItems);
+    state = state.copyWith(
+      items: newItems,
+      itemKeys: newKeys,
+      totalAmount: total,
+    );
   }
 
-  /// Update nominal item berdasarkan index.
-  void updateItemAmount(int index, double? amount) {
-    _updateItem(index, state.items[index].copyWith(amount: amount));
+  /// Ubah urutan item (drag-to-reorder).
+  void reorderItems(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.items.length) return;
+    if (newIndex < 0 || newIndex > state.items.length) return;
+
+    final newItems = [...state.items];
+    final item = newItems.removeAt(oldIndex);
+    final adjustedIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    newItems.insert(adjustedIndex, item);
+
+    final newKeys = [...state.itemKeys];
+    final key = newKeys.removeAt(oldIndex);
+    newKeys.insert(adjustedIndex, key);
+
+    state = state.copyWith(items: newItems, itemKeys: newKeys);
   }
 
-  /// Update kategori item berdasarkan index.
-  void updateItemCategory(
-    int index, {
-    required String? categoryId,
-    required String? categoryName,
-    required String? categoryColor,
-    required String? categoryIcon,
-  }) {
-    if (categoryId == null) {
-      _updateItem(index, state.items[index].copyWith(clearCategory: true));
-    } else {
-      _updateItem(
-        index,
-        state.items[index].copyWith(
-          categoryId: categoryId,
-          categoryName: categoryName,
-          categoryColor: categoryColor,
-          categoryIcon: categoryIcon,
-        ),
+  /// Prefill items dari Voice/OCR input.
+  ///
+  /// Mengganti seluruh items dan auto-recalc total.
+  void prefillItems(List<TransactionItemModel> items) {
+    if (items.isEmpty) return;
+    final resolved = items.map(_resolveItemAmount).toList();
+    final total = _sumItems(resolved);
+    final keys = List.generate(resolved.length, (_) => _generateKey());
+    state = state.copyWith(items: resolved, itemKeys: keys, totalAmount: total);
+  }
+
+  // ─── Helpers ───
+
+  /// Hitung amount dari qty * unitPrice jika keduanya tersedia.
+  static TransactionItemModel _resolveItemAmount(TransactionItemModel item) {
+    if (item.unitPrice != null && item.qty > 0) {
+      final computed = item.qty * item.unitPrice!;
+      return item.copyWith(amount: computed);
+    }
+    return item;
+  }
+
+  /// Sum amount dari semua items.
+  static double _sumItems(List<TransactionItemModel> items) {
+    return items.fold(0.0, (sum, i) => sum + i.amount);
+  }
+
+  /// @visibleForTesting — Exposed untuk unit test.
+  static TransactionItemModel resolveItemAmountForTest(
+    TransactionItemModel item,
+  ) => _resolveItemAmount(item);
+
+  /// @visibleForTesting — Exposed untuk unit test.
+  static double sumItemsForTest(List<TransactionItemModel> items) =>
+      _sumItems(items);
+
+  // ─── Load untuk mode edit ───
+
+  /// Pre-fill form dari transaksi yang sudah ada (mode edit).
+  void loadExistingTransaction(TransactionModel txn) {
+    final items = txn.items.isNotEmpty
+        ? txn.items
+        : [TransactionItemModel(amount: txn.totalAmount)];
+    final keys = List.generate(items.length, (_) => _generateKey());
+    state = TransactionFormState(
+      existingTransaction: txn,
+      type: txn.type,
+      totalAmount: txn.totalAmount,
+      date: txn.date,
+      merchantName: txn.merchantName,
+      note: txn.note,
+      attachmentUrl: txn.attachmentUrl,
+      withPerson: txn.withPerson,
+      contact: txn.contactId != null
+          ? ContactModel(
+              id: txn.contactId!,
+              userId: txn.userId,
+              name: txn.contactName ?? txn.withPerson ?? '',
+              phone: txn.contactPhone,
+            )
+          : null,
+      dueDate: txn.dueDate,
+      items: items,
+      itemKeys: keys,
+    );
+    // Wallet and category are loaded separately via widget
+  }
+
+  // ─── Submit ───
+
+  /// Submit transaksi (create, update, atau settle). Anti duplicate-submit via status.
+  Future<DataState<Map<String, dynamic>>> submit() async {
+    if (state.isSaving) {
+      return const DataState.error(message: 'Sedang menyimpan...');
+    }
+
+    state = state.copyWith(status: TransactionFormStatus.saving);
+
+    try {
+      DataState<Map<String, dynamic>> result;
+
+      // ── Settlement mode (Pelunasan / Penerimaan) ──
+      if (state.isSettlementMode) {
+        result = await _repository.settleDebtOrLoan(
+          referenceTransactionId: state.referenceTransaction!.id,
+          settlementKind: state.debtLoanKind!.toDbValue(),
+          amount: state.totalAmount,
+          walletId: state.wallet!.id,
+          date: state.date,
+          note: state.note,
+        );
+      } else {
+        // Pastikan items memiliki sortOrder yang benar
+        final itemsWithOrder = state.items
+            .asMap()
+            .entries
+            .map((e) => e.value.copyWith(sortOrder: e.key))
+            .toList();
+
+        if (state.isEditing) {
+          result = await _repository.updateTransaction(
+            transactionId: state.existingTransaction!.id,
+            walletId: state.wallet!.id,
+            destinationWalletId: state.destinationWallet?.id,
+            type: state.type,
+            totalAmount: state.totalAmount,
+            date: state.date ?? DateTime.now(),
+            merchantName: state.merchantName,
+            note: state.note,
+            attachmentUrl: state.attachmentUrl,
+            withPerson: state.withPerson,
+            contactId: state.contact?.id,
+            debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
+            dueDate: state.dueDate,
+            items: itemsWithOrder,
+          );
+        } else {
+          result = await _repository.createTransaction(
+            walletId: state.wallet!.id,
+            destinationWalletId: state.destinationWallet?.id,
+            type: state.type,
+            totalAmount: state.totalAmount,
+            date: state.date ?? DateTime.now(),
+            merchantName: state.merchantName,
+            note: state.note,
+            attachmentUrl: state.attachmentUrl,
+            withPerson: state.withPerson,
+            contactId: state.contact?.id,
+            debtStatus: state.type.requiresWithPerson ? 'unpaid' : null,
+            dueDate: state.dueDate,
+            items: itemsWithOrder,
+          );
+        }
+      }
+
+      if (result.isSuccess()) {
+        state = state.copyWith(status: TransactionFormStatus.saved);
+      } else {
+        final (message, _, _, _) = result.dataError()!;
+        state = state.copyWith(
+          status: TransactionFormStatus.error,
+          errorMessage: message,
+        );
+      }
+
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        status: TransactionFormStatus.error,
+        errorMessage: e.toString(),
+      );
+      return DataState.error(message: e.toString());
+    }
+  }
+
+  /// Delete transaksi yang sedang diedit.
+  Future<DataState<Map<String, dynamic>>> delete() async {
+    if (!state.isEditing) {
+      return const DataState.error(
+        message: 'Tidak ada transaksi untuk dihapus',
       );
     }
-  }
 
-  /// Update catatan item berdasarkan index.
-  void updateItemNote(int index, String? note) {
-    _updateItem(index, state.items[index].copyWith(note: note));
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Save
-  // ─────────────────────────────────────────────────────────────
-
-  /// Menyimpan transaksi ke Supabase.
-  ///
-  /// Return [DataState<TransactionModel>] agar caller (UI) bisa
-  /// menentukan aksi lanjutan (pop, snackbar, dll).
-  Future<DataState<TransactionModel>> save() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
-    final repo = ref.read(transactionRepositoryProvider);
-
-    AppLogger.call(
-      '[$_tag] Menyimpan form: type=${state.type}, '
-      'total=${state.totalAmount}, items=${state.items.length}',
-      colorLog: ColorLog.blue,
-    );
-
-    return repo.saveTransaction(formState: state, userId: userId);
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Validation
-  // ─────────────────────────────────────────────────────────────
-
-  /// Validasi form sebelum submit.
-  ///
-  /// Return pesan error atau `null` jika valid.
-  String? validate() {
-    if (state.walletId == null) return 'walletRequired';
-    if (state.type == 'transfer' && state.destinationWalletId == null) {
-      return 'destWalletRequired';
+    if (state.isSaving) {
+      return const DataState.error(message: 'Sedang memproses...');
     }
-    if (state.type == 'transfer' &&
-        state.walletId == state.destinationWalletId) {
-      return 'sameWallet';
-    }
-    if (state.isDebtOrLoan && (state.withPerson?.isEmpty ?? true)) {
-      return 'withPersonRequired';
-    }
-    for (final item in state.items) {
-      if (item.amount == null || item.amount! <= 0) return 'amountRequired';
-    }
-    return null;
-  }
 
-  // ─────────────────────────────────────────────────────────────
-  // Internal helpers
-  // ─────────────────────────────────────────────────────────────
+    state = state.copyWith(status: TransactionFormStatus.saving);
 
-  void _updateItem(int index, TransactionItemFormState updated) {
-    final items = List<TransactionItemFormState>.from(state.items);
-    items[index] = updated;
-    state = state.copyWith(items: items);
+    try {
+      final result = await _repository.deleteTransaction(
+        state.existingTransaction!.id,
+      );
+
+      if (result.isSuccess()) {
+        state = state.copyWith(status: TransactionFormStatus.saved);
+      } else {
+        final (message, _, _, _) = result.dataError()!;
+        state = state.copyWith(
+          status: TransactionFormStatus.error,
+          errorMessage: message,
+        );
+      }
+
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        status: TransactionFormStatus.error,
+        errorMessage: e.toString(),
+      );
+      return DataState.error(message: e.toString());
+    }
   }
 }

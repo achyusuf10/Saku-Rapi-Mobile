@@ -1,106 +1,34 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Daftar icon yang tersedia untuk category picker.
+/// Bottom sheet untuk memilih icon kategori.
 ///
-/// Setiap entry: (nama string untuk DB, IconData FontAwesome, label display).
-const List<({String name, IconData icon, String label})> _availableIcons = [
-  (name: 'utensils', icon: FontAwesomeIcons.utensils, label: 'Food'),
-  (name: 'mug-hot', icon: FontAwesomeIcons.mugHot, label: 'Coffee'),
-  (
-    name: 'cart-shopping',
-    icon: FontAwesomeIcons.cartShopping,
-    label: 'Shopping',
-  ),
-  (name: 'bus', icon: FontAwesomeIcons.bus, label: 'Bus'),
-  (name: 'car', icon: FontAwesomeIcons.car, label: 'Car'),
-  (name: 'gas-pump', icon: FontAwesomeIcons.gasPump, label: 'Gas'),
-  (name: 'plane', icon: FontAwesomeIcons.plane, label: 'Travel'),
-  (name: 'house', icon: FontAwesomeIcons.house, label: 'Home'),
-  (name: 'bolt', icon: FontAwesomeIcons.bolt, label: 'Electric'),
-  (name: 'wifi', icon: FontAwesomeIcons.wifi, label: 'Internet'),
-  (name: 'phone', icon: FontAwesomeIcons.phone, label: 'Phone'),
-  (name: 'gamepad', icon: FontAwesomeIcons.gamepad, label: 'Gaming'),
-  (name: 'heart-pulse', icon: FontAwesomeIcons.heartPulse, label: 'Health'),
-  (name: 'stethoscope', icon: FontAwesomeIcons.stethoscope, label: 'Doctor'),
-  (name: 'tooth', icon: FontAwesomeIcons.tooth, label: 'Dental'),
-  (name: 'pills', icon: FontAwesomeIcons.pills, label: 'Medicine'),
-  (
-    name: 'graduation-cap',
-    icon: FontAwesomeIcons.graduationCap,
-    label: 'Education',
-  ),
-  (name: 'book', icon: FontAwesomeIcons.book, label: 'Book'),
-  (name: 'shirt', icon: FontAwesomeIcons.shirt, label: 'Clothing'),
-  (name: 'scissors', icon: FontAwesomeIcons.scissors, label: 'Haircut'),
-  (name: 'spray-can', icon: FontAwesomeIcons.sprayCan, label: 'Beauty'),
-  (name: 'gift', icon: FontAwesomeIcons.gift, label: 'Gift'),
-  (name: 'music', icon: FontAwesomeIcons.music, label: 'Music'),
-  (name: 'film', icon: FontAwesomeIcons.film, label: 'Movie'),
-  (name: 'dumbbell', icon: FontAwesomeIcons.dumbbell, label: 'Gym'),
-  (name: 'baby', icon: FontAwesomeIcons.baby, label: 'Baby'),
-  (name: 'paw', icon: FontAwesomeIcons.paw, label: 'Pet'),
-  (name: 'broom', icon: FontAwesomeIcons.broom, label: 'Cleaning'),
-  (name: 'wrench', icon: FontAwesomeIcons.wrench, label: 'Repair'),
-  (
-    name: 'screwdriver-wrench',
-    icon: FontAwesomeIcons.screwdriverWrench,
-    label: 'Tools',
-  ),
-  (name: 'laptop', icon: FontAwesomeIcons.laptop, label: 'Laptop'),
-  (name: 'mobile-screen', icon: FontAwesomeIcons.mobileScreen, label: 'Mobile'),
-  (name: 'tv', icon: FontAwesomeIcons.tv, label: 'TV'),
-  (name: 'camera', icon: FontAwesomeIcons.camera, label: 'Camera'),
-  (name: 'wallet', icon: FontAwesomeIcons.wallet, label: 'Wallet'),
-  (name: 'piggy-bank', icon: FontAwesomeIcons.piggyBank, label: 'Savings'),
-  (
-    name: 'hand-holding-dollar',
-    icon: FontAwesomeIcons.handHoldingDollar,
-    label: 'Salary',
-  ),
-  (name: 'sack-dollar', icon: FontAwesomeIcons.sackDollar, label: 'Bonus'),
-  (name: 'coins', icon: FontAwesomeIcons.coins, label: 'Coins'),
-  (name: 'credit-card', icon: FontAwesomeIcons.creditCard, label: 'Card'),
-  (
-    name: 'money-bill-wave',
-    icon: FontAwesomeIcons.moneyBillWave,
-    label: 'Cash',
-  ),
-  (name: 'chart-line', icon: FontAwesomeIcons.chartLine, label: 'Investment'),
-  (
-    name: 'building-columns',
-    icon: FontAwesomeIcons.buildingColumns,
-    label: 'Bank',
-  ),
-  (name: 'landmark', icon: FontAwesomeIcons.landmark, label: 'Government'),
-  (name: 'briefcase', icon: FontAwesomeIcons.briefcase, label: 'Work'),
-  (name: 'umbrella', icon: FontAwesomeIcons.umbrella, label: 'Insurance'),
-  (
-    name: 'shield-halved',
-    icon: FontAwesomeIcons.shieldHalved,
-    label: 'Security',
-  ),
-  (name: 'cross', icon: FontAwesomeIcons.cross, label: 'Charity'),
-  (name: 'church', icon: FontAwesomeIcons.church, label: 'Worship'),
-  (name: 'tag', icon: FontAwesomeIcons.tag, label: 'Other'),
-];
-
-/// Bottom sheet grid view untuk memilih icon FontAwesome.
-///
-/// Fitur:
-/// - Grid 5 kolom dengan 50 icon keuangan relevan.
-/// - Search box untuk filter icon by name.
-/// - Icon yang dipilih diberi border highlight `context.colors.primary`.
+/// Menampilkan grid semua icon yang tersedia.
+/// Mendukung pencarian nama icon.
 class CategoryIconPickerSheet extends StatefulWidget {
   const CategoryIconPickerSheet({super.key, this.selectedIcon});
 
   /// Nama icon yang sedang dipilih (untuk highlight).
   final String? selectedIcon;
+
+  /// Menampilkan icon picker dan return nama icon terpilih.
+  static Future<String?> show({
+    required BuildContext context,
+    String? selectedIcon,
+  }) {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CategoryIconPickerSheet(selectedIcon: selectedIcon),
+    );
+  }
 
   @override
   State<CategoryIconPickerSheet> createState() =>
@@ -108,14 +36,13 @@ class CategoryIconPickerSheet extends StatefulWidget {
 }
 
 class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  List<({String name, IconData icon, String label})> _filtered =
-      _availableIcons;
+  late List<MapEntry<String, IconData>> _filteredIcons;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearch);
+    _filteredIcons = CategoryIconMapper.availableIcons.entries.toList();
   }
 
   @override
@@ -124,18 +51,14 @@ class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
     super.dispose();
   }
 
-  void _onSearch() {
-    final query = _searchController.text.toLowerCase();
+  void _onSearch(String query) {
+    final normalizedQuery = query.trim().toLowerCase();
     setState(() {
-      if (query.isEmpty) {
-        _filtered = _availableIcons;
+      if (normalizedQuery.isEmpty) {
+        _filteredIcons = CategoryIconMapper.availableIcons.entries.toList();
       } else {
-        _filtered = _availableIcons
-            .where(
-              (e) =>
-                  e.name.contains(query) ||
-                  e.label.toLowerCase().contains(query),
-            )
+        _filteredIcons = CategoryIconMapper.availableIcons.entries
+            .where((e) => e.key.toLowerCase().contains(normalizedQuery))
             .toList();
       }
     });
@@ -143,114 +66,119 @@ class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.colors;
+    final colors = context.colors;
     final l10n = context.l10n;
 
     return Container(
-      constraints: BoxConstraints(maxHeight: 0.65.sh),
-      padding: EdgeInsets.only(
-        top: 16.h,
-        left: 16.w,
-        right: 16.w,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16.h,
-      ),
+      constraints: BoxConstraints(maxHeight: 0.75.sh),
       decoration: BoxDecoration(
-        color: appColors.background,
+        color: colors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Handle bar ──
+          // Handle bar
           Container(
+            margin: EdgeInsets.only(top: 12.h),
             width: 40.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: appColors.border,
+              color: colors.border,
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
-          SizedBox(height: 12.h),
 
-          // ── Title ──
-          Text(
-            l10n.categoryIconPicker,
-            style: TextStyleConstants.h7.copyWith(
-              fontWeight: FontWeight.w700,
-              color: appColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // ── Search ──
-          SakuTextField(
-            controller: _searchController,
-            hintText: l10n.categorySearchIcon,
-            prefixIcon: Padding(
-              padding: EdgeInsets.only(left: 12.w),
-              child: FaIcon(
-                FontAwesomeIcons.magnifyingGlass,
-                size: 16.r,
-                color: appColors.textSecondary,
+          // Title
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            child: Text(
+              l10n.categoryIconPicker,
+              style: TextStyleConstants.h7.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
+
+          // Search
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearch,
+              decoration: InputDecoration(
+                hintText: l10n.categorySearchIcon,
+                hintStyle: TextStyleConstants.b2.copyWith(
+                  color: colors.textSecondary,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: colors.textSecondary,
+                  size: 20.w,
+                ),
+                filled: true,
+                fillColor: colors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 10.h,
+                ),
+              ),
+              style: TextStyleConstants.b2,
+            ),
+          ),
           SizedBox(height: 12.h),
 
-          // ── Icon Grid ──
-          Expanded(
+          // Icon grid
+          Flexible(
             child: GridView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
+                crossAxisCount: 6,
                 mainAxisSpacing: 8.h,
                 crossAxisSpacing: 8.w,
               ),
-              itemCount: _filtered.length,
+              itemCount: _filteredIcons.length,
               itemBuilder: (context, index) {
-                final item = _filtered[index];
-                final isSelected = widget.selectedIcon == item.name;
+                final entry = _filteredIcons[index];
+                final isSelected = entry.key == widget.selectedIcon;
 
-                return GestureDetector(
-                  onTap: () => Navigator.of(context).pop(item.name),
+                return InkWell(
+                  onTap: () => Navigator.pop(context, entry.key),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? appColors.primary.withValues(alpha: 0.12)
-                          : appColors.surface,
+                          ? colors.primary.withValues(alpha: 0.15)
+                          : colors.surface,
                       borderRadius: BorderRadius.circular(12.r),
-                      border: isSelected
-                          ? Border.all(color: appColors.primary, width: 2)
-                          : null,
+                      border: Border.all(
+                        color: isSelected ? colors.primary : colors.border,
+                        width: isSelected ? 2 : 1,
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        FaIcon(
-                          item.icon,
-                          size: 20.r,
-                          color: isSelected
-                              ? appColors.primary
-                              : appColors.textPrimary,
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          item.label,
-                          style: TextStyleConstants.label3.copyWith(
-                            color: isSelected
-                                ? appColors.primary
-                                : appColors.textSecondary,
-                            fontSize: 9.sp,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    child: Center(
+                      child: FaIcon(
+                        entry.value,
+                        size: 18.w,
+                        color: isSelected ? colors.primary : colors.textPrimary,
+                      ),
                     ),
                   ),
                 );
               },
             ),
           ),
+
+          SizedBox(height: MediaQuery.paddingOf(context).bottom + 8.h),
         ],
       ),
     );

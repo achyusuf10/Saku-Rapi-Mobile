@@ -1,222 +1,253 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/category/datasource/category_remote_datasource.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/repositories/category_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 // Providers
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 
-/// Provider placeholder untuk [CategoryRepository].
+/// Provider untuk [CategoryRepository] singleton.
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
-  return CategoryRepository(
-    remoteDataSource: CategoryRemoteDataSource(
-      client: Supabase.instance.client,
-    ),
-  );
+  return CategoryRepository();
 });
 
-/// State utama yang menyimpan kategori per tipe.
+/// Provider utama untuk [CategoryController].
+///
+/// Mengelola state CRUD kategori.
+final categoryControllerProvider =
+    StateNotifierProvider<CategoryController, CategoryState>((ref) {
+      final repository = ref.watch(categoryRepositoryProvider);
+      return CategoryController(repository);
+    });
+
+/// Provider untuk mendapatkan kategori expense yang sudah di-group parent-child.
+///
+/// Hanya menampilkan kategori yang visible (non-hidden).
+/// Digunakan di picker form transaksi.
+final expenseCategoriesProvider = Provider<List<CategoryModel>>((ref) {
+  final state = ref.watch(categoryControllerProvider);
+  final expenseList = state.categories
+      .where((c) => c.type == CategoryType.expense)
+      .toList();
+  return CategoryRepository.groupParentChild(expenseList, includeHidden: false);
+});
+
+/// Provider untuk mendapatkan kategori income yang sudah di-group parent-child.
+///
+/// Hanya menampilkan kategori yang visible (non-hidden).
+/// Digunakan di picker form transaksi.
+final incomeCategoriesProvider = Provider<List<CategoryModel>>((ref) {
+  final state = ref.watch(categoryControllerProvider);
+  final incomeList = state.categories
+      .where((c) => c.type == CategoryType.income)
+      .toList();
+  return CategoryRepository.groupParentChild(incomeList, includeHidden: false);
+});
+
+/// Provider untuk semua kategori expense (termasuk hidden).
+///
+/// Digunakan di category management page.
+final allExpenseCategoriesProvider = Provider<List<CategoryModel>>((ref) {
+  final state = ref.watch(categoryControllerProvider);
+  final expenseList = state.categories
+      .where((c) => c.type == CategoryType.expense)
+      .toList();
+  return CategoryRepository.groupParentChild(expenseList);
+});
+
+/// Provider untuk semua kategori income (termasuk hidden).
+///
+/// Digunakan di category management page.
+final allIncomeCategoriesProvider = Provider<List<CategoryModel>>((ref) {
+  final state = ref.watch(categoryControllerProvider);
+  final incomeList = state.categories
+      .where((c) => c.type == CategoryType.income)
+      .toList();
+  return CategoryRepository.groupParentChild(incomeList);
+});
+
+// ─────────────────────────────────────────────────────────
+// Category State
+// ─────────────────────────────────────────────────────────
+
+/// State untuk modul kategori.
 class CategoryState {
   const CategoryState({
-    this.expenseCategories = const [],
-    this.incomeCategories = const [],
+    this.status = CategoryStatus.initial,
+    this.categories = const [],
+    this.errorMessage,
   });
 
-  /// Tree parent-child kategori pengeluaran.
-  final List<CategoryModel> expenseCategories;
+  /// Status operasi saat ini.
+  final CategoryStatus status;
 
-  /// Tree parent-child kategori pemasukan.
-  final List<CategoryModel> incomeCategories;
+  /// Flat list semua kategori (belum di-group).
+  final List<CategoryModel> categories;
 
+  /// Pesan error terakhir.
+  final String? errorMessage;
+
+  /// Apakah sedang loading.
+  bool get isLoading => status == CategoryStatus.loading;
+
+  /// Membuat salinan [CategoryState] dengan field yang diubah.
   CategoryState copyWith({
-    List<CategoryModel>? expenseCategories,
-    List<CategoryModel>? incomeCategories,
+    CategoryStatus? status,
+    List<CategoryModel>? categories,
+    String? errorMessage,
   }) {
     return CategoryState(
-      expenseCategories: expenseCategories ?? this.expenseCategories,
-      incomeCategories: incomeCategories ?? this.incomeCategories,
+      status: status ?? this.status,
+      categories: categories ?? this.categories,
+      errorMessage: errorMessage,
     );
   }
 }
 
-/// Provider utama untuk [CategoryController].
-///
-/// State berupa `AsyncValue<CategoryState>`.
-final categoryControllerProvider =
-    AsyncNotifierProvider<CategoryController, CategoryState>(() {
-      return CategoryController();
-    });
+/// Enum status operasi kategori.
+enum CategoryStatus {
+  /// State awal.
+  initial,
 
-// ─────────────────────────────────────────────────────────────
+  /// Sedang memproses (loading/saving).
+  loading,
+
+  /// Data berhasil dimuat.
+  loaded,
+
+  /// Terjadi error.
+  error,
+}
+
+// ─────────────────────────────────────────────────────────
 // Controller
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 
-/// Riverpod [AsyncNotifier] untuk mengelola CRUD kategori.
+/// Controller kategori menggunakan [StateNotifier].
 ///
-/// Maintain tree parent-child untuk 'expense' dan 'income'.
-/// Dapat di-share ke `TransactionFormScreen` untuk category picker.
-class CategoryController extends AsyncNotifier<CategoryState> {
-  late final CategoryRepository _repository;
+/// Mengelola:
+/// - `loadCategories()` → fetch & cache semua kategori
+/// - `createCategory()` → tambah kategori baru
+/// - `updateCategory()` → edit kategori existing
+/// - `deleteCategory()` → hapus kategori
+/// - `toggleHidden()` → hide/show kategori
+class CategoryController extends StateNotifier<CategoryState> {
+  CategoryController(this._repository) : super(const CategoryState());
 
-  static const String _tag = 'Category';
+  final CategoryRepository _repository;
 
-  @override
-  Future<CategoryState> build() async {
-    _repository = ref.watch(categoryRepositoryProvider);
-    return _fetchAllCategories();
-  }
+  /// Fetch semua kategori dari remote + cache.
+  Future<void> loadCategories() async {
+    state = state.copyWith(status: CategoryStatus.loading);
 
-  /// Fetch semua kategori (expense + income) sekaligus.
-  Future<CategoryState> _fetchAllCategories() async {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final result = await _repository.getCategories();
 
-    AppLogger.call(
-      '[$_tag] Memulai fetch semua kategori...',
-      colorLog: ColorLog.blue,
-    );
-
-    final expenseResult = await _repository.getCategories(
-      userId: userId,
-      type: 'expense',
-    );
-    final incomeResult = await _repository.getCategories(
-      userId: userId,
-      type: 'income',
-    );
-
-    List<CategoryModel> expenses = [];
-    List<CategoryModel> incomes = [];
-
-    expenseResult.map(
-      success: (data) => expenses = data.data,
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal fetch expense categories: ${err.message}',
+    result.map(
+      success: (success) {
+        state = state.copyWith(
+          status: CategoryStatus.loaded,
+          categories: success.data,
+        );
+        AppLogger.logSuccess(
+          'Loaded ${success.data.length} categories',
           runtimeType: CategoryController,
         );
       },
-    );
-
-    incomeResult.map(
-      success: (data) => incomes = data.data,
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal fetch income categories: ${err.message}',
-          runtimeType: CategoryController,
+      error: (error) {
+        state = state.copyWith(
+          status: CategoryStatus.error,
+          errorMessage: error.message,
         );
       },
     );
-
-    AppLogger.call(
-      '[$_tag] Fetch berhasil: ${expenses.length} expense parents, '
-      '${incomes.length} income parents',
-      colorLog: ColorLog.green,
-    );
-
-    return CategoryState(
-      expenseCategories: expenses,
-      incomeCategories: incomes,
-    );
   }
 
-  /// Refresh data kategori.
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _fetchAllCategories());
-  }
-
-  // ───────────────── Getters ─────────────────
-
-  /// Return tree kategori berdasarkan tipe.
-  List<CategoryModel> getCategoriesForType(String type) {
-    final data = state.value;
-    if (data == null) return [];
-    return type == 'income' ? data.incomeCategories : data.expenseCategories;
-  }
-
-  // ───────────────── Create ─────────────────
-
-  /// Menambah kategori baru.
-  Future<DataState<CategoryModel>> addCategory(CategoryModel category) async {
-    AppLogger.call(
-      '[$_tag] Menambah kategori "${category.name}"...',
-      colorLog: ColorLog.blue,
-    );
-
-    final result = await _repository.createCategory(category);
-
-    if (result.isSuccess()) {
-      await refresh();
-    }
-
-    return result;
-  }
-
-  // ───────────────── Update ─────────────────
-
-  /// Memperbarui kategori yang sudah ada.
-  Future<DataState<CategoryModel>> editCategory(CategoryModel category) async {
-    AppLogger.call(
-      '[$_tag] Memperbarui kategori "${category.name}"...',
-      colorLog: ColorLog.blue,
-    );
-
-    final result = await _repository.updateCategory(category);
-
-    if (result.isSuccess()) {
-      await refresh();
-    }
-
-    return result;
-  }
-
-  // ───────────────── Delete ─────────────────
-
-  /// Menghapus kategori.
+  /// Buat kategori baru.
   ///
-  /// Kategori default (`isDefault == true`) TIDAK bisa dihapus.
-  Future<DataState<void>> removeCategory(String categoryId) async {
-    AppLogger.call(
-      '[$_tag] Menghapus kategori ($categoryId)...',
-      colorLog: ColorLog.blue,
+  /// Returns [DataState] untuk UI handling (success alert / error alert).
+  Future<DataState<CategoryModel>> createCategory({
+    required String name,
+    required String icon,
+    required String color,
+    required CategoryType type,
+    String? parentId,
+  }) async {
+    final result = await _repository.createCategory(
+      name: name,
+      icon: icon,
+      color: color,
+      type: type,
+      parentId: parentId,
+      existingCategories: state.categories,
     );
 
+    if (result.isSuccess()) {
+      // Reload semua kategori setelah berhasil
+      await loadCategories();
+    }
+
+    return result;
+  }
+
+  /// Update kategori existing.
+  Future<DataState<CategoryModel>> updateCategory({
+    required String categoryId,
+    String? name,
+    String? icon,
+    String? color,
+    bool? isHidden,
+    int? sortOrder,
+  }) async {
+    final result = await _repository.updateCategory(
+      categoryId: categoryId,
+      name: name,
+      icon: icon,
+      color: color,
+      isHidden: isHidden,
+      sortOrder: sortOrder,
+    );
+
+    if (result.isSuccess()) {
+      await loadCategories();
+    }
+
+    return result;
+  }
+
+  /// Hapus kategori.
+  Future<DataState<void>> deleteCategory(String categoryId) async {
     final result = await _repository.deleteCategory(categoryId);
 
     if (result.isSuccess()) {
-      await refresh();
+      await loadCategories();
     }
 
     return result;
   }
-
-  // ───────────────── Toggle Hide ─────────────────
 
   /// Toggle hide/show kategori.
-  Future<DataState<void>> toggleHide(String categoryId, bool isHidden) async {
-    AppLogger.call(
-      '[$_tag] Toggle hide ($categoryId) → $isHidden',
-      colorLog: ColorLog.blue,
+  Future<DataState<CategoryModel>> toggleHidden({
+    required String categoryId,
+    required bool isHidden,
+  }) async {
+    final result = await _repository.toggleHidden(
+      categoryId: categoryId,
+      isHidden: isHidden,
     );
 
-    final result = await _repository.toggleHideCategory(categoryId, isHidden);
-
     if (result.isSuccess()) {
-      await refresh();
+      await loadCategories();
     }
 
     return result;
   }
 
-  // ───────────────── Check Usage ─────────────────
-
-  /// Cek apakah kategori digunakan di transaksi.
-  Future<bool> isCategoryUsed(String categoryId) async {
-    final result = await _repository.isCategoryUsed(categoryId);
-    return result.dataSuccess() ?? false;
+  /// Bersihkan cache kategori (saat sign out).
+  void clearCache() {
+    _repository.clearCache();
+    state = const CategoryState();
   }
 }

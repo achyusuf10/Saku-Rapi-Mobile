@@ -1,37 +1,50 @@
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
-import 'package:app_saku_rapi/features/auth/view/ui/login_screen.dart';
-import 'package:app_saku_rapi/features/budgeting/models/budget_model.dart';
-import 'package:app_saku_rapi/features/budgeting/view/screens/budget_form_screen.dart';
-import 'package:app_saku_rapi/features/budgeting/view/screens/budget_list_screen.dart';
-import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/view/ui/category_form_screen.dart';
-import 'package:app_saku_rapi/features/category/view/ui/category_list_screen.dart';
-import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_screen.dart';
-import 'package:app_saku_rapi/features/history/models/category_summary_model.dart';
-import 'package:app_saku_rapi/features/history/view/ui/expense_breakdown_screen.dart';
-import 'package:app_saku_rapi/features/history/view/ui/history_screen.dart';
-import 'package:app_saku_rapi/features/investment/models/investment_model.dart';
-import 'package:app_saku_rapi/features/investment/view/screens/investment_form_screen.dart';
-import 'package:app_saku_rapi/features/investment/view/screens/investment_list_screen.dart';
-import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_screen.dart';
-import 'package:app_saku_rapi/features/ocr_scan/view/ui/ocr_scan_screen.dart';
-import 'package:app_saku_rapi/features/profile/view/ui/profile_screen.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_form_state.dart';
-import 'package:app_saku_rapi/features/transaction/view/ui/transaction_form_screen.dart';
-import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
-import 'package:app_saku_rapi/features/wallet/view/ui/wallet_form_screen.dart';
-import 'package:app_saku_rapi/features/wallet/view/ui/wallet_list_screen.dart';
-import 'package:app_saku_rapi/global/widgets/main_shell_screen.dart';
+import 'package:app_saku_rapi/features/auth/view/ui/login_page.dart';
+import 'package:app_saku_rapi/features/auth/view/ui/splash_page.dart';
+import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
+import 'package:app_saku_rapi/features/budget/view/ui/budget_detail_page.dart';
+import 'package:app_saku_rapi/features/budget/view/ui/budget_page.dart';
+import 'package:app_saku_rapi/features/budget/view/ui/completed_budgets_page.dart';
+import 'package:app_saku_rapi/features/budget/view/widgets/budget_form_sheet.dart';
+import 'package:app_saku_rapi/features/category/view/ui/category_management_page.dart';
+import 'package:app_saku_rapi/features/dashboard/view/ui/dashboard_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
+import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/debt_loan_person_page.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/ui/settlement_history_page.dart';
+import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
+import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
+import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
+import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
+import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
+import 'package:app_saku_rapi/features/reports/view/ui/report_category_transactions_page.dart';
+import 'package:app_saku_rapi/features/reports/view/ui/report_page.dart';
+import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
+import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/view/ui/transaction_detail_page.dart';
+import 'package:app_saku_rapi/features/transaction/view/ui/transaction_form_page.dart';
+import 'package:app_saku_rapi/features/wallet/view/ui/wallet_page.dart';
+import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-BuildContext? get appContext => AppRouter.navigatorKey.currentContext;
+BuildContext? get appContext {
+  try {
+    return AppRouter.navigatorKey.currentContext;
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Provider untuk [GoRouter] yang di-cache oleh Riverpod.
 ///
-/// Menggunakan `refreshListenable` dari [AuthController] sehingga
+/// Menggunakan `refreshListenable` dari [AuthChangeNotifier] sehingga
 /// redirect otomatis terpicu saat status auth berubah.
 final routerProvider = Provider<GoRouter>((ref) {
   return AppRouter.createRouter(ref);
@@ -41,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 ///
 /// Semua route didefinisikan di sini secara terpusat.
 /// GoRouter akan otomatis redirect berdasarkan status autentikasi user
-/// menggunakan `refreshListenable` dari [AuthController].
+/// menggunakan `refreshListenable` dari [AuthChangeNotifier].
 ///
 /// Bottom Navigation Bar diimplementasikan via [StatefulShellRoute.indexedStack]
 /// agar state tiap tab dipertahankan saat berpindah tab.
@@ -52,215 +65,266 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  /// Navigator keys per-branch agar setiap tab punya navigator sendiri.
-  static final GlobalKey<NavigatorState> _dashboardNavKey =
-      GlobalKey<NavigatorState>(debugLabel: 'dashboard');
-  static final GlobalKey<NavigatorState> _historyNavKey =
-      GlobalKey<NavigatorState>(debugLabel: 'history');
-  static final GlobalKey<NavigatorState> _budgetNavKey =
-      GlobalKey<NavigatorState>(debugLabel: 'budget');
-  static final GlobalKey<NavigatorState> _investmentNavKey =
-      GlobalKey<NavigatorState>(debugLabel: 'investment');
+  // ───────────────── Route Paths ─────────────────
 
-  /// Daftar nama route (path constants).
+  static const String splash = '/';
   static const String login = '/login';
   static const String dashboard = '/dashboard';
-  static const String walletList = '/wallets';
-  static const String walletForm = '/wallet-form';
-  static const String transactionForm = '/transaction-form';
   static const String history = '/history';
-  static const String expenseBreakdown = '/expense-breakdown';
-  static const String categoryList = '/categories';
-  static const String categoryForm = '/category-form';
-  static const String ocrScan = '/ocr-scan';
-  static const String budgetList = '/budgets';
-  static const String budgetForm = '/budget-form';
-  static const String investmentList = '/investments';
-  static const String investmentForm = '/investment-form';
-  static const String notificationSettings = '/notification-settings';
-  static const String profile = '/profile';
+  static const String budget = '/budget';
+  static const String investment = '/investment';
+  static const String investmentDetail = '/investment/detail';
+  static const String investmentForm = '/investment/form';
+  static const String investmentInactive = '/investment/inactive';
 
-  /// Membuat [GoRouter] yang terhubung dengan [AuthController] via
-  /// [refreshListenable], sehingga redirect otomatis saat auth state berubah.
-  ///
-  /// Dipanggil sekali oleh [routerProvider]. Jangan panggil langsung di build().
+  static const String wallet = '/wallet';
+  static const String transactionForm = '/transaction/form';
+  static const String transactionDetail = '/transaction/detail';
+  static const String settings = '/settings';
+  static const String categories = '/categories';
+  static const String budgetForm = '/budget/form';
+  static const String budgetDetail = '/budget/detail';
+  static const String budgetCompleted = '/budget/completed';
+  static const String reports = '/reports';
+  static const String reportCategoryTransactions =
+      '/reports/category-transactions';
+  static const String notificationSettings = '/notification-settings';
+
+  static const String debtLoan = '/debt-loan';
+  static const String debtLoanPerson = '/debt-loan/person';
+  static const String settlementHistory = '/debt-loan/settlement-history';
+
+  // ───────────────── Shell Keys ─────────────────
+
+  static final _dashboardNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'dashboardNav',
+  );
+  static final _historyNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'historyNav',
+  );
+  static final _budgetNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'budgetNav',
+  );
+  static final _investmentNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'investmentNav',
+  );
+
+  static final _settingsNavKey = GlobalKey<NavigatorState>(
+    debugLabel: 'settingsNav',
+  );
+
   static GoRouter createRouter(Ref ref) {
-    final authController = ref.read(authControllerProvider.notifier);
+    // final authNotifier = ref.watch(authChangeNotifierProvider);
 
     return GoRouter(
       navigatorKey: navigatorKey,
-      initialLocation: login,
       debugLogDiagnostics: true,
-      refreshListenable: authController.authListenable,
-      redirect: (BuildContext context, GoRouterState state) {
-        final authStatus = ref.read(authControllerProvider.notifier).authStatus;
-        final bool isOnLogin = state.matchedLocation == login;
-        AppLogger.call(
-          'Auth Status: $authStatus, Current Route: ${state.matchedLocation}',
-        );
+      initialLocation: splash,
+      // refreshListenable: authNotifier,
+      // redirect: (context, state) {
+      //   final authState = ref.read(authControllerProvider);
+      //   final isAuthenticated = authState.isAuthenticated;
+      //   final currentLocation = state.matchedLocation;
 
-        // Selagi loading, jangan redirect kemana-mana.
-        if (authStatus == AuthStatus.loading) return null;
+      //   // Saat masih di splash, biarkan splash handle redirect sendiri
+      //   if (currentLocation == splash) return null;
 
-        // Belum login & bukan di halaman login → lempar ke login.
-        if (authStatus == AuthStatus.unauthenticated && !isOnLogin) {
-          return login;
-        }
+      //   final isLoginRoute = currentLocation == login;
 
-        // Sudah login tapi masih di halaman login → lempar ke dashboard.
-        if (authStatus == AuthStatus.authenticated && isOnLogin) {
-          return dashboard;
-        }
+      //   // Belum login → paksa ke login
+      //   if (!isAuthenticated && !isLoginRoute) return login;
+      //   // Sudah login tapi di halaman login → ke dashboard
+      //   if (isAuthenticated && isLoginRoute) return dashboard;
 
-        return null;
-      },
-      routes: <RouteBase>[
-        // ── Auth ──
-        GoRoute(
-          path: login,
-          name: 'login',
-          builder: (BuildContext context, GoRouterState state) {
-            return const LoginScreen();
-          },
-        ),
+      //   return null;
+      // },
+      routes: [
+        // ─── Splash ───
+        GoRoute(path: splash, builder: (context, state) => const SplashPage()),
 
-        // ── Main Shell (Bottom Navigation Bar) ──
+        // ─── Auth ───
+        GoRoute(path: login, builder: (context, state) => const LoginPage()),
+
+        // ─── Main Shell (Bottom Nav) ───
         StatefulShellRoute.indexedStack(
+          parentNavigatorKey: navigatorKey,
           builder: (context, state, navigationShell) {
-            return MainShellScreen(navigationShell: navigationShell);
+            return MainShellPage(navigationShell: navigationShell);
           },
           branches: [
-            // Tab 0 — Dashboard
+            // Tab 0: Dashboard
             StatefulShellBranch(
               navigatorKey: _dashboardNavKey,
               routes: [
                 GoRoute(
                   path: dashboard,
-                  name: 'dashboard',
-                  builder: (context, state) => const DashboardScreen(),
+                  builder: (context, state) => const DashboardPage(),
                 ),
               ],
             ),
-
-            // Tab 1 — History
+            // Tab 1: History
             StatefulShellBranch(
               navigatorKey: _historyNavKey,
               routes: [
                 GoRoute(
                   path: history,
-                  name: 'history',
-                  builder: (context, state) => const HistoryScreen(),
+                  builder: (context, state) => const HistoryPage(),
                 ),
               ],
             ),
-
-            // Tab 2 — Budgeting
+            // Tab 2: Budget
             StatefulShellBranch(
               navigatorKey: _budgetNavKey,
               routes: [
                 GoRoute(
-                  path: budgetList,
-                  name: 'budgetList',
-                  builder: (context, state) => const BudgetListScreen(),
+                  path: budget,
+                  builder: (context, state) => const BudgetPage(),
                 ),
               ],
             ),
 
-            // Tab 3 — Investment
+            // Tab 3: Investment
             StatefulShellBranch(
               navigatorKey: _investmentNavKey,
               routes: [
                 GoRoute(
-                  path: investmentList,
-                  name: 'investmentList',
-                  builder: (context, state) => const InvestmentListScreen(),
+                  path: investment,
+                  builder: (context, state) => const InvestmentPage(),
+                ),
+              ],
+            ),
+            // Tab 4: Settings
+            StatefulShellBranch(
+              navigatorKey: _settingsNavKey,
+              routes: [
+                GoRoute(
+                  path: settings,
+                  builder: (context, state) => const SettingsPage(),
                 ),
               ],
             ),
           ],
         ),
 
-        // ── Standalone Routes (di luar shell / full-screen) ──
+        // ─── Full-screen routes (di atas bottom nav) ───
         GoRoute(
-          path: walletList,
-          name: 'walletList',
-          builder: (context, state) => const WalletListScreen(),
-        ),
-        GoRoute(
-          path: walletForm,
-          name: 'walletForm',
-          builder: (context, state) {
-            final wallet = state.extra as WalletModel?;
-            return WalletFormScreen(wallet: wallet);
-          },
+          path: wallet,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const WalletPage(),
         ),
         GoRoute(
           path: transactionForm,
-          name: 'transactionForm',
-          builder: (context, state) {
-            final initialState = state.extra as TransactionFormState?;
-            return TransactionFormScreen(initialState: initialState);
-          },
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => TransactionFormPage(
+            existingTransaction: state.extra as TransactionModel?,
+          ),
         ),
         GoRoute(
-          path: expenseBreakdown,
-          name: 'expenseBreakdown',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, dynamic>;
-            return ExpenseBreakdownScreen(
-              category: extra['category'] as CategorySummaryModel,
-              periodStart: extra['periodStart'] as DateTime,
-              periodEnd: extra['periodEnd'] as DateTime,
-            );
-          },
+          path: transactionDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => TransactionDetailPage(
+            transaction: state.extra! as TransactionModel,
+          ),
         ),
+        // GoRoute(
+        //   path: settings,
+        //   parentNavigatorKey: navigatorKey,
+        //   builder: (context, state) => const SettingsPage(),
+        // ),
         GoRoute(
-          path: categoryList,
-          name: 'categoryList',
-          builder: (context, state) => const CategoryListScreen(),
-        ),
-        GoRoute(
-          path: categoryForm,
-          name: 'categoryForm',
-          builder: (context, state) {
-            final extra = state.extra;
-            if (extra is CategoryModel) {
-              return CategoryFormScreen(category: extra);
-            }
-            final map = extra as Map<String, dynamic>?;
-            return CategoryFormScreen(initialType: map?['type'] as String?);
-          },
-        ),
-        GoRoute(
-          path: ocrScan,
-          name: 'ocrScan',
-          builder: (context, state) => const OcrScanScreen(),
+          path: categories,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const CategoryManagementPage(),
         ),
         GoRoute(
           path: budgetForm,
-          name: 'budgetForm',
-          builder: (context, state) {
-            final budget = state.extra as BudgetModel?;
-            return BudgetFormScreen(budget: budget);
-          },
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) =>
+              BudgetFormSheet(existingBudget: state.extra as BudgetModel?),
         ),
         GoRoute(
-          path: investmentForm,
-          name: 'investmentForm',
+          path: budgetDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) =>
+              BudgetDetailPage(budget: state.extra! as BudgetModel),
+        ),
+        GoRoute(
+          path: budgetCompleted,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const CompletedBudgetsPage(),
+        ),
+        GoRoute(
+          path: reports,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) =>
+              ReportPage(argument: state.extra as ReportPageArgument?),
+        ),
+        GoRoute(
+          path: reportCategoryTransactions,
+          parentNavigatorKey: navigatorKey,
           builder: (context, state) {
-            final investment = state.extra as InvestmentModel?;
-            return InvestmentFormScreen(investment: investment);
+            final extra = state.extra! as ReportCategoryTransactionsArgument;
+            return ReportCategoryTransactionsPage(argument: extra);
           },
         ),
         GoRoute(
           path: notificationSettings,
-          name: 'notificationSettings',
-          builder: (context, state) => const NotificationSettingsScreen(),
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const NotificationSettingsPage(),
+        ),
+
+        GoRoute(
+          path: debtLoan,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const DebtLoanPage(),
         ),
         GoRoute(
-          path: profile,
-          name: 'profile',
-          builder: (context, state) => const ProfileScreen(),
+          path: debtLoanPerson,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final extra = state.extra! as DebtLoanPersonArgument;
+            return DebtLoanPersonPage(
+              withPerson: extra.withPerson,
+              type: extra.type,
+            );
+          },
+        ),
+        GoRoute(
+          path: settlementHistory,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final extra = state.extra! as SettlementHistoryArgument;
+            return SettlementHistoryPage(
+              referenceTransactionId: extra.referenceTransactionId,
+              originalAmount: extra.originalAmount,
+              withPerson: extra.withPerson,
+              type: extra.type,
+            );
+          },
+        ),
+
+        // ─── Investment full-screen routes ───
+        GoRoute(
+          path: investmentDetail,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            final asset = state.extra! as InvestmentAssetModel;
+            return InvestmentDetailPage(asset: asset);
+          },
+        ),
+        GoRoute(
+          path: investmentForm,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            return InvestmentSmartFormPage(extra: state.extra);
+          },
+        ),
+        GoRoute(
+          path: investmentInactive,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) {
+            return const InvestmentInactivePage();
+          },
         ),
       ],
     );

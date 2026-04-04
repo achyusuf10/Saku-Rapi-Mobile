@@ -1,126 +1,234 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/auth/datasource/auth_local_datasource.dart';
+import 'package:app_saku_rapi/features/auth/datasource/auth_local_data_source.dart';
 import 'package:app_saku_rapi/features/auth/datasource/auth_remote_data_source.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Repository autentikasi SakuRapi.
+/// Repository utama untuk modul autentikasi.
 ///
-/// Orkestrator yang memanggil [AuthRemoteDataSource] dan [AuthLocalDataSource],
-/// menangani hasilnya menggunakan pattern matching `.map()` dari [DataState].
+/// Mengorkestrasikan [AuthRemoteDataSource] dan [AuthLocalDataSource]
+/// sesuai 3-file pattern SakuRapi.
+///
+/// Bertanggung jawab atas:
+/// - Login via Google → Supabase → cache profil lokal
+/// - Logout → hapus session + cache
+/// - Pengecekan session untuk splash flow
+/// - Read/update profil user
 class AuthRepository {
   AuthRepository({
-    required AuthRemoteDataSource remoteDataSource,
-    required AuthLocalDataSource localDataSource,
-  }) : _remote = remoteDataSource,
-       _local = localDataSource;
+    AuthRemoteDataSource? remoteDataSource,
+    AuthLocalDataSource? localDataSource,
+  }) : _remoteDataSource = remoteDataSource ?? AuthRemoteDataSource(),
+       _localDataSource = localDataSource ?? AuthLocalDataSource();
 
-  final AuthRemoteDataSource _remote;
-  final AuthLocalDataSource _local;
+  final AuthRemoteDataSource _remoteDataSource;
+  final AuthLocalDataSource _localDataSource;
 
-  static const String _tag = 'Auth';
-
-  /// Login dengan Google, simpan userId ke Hive, dan kembalikan profil.
+  /// Login via Google Sign-In dan sinkronkan profil.
   ///
-  /// Return [DataState<UserModel>] setelah login + fetch profil sukses.
+  /// Flow:
+  /// 1. Panggil Google Sign-In → Supabase `signInWithIdToken`.
+  /// 2. Setelah berhasil, ambil profil dari `public.users`.
+  /// 3. Cache profil ke Hive lokal.
+  ///
+  /// Returns [DataState<UserModel>] jika seluruh flow sukses.
   Future<DataState<UserModel>> signInWithGoogle() async {
-    final authResult = await _remote.signInWithGoogle();
+    // Step 1: Sign in ke Supabase via Google
+    final authResult = await _remoteDataSource.signInWithGoogle();
 
     return authResult.map(
-      success: (data) async {
-        final userId = data.data?.user?.id;
+      success: (authSuccess) async {
+        final userId = authSuccess.data.user?.id;
         if (userId == null) {
-          AppLogger.logError('[$_tag] Login sukses tapi userId null');
           return const DataState<UserModel>.error(
-            message: 'Login gagal: userId tidak ditemukan',
+            message: 'User ID tidak ditemukan setelah login',
           );
         }
 
-        AppLogger.call(
-          '[$_tag] Sign-In sukses: userId=$userId',
-          colorLog: ColorLog.green,
+        // Step 2: Ambil profil dari public.users
+        // Trigger handle_new_user() di Supabase sudah membuat record-nya
+        final profileResult = await _remoteDataSource.getUserProfile(userId);
+
+        return profileResult.map(
+          success: (profileSuccess) {
+            // Step 3: Cache profil lokal
+            _localDataSource.cacheUserProfile(profileSuccess.data);
+
+            AppLogger.logSuccess(
+              'Sign-in complete: ${profileSuccess.data.email}',
+              runtimeType: AuthRepository,
+            );
+
+            return DataState<UserModel>.success(data: profileSuccess.data);
+          },
+          error: (profileError) {
+            AppLogger.logError(
+              'Failed to fetch profile after sign-in: ${profileError.message}',
+              runtimeType: AuthRepository,
+            );
+            return DataState<UserModel>.error(
+              message: profileError.message,
+              exception: profileError.exception,
+              stackTrace: profileError.stackTrace,
+            );
+          },
         );
+      },
+      error: (authError) {
+        AppLogger.logError(
+          'Google Sign-In failed: ${authError.message}',
+          runtimeType: AuthRepository,
+        );
+        return DataState<UserModel>.error(
+          message: authError.message,
+          exception: authError.exception,
+          stackTrace: authError.stackTrace,
+        );
+      },
+    );
+  }
 
-        // Simpan userId ke Hive untuk cek sesi cepat
-        await _local.saveUserId(userId);
+  /// Sign out dan bersihkan semua data lokal.
+  Future<DataState<void>> signOut() async {
+    final result = await _remoteDataSource.signOut();
 
-        // Upsert profil ke public.users (create jika user baru,
-        // update jika sudah ada) menggunakan metadata Supabase Auth.
-        final upsertResult = await _remote.upsertProfile();
-        if (upsertResult.isError()) {
-          AppLogger.logError(
-            '[$_tag] Upsert profil gagal: ${upsertResult.dataError()?.$1}',
+    return result.map(
+      success: (_) {
+        _localDataSource.clearUserCache();
+
+        AppLogger.logSuccess('Sign-out complete', runtimeType: AuthRepository);
+
+        return const DataState<void>.success(data: null);
+      },
+      error: (error) {
+        AppLogger.logError(
+          'Sign-out failed: ${error.message}',
+          runtimeType: AuthRepository,
+        );
+        return DataState<void>.error(
+          message: error.message,
+          exception: error.exception,
+          stackTrace: error.stackTrace,
+        );
+      },
+    );
+  }
+
+  /// Cek apakah ada session aktif saat app dibuka.
+  ///
+  /// Digunakan di splash screen untuk menentukan redirect.
+  /// Jika ada session aktif, coba refresh profil dari remote.
+  /// Jika gagal (offline), fallback ke cache lokal.
+  Future<DataState<UserModel?>> restoreSession() async {
+    final session = _remoteDataSource.getCurrentSession();
+
+    if (session == null) {
+      AppLogger.call(
+        '[Auth] [AuthRepository] No active session found',
+        colorLog: ColorLog.yellow,
+      );
+      return const DataState.success(data: null);
+    }
+
+    final userId = session.user.id;
+
+    AppLogger.call(
+      '[Auth] [AuthRepository] Session found, fetching profile...',
+      colorLog: ColorLog.blue,
+    );
+
+    // Coba ambil profil terbaru dari remote
+    final profileResult = await _remoteDataSource.getUserProfile(userId);
+
+    return profileResult.map(
+      success: (profileSuccess) {
+        _localDataSource.cacheUserProfile(profileSuccess.data);
+        return DataState<UserModel?>.success(data: profileSuccess.data);
+      },
+      error: (_) {
+        // Fallback ke cache lokal jika remote gagal
+        final cached = _localDataSource.getCachedUserProfile();
+        if (cached != null) {
+          AppLogger.call(
+            '[Auth] [AuthRepository] Using cached profile as fallback',
+            colorLog: ColorLog.yellow,
           );
-          return DataState<UserModel>.error(
-            message: upsertResult.dataError()?.$1 ?? 'Gagal membuat profil',
-          );
+          return DataState<UserModel?>.success(data: cached);
         }
 
-        // Fetch profil dari public.users
-        return getCurrentUser();
-      },
-      error: (err) async {
-        AppLogger.logError('[$_tag] Error Sign-In: ${err.message}');
-        return DataState<UserModel>.error(message: err.message);
+        // Masih ada session tapi tidak bisa dapat profil
+        // Buat UserModel minimal dari auth data
+        final authUser = _remoteDataSource.getCurrentAuthUser();
+        if (authUser != null) {
+          final minimalUser = UserModel(
+            id: authUser.id,
+            email: authUser.email ?? '',
+            fullName: authUser.userMetadata?['full_name'] as String?,
+            avatarUrl: authUser.userMetadata?['avatar_url'] as String?,
+          );
+          _localDataSource.cacheUserProfile(minimalUser);
+          return DataState<UserModel?>.success(data: minimalUser);
+        }
+
+        return const DataState<UserModel?>.success(data: null);
       },
     );
   }
 
-  /// Ambil profil user saat ini dari Supabase.
-  Future<DataState<UserModel>> getCurrentUser() async {
-    final result = await _remote.getCurrentUser();
+  /// Mendapatkan profil user saat ini.
+  ///
+  /// Prioritas: cache lokal → remote.
+  Future<DataState<UserModel>> getCurrentUserProfile() async {
+    // Coba cache dulu
+    final cached = _localDataSource.getCachedUserProfile();
+    if (cached != null) {
+      return DataState.success(data: cached);
+    }
 
-    result.map(
-      success: (data) {
-        AppLogger.logSuccess('[$_tag] Profil loaded: ${data.data.email}');
-      },
-      error: (err) {
-        AppLogger.logError('[$_tag] Gagal load profil: ${err.message}');
-      },
-    );
+    // Fallback ke remote
+    final authUser = _remoteDataSource.getCurrentAuthUser();
+    if (authUser == null) {
+      return const DataState.error(message: 'User belum login');
+    }
 
-    return result;
+    return _remoteDataSource.getUserProfile(authUser.id);
   }
 
-  /// Update profil user dan kembalikan data terbaru.
-  Future<DataState<UserModel>> updateProfile({
+  /// Update profil user (nama & avatar).
+  Future<DataState<UserModel>> updateUserProfile({
+    required String userId,
     String? fullName,
     String? avatarUrl,
   }) async {
-    final result = await _remote.updateProfile(
+    final result = await _remoteDataSource.updateUserProfile(
+      userId: userId,
       fullName: fullName,
       avatarUrl: avatarUrl,
     );
 
-    result.map(
-      success: (data) {
-        AppLogger.logSuccess('[$_tag] Profil updated: ${data.data.fullName}');
+    return result.map(
+      success: (success) {
+        _localDataSource.cacheUserProfile(success.data);
+        return DataState<UserModel>.success(data: success.data);
       },
-      error: (err) {
-        AppLogger.logError('[$_tag] Gagal update profil: ${err.message}');
-      },
-    );
-
-    return result;
-  }
-
-  /// Logout user, hapus cache Hive.
-  Future<DataState<void>> signOut() async {
-    final result = await _remote.signOut();
-
-    result.map(
-      success: (_) {
-        _local.clearUserId();
-        AppLogger.logSuccess('[$_tag] Logout berhasil.');
-      },
-      error: (err) {
-        AppLogger.logError('[$_tag] Logout gagal: ${err.message}');
+      error: (error) {
+        return DataState<UserModel>.error(
+          message: error.message,
+          exception: error.exception,
+          stackTrace: error.stackTrace,
+        );
       },
     );
-
-    return result;
   }
 
-  /// Cek apakah ada userId tersimpan di Hive (sesi cepat).
-  String? getCachedUserId() => _local.getUserId();
+  /// Stream auth state change untuk router refresh.
+  Stream<AuthState> onAuthStateChange() {
+    return _remoteDataSource.onAuthStateChange();
+  }
+
+  /// Mendapatkan cached user (sync, tanpa remote call).
+  UserModel? getCachedUser() {
+    return _localDataSource.getCachedUserProfile();
+  }
 }

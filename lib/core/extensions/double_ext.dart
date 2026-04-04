@@ -127,13 +127,22 @@ extension DoubleExtension on double {
   // Private helpers
   // ─────────────────────────────────────────────────────────────
 
-  /// Format nilai kompak: hilangkan desimal jika bulat, tampilkan 1 desimal jika tidak.
+  /// Format nilai kompak: 2 desimal, trim trailing zero setelah koma.
+  ///
+  /// Contoh:
+  /// - 3.08  → '3,08'
+  /// - 3.5   → '3,5'
+  /// - 3.0   → '3'
+  /// - 15.75 → '15,75'
   String _formatCompactValue(double value) {
     if (value == value.roundToDouble()) {
       return value.toInt().toString();
     }
-    // Gunakan format dengan 1 digit desimal menggunakan koma
-    return value.toStringAsFixed(1).replaceAll('.', ',');
+    String result = value.toStringAsFixed(2);
+    // Trim trailing zeros: 3.50 → 3.5, 3.00 → 3 (sudah ditangani di atas)
+    result = result.replaceAll(RegExp(r'0+$'), '');
+    result = result.replaceAll(RegExp(r'\.$'), '');
+    return result.replaceAll('.', ',');
   }
 }
 

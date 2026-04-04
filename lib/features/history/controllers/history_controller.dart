@@ -1,460 +1,714 @@
-import 'package:app_saku_rapi/core/logger/app_logger.dart';
-import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/history/models/category_summary_model.dart';
-import 'package:app_saku_rapi/features/history/models/transaction_group_model.dart';
-import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_datasource.dart';
-import 'package:app_saku_rapi/features/transaction/models/category_model.dart';
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/features/history/datasource/history_local_data_source.dart';
+import 'package:app_saku_rapi/features/history/models/history_models.dart';
+import 'package:app_saku_rapi/features/history/repositories/history_repository.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:intl/intl.dart';
 
-// ─────────────────────────────────────────────────────────────
-// Enums & State
-// ─────────────────────────────────────────────────────────────
+export 'package:app_saku_rapi/features/history/models/history_models.dart';
 
-/// Mode tampilan di History screen.
-enum HistoryViewMode { listView, reportView }
+// ───────────────── Providers ─────────────────
 
-/// State utama History.
-class HistoryState {
-  const HistoryState({
-    required this.activePeriodStart,
-    required this.activePeriodEnd,
-    this.viewMode = HistoryViewMode.listView,
-    this.filterWalletId,
-    this.transactionGroups = const [],
-    this.categorySummaries = const [],
-    this.monthlyIncome = 0,
-    this.monthlyExpense = 0,
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.hasMoreData = true,
-    this.currentPage = 0,
-    this.allTransactions = const [],
-  });
+/// Provider singleton untuk [HistoryRepository].
+final historyRepositoryProvider = Provider<HistoryRepository>((ref) {
+  return HistoryRepository();
+});
 
-  /// Awal bulan aktif.
-  final DateTime activePeriodStart;
-
-  /// Akhir bulan aktif.
-  final DateTime activePeriodEnd;
-
-  /// Mode tampilan: list atau report.
-  final HistoryViewMode viewMode;
-
-  /// Filter dompet tertentu. null = semua dompet.
-  final String? filterWalletId;
-
-  /// Transaksi tergroup per tanggal (untuk list view).
-  final List<TransactionGroupModel> transactionGroups;
-
-  /// Summary per kategori (untuk donut chart).
-  final List<CategorySummaryModel> categorySummaries;
-
-  /// Total pemasukan bulan ini.
-  final double monthlyIncome;
-
-  /// Total pengeluaran bulan ini.
-  final double monthlyExpense;
-
-  /// Flag loading awal.
-  final bool isLoading;
-
-  /// Flag loading halaman berikutnya (pagination).
-  final bool isLoadingMore;
-
-  /// Apakah masih ada data halaman berikutnya.
-  final bool hasMoreData;
-
-  /// Halaman pagination saat ini.
-  final int currentPage;
-
-  /// Semua transaksi yang sudah dimuat (flat list untuk pagination).
-  final List<TransactionModel> allTransactions;
-
-  HistoryState copyWith({
-    DateTime? activePeriodStart,
-    DateTime? activePeriodEnd,
-    HistoryViewMode? viewMode,
-    String? filterWalletId,
-    bool clearWalletFilter = false,
-    List<TransactionGroupModel>? transactionGroups,
-    List<CategorySummaryModel>? categorySummaries,
-    double? monthlyIncome,
-    double? monthlyExpense,
-    bool? isLoading,
-    bool? isLoadingMore,
-    bool? hasMoreData,
-    int? currentPage,
-    List<TransactionModel>? allTransactions,
-  }) {
-    return HistoryState(
-      activePeriodStart: activePeriodStart ?? this.activePeriodStart,
-      activePeriodEnd: activePeriodEnd ?? this.activePeriodEnd,
-      viewMode: viewMode ?? this.viewMode,
-      filterWalletId: clearWalletFilter
-          ? null
-          : (filterWalletId ?? this.filterWalletId),
-      transactionGroups: transactionGroups ?? this.transactionGroups,
-      categorySummaries: categorySummaries ?? this.categorySummaries,
-      monthlyIncome: monthlyIncome ?? this.monthlyIncome,
-      monthlyExpense: monthlyExpense ?? this.monthlyExpense,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      hasMoreData: hasMoreData ?? this.hasMoreData,
-      currentPage: currentPage ?? this.currentPage,
-      allTransactions: allTransactions ?? this.allTransactions,
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────
-// Provider
-// ─────────────────────────────────────────────────────────────
+/// Provider singleton untuk [HistoryLocalDataSource].
+final historyLocalDataSourceProvider = Provider<HistoryLocalDataSource>((ref) {
+  return HistoryLocalDataSource();
+});
 
 /// Provider utama untuk [HistoryController].
 final historyControllerProvider =
-    NotifierProvider<HistoryController, HistoryState>(
-      () => HistoryController(),
+    StateNotifierProvider<HistoryController, HistoryState>((ref) {
+      final repository = ref.watch(historyRepositoryProvider);
+      final localDataSource = ref.watch(historyLocalDataSourceProvider);
+      return HistoryController(repository, localDataSource);
+    });
+
+// ───────────────── State ─────────────────
+
+/// Immutable state untuk fitur history.
+class HistoryState {
+  const HistoryState({
+    this.status = HistoryStatus.initial,
+    this.transactions = const [],
+    this.period = HistoryPeriod.monthly,
+    this.groupMode = HistoryGroupMode.byDate,
+    this.walletId,
+    this.typeFilter,
+    this.customStart,
+    this.customEnd,
+    this.errorMessage,
+    this.offset = 0,
+    this.hasMore = true,
+    this.isLoadingMore = false,
+    this.subPeriodIndex,
+  });
+
+  final HistoryStatus status;
+  final List<TransactionModel> transactions;
+  final HistoryPeriod period;
+  final HistoryGroupMode groupMode;
+  final String? walletId;
+  final TransactionTypeEnum? typeFilter;
+  final DateTime? customStart;
+  final DateTime? customEnd;
+  final String? errorMessage;
+  final int offset;
+  final bool hasMore;
+  final bool isLoadingMore;
+
+  /// Index tab sub-period yang sedang aktif.
+  /// null berarti belum di-init (akan di-set ke tab terakhir / "saat ini").
+  final int? subPeriodIndex;
+
+  HistoryState copyWith({
+    HistoryStatus? status,
+    List<TransactionModel>? transactions,
+    HistoryPeriod? period,
+    HistoryGroupMode? groupMode,
+    String? walletId,
+    TransactionTypeEnum? typeFilter,
+    DateTime? customStart,
+    DateTime? customEnd,
+    String? errorMessage,
+    int? offset,
+    bool? hasMore,
+    bool? isLoadingMore,
+    bool clearWallet = false,
+    bool clearType = false,
+    bool clearError = false,
+    int? subPeriodIndex,
+    bool clearSubPeriod = false,
+  }) {
+    return HistoryState(
+      status: status ?? this.status,
+      transactions: transactions ?? this.transactions,
+      period: period ?? this.period,
+      groupMode: groupMode ?? this.groupMode,
+      walletId: clearWallet ? null : (walletId ?? this.walletId),
+      typeFilter: clearType ? null : (typeFilter ?? this.typeFilter),
+      customStart: customStart ?? this.customStart,
+      customEnd: customEnd ?? this.customEnd,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      offset: offset ?? this.offset,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      subPeriodIndex: clearSubPeriod
+          ? null
+          : (subPeriodIndex ?? this.subPeriodIndex),
     );
+  }
 
-// ─────────────────────────────────────────────────────────────
-// Controller
-// ─────────────────────────────────────────────────────────────
+  /// Hitung date range berdasarkan period + subPeriodIndex saat ini.
+  /// Semua batas menggunakan UTC aman untuk query Supabase.
+  (DateTime start, DateTime end) get dateRange {
+    // Custom mode — gunakan custom date range.
+    if (period == HistoryPeriod.custom &&
+        customStart != null &&
+        customEnd != null) {
+      // Sub-period untuk custom = per hari di dalam custom range
+      if (subPeriodIndex != null) {
+        final tabs = subPeriodTabs;
+        final idx = subPeriodIndex!.clamp(0, tabs.length - 1);
+        return tabs[idx].dateRange;
+      }
+      return (
+        DateTime.utc(customStart!.year, customStart!.month, customStart!.day),
+        DateTime.utc(
+          customEnd!.year,
+          customEnd!.month,
+          customEnd!.day,
+          23,
+          59,
+          59,
+        ),
+      );
+    }
 
-/// Riverpod [Notifier] untuk mengelola state layar History.
-///
-/// Menangani navigasi periode, pagination, filter dompet,
-/// dan agregasi data untuk list view dan report view.
-class HistoryController extends Notifier<HistoryState> {
-  late final TransactionRemoteDataSource _txRemote;
+    // Jika sub-period dipilih, gunakan date range sub-period.
+    if (subPeriodIndex != null) {
+      final tabs = subPeriodTabs;
+      final idx = subPeriodIndex!.clamp(0, tabs.length - 1);
+      return tabs[idx].dateRange;
+    }
 
-  static const String _tag = 'History';
-  static const int _pageSize = 20;
-
-  @override
-  HistoryState build() {
-    _txRemote = TransactionRemoteDataSource(client: Supabase.instance.client);
-
+    // Fallback: range "saat ini" (tab terakhir)
     final now = DateTime.now();
-    final start = DateTime(now.year, now.month, 1);
-    final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-    // Load data awal secara asinkron
-    Future.microtask(() => loadData());
-
-    return HistoryState(activePeriodStart: start, activePeriodEnd: end);
-  }
-
-  /// Navigasi ke bulan sebelumnya.
-  void goToPreviousPeriod() {
-    final prev = DateTime(
-      state.activePeriodStart.year,
-      state.activePeriodStart.month - 1,
-      1,
-    );
-    final end = DateTime(prev.year, prev.month + 1, 0, 23, 59, 59);
-    state = state.copyWith(
-      activePeriodStart: prev,
-      activePeriodEnd: end,
-      currentPage: 0,
-      hasMoreData: true,
-      allTransactions: [],
-      transactionGroups: [],
-      categorySummaries: [],
-    );
-    loadData();
-  }
-
-  /// Navigasi ke bulan berikutnya.
-  void goToNextPeriod() {
-    final next = DateTime(
-      state.activePeriodStart.year,
-      state.activePeriodStart.month + 1,
-      1,
-    );
-    final end = DateTime(next.year, next.month + 1, 0, 23, 59, 59);
-    state = state.copyWith(
-      activePeriodStart: next,
-      activePeriodEnd: end,
-      currentPage: 0,
-      hasMoreData: true,
-      allTransactions: [],
-      transactionGroups: [],
-      categorySummaries: [],
-    );
-    loadData();
-  }
-
-  /// Ganti mode tampilan (list / report).
-  void setViewMode(HistoryViewMode mode) {
-    state = state.copyWith(viewMode: mode);
-  }
-
-  /// Set filter dompet. null = semua.
-  void setFilterWallet(String? walletId) {
-    state = state.copyWith(
-      filterWalletId: walletId,
-      clearWalletFilter: walletId == null,
-      currentPage: 0,
-      hasMoreData: true,
-      allTransactions: [],
-      transactionGroups: [],
-      categorySummaries: [],
-    );
-    loadData();
-  }
-
-  /// Load data sesuai periode & filter aktif.
-  Future<void> loadData() async {
-    state = state.copyWith(isLoading: true);
-    AppLogger.call(
-      '[$_tag] Loading data: ${state.activePeriodStart} → ${state.activePeriodEnd}',
-      colorLog: ColorLog.blue,
-    );
-
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-
-    // 1. Fetch halaman pertama transaksi
-    final txResult = await _txRemote.getTransactions(
-      userId: userId,
-      startDate: state.activePeriodStart,
-      endDate: state.activePeriodEnd,
-      walletId: state.filterWalletId,
-      page: 0,
-      limit: _pageSize,
-    );
-
-    List<TransactionModel> transactions = [];
-    txResult.map(
-      success: (data) => transactions = data.data,
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal fetch transaksi: ${err.message}',
-          runtimeType: HistoryController,
+    return switch (period) {
+      HistoryPeriod.daily => (
+        DateTime.utc(now.year, now.month, now.day),
+        DateTime.utc(now.year, now.month, now.day, 23, 59, 59),
+      ),
+      HistoryPeriod.weekly => () {
+        // Monday-based week
+        final weekday = now.weekday;
+        final monday = now.subtract(Duration(days: weekday - 1));
+        final sunday = monday.add(const Duration(days: 6));
+        return (
+          DateTime.utc(monday.year, monday.month, monday.day),
+          DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
         );
-      },
-    );
-
-    // 2. Build groups dari halaman pertama
-    final groups = _buildGroups(transactions);
-
-    // 3. Hitung summary bulan ini (ambil semua untuk aggregate)
-    final allTxResult = await _txRemote.getTransactions(
-      userId: userId,
-      startDate: state.activePeriodStart,
-      endDate: state.activePeriodEnd,
-      walletId: state.filterWalletId,
-      page: 0,
-      limit: 500,
-    );
-
-    List<TransactionModel> allMonthTx = [];
-    allTxResult.map(success: (data) => allMonthTx = data.data, error: (_) {});
-
-    double income = 0;
-    double expense = 0;
-    for (final tx in allMonthTx) {
-      if (tx.type == 'income') income += tx.totalAmount;
-      if (tx.type == 'expense') expense += tx.totalAmount;
-    }
-
-    // 4. Build category summaries untuk donut chart
-    final summaries = await _buildCategorySummaries(
-      transactions: allMonthTx,
-      userId: userId,
-      totalExpense: expense,
-    );
-
-    state = state.copyWith(
-      isLoading: false,
-      allTransactions: transactions,
-      transactionGroups: groups,
-      categorySummaries: summaries,
-      monthlyIncome: income,
-      monthlyExpense: expense,
-      currentPage: 0,
-      hasMoreData: transactions.length >= _pageSize,
-    );
-
-    AppLogger.call(
-      '[$_tag] Loaded: ${transactions.length} tx, '
-      'income=${income.toStringAsFixed(0)}, '
-      'expense=${expense.toStringAsFixed(0)}, '
-      '${summaries.length} categories',
-      colorLog: ColorLog.green,
-    );
-  }
-
-  /// Load halaman berikutnya (pagination infinite scroll).
-  Future<void> loadMoreData() async {
-    if (state.isLoadingMore || !state.hasMoreData) return;
-
-    state = state.copyWith(isLoadingMore: true);
-    final nextPage = state.currentPage + 1;
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-
-    AppLogger.call(
-      '[$_tag] Loading page $nextPage...',
-      colorLog: ColorLog.blue,
-    );
-
-    final txResult = await _txRemote.getTransactions(
-      userId: userId,
-      startDate: state.activePeriodStart,
-      endDate: state.activePeriodEnd,
-      walletId: state.filterWalletId,
-      page: nextPage,
-      limit: _pageSize,
-    );
-
-    List<TransactionModel> newTransactions = [];
-    txResult.map(
-      success: (data) => newTransactions = data.data,
-      error: (err) {
-        AppLogger.logError(
-          '[$_tag] Gagal load more: ${err.message}',
-          runtimeType: HistoryController,
+      }(),
+      HistoryPeriod.monthly => (
+        DateTime.utc(now.year, now.month, 1),
+        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+      ),
+      HistoryPeriod.quarterly => () {
+        final qStart = ((now.month - 1) ~/ 3) * 3 + 1;
+        return (
+          DateTime.utc(now.year, qStart, 1),
+          DateTime.utc(now.year, qStart + 3, 0, 23, 59, 59),
         );
-      },
-    );
-
-    final allTx = [...state.allTransactions, ...newTransactions];
-    final groups = _buildGroups(allTx);
-
-    state = state.copyWith(
-      isLoadingMore: false,
-      currentPage: nextPage,
-      allTransactions: allTx,
-      transactionGroups: groups,
-      hasMoreData: newTransactions.length >= _pageSize,
-    );
+      }(),
+      HistoryPeriod.yearly => (
+        DateTime.utc(now.year, 1, 1),
+        DateTime.utc(now.year, 12, 31, 23, 59, 59),
+      ),
+      HistoryPeriod.custom => (
+        DateTime.utc(now.year, now.month, 1),
+        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+      ),
+    };
   }
 
-  /// Mengelompokkan transaksi berdasarkan tanggal (tanpa jam).
-  List<TransactionGroupModel> _buildGroups(List<TransactionModel> txList) {
-    final Map<DateTime, List<TransactionModel>> grouped = {};
+  /// Generate list sub-period tabs berdasarkan [period].
+  /// Masing-masing tab punya label dan dateRange.
+  /// Tab terakhir selalu "saat ini".
+  List<SubPeriodTab> get subPeriodTabs {
+    final now = DateTime.now();
 
-    for (final tx in txList) {
-      final dateKey = DateTime(tx.date.year, tx.date.month, tx.date.day);
-      grouped.putIfAbsent(dateKey, () => []).add(tx);
-    }
-
-    // Sort by date descending
-    final sortedKeys = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    return sortedKeys.map((date) {
-      return TransactionGroupModel.fromTransactions(
-        date: date,
-        transactions: grouped[date]!,
-      );
-    }).toList();
+    return switch (period) {
+      HistoryPeriod.daily => _generateDailyTabs(now, 30),
+      HistoryPeriod.weekly => _generateWeeklyTabs(now, 30),
+      HistoryPeriod.monthly => _generateMonthlyTabs(now, 14),
+      HistoryPeriod.quarterly => _generateQuarterlyTabs(now, 2),
+      HistoryPeriod.yearly => _generateYearlyTabs(now, 5),
+      HistoryPeriod.custom => _generateCustomTabs(),
+    };
   }
 
-  /// Membangun category summaries untuk donut chart.
-  ///
-  /// Mengagregasi amount per kategori parent dari transaction_items.
-  Future<List<CategorySummaryModel>> _buildCategorySummaries({
-    required List<TransactionModel> transactions,
-    required String userId,
-    required double totalExpense,
-  }) async {
-    if (totalExpense == 0) return [];
+  List<SubPeriodTab> _generateDailyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final today = DateTime(now.year, now.month, now.day);
+    var cursor = today.subtract(Duration(days: maxItems - 1));
 
-    final expenseTxs = transactions
-        .where((tx) => tx.type == 'expense')
-        .toList();
-
-    if (expenseTxs.isEmpty) return [];
-
-    // Aggregate amount per kategori via items
-    final Map<String, double> categoryAmounts = {};
-
-    for (final tx in expenseTxs) {
-      final itemsResult = await _txRemote.getTransactionItems(tx.id);
-      itemsResult.map(
-        success: (data) {
-          for (final item in data.data) {
-            if (item.categoryId != null) {
-              categoryAmounts.update(
-                item.categoryId!,
-                (v) => v + item.amount,
-                ifAbsent: () => item.amount,
-              );
-            }
-          }
-        },
-        error: (_) {},
+    while (!cursor.isAfter(today)) {
+      tabs.add(
+        SubPeriodTab(
+          label: cursor == today
+              ? (appContext?.l10n.today ?? 'Hari Ini')
+              : '${cursor.day} ${_shortMonth(cursor.month)}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, cursor.day),
+            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+          ),
+        ),
       );
+      cursor = cursor.add(const Duration(days: 1));
     }
+    return tabs;
+  }
 
-    if (categoryAmounts.isEmpty) return [];
-
-    // Ambil metadata kategori
-    final catResult = await _txRemote.getCategories(userId: userId);
-    Map<String, CategoryModel> categoryMap = {};
-    catResult.map(
-      success: (data) {
-        for (final cat in data.data) {
-          categoryMap[cat.id] = cat;
-        }
-      },
-      error: (_) {},
+  List<SubPeriodTab> _generateWeeklyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final currentMonday = now.subtract(Duration(days: now.weekday - 1));
+    final todayMon = DateTime(
+      currentMonday.year,
+      currentMonday.month,
+      currentMonday.day,
     );
+    var monday = todayMon.subtract(Duration(days: (maxItems - 1) * 7));
 
-    // Group child categories ke parent
-    final Map<String, double> parentAmounts = {};
-    final Map<String, Map<String, double>> childAmounts = {};
+    while (!monday.isAfter(todayMon)) {
+      final sunday = monday.add(const Duration(days: 6));
+      final isCurrentWeek =
+          monday.year == todayMon.year &&
+          monday.month == todayMon.month &&
+          monday.day == todayMon.day;
 
-    for (final entry in categoryAmounts.entries) {
-      final cat = categoryMap[entry.key];
-      if (cat == null) continue;
-
-      final parentId = cat.parentId ?? cat.id;
-      parentAmounts.update(
-        parentId,
-        (v) => v + entry.value,
-        ifAbsent: () => entry.value,
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentWeek
+              ? (appContext?.l10n.thisWeek ?? 'Minggu Ini')
+              : '${monday.day}-${sunday.day} ${_shortMonth(sunday.month)}',
+          dateRange: (
+            DateTime.utc(monday.year, monday.month, monday.day),
+            DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+          ),
+        ),
       );
+      monday = monday.add(const Duration(days: 7));
+    }
+    return tabs;
+  }
 
-      // Track child amounts under parent
-      if (cat.parentId != null) {
-        childAmounts.putIfAbsent(parentId, () => {});
-        childAmounts[parentId]![cat.id] = entry.value;
+  List<SubPeriodTab> _generateMonthlyTabs(DateTime now, int maxItems) {
+    final tabs = <SubPeriodTab>[];
+    final currentMonth = DateTime(now.year, now.month);
+    var cursor = DateTime(now.year, now.month - (maxItems - 1));
+
+    while (!cursor.isAfter(currentMonth)) {
+      final isCurrentMonth =
+          cursor.year == currentMonth.year &&
+          cursor.month == currentMonth.month;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentMonth
+              ? (appContext?.l10n.thisMonth ?? 'Bulan Ini')
+              : '${_fullMonth(cursor.month)} ${cursor.year}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, 1),
+            DateTime.utc(cursor.year, cursor.month + 1, 0, 23, 59, 59),
+          ),
+        ),
+      );
+      // Next month
+      cursor = DateTime(cursor.year, cursor.month + 1);
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateQuarterlyTabs(DateTime now, int maxYears) {
+    final tabs = <SubPeriodTab>[];
+    final currentQ = ((now.month - 1) ~/ 3) * 3 + 1;
+    final currentYear = now.year;
+    var year = now.year - maxYears;
+    var qStart = 1;
+
+    while (year < currentYear || (year == currentYear && qStart <= currentQ)) {
+      final qNum = (qStart - 1) ~/ 3 + 1;
+      final isCurrentQ = year == currentYear && qStart == currentQ;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isCurrentQ
+              ? (appContext?.l10n.thisQuarter ?? 'Kuartal Ini')
+              : 'Q$qNum $year',
+          dateRange: (
+            DateTime.utc(year, qStart, 1),
+            DateTime.utc(year, qStart + 3, 0, 23, 59, 59),
+          ),
+        ),
+      );
+      qStart += 3;
+      if (qStart > 12) {
+        qStart = 1;
+        year++;
       }
     }
+    return tabs;
+  }
 
-    // Sort by amount descending
-    final sorted = parentAmounts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return sorted.map((entry) {
-      final cat = categoryMap[entry.key];
-      final parentTotal = entry.value;
-
-      // Build child summaries
-      final children = (childAmounts[entry.key] ?? {}).entries.map((child) {
-        final childCat = categoryMap[child.key];
-        return CategorySummaryModel(
-          categoryId: child.key,
-          categoryName: childCat?.name ?? 'Unknown',
-          categoryIcon: childCat?.icon ?? 'tag',
-          categoryColor: childCat?.color ?? '#6B7280',
-          amount: child.value,
-          percentage: parentTotal > 0 ? child.value / parentTotal : 0,
-          parentId: entry.key,
-        );
-      }).toList()..sort((a, b) => b.amount.compareTo(a.amount));
-
-      return CategorySummaryModel(
-        categoryId: entry.key,
-        categoryName: cat?.name ?? 'Unknown',
-        categoryIcon: cat?.icon ?? 'tag',
-        categoryColor: cat?.color ?? '#6B7280',
-        amount: parentTotal,
-        percentage: totalExpense > 0 ? parentTotal / totalExpense : 0,
-        childSummaries: children,
+  List<SubPeriodTab> _generateYearlyTabs(DateTime now, int maxYears) {
+    final tabs = <SubPeriodTab>[];
+    for (var y = now.year - maxYears; y <= now.year; y++) {
+      tabs.add(
+        SubPeriodTab(
+          label: y == now.year
+              ? (appContext?.l10n.thisYear ?? 'Tahun Ini')
+              : '$y',
+          dateRange: (
+            DateTime.utc(y, 1, 1),
+            DateTime.utc(y, 12, 31, 23, 59, 59),
+          ),
+        ),
       );
-    }).toList();
+    }
+    return tabs;
+  }
+
+  List<SubPeriodTab> _generateCustomTabs() {
+    if (customStart == null || customEnd == null) return [];
+
+    final tabs = <SubPeriodTab>[];
+    var cursor = DateTime(
+      customStart!.year,
+      customStart!.month,
+      customStart!.day,
+    );
+    final endDay = DateTime(customEnd!.year, customEnd!.month, customEnd!.day);
+    final today = DateTime.now();
+
+    while (!cursor.isAfter(endDay)) {
+      final isToday =
+          cursor.year == today.year &&
+          cursor.month == today.month &&
+          cursor.day == today.day;
+
+      tabs.add(
+        SubPeriodTab(
+          label: isToday
+              ? (appContext?.l10n.today ?? 'Hari Ini')
+              : '${cursor.day} ${_shortMonth(cursor.month)}',
+          dateRange: (
+            DateTime.utc(cursor.year, cursor.month, cursor.day),
+            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+          ),
+        ),
+      );
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    return tabs;
+  }
+
+  static String _shortMonth(int m) {
+    final locale = appContext?.locale.languageCode ?? 'id';
+    final date = DateTime(2024, m);
+    return DateFormat('MMM', locale).format(date);
+  }
+
+  static String _fullMonth(int m) {
+    final locale = appContext?.locale.languageCode ?? 'id';
+    final date = DateTime(2024, m);
+    return DateFormat('MMMM', locale).format(date);
+  }
+
+  /// Hitung net total untuk sekumpulan transaksi.
+  /// Income/debt positif, expense/loan negatif, settlement di-skip.
+  static double groupNetTotal(List<TransactionModel> txs) {
+    double total = 0;
+    for (final tx in txs) {
+      if (tx.isSettlement) continue;
+      if (tx.type == TransactionTypeEnum.income ||
+          tx.type == TransactionTypeEnum.debt) {
+        total += tx.totalAmount;
+      } else if (tx.type == TransactionTypeEnum.expense ||
+          tx.type == TransactionTypeEnum.loan) {
+        total -= tx.totalAmount;
+      }
+    }
+    return total;
+  }
+
+  /// Filter transaksi berdasarkan type (lokal, tidak refetch).
+  List<TransactionModel> get filteredTransactions {
+    if (typeFilter == null) return transactions;
+    return transactions.where((t) => t.type == typeFilter).toList();
+  }
+
+  /// Grup transaksi berdasarkan tanggal (lokal).
+  Map<String, List<TransactionModel>> get groupedByDate {
+    final list = filteredTransactions;
+    final map = <String, List<TransactionModel>>{};
+    for (final tx in list) {
+      // Key by date only (YYYY-MM-DD)
+      final key =
+          '${tx.date.year}-${tx.date.month.toString().padLeft(2, '0')}-${tx.date.day.toString().padLeft(2, '0')}';
+      (map[key] ??= []).add(tx);
+    }
+    return map;
+  }
+
+  /// Grup transaksi berdasarkan kategori (lokal).
+  Map<String, List<TransactionModel>> get groupedByCategory {
+    final list = filteredTransactions;
+    final map = <String, List<TransactionModel>>{};
+    for (final tx in list) {
+      final key = tx.categoryName ?? tx.type.toLocalizedLabel();
+      (map[key] ??= []).add(tx);
+    }
+    return map;
+  }
+
+  /// Total pemasukan dari transaksi terffilter.
+  double get totalIncome {
+    return filteredTransactions
+        .where((t) => t.type == TransactionTypeEnum.income && !t.isSettlement)
+        .fold(0.0, (sum, t) => sum + t.totalAmount);
+  }
+
+  /// Total pengeluaran dari transaksi terfilter.
+  double get totalExpense {
+    return filteredTransactions
+        .where((t) => t.type == TransactionTypeEnum.expense && !t.isSettlement)
+        .fold(0.0, (sum, t) => sum + t.totalAmount);
+  }
+}
+
+// ───────────────── Controller ─────────────────
+
+/// Controller untuk fitur history transaksi.
+///
+/// Mengelola:
+/// - Fetch data dari repository berdasarkan date range + wallet filter
+/// - Pagination (infinite scroll)
+/// - Periode filter (daily/weekly/monthly/quarterly/yearly/custom)
+/// - Grouping mode (by date / by category) — lokal, tanpa refetch
+/// - Type filter (income/expense/etc.) — lokal, tanpa refetch
+/// - Persistensi preferensi filter ke local storage (Hive)
+class HistoryController extends StateNotifier<HistoryState> {
+  HistoryController(this._repository, this._local)
+    : super(_restoreInitialState(_local));
+
+  final HistoryRepository _repository;
+  final HistoryLocalDataSource _local;
+  static const _pageSize = 30;
+
+  // ───────────────── RESTORE ─────────────────
+
+  /// Baca preferensi filter terakhir dari Hive dan kembalikan sebagai
+  /// [HistoryState] awal. Jika tidak ada data atau parsing gagal,
+  /// kembalikan state default.
+  static HistoryState _restoreInitialState(HistoryLocalDataSource local) {
+    try {
+      final prefs = local.loadFilterPrefs();
+      if (prefs == null) return const HistoryState();
+
+      // ── period ──
+      HistoryPeriod period = HistoryPeriod.monthly;
+      final periodName = prefs['period'] as String?;
+      if (periodName != null) {
+        for (final e in HistoryPeriod.values) {
+          if (e.name == periodName) {
+            period = e;
+            break;
+          }
+        }
+      }
+
+      // ── groupMode ──
+      HistoryGroupMode groupMode = HistoryGroupMode.byDate;
+      final groupModeName = prefs['groupMode'] as String?;
+      if (groupModeName != null) {
+        for (final e in HistoryGroupMode.values) {
+          if (e.name == groupModeName) {
+            groupMode = e;
+            break;
+          }
+        }
+      }
+
+      // ── walletId ──
+      final walletId = prefs['walletId'] as String?;
+
+      // ── typeFilter ──
+      TransactionTypeEnum? typeFilter;
+      final typeFilterName = prefs['typeFilter'] as String?;
+      if (typeFilterName != null) {
+        for (final e in TransactionTypeEnum.values) {
+          if (e.name == typeFilterName) {
+            typeFilter = e;
+            break;
+          }
+        }
+      }
+
+      // ── customStart / customEnd ──
+      DateTime? customStart, customEnd;
+      final customStartRaw = prefs['customStart'] as String?;
+      final customEndRaw = prefs['customEnd'] as String?;
+      if (customStartRaw != null)
+        customStart = DateTime.tryParse(customStartRaw);
+      if (customEndRaw != null) customEnd = DateTime.tryParse(customEndRaw);
+
+      // ── subPeriodIndex: validasi agar tidak out of bounds ──
+      int? subPeriodIndex = prefs['subPeriodIndex'] as int?;
+      if (subPeriodIndex != null) {
+        final tempState = HistoryState(
+          period: period,
+          customStart: customStart,
+          customEnd: customEnd,
+        );
+        final tabs = tempState.subPeriodTabs;
+        if (tabs.isEmpty || subPeriodIndex >= tabs.length) {
+          subPeriodIndex = tabs.isNotEmpty ? tabs.length - 1 : null;
+        }
+      }
+
+      return HistoryState(
+        period: period,
+        groupMode: groupMode,
+        walletId: walletId,
+        typeFilter: typeFilter,
+        customStart: customStart,
+        customEnd: customEnd,
+        subPeriodIndex: subPeriodIndex,
+      );
+    } catch (_) {
+      return const HistoryState();
+    }
+  }
+
+  // ───────────────── PERSIST ─────────────────
+
+  /// Simpan preferensi filter dari state saat ini ke local storage.
+  void _persist() {
+    _local.saveFilterPrefs(
+      period: state.period,
+      groupMode: state.groupMode,
+      walletId: state.walletId,
+      typeFilter: state.typeFilter,
+      subPeriodIndex: state.subPeriodIndex,
+      customStart: state.customStart,
+      customEnd: state.customEnd,
+    );
+  }
+
+  // ───────────────── LOAD ─────────────────
+
+  /// Fetch transaksi berdasarkan filter saat ini (reset pagination).
+  Future<void> loadTransactions() async {
+    state = state.copyWith(
+      status: HistoryStatus.loading,
+      offset: 0,
+      hasMore: true,
+      clearError: true,
+    );
+
+    final (start, end) = state.dateRange;
+    final result = await _repository.getTransactions(
+      startDate: start,
+      endDate: end,
+      walletId: state.walletId,
+      limit: _pageSize,
+      offset: 0,
+    );
+
+    if (result.isSuccess()) {
+      final data = result.dataSuccess()!;
+      state = state.copyWith(
+        status: HistoryStatus.loaded,
+        transactions: data,
+        offset: data.length,
+        hasMore: data.length >= _pageSize,
+      );
+    } else {
+      final (message, _, _, _) = result.dataError()!;
+      state = state.copyWith(
+        status: HistoryStatus.error,
+        errorMessage: message,
+      );
+    }
+  }
+
+  /// Muat halaman berikutnya (infinite scroll).
+  Future<void> loadMore() async {
+    if (!state.hasMore || state.isLoadingMore) return;
+
+    state = state.copyWith(isLoadingMore: true);
+
+    final (start, end) = state.dateRange;
+    final result = await _repository.getTransactions(
+      startDate: start,
+      endDate: end,
+      walletId: state.walletId,
+      limit: _pageSize,
+      offset: state.offset,
+    );
+
+    if (result.isSuccess()) {
+      final data = result.dataSuccess()!;
+      state = state.copyWith(
+        transactions: [...state.transactions, ...data],
+        offset: state.offset + data.length,
+        hasMore: data.length >= _pageSize,
+        isLoadingMore: false,
+      );
+    } else {
+      state = state.copyWith(isLoadingMore: false);
+    }
+  }
+
+  // ───────────────── FILTER ACTIONS ─────────────────
+
+  /// Ganti periode dan refetch. Reset sub-period ke tab terakhir.
+  Future<void> setPeriod(HistoryPeriod period) async {
+    if (state.period == period) return;
+    state = state.copyWith(period: period, clearSubPeriod: true);
+    // Set sub-period ke tab terakhir ("saat ini")
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
+    _persist();
+    await loadTransactions();
+  }
+
+  /// Ganti custom range dan refetch.
+  Future<void> setCustomRange(DateTime start, DateTime end) async {
+    state = state.copyWith(
+      period: HistoryPeriod.custom,
+      customStart: start,
+      customEnd: end,
+      clearSubPeriod: true,
+    );
+    // Set sub-period ke tab terakhir
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
+    _persist();
+    await loadTransactions();
+  }
+
+  /// Ganti sub-period tab dan refetch.
+  Future<void> setSubPeriod(int index) async {
+    if (index == state.subPeriodIndex) return;
+    state = state.copyWith(subPeriodIndex: index);
+    _persist();
+    await loadTransactions();
+  }
+
+  /// Ganti wallet filter dan refetch.
+  Future<void> setWalletFilter(String? walletId) async {
+    if (walletId == state.walletId) return;
+    if (walletId == null) {
+      state = state.copyWith(clearWallet: true);
+    } else {
+      state = state.copyWith(walletId: walletId);
+    }
+    _persist();
+    await loadTransactions();
+  }
+
+  /// Ganti type filter — lokal saja, tanpa refetch (PRD §7.8).
+  void setTypeFilter(TransactionTypeEnum? type) {
+    if (type == state.typeFilter) return;
+    if (type == null) {
+      state = state.copyWith(clearType: true);
+    } else {
+      state = state.copyWith(typeFilter: type);
+    }
+    _persist();
+  }
+
+  /// Ganti grouping mode — lokal saja, tanpa refetch (PRD §7.8).
+  void setGroupMode(HistoryGroupMode mode) {
+    if (mode == state.groupMode) return;
+    state = state.copyWith(groupMode: mode);
+    _persist();
+  }
+
+  /// Reset semua filter ke default.
+  Future<void> resetFilters() async {
+    state = const HistoryState(period: HistoryPeriod.monthly);
+    final tabs = state.subPeriodTabs;
+    if (tabs.isNotEmpty) {
+      state = state.copyWith(subPeriodIndex: tabs.length - 1);
+    }
+    _persist();
+    await loadTransactions();
+  }
+
+  /// Refresh setelah create/edit/delete tanpa mengubah filter.
+  Future<void> refresh() async {
+    await loadTransactions();
+  }
+
+  /// Hapus satu transaksi dari list lokal (setelah delete berhasil).
+  void removeTransaction(String transactionId) {
+    state = state.copyWith(
+      transactions: state.transactions
+          .where((t) => t.id != transactionId)
+          .toList(),
+    );
   }
 }

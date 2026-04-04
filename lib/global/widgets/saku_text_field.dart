@@ -4,99 +4,200 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// TextField global SakuRapi dengan styling konsisten Light/Dark mode.
+/// Text field utama SakuRapi.
 ///
-/// Menggunakan `context.colors.surface` sebagai fill color dan
-/// `context.colors.textPrimary` untuk warna ketikan, memastikan kontras
-/// yang aman di kedua mode layar.
+/// Gunakan widget ini untuk semua input teks di aplikasi agar konsisten.
 class SakuTextField extends StatelessWidget {
   const SakuTextField({
     super.key,
-    required this.controller,
-    this.hintText = '',
-    this.keyboardType,
+    this.controller,
+    this.label,
+    this.hint,
+    this.errorText,
     this.prefixIcon,
-    this.prefixText,
-    this.validator,
+    this.suffixIcon,
+    this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.keyboardType,
     this.inputFormatters,
-    this.textCapitalization = TextCapitalization.none,
-    this.obscureText = false,
     this.maxLines = 1,
+    this.minLines,
+    this.maxLength,
+    this.obscureText = false,
+    this.readOnly = false,
+    this.enabled = true,
+    this.autofocus = false,
+    this.textCapitalization = TextCapitalization.none,
+    this.focusNode,
+    this.textInputAction,
+    this.validator,
   });
 
-  /// Controller untuk mengontrol dan membaca value field.
-  final TextEditingController controller;
+  /// Controller untuk text field.
+  final TextEditingController? controller;
 
-  /// Teks hint yang ditampilkan saat field kosong.
-  final String hintText;
+  /// Label di atas field.
+  final String? label;
 
-  /// Tipe keyboard (number, email, dll).
-  final TextInputType? keyboardType;
+  /// Hint di dalam field.
+  final String? hint;
 
-  /// Icon di sebelah kiri field (misalnya ikon pencarian).
+  /// Teks error validasi di bawah field.
+  final String? errorText;
+
+  /// Ikon di sebelah kiri.
   final Widget? prefixIcon;
 
-  /// Teks prefix tetap (misalnya 'Rp ').
-  final String? prefixText;
+  /// Ikon di sebelah kanan.
+  final Widget? suffixIcon;
 
-  /// Fungsi validasi form.
-  final String? Function(String?)? validator;
+  /// Callback saat value berubah.
+  final ValueChanged<String>? onChanged;
 
-  /// Formatter input (misalnya hanya digit).
+  /// Callback saat submit.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Callback saat field di-tap.
+  final VoidCallback? onTap;
+
+  /// Jenis keyboard.
+  final TextInputType? keyboardType;
+
+  /// Input formatters (misal: AmountInputFormatter).
   final List<TextInputFormatter>? inputFormatters;
+
+  /// Jumlah baris maksimal.
+  final int maxLines;
+
+  /// Jumlah baris minimal.
+  final int? minLines;
+
+  /// Panjang karakter maksimal.
+  final int? maxLength;
+
+  /// Apakah field bersifat password.
+  final bool obscureText;
+
+  /// Apakah field hanya baca.
+  final bool readOnly;
+
+  /// Apakah field aktif.
+  final bool enabled;
+
+  /// Apakah field otomatis fokus.
+  final bool autofocus;
 
   /// Kapitalisasi teks.
   final TextCapitalization textCapitalization;
 
-  /// Sembunyikan teks (untuk password).
-  final bool obscureText;
+  /// Focus node.
+  final FocusNode? focusNode;
 
-  /// Jumlah baris maksimum.
-  final int maxLines;
+  /// Action keyboard.
+  final TextInputAction? textInputAction;
+
+  /// Validator untuk Form widget.
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.colors;
+    final colors = context.colors;
 
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      textCapitalization: textCapitalization,
-      obscureText: obscureText,
-      maxLines: maxLines,
-      style: TextStyleConstants.b1.copyWith(color: appColors.textPrimary),
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hintText,
-        prefixIcon: prefixIcon,
-        prefixText: prefixText,
-        hintStyle: TextStyleConstants.b1.copyWith(
-          color: appColors.textSecondary.withValues(alpha: 0.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label != null) ...[
+          Text(
+            label!,
+            style: TextStyleConstants.label1.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          SizedBox(height: 6.h),
+        ],
+        TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          onChanged: onChanged,
+          onFieldSubmitted: onSubmitted,
+          onTap: onTap,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          maxLines: maxLines,
+          minLines: minLines,
+          maxLength: maxLength,
+          obscureText: obscureText,
+          readOnly: readOnly,
+          enabled: enabled,
+          autofocus: autofocus,
+          textCapitalization: textCapitalization,
+          textInputAction: textInputAction,
+          validator: validator,
+          style: TextStyleConstants.b2.copyWith(color: colors.textPrimary),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyleConstants.b2.copyWith(
+              color: colors.textSecondary,
+            ),
+            errorText: errorText,
+            errorStyle: TextStyleConstants.label3.copyWith(color: colors.error),
+            prefixIcon: prefixIcon == null
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      10.horizontalSpace,
+                      Center(child: prefixIcon),
+                    ],
+                  ),
+            prefixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
+            suffixIcon: suffixIcon == null
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(child: suffixIcon),
+                      10.horizontalSpace,
+                    ],
+                  ),
+            filled: true,
+            fillColor: colors.surfaceVariant,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 14.h,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colors.primary, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colors.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colors.error, width: 1.5),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(
+                color: colors.border.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
         ),
-        prefixStyle: TextStyleConstants.b1.copyWith(
-          color: appColors.textPrimary,
-        ),
-        filled: true,
-        fillColor: appColors.surface,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: appColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: appColors.expense),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: appColors.expense, width: 1.5),
-        ),
-      ),
+      ],
     );
   }
 }

@@ -12,7 +12,11 @@ class SupabaseHandler {
       final res = await function();
       return DataState.success(data: res);
     } on AuthException catch (e, stackTrace) {
-      AppLogger.logError('AuthException: ${e.message}', stackTrace: stackTrace);
+      AppLogger.logError(
+        'AuthException: ${e.message}',
+        stackTrace: stackTrace,
+        runtimeType: SupabaseHandler,
+      );
       // Menangkap error autentikasi (misal: token kadaluarsa, login gagal)
       return DataState.error(
         message: e.message,
@@ -24,6 +28,7 @@ class SupabaseHandler {
       AppLogger.logError(
         'PostgrestException: ${e.message}',
         stackTrace: stackTrace,
+        runtimeType: SupabaseHandler,
       );
       // Menangkap error database (misal: query salah, RLS melanggar)
       return DataState.error(
@@ -36,6 +41,7 @@ class SupabaseHandler {
       AppLogger.logError(
         'General Exception: ${e.toString()}',
         stackTrace: stackTrace,
+        runtimeType: SupabaseHandler,
       );
       // Menangkap error umum lainnya
       return DataState.error(

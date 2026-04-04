@@ -316,6 +316,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Contact name is required for debt/loan';
 
   @override
+  String get contactPickerTitle => 'Select Contact';
+
+  @override
+  String get contactPickerFromPhonebook => 'From Phonebook';
+
+  @override
+  String get contactPickerSaved => 'Saved Contacts';
+
+  @override
+  String get contactPickerSearch => 'Search contacts...';
+
+  @override
+  String get contactPickerEmpty => 'No saved contacts yet';
+
+  @override
+  String get contactPickerPhonePermissionDenied => 'Contacts permission denied';
+
+  @override
+  String get contactPickerNoPhone => 'No phone number';
+
+  @override
+  String get contactPickerSelected => 'Contact';
+
+  @override
   String get transactionDestWalletRequired =>
       'Please select a destination wallet';
 
@@ -345,6 +369,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionNewTitle => 'New Transaction';
 
   @override
+  String get transactionEditTitle => 'Edit Transaction';
+
+  @override
+  String get transactionSettleDebt => 'Settle Debt';
+
+  @override
+  String get transactionSettleLoan => 'Collect Loan';
+
+  @override
+  String get transactionSettleAmount => 'Settlement Amount';
+
+  @override
+  String get transactionSettleSuccess => 'Settlement saved successfully';
+
+  @override
   String get transactionAttachmentAdd => 'Add Attachment';
 
   @override
@@ -366,7 +405,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardSeeAll => 'See All';
 
   @override
-  String get dashboardSnapshotTitle => 'This Month\'s Summary';
+  String dashboardSnapshotTitle(String period) {
+    return 'This $period\'s Summary';
+  }
 
   @override
   String get dashboardTopExpenses => 'Top Expenses';
@@ -401,6 +442,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardComingSoon => 'Coming Soon';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Hi, $name 👋';
+  }
+
+  @override
+  String get dashboardEmptyWallets => 'No wallets yet';
+
+  @override
+  String get dashboardMonthlyIncome => 'This Month\'s Income';
+
+  @override
+  String get dashboardMonthlyExpense => 'This Month\'s Expense';
+
+  @override
+  String get dashboardChartTitle => 'Income vs Expense';
+
+  @override
+  String get dashboardThisMonth => 'This Month';
+
+  @override
+  String get dashboardLastMonth => 'Last Month';
+
+  @override
+  String get dashboardThisWeek => 'This Week';
+
+  @override
+  String get dashboardLastWeek => 'Last Week';
+
+  @override
+  String get dashboardMonthlyMode => 'Monthly';
+
+  @override
+  String get dashboardWeeklyMode => 'Weekly';
+
+  @override
+  String get dashboardDailyMode => 'Daily';
+
+  @override
+  String get dashboardToday => 'Today';
+
+  @override
+  String get dashboardYesterday => 'Yesterday';
+
+  @override
+  String get dashboardQuickAdd => 'Quick Add';
+
+  @override
+  String get dashboardNetFlow => 'Net';
+
+  @override
+  String get dashboardNoChange => 'No change';
+
+  @override
+  String dashboardVsPrevious(String period) {
+    return 'vs $period';
+  }
+
+  @override
   String get historyTitle => 'History';
 
   @override
@@ -432,6 +531,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyResetFilter => 'Reset';
+
+  @override
+  String get historyDaily => 'Daily';
+
+  @override
+  String get historyWeekly => 'Weekly';
+
+  @override
+  String get historyMonthly => 'Monthly';
+
+  @override
+  String get historyQuarterly => 'Quarterly';
+
+  @override
+  String get historyYearly => 'Yearly';
+
+  @override
+  String get historyCustomRange => 'Custom';
+
+  @override
+  String get historyGroupByDate => 'By Date';
+
+  @override
+  String get historyGroupByCategory => 'By Category';
+
+  @override
+  String get historyAllTypes => 'All Types';
+
+  @override
+  String get historySelectType => 'Transaction Type';
+
+  @override
+  String get historyPeriod => 'Period';
+
+  @override
+  String get historyLoadMore => 'Load more';
+
+  @override
+  String historyTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get historyFilterEmpty => 'No transactions matching this filter';
+
+  @override
+  String get historyViewReport => 'View Report';
+
+  @override
+  String get historyDeleteSuccess => 'Transaction deleted successfully';
+
+  @override
+  String get historyDeleteConfirm => 'Delete Transaction';
+
+  @override
+  String get historyDeleteConfirmMessage =>
+      'Are you sure you want to delete this transaction? Wallet balance will be reversed.';
+
+  @override
+  String get historySelectDateRange => 'Select Date Range';
+
+  @override
+  String get historyStartDate => 'Start Date';
+
+  @override
+  String get historyEndDate => 'End Date';
 
   @override
   String get breakdownTitle => 'Expense Breakdown';
@@ -639,6 +804,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetEndOfMonthLabel => 'End of Month';
 
   @override
+  String get budgetEndOfPeriodLabel => 'End of Period';
+
+  @override
   String budgetDaysRemaining(int days) {
     return '$days days';
   }
@@ -759,149 +927,98 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get investmentTitle => 'Investments';
+  String get budgetFilterAll => 'All Wallets';
 
   @override
-  String get investmentAdd => 'Add Investment';
+  String get budgetCompletedTitle => 'Completed Budgets';
 
   @override
-  String get investmentEdit => 'Edit Investment';
+  String get budgetCompletedEmpty => 'No completed budgets yet';
 
   @override
-  String get investmentDelete => 'Delete Investment';
+  String get budgetCompleted => 'Completed';
 
   @override
-  String get investmentPortfolio => 'Total Portfolio';
+  String get budgetDuplicateTitle => 'Budget Already Exists';
 
   @override
-  String get investmentTotalValue => 'Current Value';
-
-  @override
-  String get investmentTotalPL => 'Total P&L';
-
-  @override
-  String get investmentTypeGold => 'Gold';
-
-  @override
-  String get investmentTypeBtc => 'Bitcoin';
-
-  @override
-  String get investmentTypeCustom => 'Custom';
-
-  @override
-  String get investmentBuyPrice => 'Buy Price';
-
-  @override
-  String get investmentCurrentPrice => 'Current Price';
-
-  @override
-  String get investmentAmount => 'Amount';
-
-  @override
-  String get investmentUnit => 'unit';
-
-  @override
-  String get investmentEmptyTitle => 'No Investments Yet';
-
-  @override
-  String get investmentEmptySubtitle => 'Tap + to add your first asset';
-
-  @override
-  String get investmentRefreshPrice => 'Refresh Prices';
-
-  @override
-  String get investmentFormTitleAdd => 'Add Investment';
-
-  @override
-  String get investmentFormTitleEdit => 'Edit Investment';
-
-  @override
-  String get investmentFormType => 'Asset Type';
-
-  @override
-  String get investmentFormName => 'Asset Name';
-
-  @override
-  String get investmentFormNameHint => 'e.g., Gold Bar, Bitcoin';
-
-  @override
-  String get investmentFormNameRequired => 'Asset name is required';
-
-  @override
-  String get investmentFormAmount => 'Amount (units)';
-
-  @override
-  String get investmentFormAmountRequired => 'Amount is required';
-
-  @override
-  String get investmentFormAmountInvalid => 'Amount must be greater than 0';
-
-  @override
-  String get investmentFormBuyPrice => 'Buy Price per Unit (IDR)';
-
-  @override
-  String get investmentFormBuyPriceRequired => 'Buy price is required';
-
-  @override
-  String get investmentFormBuyPriceInvalid =>
-      'Buy price must be greater than 0';
-
-  @override
-  String get investmentFormCurrentPrice => 'Current Price (IDR)';
-
-  @override
-  String get investmentFormCurrentPriceHint => 'Optional — for custom assets';
-
-  @override
-  String get investmentFormDeductWallet => 'Deduct from Wallet';
-
-  @override
-  String get investmentFormDeductWalletSubtitle =>
-      'Wallet balance will be deducted automatically';
-
-  @override
-  String get investmentFormWallet => 'Select Wallet';
-
-  @override
-  String get investmentFormWalletRequired => 'Please select a wallet';
-
-  @override
-  String get investmentFormNotes => 'Notes';
-
-  @override
-  String get investmentFormNotesHint => 'Optional';
-
-  @override
-  String get investmentFormEstimatedCost => 'Estimated Total Cost';
-
-  @override
-  String get investmentSave => 'Save Investment';
-
-  @override
-  String get investmentSuccessAdd => 'Investment added successfully';
-
-  @override
-  String get investmentSuccessEdit => 'Investment updated successfully';
-
-  @override
-  String get investmentSuccessDelete => 'Investment deleted successfully';
-
-  @override
-  String get investmentErrorAdd => 'Failed to add investment';
-
-  @override
-  String get investmentErrorEdit => 'Failed to update investment';
-
-  @override
-  String get investmentErrorDelete => 'Failed to delete investment';
-
-  @override
-  String get investmentDeleteConfirmTitle => 'Delete Investment?';
-
-  @override
-  String investmentDeleteConfirmMessage(String name) {
-    return 'Asset \"$name\" will be permanently deleted.';
+  String budgetDuplicateMessage(String category, String wallet) {
+    return 'An active budget for \"$category\" in $wallet already exists. Replace with new one?';
   }
+
+  @override
+  String get budgetDuplicateReplace => 'Replace';
+
+  @override
+  String get budgetDuplicateKeep => 'Cancel';
+
+  @override
+  String get budgetTabWeekly => 'Weekly';
+
+  @override
+  String get budgetTabMonthly => 'Monthly';
+
+  @override
+  String get budgetTabQuarterly => 'Quarterly';
+
+  @override
+  String get budgetTabYearly => 'Yearly';
+
+  @override
+  String get budgetTabCustom => 'Custom';
+
+  @override
+  String get budgetDetailTitle => 'Budget Detail';
+
+  @override
+  String get budgetDetailSpent => 'Spent';
+
+  @override
+  String get budgetDetailRemaining => 'Remaining';
+
+  @override
+  String get budgetDetailPeriod => 'Period';
+
+  @override
+  String get budgetDetailDaysLeft => 'Days Left';
+
+  @override
+  String get budgetDetailWallet => 'Wallet';
+
+  @override
+  String get budgetDetailDailyRecommended => 'Daily Recommended';
+
+  @override
+  String get budgetDetailProjectedSpend => 'Projected Spend';
+
+  @override
+  String get budgetDetailActualDaily => 'Actual Daily';
+
+  @override
+  String get budgetDetailTransactions => 'Transactions';
+
+  @override
+  String get budgetDetailTransactionsEmpty => 'No transactions yet';
+
+  @override
+  String get budgetFormCarryForwardTitle => 'Carry Forward';
+
+  @override
+  String get budgetFormCarryForwardSubtitle =>
+      'Carry remaining balance to next period when renewed';
+
+  @override
+  String get budgetFormDiscardTitle => 'Discard Changes?';
+
+  @override
+  String get budgetFormDiscardMessage =>
+      'You have unsaved changes. Are you sure you want to discard them?';
+
+  @override
+  String get budgetFormDiscardConfirm => 'Discard';
+
+  @override
+  String get budgetUpcomingBudgets => 'Upcoming Budgets';
 
   @override
   String get notifTitle => 'Notifications';
@@ -943,6 +1060,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String notifBudgetAlert50(String category) {
+    return 'Budget $category is 50% used';
+  }
+
+  @override
+  String get notifBudget50Title => '50% Budget Alert';
+
+  @override
+  String get notifBudget50Subtitle => 'Notify when budget reaches 50%';
+
+  @override
   String notifDebtDue(String person, int days) {
     return 'Debt to $person is due in $days days';
   }
@@ -964,9 +1092,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navBudget => 'Budget';
-
-  @override
-  String get navInvestment => 'Investment';
 
   @override
   String get profileTitle => 'Profile';
@@ -1008,6 +1133,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileLanguage => 'Language';
 
   @override
+  String get profileThemeSystem => 'Follow System';
+
+  @override
+  String get profileThemeLight => 'Light';
+
+  @override
+  String get profileThemeDark => 'Dark';
+
+  @override
+  String get profileThemeTitle => 'App Theme';
+
+  @override
+  String get profileLanguageIndonesian => 'Indonesia';
+
+  @override
+  String get profileLanguageEnglish => 'English';
+
+  @override
+  String get profileLanguageTitle => 'Select Language';
+
+  @override
+  String get profileExportImport => 'Export / Import';
+
+  @override
+  String get profileComingSoon => 'Coming Soon';
+
+  @override
+  String get profileAppVersion => 'App Version';
+
+  @override
+  String get profileSectionAccount => 'Account';
+
+  @override
+  String get profileSectionPreferences => 'Preferences';
+
+  @override
+  String get profileSectionData => 'Data';
+
+  @override
+  String get profileSectionOther => 'Others';
+
+  @override
   String get pickerChooseIcon => 'Choose Icon';
 
   @override
@@ -1015,4 +1182,1132 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pickerSearchCategory => 'Search category...';
+
+  @override
+  String get voiceInitializing => 'Preparing microphone...';
+
+  @override
+  String get voiceAnalyzingAi => 'Analyzing with AI...';
+
+  @override
+  String get voiceDoneButton => 'Done';
+
+  @override
+  String get voicePleaseWait => 'Please wait...';
+
+  @override
+  String get voiceNoSpeech => 'No speech detected';
+
+  @override
+  String get voiceOpenSettings => 'Open Settings';
+
+  @override
+  String get voicePermissionExplainer =>
+      'Microphone permission is required for voice input. Please enable it in settings.';
+
+  @override
+  String get voiceParseFailed =>
+      'Analysis failed, data filled manually from voice';
+
+  @override
+  String get voiceAiBusy => 'AI is busy, using local parser';
+
+  @override
+  String get voiceTapToSpeak => 'Press & hold to speak';
+
+  @override
+  String get voiceTranscript => 'Heard text';
+
+  @override
+  String get voiceNotTransaction =>
+      'Input not detected as a transaction. Try again by mentioning the amount or transaction type.';
+
+  @override
+  String get voiceContinueButton => 'Continue';
+
+  @override
+  String get voiceRetryButton => 'Retry';
+
+  @override
+  String get voicePreviewTitle => 'Transaction Preview';
+
+  @override
+  String get voicePreviewType => 'Type';
+
+  @override
+  String get voicePreviewDestWallet => 'Destination Wallet';
+
+  @override
+  String get ocrExtractingText => 'Reading text from receipt...';
+
+  @override
+  String get ocrAnalyzingAi => 'Analyzing with AI...';
+
+  @override
+  String get ocrPickerTitle => 'Scan Shopping Receipt';
+
+  @override
+  String get ocrCropToolbar => 'Select Receipt Area';
+
+  @override
+  String get ocrErrorGeneric => 'Failed to process image';
+
+  @override
+  String get ocrPermissionDenied => 'Camera permission denied';
+
+  @override
+  String get ocrPermissionExplainer =>
+      'Camera permission is required for receipt scanning. Please enable it in settings.';
+
+  @override
+  String get ocrAiBusy => 'AI is busy, using local parser';
+
+  @override
+  String get ocrPartialResult => 'Partial data extracted';
+
+  @override
+  String ocrTotalMismatch(String itemsTotal, String receiptTotal) {
+    return 'Items total ($itemsTotal) does not match receipt total ($receiptTotal)';
+  }
+
+  @override
+  String get ocrDate => 'Date';
+
+  @override
+  String get ocrItemsSection => 'Item List';
+
+  @override
+  String get ocrProcessing => 'Processing...';
+
+  @override
+  String get ocrImageBlurry => 'Image is unreadable, try taking another photo';
+
+  @override
+  String get ocrNotTransaction =>
+      'This image is not a financial document. Try taking a photo of a receipt, transfer proof, or invoice.';
+
+  @override
+  String get ocrTypeExpense => 'Expense';
+
+  @override
+  String get ocrTypeIncome => 'Income';
+
+  @override
+  String get ocrTypeTransfer => 'Transfer';
+
+  @override
+  String get ocrTypeDebt => 'Debt';
+
+  @override
+  String get ocrTypeLoan => 'Loan';
+
+  @override
+  String get ocrSourceWallet => 'From';
+
+  @override
+  String get ocrDestWallet => 'To';
+
+  @override
+  String get ocrWithPerson => 'Person';
+
+  @override
+  String get ocrPaymentMethod => 'Payment';
+
+  @override
+  String get ocrUseResult => 'Use Result';
+
+  @override
+  String get transactionListTitle => 'Transactions';
+
+  @override
+  String get transactionRangeTitle => 'Select Time Range';
+
+  @override
+  String get transactionRangeHari => 'Today';
+
+  @override
+  String get transactionRangeMinggu => 'This Week';
+
+  @override
+  String get transactionRangeBulan => 'This Month';
+
+  @override
+  String get transactionRangeKuartal => 'This Quarter';
+
+  @override
+  String get transactionRangeTahun => 'This Year';
+
+  @override
+  String get transactionRangeSemua => 'All';
+
+  @override
+  String get transactionRangeSesuaikan => 'Custom';
+
+  @override
+  String get transactionViewByCategory => 'View by Category';
+
+  @override
+  String get transactionViewByTransaction => 'View by Transaction';
+
+  @override
+  String get transactionTransferMoney => 'Transfer Money';
+
+  @override
+  String get transactionDetailTitle => 'Transaction Detail';
+
+  @override
+  String get transactionDuplicate => 'Duplicate';
+
+  @override
+  String get transactionShareDetail => 'Share';
+
+  @override
+  String get transactionDeleteSuccess => 'Transaction deleted successfully';
+
+  @override
+  String get transactionItemQty => 'Quantity';
+
+  @override
+  String get transactionItemUnitPrice => 'Unit Price';
+
+  @override
+  String get transactionItemSubtotal => 'Subtotal';
+
+  @override
+  String get transactionItemName => 'Item Name';
+
+  @override
+  String get transactionItemNameHint => 'e.g. Coffee, Fried Rice';
+
+  @override
+  String get transactionTotalMismatch =>
+      'Items total does not match transaction total';
+
+  @override
+  String get transactionReorderHint => 'Drag to reorder';
+
+  @override
+  String get transactionRemoveItem => 'Remove Item';
+
+  @override
+  String get transactionItemNote => 'Item note';
+
+  @override
+  String get dashboardExpenseReport => 'Expense Report';
+
+  @override
+  String get dashboardTrendReport => 'Trend Report';
+
+  @override
+  String get dashboardTotalExpenseLabel => 'Total expense';
+
+  @override
+  String get dashboardTotalIncomeLabel => 'Total income';
+
+  @override
+  String get dashboardThisMonthCumulative => 'This month';
+
+  @override
+  String get dashboardAvg3MonthLabel => 'Avg. last 3 months';
+
+  @override
+  String get dashboardPrevMonthLabel => 'Last month';
+
+  @override
+  String get dashboardAvg3WeekLabel => 'Avg. last 3 weeks';
+
+  @override
+  String get dashboardAvg3DayLabel => 'Avg. last 3 days';
+
+  @override
+  String dashboardInsightExpenseDown(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Your spending this $period is $percent% lower than $prevPeriod. Great, keep it up!';
+  }
+
+  @override
+  String dashboardInsightExpenseUp(
+    String period,
+    String percent,
+    String prevPeriod,
+  ) {
+    return 'Your spending this $period is $percent% higher than $prevPeriod. Try to cut back on unnecessary spending.';
+  }
+
+  @override
+  String dashboardInsightExpenseSame(String prevPeriod) {
+    return 'Your spending is stable compared to $prevPeriod.';
+  }
+
+  @override
+  String get dashboardInsightTrendBelowAvg =>
+      'Your spending is below the 3-month average. You\'re on the right track!';
+
+  @override
+  String get dashboardInsightTrendAboveAvg =>
+      'Your spending is above the 3-month average. Watch your expenses.';
+
+  @override
+  String get dashboardInsightNoData =>
+      'Start recording transactions to see insights.';
+
+  @override
+  String get reportTitle => 'Reports';
+
+  @override
+  String get reportNet => 'Net Balance';
+
+  @override
+  String get reportIncome => 'Income';
+
+  @override
+  String get reportExpense => 'Expense';
+
+  @override
+  String get reportPeriodWeekly => 'Weekly';
+
+  @override
+  String get reportPeriodMonthly => 'Monthly';
+
+  @override
+  String get reportPeriodQuarterly => 'Quarterly';
+
+  @override
+  String get reportPeriodYearly => 'Yearly';
+
+  @override
+  String get reportAllWallets => 'All Wallets';
+
+  @override
+  String get reportCategoryBreakdown => 'Category Breakdown';
+
+  @override
+  String get reportDailyTrend => 'Daily Trend';
+
+  @override
+  String get reportNoCategory => 'No category data yet.';
+
+  @override
+  String get reportNoTrendData => 'No trend data yet.';
+
+  @override
+  String get reportEmptyTitle => 'No Data Yet';
+
+  @override
+  String get reportEmptyMessage =>
+      'Start recording transactions to see your full report.';
+
+  @override
+  String get reportErrorGeneric => 'Failed to load report. Try again.';
+
+  @override
+  String reportInsightExpenseDown(String percent) {
+    return 'Your spending decreased by $percent% compared to last period. Great job!';
+  }
+
+  @override
+  String reportInsightExpenseUp(String percent) {
+    return 'Your spending increased by $percent% compared to last period. Stay alert.';
+  }
+
+  @override
+  String get reportInsightStable =>
+      'Your spending is relatively stable compared to the previous period.';
+
+  @override
+  String get reportInsightNoData =>
+      'Start recording transactions to see report insights.';
+
+  @override
+  String get reportSeeFullReport => 'See Full Report';
+
+  @override
+  String get thisQuarter => 'This Quarter';
+
+  @override
+  String get transactionDeleteConfirmTitle => 'Delete Transaction?';
+
+  @override
+  String get transactionDeleteConfirmMessage =>
+      'This transaction will be permanently deleted and wallet balance will be adjusted.';
+
+  @override
+  String get transactionTransferToAsset => 'Transfer to Asset';
+
+  @override
+  String transactionItemCount(int count) {
+    return '$count item';
+  }
+
+  @override
+  String get reportOthersCategory => 'Others';
+
+  @override
+  String get reportTransactionCountLabel => 'transactions';
+
+  @override
+  String get ocrBalanceItem => 'Other items';
+
+  @override
+  String get ocrDiscountItem => 'Discount/deduction';
+
+  @override
+  String get validationAmountPositive => 'Amount must be greater than 0';
+
+  @override
+  String get validationTransferNeedsDest =>
+      'Transfer requires a destination wallet';
+
+  @override
+  String get validationMinOneItem => 'Transaction must have at least 1 item';
+
+  @override
+  String validationItemsTotalMismatch(String itemsSum, String totalAmount) {
+    return 'Items total ($itemsSum) doesn\'t match transaction total ($totalAmount)';
+  }
+
+  @override
+  String get validationCategoryRequired =>
+      'Category must be selected for each item';
+
+  @override
+  String get validationBudgetAmountPositive =>
+      'Budget amount must be greater than 0';
+
+  @override
+  String get validationEndBeforeStart => 'End date cannot be before start date';
+
+  @override
+  String get validationBudgetDuplicate =>
+      'An active budget already exists for the same category and period';
+
+  @override
+  String get validationDeleteOldBudgetFailed => 'Failed to delete old budget';
+
+  @override
+  String get validationWalletNameEmpty => 'Wallet name cannot be empty';
+
+  @override
+  String get validationInitialBalanceNegative =>
+      'Initial balance cannot be negative';
+
+  @override
+  String get validationWalletNameDuplicate => 'Wallet name already in use';
+
+  @override
+  String get validationWalletHasTransactions =>
+      'Cannot delete wallet with existing transactions. Delete transactions first.';
+
+  @override
+  String get debtLoanTitle => 'Debt & Loan';
+
+  @override
+  String get debtLoanTabToPay => 'To Pay';
+
+  @override
+  String get debtLoanTabToReceive => 'To Receive';
+
+  @override
+  String get debtLoanUnpaid => 'UNPAID';
+
+  @override
+  String get debtLoanPaid => 'PAID';
+
+  @override
+  String get debtLoanAllWallets => 'All Wallets';
+
+  @override
+  String debtLoanTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get debtLoanRemaining => 'remaining';
+
+  @override
+  String get debtLoanSettled => 'settled';
+
+  @override
+  String get debtLoanPersonTitle => 'Transaction List';
+
+  @override
+  String debtLoanPersonResult(int count) {
+    return '$count results';
+  }
+
+  @override
+  String get debtLoanPersonIncome => 'Income';
+
+  @override
+  String get debtLoanPersonExpense => 'Expense';
+
+  @override
+  String get debtLoanSettlementTitle => 'Settlement';
+
+  @override
+  String get debtLoanSettlementAmount => 'Settlement Amount';
+
+  @override
+  String get debtLoanSettlementWallet => 'Payment Wallet';
+
+  @override
+  String get debtLoanSettlementNote => 'Note (optional)';
+
+  @override
+  String get debtLoanSettlementSubmit => 'Submit Settlement';
+
+  @override
+  String get debtLoanSettlementSuccess => 'Settlement saved successfully';
+
+  @override
+  String debtLoanSettlementRemainder(String amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get debtLoanPayDebt => 'Pay Debt';
+
+  @override
+  String get debtLoanCollectLoan => 'Receive Payment';
+
+  @override
+  String get debtLoanSettlementHistory => 'TRANSACTION LIST';
+
+  @override
+  String get debtLoanLender => 'Lender';
+
+  @override
+  String get debtLoanBorrower => 'Borrower';
+
+  @override
+  String get debtLoanStatusPaid => 'Paid';
+
+  @override
+  String get debtLoanStatusRemaining => 'Remaining';
+
+  @override
+  String debtLoanDebtPaymentDesc(String person) {
+    return 'Debt paid to $person';
+  }
+
+  @override
+  String debtLoanLoanCollectionDesc(String person) {
+    return 'Loan received from $person';
+  }
+
+  @override
+  String get debtLoanRepayment => 'Repayment';
+
+  @override
+  String get debtLoanCollection => 'Collection';
+
+  @override
+  String get debtLoanEmpty => 'No debt or loan records';
+
+  @override
+  String get debtLoanEmptyPerson => 'No transactions found';
+
+  @override
+  String get debtLoanSomeone => 'Someone';
+
+  @override
+  String get debtLoanExcludedFromReport =>
+      'This transaction is excluded from reports';
+
+  @override
+  String get debtLoanSettlementHistoryTitle => 'Settlement History';
+
+  @override
+  String debtLoanTitleDebt(String person) {
+    return 'Debt to $person';
+  }
+
+  @override
+  String debtLoanTitleLoan(String person) {
+    return 'Loan to $person';
+  }
+
+  @override
+  String debtLoanTitlePayment(String person) {
+    return 'Payment to $person';
+  }
+
+  @override
+  String debtLoanTitleReceipt(String person) {
+    return 'Receipt from $person';
+  }
+
+  @override
+  String get profileDebtLoan => 'Debt & Loan';
+
+  @override
+  String get debtLoanFormSubCategory => 'Category';
+
+  @override
+  String get debtLoanFormPickTransaction => 'Pick Transaction';
+
+  @override
+  String get debtLoanFormNoUnpaidDebt => 'No outstanding debts found';
+
+  @override
+  String get debtLoanFormNoUnpaidLoan => 'No outstanding loans found';
+
+  @override
+  String debtLoanFormAmountExceedsRemaining(String amount) {
+    return 'Amount exceeds remaining $amount';
+  }
+
+  @override
+  String get debtLoanFormTabLabel => 'Debt/Loan';
+
+  @override
+  String get debtLoanFormSelectedTransaction => 'Selected Transaction';
+
+  @override
+  String debtLoanFormRemainingAmount(String amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get debtLoanSettlementEditTitle => 'Edit Settlement';
+
+  @override
+  String get debtLoanSettlementEditSuccess => 'Settlement updated successfully';
+
+  @override
+  String get debtLoanSettlementDeleteConfirm => 'Delete this settlement?';
+
+  @override
+  String get debtLoanSettlementDeleteMessage =>
+      'Wallet balance will be reversed and debt/loan status will be recalculated.';
+
+  @override
+  String get debtLoanSettlementDeleteSuccess =>
+      'Settlement deleted successfully';
+
+  @override
+  String debtLoanSettlementMaxAmount(String amount) {
+    return 'Max: $amount';
+  }
+
+  @override
+  String get fabTextInput => 'Text Input';
+
+  @override
+  String get textInputTitle => 'Input by Text';
+
+  @override
+  String get textInputHint => 'e.g. Lunch at warteg 15k';
+
+  @override
+  String get textInputSubmit => 'Analyze';
+
+  @override
+  String get textInputAnalyzing => 'Analyzing with AI...';
+
+  @override
+  String get textInputError => 'Failed to analyze text';
+
+  @override
+  String get textInputEmpty => 'Please enter a transaction description';
+
+  @override
+  String get navInvestment => 'Investment';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get investmentTitle => 'Investment Portfolio';
+
+  @override
+  String get investmentTotalValue => 'Total Portfolio Value';
+
+  @override
+  String get investmentTotalInvested => 'Total Invested';
+
+  @override
+  String get investmentProfitLoss => 'Profit/Loss';
+
+  @override
+  String get investmentProfit => 'Profit';
+
+  @override
+  String get investmentLoss => 'Loss';
+
+  @override
+  String get investmentEmpty => 'No investments yet';
+
+  @override
+  String get investmentEmptyHint =>
+      'Tap + to start recording your first investment';
+
+  @override
+  String get investmentAddAsset => 'Add Investment';
+
+  @override
+  String get investmentActiveAssets => 'Active Assets';
+
+  @override
+  String get investmentInactiveAssets => 'Inactive Assets';
+
+  @override
+  String get investmentViewInactive => 'View Inactive Assets';
+
+  @override
+  String get investmentSectionGold => 'Gold';
+
+  @override
+  String get investmentSectionBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentSectionCustom => 'Custom Assets';
+
+  @override
+  String get investmentTypeGold => 'Gold';
+
+  @override
+  String get investmentTypeBitcoin => 'Bitcoin';
+
+  @override
+  String get investmentTypeCustom => 'Custom';
+
+  @override
+  String get investmentDetailTitle => 'Investment Detail';
+
+  @override
+  String get investmentDetailCurrentPrice => 'Current Price';
+
+  @override
+  String get investmentDetailAvgBuyPrice => 'Average Buy Price';
+
+  @override
+  String get investmentDetailTotalUnits => 'Total Units';
+
+  @override
+  String get investmentDetailTotalInvested => 'Total Invested';
+
+  @override
+  String get investmentDetailCurrentValue => 'Current Value';
+
+  @override
+  String get investmentDetailProfitLoss => 'Profit/Loss';
+
+  @override
+  String get investmentDetailTotalFee => 'Total Fees';
+
+  @override
+  String get investmentDetailTransactions => 'Transaction History';
+
+  @override
+  String get investmentDetailBuyHistory => 'Buy History';
+
+  @override
+  String get investmentDetailSellHistory => 'Sell History';
+
+  @override
+  String get investmentDetailNoTransactions => 'No transactions yet';
+
+  @override
+  String get investmentDetailTopUp => 'Top Up';
+
+  @override
+  String get investmentDetailSell => 'Sell';
+
+  @override
+  String get investmentDetailSettings => 'Settings';
+
+  @override
+  String get investmentFormCreateTitle => 'New Investment';
+
+  @override
+  String get investmentFormTopUpTitle => 'Top Up Investment';
+
+  @override
+  String get investmentFormEditTitle => 'Edit Transaction';
+
+  @override
+  String get investmentFormAssetName => 'Asset Name';
+
+  @override
+  String get investmentFormAssetNameHint =>
+      'e.g. Antam Gold, Bitcoin, BBCA Stock';
+
+  @override
+  String get investmentFormAssetNameRequired => 'Asset name is required';
+
+  @override
+  String get investmentFormType => 'Asset Type';
+
+  @override
+  String get investmentFormGoldType => 'Gold Type';
+
+  @override
+  String get investmentFormGoldTypeHint => 'Select gold type';
+
+  @override
+  String get investmentFormCustomCategory => 'Asset Category';
+
+  @override
+  String get investmentFormCustomCategoryHint => 'Select category';
+
+  @override
+  String get investmentFormUnits => 'Units';
+
+  @override
+  String get investmentFormUnitsHint => 'e.g. 1.5';
+
+  @override
+  String get investmentFormUnitsRequired => 'Units is required';
+
+  @override
+  String get investmentFormPricePerUnit => 'Price per Unit';
+
+  @override
+  String get investmentFormPricePerUnitRequired => 'Price per unit is required';
+
+  @override
+  String get investmentFormFee => 'Fee (optional)';
+
+  @override
+  String get investmentFormFeeHint => 'Admin/spread fee';
+
+  @override
+  String get investmentFormDate => 'Transaction Date';
+
+  @override
+  String get investmentFormNote => 'Note (optional)';
+
+  @override
+  String get investmentFormDeductWallet => 'Deduct from Wallet';
+
+  @override
+  String get investmentFormDeductWalletHint =>
+      'Reduce wallet balance by total purchase amount';
+
+  @override
+  String get investmentFormSelectWallet => 'Select Wallet';
+
+  @override
+  String get investmentFormWalletRequired => 'Please select a wallet';
+
+  @override
+  String get investmentFormSave => 'Save';
+
+  @override
+  String get investmentFormTotalCost => 'Total Purchase Cost';
+
+  @override
+  String get investmentFormCurrentPrice => 'Current Price (optional)';
+
+  @override
+  String get investmentSellTitle => 'Sell Investment';
+
+  @override
+  String get investmentSellUnits => 'Units to Sell';
+
+  @override
+  String investmentSellUnitsHint(String maxUnits) {
+    return 'Max: $maxUnits';
+  }
+
+  @override
+  String get investmentSellUnitsRequired => 'Units to sell is required';
+
+  @override
+  String investmentSellUnitsExceed(String available) {
+    return 'Sell units exceed available units ($available)';
+  }
+
+  @override
+  String get investmentSellPricePerUnit => 'Sell Price per Unit';
+
+  @override
+  String get investmentSellPriceRequired => 'Sell price is required';
+
+  @override
+  String get investmentSellFee => 'Sell Fee (optional)';
+
+  @override
+  String get investmentSellCreditWallet => 'Credit to Wallet';
+
+  @override
+  String get investmentSellCreditWalletHint =>
+      'Add sell proceeds to wallet balance';
+
+  @override
+  String get investmentSellTotal => 'Total Sell Proceeds';
+
+  @override
+  String get investmentSellConfirm => 'Confirm Sell';
+
+  @override
+  String get investmentSellAll => 'Sell All';
+
+  @override
+  String get investmentSettingsTitle => 'Asset Settings';
+
+  @override
+  String get investmentSettingsName => 'Asset Name';
+
+  @override
+  String get investmentSettingsCurrentPrice => 'Current Price';
+
+  @override
+  String get investmentSettingsCategory => 'Asset Category';
+
+  @override
+  String get investmentSettingsCategoryHint =>
+      'Select category to determine unit';
+
+  @override
+  String get investmentSettingsStatus => 'Status';
+
+  @override
+  String get investmentSettingsActive => 'Active';
+
+  @override
+  String get investmentSettingsInactive => 'Inactive';
+
+  @override
+  String get investmentSettingsSave => 'Save Changes';
+
+  @override
+  String get investmentSettingsDelete => 'Delete Investment';
+
+  @override
+  String investmentSettingsDeleteConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"? All transactions for this investment will also be deleted.';
+  }
+
+  @override
+  String get investmentSettingsDeleteWalletRevert =>
+      'Related wallet balances will be reverted.';
+
+  @override
+  String get investmentGoldTypeTitle => 'Custom Gold Types';
+
+  @override
+  String get investmentGoldTypeAdd => 'Add Gold Type';
+
+  @override
+  String get investmentGoldTypeEdit => 'Edit Gold Type';
+
+  @override
+  String get investmentGoldTypeName => 'Gold Type Name';
+
+  @override
+  String get investmentGoldTypeNameHint => 'e.g. UBS, Galeri 24';
+
+  @override
+  String get investmentGoldTypeNameRequired => 'Gold type name is required';
+
+  @override
+  String investmentGoldTypeMax(int max) {
+    return 'Maximum $max custom gold types';
+  }
+
+  @override
+  String investmentGoldTypeDeleteConfirm(String name) {
+    return 'Delete gold type \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryTitle => 'Custom Asset Categories';
+
+  @override
+  String get investmentCategoryAdd => 'Add Category';
+
+  @override
+  String get investmentCategoryEdit => 'Edit Category';
+
+  @override
+  String get investmentCategoryName => 'Category Name';
+
+  @override
+  String get investmentCategoryNameHint => 'e.g. Stocks, Mutual Funds';
+
+  @override
+  String get investmentCategoryNameRequired => 'Category name is required';
+
+  @override
+  String get investmentCategoryUnitLabel => 'Unit Label';
+
+  @override
+  String get investmentCategoryUnitLabelHint => 'e.g. lot, unit, share';
+
+  @override
+  String get investmentCategoryUnitLabelRequired => 'Unit label is required';
+
+  @override
+  String investmentCategoryMax(int max) {
+    return 'Maximum $max custom categories';
+  }
+
+  @override
+  String investmentCategoryDeleteConfirm(String name) {
+    return 'Delete category \"$name\"?';
+  }
+
+  @override
+  String get investmentCategoryManage => 'Manage Categories';
+
+  @override
+  String get investmentInactiveTitle => 'Inactive Assets';
+
+  @override
+  String get investmentInactiveEmpty => 'No inactive assets';
+
+  @override
+  String get investmentInactiveHint =>
+      'Assets that have been fully sold will appear here';
+
+  @override
+  String get investmentInactiveReactivate => 'Reactivate';
+
+  @override
+  String investmentSuccessCreate(String name) {
+    return 'Investment \"$name\" added successfully';
+  }
+
+  @override
+  String get investmentSuccessTopUp => 'Top up successful';
+
+  @override
+  String get investmentSuccessSell => 'Sell successful';
+
+  @override
+  String get investmentSuccessEdit => 'Transaction updated successfully';
+
+  @override
+  String get investmentSuccessDelete => 'Investment deleted successfully';
+
+  @override
+  String get investmentSuccessUpdate => 'Investment updated successfully';
+
+  @override
+  String get investmentSuccessDeleteTransaction =>
+      'Transaction deleted successfully';
+
+  @override
+  String get investmentErrorGeneric => 'Operation failed. Please try again.';
+
+  @override
+  String get investmentErrorLoad => 'Failed to load investment data';
+
+  @override
+  String get investmentErrorCreate => 'Failed to add investment';
+
+  @override
+  String get investmentErrorTopUp => 'Failed to top up investment';
+
+  @override
+  String get investmentErrorSell => 'Failed to sell investment';
+
+  @override
+  String get investmentErrorEdit => 'Failed to update transaction';
+
+  @override
+  String get investmentErrorDelete => 'Failed to delete investment';
+
+  @override
+  String get investmentErrorDeleteTransaction => 'Failed to delete transaction';
+
+  @override
+  String get investmentUnitGram => 'gram';
+
+  @override
+  String get investmentUnitBtc => 'BTC';
+
+  @override
+  String get investmentGoldAntam => 'Antam';
+
+  @override
+  String get investmentGoldPerhiasan => 'Perhiasan (Jewelry)';
+
+  @override
+  String investmentPriceSource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String investmentLastUpdated(String time) {
+    return 'Updated: $time';
+  }
+
+  @override
+  String get investmentBuyPrice => 'Buy Price';
+
+  @override
+  String get investmentSellPrice => 'Sell Price';
+
+  @override
+  String get investmentDirection => 'Type';
+
+  @override
+  String get investmentDirectionBuy => 'Buy';
+
+  @override
+  String get investmentDirectionSell => 'Sell';
+
+  @override
+  String investmentTransactionCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get investmentFormPriceSource => 'Price Source';
+
+  @override
+  String get investmentFormPriceSourceHint => 'Select price source';
+
+  @override
+  String get investmentPriceSourceAntaremas => 'antaremas.com';
+
+  @override
+  String get investmentPriceSourceLogammulia => 'logammulia.com';
+
+  @override
+  String get investmentPriceSourceManual => 'Manual Input';
+
+  @override
+  String get investmentPriceSourceIndodax => 'Indodax';
+
+  @override
+  String get investmentPriceSourceCoingecko => 'CoinGecko';
+
+  @override
+  String get investmentPriceSourceLocked =>
+      'Locked to Manual for this gold type';
+
+  @override
+  String get investmentManageGoldTypes => 'Manage Gold Types';
+
+  @override
+  String get investmentDeleteTransaction => 'Delete Transaction';
+
+  @override
+  String get investmentDeleteTransactionConfirm =>
+      'Are you sure you want to delete this transaction? Wallet balance will be reverted if applicable.';
+
+  @override
+  String get investmentSettingsRevertWallet => 'Revert related wallet balances';
+
+  @override
+  String get investmentEditCurrentPrice => 'Update Market Price';
+
+  @override
+  String get investmentEditCurrentPriceHint => 'Enter current market price';
+
+  @override
+  String get investmentSettingsGoldType => 'Gold Type';
+
+  @override
+  String get investmentSettingsPriceSource => 'Price Source';
+
+  @override
+  String get investmentWalletRequired => 'Please select a wallet first';
 }

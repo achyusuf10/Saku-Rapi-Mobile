@@ -1,71 +1,113 @@
-/// Model data untuk tabel `wallets` di Supabase.
+/// Model data untuk wallet/dompet.
 ///
-/// Kolom sesuai skema database:
-/// - `id` (uuid, PK, auto-generated)
-/// - `user_id` (uuid, FK → auth.users)
-/// - `name` (text)
-/// - `icon` (text, default 'wallet')
-/// - `color` (text, default '#10B981')
-/// - `balance` (numeric, default 0)
-/// - `initial_balance` (numeric, default 0)
-/// - `currency` (text, default 'IDR')
-/// - `exclude_from_total` (boolean, default false)
-/// - `sort_order` (integer, default 0)
-/// - `created_at` (timestamptz, auto-generated)
-/// - `updated_at` (timestamptz, auto-generated)
+/// Merepresentasikan satu record dari tabel `public.wallets`.
+/// `balance` bersifat read-only di sisi Flutter karena hanya diubah
+/// melalui trigger dari tabel `transactions`.
 class WalletModel {
-  /// Primary key (uuid).
-  final String id;
-
-  /// ID user pemilik wallet (FK → auth.users).
-  final String userId;
-
-  /// Nama wallet, misal: Cash, BCA, Jago.
-  final String name;
-
-  /// Nama ikon FontAwesome (tanpa prefix). Default: `wallet`.
-  final String icon;
-
-  /// Hex color string (#RRGGBB). Default: `#10B981`.
-  final String color;
-
-  /// Saldo terkini. Dikelola otomatis oleh trigger database.
-  final double balance;
-
-  /// Saldo awal yang diinput saat pembuatan wallet.
-  final double initialBalance;
-
-  /// Kode mata uang, default 'IDR'.
-  final String currency;
-
-  /// Jika `true`, saldo wallet ini tidak dihitung ke total keseluruhan.
-  final bool excludeFromTotal;
-
-  /// Urutan tampilan wallet. Default: 0.
-  final int sortOrder;
-
-  /// Waktu pembuatan wallet.
-  final DateTime createdAt;
-
-  /// Waktu terakhir diperbarui.
-  final DateTime updatedAt;
-
   const WalletModel({
     required this.id,
     required this.userId,
     required this.name,
-    this.icon = 'wallet',
-    this.color = '#10B981',
+    required this.icon,
+    required this.color,
     required this.balance,
-    this.initialBalance = 0,
-    this.currency = 'IDR',
-    this.excludeFromTotal = false,
-    this.sortOrder = 0,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.initialBalance,
+    required this.currency,
+    required this.excludeFromTotal,
+    required this.sortOrder,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  /// Membuat instance baru dengan nilai tertentu yang di-override.
+  final String id;
+  final String userId;
+  final String name;
+  final String icon;
+  final String color;
+
+  /// Saldo terkini — hanya berubah lewat trigger `update_wallet_balance`.
+  final double balance;
+
+  /// Saldo saat wallet pertama dibuat. Immutable setelah create.
+  final double initialBalance;
+
+  /// Currency (MVP: selalu 'IDR').
+  final String currency;
+
+  /// Jika `true`, saldo wallet tidak dihitung di total dashboard.
+  final bool excludeFromTotal;
+
+  final int sortOrder;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  // ───────────────── Factory ─────────────────
+
+  factory WalletModel.fromMap(Map<String, dynamic> map) {
+    return WalletModel(
+      id: map['id'] as String,
+      userId: map['user_id'] as String,
+      name: map['name'] as String,
+      icon: map['icon'] as String,
+      color: map['color'] as String,
+      balance: _toDouble(map['balance']),
+      initialBalance: _toDouble(map['initial_balance']),
+      currency: (map['currency'] as String?) ?? 'IDR',
+      excludeFromTotal: (map['exclude_from_total'] as bool?) ?? false,
+      sortOrder: (map['sort_order'] as int?) ?? 0,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String)
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'] as String)
+          : null,
+    );
+  }
+
+  /// Map untuk INSERT — tanpa id, balance, created_at (server‐generated).
+  Map<String, dynamic> toInsertMap() {
+    return {
+      'user_id': userId,
+      'name': name,
+      'icon': icon,
+      'color': color,
+      'balance': initialBalance,
+      'initial_balance': initialBalance,
+      'currency': currency,
+      'exclude_from_total': excludeFromTotal,
+      'sort_order': sortOrder,
+    };
+  }
+
+  /// Map untuk UPDATE — hanya field yang boleh diubah user.
+  Map<String, dynamic> toUpdateMap() {
+    return {
+      'name': name,
+      'icon': icon,
+      'color': color,
+      'exclude_from_total': excludeFromTotal,
+      'sort_order': sortOrder,
+    };
+  }
+
+  /// Map lengkap untuk local cache (Hive).
+  Map<String, dynamic> toFullMap() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'name': name,
+      'icon': icon,
+      'color': color,
+      'balance': balance,
+      'initial_balance': initialBalance,
+      'currency': currency,
+      'exclude_from_total': excludeFromTotal,
+      'sort_order': sortOrder,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+
   WalletModel copyWith({
     String? id,
     String? userId,
@@ -96,56 +138,11 @@ class WalletModel {
     );
   }
 
-  /// Konversi dari `Map` (response Supabase) ke [WalletModel].
-  factory WalletModel.fromMap(Map<String, dynamic> map) {
-    return WalletModel(
-      id: map['id'] as String,
-      userId: map['user_id'] as String,
-      name: map['name'] as String,
-      icon: (map['icon'] as String?) ?? 'wallet',
-      color: (map['color'] as String?) ?? '#10B981',
-      balance: (map['balance'] as num).toDouble(),
-      initialBalance: (map['initial_balance'] as num?)?.toDouble() ?? 0,
-      currency: (map['currency'] as String?) ?? 'IDR',
-      excludeFromTotal: (map['exclude_from_total'] as bool?) ?? false,
-      sortOrder: (map['sort_order'] as int?) ?? 0,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      updatedAt: DateTime.parse(map['updated_at'] as String),
-    );
-  }
-
-  /// Konversi ke `Map` untuk dikirim ke Supabase.
-  ///
-  /// Field `id`, `created_at`, `updated_at` tidak disertakan
-  /// karena di-generate otomatis oleh database.
-  Map<String, dynamic> toMap() {
-    return {
-      'user_id': userId,
-      'name': name,
-      'icon': icon,
-      'color': color,
-      'balance': balance,
-      'initial_balance': initialBalance,
-      'currency': currency,
-      'exclude_from_total': excludeFromTotal,
-      'sort_order': sortOrder,
-    };
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WalletModel &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
-
-  @override
-  int get hashCode => id.hashCode;
-
-  @override
-  String toString() {
-    return 'WalletModel(id: $id, name: $name, icon: $icon, color: $color, '
-        'balance: $balance, initialBalance: $initialBalance, '
-        'currency: $currency, excludeFromTotal: $excludeFromTotal)';
+  /// Helper: konversi numeric dari Supabase (bisa int atau double) ke double.
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    return double.tryParse(value.toString()) ?? 0;
   }
 }

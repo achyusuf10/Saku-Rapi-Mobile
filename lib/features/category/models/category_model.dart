@@ -1,116 +1,134 @@
-/// Model data untuk tabel `categories` di Supabase, diperkaya
-/// dengan computed field [children] untuk hierarki parent-child.
+/// Model data kategori dari tabel `public.categories`.
 ///
-/// Kolom DB:
-/// - `user_id` nullable — NULL = kategori default sistem
-/// - `type` CHECK: 'income' | 'expense' | 'system'
-/// - `parent_id` nullable — NULL = kategori utama (parent)
-/// - `is_default` — true = kategori bawaan (tidak bisa dihapus)
-/// - `is_hidden` — true = disembunyikan dari UI picker
+/// Mendukung hierarki parent-child max 2 level.
+/// Field `type` berupa [CategoryType] (income, expense, system).
+/// Kategori `is_default` tidak boleh dihapus, hanya bisa di-hide.
 class CategoryModel {
   const CategoryModel({
     required this.id,
+    required this.userId,
     required this.name,
     required this.icon,
     required this.color,
     required this.type,
-    required this.isDefault,
-    required this.isHidden,
-    required this.sortOrder,
-    required this.createdAt,
-    this.userId,
     this.parentId,
+    this.isDefault = false,
+    this.isHidden = false,
+    this.sortOrder = 0,
+    this.createdAt,
+    this.updatedAt,
     this.children = const [],
   });
 
-  /// Primary key (uuid).
+  /// UUID primary key.
   final String id;
 
-  /// ID user pemilik. NULL jika kategori default sistem.
+  /// UUID pemilik. Null untuk kategori system global.
   final String? userId;
 
-  /// Nama kategori (misal: Makanan, Gaji, Transportasi).
+  /// Nama tampilan kategori.
   final String name;
 
-  /// Nama ikon FontAwesome (tanpa prefix).
+  /// Nama icon FontAwesome (misal: 'house', 'car').
   final String icon;
 
-  /// Hex color string (#RRGGBB).
+  /// Hex color string (misal: '#F59E0B').
   final String color;
 
-  /// Tipe: 'income', 'expense', atau 'system'.
-  final String type;
+  /// Tipe kategori: income, expense, atau system.
+  final CategoryType type;
 
-  /// ID kategori induk (nullable, untuk sub-kategori).
+  /// UUID parent untuk child category (max 2 level).
   final String? parentId;
 
-  /// `true` = kategori default bawaan sistem.
+  /// Apakah kategori bawaan (seed). Tidak boleh dihapus.
   final bool isDefault;
 
-  /// `true` = disembunyikan dari UI.
+  /// Apakah kategori disembunyikan oleh user.
   final bool isHidden;
 
-  /// Urutan tampilan.
+  /// Urutan tampil.
   final int sortOrder;
 
-  /// Waktu pembuatan.
-  final DateTime createdAt;
+  /// Tanggal dibuat.
+  final DateTime? createdAt;
 
-  /// Computed: daftar sub-kategori (children). Diisi di repository,
-  /// bukan dari DB langsung.
+  /// Tanggal diupdate.
+  final DateTime? updatedAt;
+
+  /// Daftar child categories (diisi saat grouping lokal).
   final List<CategoryModel> children;
 
-  /// `true` jika kategori ini adalah sub-kategori (punya parent).
+  /// Apakah kategori ini parent (level 1).
+  bool get isParent => parentId == null;
+
+  /// Apakah kategori ini child (level 2).
   bool get isChild => parentId != null;
 
-  /// `true` jika kategori ini adalah parent (punya children).
-  bool get isParent => children.isNotEmpty;
-
+  /// Membuat [CategoryModel] dari Map (hasil query Supabase).
   factory CategoryModel.fromMap(Map<String, dynamic> map) {
     return CategoryModel(
       id: map['id'] as String,
       userId: map['user_id'] as String?,
       name: map['name'] as String,
-      icon: map['icon'] as String? ?? 'tag',
-      color: map['color'] as String? ?? '#6B7280',
-      type: map['type'] as String,
+      icon: map['icon'] as String,
+      color: map['color'] as String,
+      type: CategoryType.fromString(map['type'] as String),
       parentId: map['parent_id'] as String?,
       isDefault: map['is_default'] as bool? ?? false,
       isHidden: map['is_hidden'] as bool? ?? false,
       sortOrder: map['sort_order'] as int? ?? 0,
-      createdAt: DateTime.parse(map['created_at'] as String),
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String)
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'] as String)
+          : null,
     );
   }
 
-  /// Konversi ke Map untuk dikirim ke Supabase.
+  /// Konversi ke Map untuk operasi insert/update ke Supabase.
   ///
-  /// `id`, `created_at`, dan `children` diabaikan (dikelola DB / computed).
+  /// Tidak menyertakan `id` dan `created_at` karena di-generate server.
+  /// Tidak menyertakan `children` karena hanya untuk UI lokal.
   Map<String, dynamic> toMap() {
     return {
-      if (userId != null) 'user_id': userId,
+      'user_id': userId,
       'name': name,
       'icon': icon,
       'color': color,
-      'type': type,
-      if (parentId != null) 'parent_id': parentId,
+      'type': type.value,
+      'parent_id': parentId,
       'is_default': isDefault,
       'is_hidden': isHidden,
       'sort_order': sortOrder,
     };
   }
 
+  /// Konversi ke Map lengkap termasuk `id` (untuk cache lokal).
+  Map<String, dynamic> toFullMap() {
+    return {
+      'id': id,
+      ...toMap(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+
+  /// Membuat salinan [CategoryModel] dengan field yang diubah.
   CategoryModel copyWith({
     String? id,
     String? userId,
     String? name,
     String? icon,
     String? color,
-    String? type,
+    CategoryType? type,
     String? parentId,
     bool? isDefault,
     bool? isHidden,
     int? sortOrder,
     DateTime? createdAt,
+    DateTime? updatedAt,
     List<CategoryModel>? children,
   }) {
     return CategoryModel(
@@ -125,7 +143,48 @@ class CategoryModel {
       isHidden: isHidden ?? this.isHidden,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       children: children ?? this.children,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'CategoryModel(id: $id, name: $name, type: ${type.value}, '
+        'parentId: $parentId, children: ${children.length})';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CategoryModel && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// Tipe kategori yang didukung oleh SakuRapi.
+enum CategoryType {
+  /// Kategori pemasukan.
+  income('income'),
+
+  /// Kategori pengeluaran.
+  expense('expense'),
+
+  /// Kategori system (penyesuaian saldo, transfer aset).
+  system('system');
+
+  const CategoryType(this.value);
+
+  /// Nilai string yang disimpan di database.
+  final String value;
+
+  /// Membuat [CategoryType] dari string database.
+  factory CategoryType.fromString(String value) {
+    return CategoryType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => CategoryType.expense,
     );
   }
 }

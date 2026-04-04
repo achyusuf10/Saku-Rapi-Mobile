@@ -43,15 +43,28 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "app.saku_rapi.com"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
+    flavorDimensions += "env"
+
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "SakuRapi - Dev")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "SakuRapi")
+        }
+    }
+
     signingConfigs{
         create("release") {
             keyAlias = keyProperties["keyAlias"] as String?
@@ -69,11 +82,15 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             applicationVariants.all {
                 val variant = this
                 outputs.all {
                     val output = this
-                    val project = "MyLifte-"
+                    val project = "SakuRapi-"
                     val SEP = "_"
                     val PLUS = "+"
                     val buildType = variant.buildType.name

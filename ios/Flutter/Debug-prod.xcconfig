@@ -1,0 +1,2 @@
+#include "Debug.xcconfig"
+APP_DISPLAY_NAME=SakuRapi
