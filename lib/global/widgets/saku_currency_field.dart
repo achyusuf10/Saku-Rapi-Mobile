@@ -130,6 +130,9 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
   }
 
   void _onFocusChanged() {
+    // Safety check: jangan akses controller yang sudah di-dispose
+    if (_controller.isDisposed) return;
+
     if (_focusNode.hasFocus) {
       _controller.setActive();
     } else {
@@ -160,8 +163,16 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
 
   @override
   void dispose() {
+    // PENTING: Clear active dan evaluate SEBELUM dispose
+    // untuk mencegah keyboard widget akses disposed controller
+    if (!_controller.isDisposed) {
+      // Auto-evaluate expression sebelum dispose
+      if (_controller.hasOperator) {
+        _controller.evaluate();
+      }
+      _controller.clearActive();
+    }
     _focusNode.removeListener(_onFocusChanged);
-    _controller.clearActive();
     if (_isInternalFocusNode) {
       _focusNode.dispose();
     }
@@ -175,22 +186,39 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: TextStyleConstants.label1.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
+    // Wrap dengan PopScope untuk intercept back button ketika keyboard aktif
+    return ListenableBuilder(
+      listenable: _focusNode,
+      builder: (context, child) {
+        return PopScope(
+          // Block back jika field ini fokus (keyboard aktif)
+          canPop: !_focusNode.hasFocus,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop && _focusNode.hasFocus) {
+              // Close keyboard dengan unfocus, jangan close dialog
+              _focusNode.unfocus();
+            }
+          },
+          child: child!,
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.label != null) ...[
+            Text(
+              widget.label!,
+              style: TextStyleConstants.label1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
             ),
-          ),
-          SizedBox(height: 6.h),
+            SizedBox(height: 6.h),
+          ],
+          _buildCalculatorField(context, colors),
         ],
-        _buildCalculatorField(context, colors),
-      ],
+      ),
     );
   }
 

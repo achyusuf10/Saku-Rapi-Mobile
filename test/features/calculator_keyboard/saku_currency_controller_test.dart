@@ -359,5 +359,41 @@ void main() {
         expect(controller.hasOperator, true);
       });
     });
+
+    group('Dispose Safety', () {
+      test('isDisposed should be false initially', () {
+        final controller = SakuCurrencyController(initialValue: 1000);
+        expect(controller.isDisposed, false);
+      });
+
+      test('isDisposed should be true after dispose', () {
+        final controller = SakuCurrencyController(initialValue: 1000);
+        controller.dispose();
+        expect(controller.isDisposed, true);
+      });
+
+      test('hasOperator should return false after dispose', () {
+        final controller = SakuCurrencyController();
+        controller.setRawText('1.000 + 500');
+        expect(controller.hasOperator, true);
+        controller.dispose();
+        expect(controller.hasOperator, false);
+      });
+
+      test('numericValue should return 0 after dispose', () {
+        final controller = SakuCurrencyController(initialValue: 1000);
+        expect(controller.numericValue, 1000.0);
+        controller.dispose();
+        expect(controller.numericValue, 0.0);
+      });
+
+      test('should clear active controller on dispose', () {
+        final controller = SakuCurrencyController(initialValue: 1000);
+        controller.setActive();
+        expect(SakuCurrencyController.activeController.value, controller);
+        controller.dispose();
+        expect(SakuCurrencyController.activeController.value, isNull);
+      });
+    });
   });
 }
