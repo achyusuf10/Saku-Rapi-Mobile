@@ -35,6 +35,11 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
       if (status == InvestmentStatus.initial) {
         ref.read(investmentControllerProvider.notifier).loadDashboard();
       }
+      // Load semua harga dari database (gold + bitcoin)
+      final pricesStatus = ref.read(investmentPricesProvider).status;
+      if (pricesStatus == PricesStatus.initial) {
+        ref.read(investmentPricesProvider.notifier).loadPrices();
+      }
     });
   }
 
@@ -47,6 +52,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     ref.listen<int>(currentTabIndexProvider, (prev, next) {
       if (next == _investmentTabIndex && prev != _investmentTabIndex) {
         ref.read(investmentControllerProvider.notifier).loadDashboard();
+        ref.read(investmentPricesProvider.notifier).loadPrices();
       }
     });
 
@@ -95,8 +101,12 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
 
   Widget _buildEmptyState(dynamic l10n) {
     return RefreshIndicator(
-      onRefresh: () =>
+      onRefresh: () async {
+        await Future.wait([
           ref.read(investmentControllerProvider.notifier).loadDashboard(),
+          ref.read(investmentPricesProvider.notifier).loadPrices(),
+        ]);
+      },
       child: ListView(
         children: [
           SizedBox(height: 80.h),
@@ -122,8 +132,12 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     final grouped = state.groupedActiveAssets;
 
     return RefreshIndicator(
-      onRefresh: () =>
+      onRefresh: () async {
+        await Future.wait([
           ref.read(investmentControllerProvider.notifier).loadDashboard(),
+          ref.read(investmentPricesProvider.notifier).loadPrices(),
+        ]);
+      },
       child: ListView(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         children: [
@@ -159,9 +173,16 @@ class _PortfolioSummaryCard extends ConsumerWidget {
     final colors = context.colors;
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final totalValue = ref.watch(investmentTotalValueProvider);
     final totalInvested = ref.watch(investmentTotalInvestedProvider);
+
+    // Watch prices state untuk loading indicator
+    final pricesState = ref.watch(investmentPricesProvider);
+    final isLoading = pricesState.isLoading;
+
+    // Watch sync providers (sudah dihitung dgn harga efektif)
+    final totalValue = ref.watch(investmentTotalValueProvider);
     final pnl = ref.watch(investmentProfitLossProvider);
+
     final isProfit = pnl >= 0;
     final pnlPercent = totalInvested > 0 ? ((pnl / totalInvested) * 100) : 0.0;
 
@@ -174,13 +195,13 @@ class _PortfolioSummaryCard extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [const Color(0xFF1E3A5F), const Color(0xFF2563EB)]
+              ? [const Color(0xFF065F46), const Color(0xFF047857)]
               : [colors.primaryDark, colors.primary],
         ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? const Color(0xFF1E3A5F).withValues(alpha: 0.4)
+                ? const Color(0xFF065F46).withValues(alpha: 0.4)
                 : colors.primary.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
@@ -208,14 +229,26 @@ class _PortfolioSummaryCard extends ConsumerWidget {
             ],
           ),
           SizedBox(height: 8.h),
-          // Total value
-          Text(
-            totalValue.toCurrency(),
-            style: TextStyleConstants.h4.copyWith(
-              color: colors.onPrimary,
-              fontWeight: FontWeight.w700,
+          // Total value (with loading indicator)
+          if (isLoading)
+            SizedBox(
+              height: 32.h,
+              width: 150.w,
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+            )
+          else
+            Text(
+              totalValue.toCurrency(),
+              style: TextStyleConstants.h4.copyWith(
+                color: colors.onPrimary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
           SizedBox(height: 12.h),
           // P&L badge
           Container(
@@ -237,15 +270,27 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                       : const Color(0xFFFCA5A5),
                 ),
                 SizedBox(width: 6.w),
-                Text(
-                  '${isProfit ? '+' : ''}${pnl.toCurrency()} (${pnlPercent.toStringAsFixed(1)}%)',
-                  style: TextStyleConstants.label2.copyWith(
-                    color: isProfit
-                        ? const Color(0xFF86EFAC)
-                        : const Color(0xFFFCA5A5),
-                    fontWeight: FontWeight.w600,
+                if (isLoading)
+                  SizedBox(
+                    width: 80.w,
+                    height: 14.h,
+                    child: LinearProgressIndicator(
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    '${isProfit ? '+' : ''}${pnl.toCurrency()} (${pnlPercent.toStringAsFixed(1)}%)',
+                    style: TextStyleConstants.label2.copyWith(
+                      color: isProfit
+                          ? const Color(0xFF86EFAC)
+                          : const Color(0xFFFCA5A5),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -285,15 +330,27 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                       ),
                     ),
                     SizedBox(height: 2.h),
-                    Text(
-                      '${isProfit ? '+' : ''}${pnl.toCurrency()}',
-                      style: TextStyleConstants.b2.copyWith(
-                        color: isProfit
-                            ? const Color(0xFF86EFAC)
-                            : const Color(0xFFFCA5A5),
-                        fontWeight: FontWeight.w600,
+                    if (isLoading)
+                      SizedBox(
+                        width: 80.w,
+                        height: 14.h,
+                        child: LinearProgressIndicator(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        '${isProfit ? '+' : ''}${pnl.toCurrency()}',
+                        style: TextStyleConstants.b2.copyWith(
+                          color: isProfit
+                              ? const Color(0xFF86EFAC)
+                              : const Color(0xFFFCA5A5),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -351,7 +408,7 @@ class _SectionHeader extends StatelessWidget {
 
 // ─── Asset List Item ────────────────────────────────────
 
-class _AssetListItem extends StatelessWidget {
+class _AssetListItem extends ConsumerWidget {
   const _AssetListItem({required this.asset});
   final InvestmentAssetModel asset;
 
@@ -377,13 +434,40 @@ class _AssetListItem extends StatelessWidget {
     }
   }
 
+  /// Format price source label untuk ditampilkan
+  String _priceSourceLabel(String priceSource) {
+    switch (priceSource) {
+      case 'antaremas':
+        return 'antaremas.com';
+      case 'logammulia':
+        return 'logammulia.com';
+      case 'indodax':
+        return 'indodax.com';
+      case 'coingecko':
+        return 'coingecko.com';
+      case 'manual':
+        return 'Manual';
+      default:
+        return priceSource;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final pnl = asset.profitLoss;
-    final isProfit = pnl >= 0;
-    final pnlPercent = asset.profitLossPercent * 100;
     final typeColor = _typeColor(asset.type, colors);
+
+    // Ambil harga efektif dari prices state (sync)
+    final pricesState = ref.watch(investmentPricesProvider);
+    final effectivePrice = pricesState.getEffectivePrice(asset);
+
+    // Hitung nilai & PnL dengan harga efektif
+    final currentValue = asset.totalUnits * effectivePrice;
+    final pnl = currentValue - asset.totalInvested;
+    final isProfit = pnl >= 0;
+    final pnlPercent = asset.totalInvested > 0
+        ? (pnl / asset.totalInvested) * 100
+        : 0.0;
 
     return SakuCard(
       onTap: () {
@@ -421,11 +505,33 @@ class _AssetListItem extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 2.h),
-                Text(
-                  '${asset.totalUnits.toStringAsFixed(asset.type == InvestmentType.bitcoin ? 8 : 2)} ${asset.unitLabel}',
-                  style: TextStyleConstants.label2.copyWith(
-                    color: colors.textSecondary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${asset.totalUnits.toStringAsFixed(asset.type == InvestmentType.bitcoin ? 8 : 2)} ${asset.unitLabel}',
+                      style: TextStyleConstants.label2.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 4.w,
+                        vertical: 1.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.textSecondary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Text(
+                        _priceSourceLabel(asset.priceSource),
+                        style: TextStyleConstants.label3.copyWith(
+                          color: colors.textSecondary,
+                          fontSize: 9.sp,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -434,7 +540,7 @@ class _AssetListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                asset.currentValue.toCurrency(),
+                currentValue.toCurrency(),
                 style: TextStyleConstants.b2.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colors.textPrimary,

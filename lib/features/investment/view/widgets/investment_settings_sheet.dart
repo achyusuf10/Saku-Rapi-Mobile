@@ -113,17 +113,22 @@ class _InvestmentSettingsSheetState
             ),
             SizedBox(height: 16.h),
 
-            // ─── Current Price ───
-            SakuCurrencyField(
-              controller: _priceController,
-              label: l10n.investmentSettingsCurrentPrice,
-            ),
-            SizedBox(height: 16.h),
-
             // ─── Price Source (Gold & Bitcoin only, PRD §3.5) ───
+            // Tampilkan SEBELUM field current price agar logika show/hide benar
             if (_asset.type == InvestmentType.gold ||
                 _asset.type == InvestmentType.bitcoin) ...[
               _buildPriceSourceSection(),
+              SizedBox(height: 16.h),
+            ],
+
+            // ─── Current Price (hanya untuk manual atau custom) ───
+            // Jika price source bukan manual, harga akan diambil dari database
+            if (_selectedPriceSource == 'manual' ||
+                _asset.type == InvestmentType.custom) ...[
+              SakuCurrencyField(
+                controller: _priceController,
+                label: l10n.investmentSettingsCurrentPrice,
+              ),
               SizedBox(height: 16.h),
             ],
 
@@ -258,12 +263,21 @@ class _InvestmentSettingsSheetState
       }
     }
 
+    // Hanya update currentPrice jika priceSource adalah manual atau custom type
+    // Untuk gold/bitcoin dengan priceSource non-manual, harga diambil dari DB
+    final newPriceSource = _selectedPriceSource ?? _asset.priceSource;
+    final shouldUpdatePrice =
+        newPriceSource == 'manual' || _asset.type == InvestmentType.custom;
+    final newPrice = shouldUpdatePrice
+        ? _priceController.numericValue
+        : _asset.currentPrice;
+
     final updated = _asset.copyWith(
       name: _nameController.text.trim(),
-      currentPrice: _priceController.numericValue,
+      currentPrice: newPrice,
       customCategoryId: categoryId,
       unitLabel: unitLabel,
-      priceSource: _selectedPriceSource ?? _asset.priceSource,
+      priceSource: newPriceSource,
     );
 
     try {

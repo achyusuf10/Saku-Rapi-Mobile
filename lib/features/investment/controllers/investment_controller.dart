@@ -25,11 +25,25 @@ final investmentControllerProvider =
       return InvestmentController(repository);
     });
 
-/// Total portofolio (semua aset aktif).
+/// Centralized prices controller - load semua harga sekaligus.
+final investmentPricesProvider =
+    StateNotifierProvider<InvestmentPricesController, InvestmentPricesState>((
+      ref,
+    ) {
+      final repository = ref.watch(investmentRepositoryProvider);
+      return InvestmentPricesController(repository);
+    });
+
+/// Total portofolio dengan harga efektif (sync, dari prices controller).
 final investmentTotalValueProvider = Provider<double>((ref) {
   final state = ref.watch(investmentControllerProvider);
+  final prices = ref.watch(investmentPricesProvider);
   if (state.status != InvestmentStatus.loaded) return 0;
-  return state.activeAssets.fold(0.0, (sum, a) => sum + a.currentValue);
+
+  return state.activeAssets.fold(0.0, (sum, asset) {
+    final effectivePrice = prices.getEffectivePrice(asset);
+    return sum + (asset.totalUnits * effectivePrice);
+  });
 });
 
 /// Total modal (semua aset aktif).
@@ -92,25 +106,134 @@ final customAssetCategoriesProvider =
       return CustomAssetCategoriesController(repository);
     });
 
-/// Harga emas terbaru (by source).
-final goldPriceProvider = FutureProvider.family<GoldPriceModel?, String>((
-  ref,
-  source,
-) async {
-  final repo = ref.watch(investmentRepositoryProvider);
-  final result = await repo.getLatestGoldPrice(source);
-  return result.isSuccess() ? result.dataSuccess() : null;
-});
+// ═══════════════════════════════════════════════════════════════
+// PRICES STATE & CONTROLLER
+// ═══════════════════════════════════════════════════════════════
 
-/// Harga Bitcoin terbaru (by source).
-final bitcoinPriceProvider = FutureProvider.family<BitcoinPriceModel?, String>((
-  ref,
-  source,
-) async {
-  final repo = ref.watch(investmentRepositoryProvider);
-  final result = await repo.getLatestBitcoinPrice(source);
-  return result.isSuccess() ? result.dataSuccess() : null;
-});
+enum PricesStatus { initial, loading, loaded, error }
+
+/// State untuk menyimpan semua harga dari database.
+class InvestmentPricesState {
+  const InvestmentPricesState({
+    this.status = PricesStatus.initial,
+    this.goldPrices = const {},
+    this.bitcoinPrices = const {},
+    this.errorMessage,
+  });
+
+  final PricesStatus status;
+
+  /// Map source → GoldPriceModel (antaremas, logammulia)
+  final Map<String, GoldPriceModel> goldPrices;
+
+  /// Map source → BitcoinPriceModel (indodax, coingecko)
+  final Map<String, BitcoinPriceModel> bitcoinPrices;
+
+  final String? errorMessage;
+
+  bool get isLoading => status == PricesStatus.loading;
+  bool get isLoaded => status == PricesStatus.loaded;
+
+  /// Ambil harga emas per gram (buyPrice = harga buyback).
+  double? getGoldPrice(String source) => goldPrices[source]?.buyPrice;
+
+  /// Ambil harga Bitcoin dalam IDR.
+  double? getBitcoinPrice(String source) => bitcoinPrices[source]?.priceIdr;
+
+  /// Ambil harga efektif untuk sebuah aset.
+  double getEffectivePrice(InvestmentAssetModel asset) {
+    // Manual atau custom → gunakan harga tersimpan
+    if (asset.priceSource == 'manual' || asset.type == InvestmentType.custom) {
+      return asset.currentPrice;
+    }
+
+    // Gold → ambil dari goldPrices (buyPrice)
+    if (asset.type == InvestmentType.gold) {
+      return getGoldPrice(asset.priceSource) ?? asset.currentPrice;
+    }
+
+    // Bitcoin → ambil dari bitcoinPrices
+    if (asset.type == InvestmentType.bitcoin) {
+      return getBitcoinPrice(asset.priceSource) ?? asset.currentPrice;
+    }
+
+    return asset.currentPrice;
+  }
+
+  InvestmentPricesState copyWith({
+    PricesStatus? status,
+    Map<String, GoldPriceModel>? goldPrices,
+    Map<String, BitcoinPriceModel>? bitcoinPrices,
+    String? errorMessage,
+  }) {
+    return InvestmentPricesState(
+      status: status ?? this.status,
+      goldPrices: goldPrices ?? this.goldPrices,
+      bitcoinPrices: bitcoinPrices ?? this.bitcoinPrices,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Controller untuk load semua harga sekaligus.
+class InvestmentPricesController extends StateNotifier<InvestmentPricesState> {
+  InvestmentPricesController(this._repository)
+    : super(const InvestmentPricesState());
+
+  final InvestmentRepository _repository;
+
+  /// Load semua harga dari database (gold + bitcoin).
+  Future<void> loadPrices() async {
+    state = state.copyWith(status: PricesStatus.loading);
+
+    try {
+      // Fetch semua harga secara parallel
+      final results = await Future.wait([
+        _repository.getLatestGoldPrice('antaremas'),
+        _repository.getLatestGoldPrice('logammulia'),
+        _repository.getLatestBitcoinPrice('indodax'),
+        _repository.getLatestBitcoinPrice('coingecko'),
+      ]);
+
+      final goldPrices = <String, GoldPriceModel>{};
+      final bitcoinPrices = <String, BitcoinPriceModel>{};
+
+      // Gold prices
+      final antaremas = results[0] as DataState<GoldPriceModel?>;
+      final logammulia = results[1] as DataState<GoldPriceModel?>;
+      if (antaremas.isSuccess() && antaremas.dataSuccess() != null) {
+        goldPrices['antaremas'] = antaremas.dataSuccess()!;
+      }
+      if (logammulia.isSuccess() && logammulia.dataSuccess() != null) {
+        goldPrices['logammulia'] = logammulia.dataSuccess()!;
+      }
+
+      // Bitcoin prices
+      final indodax = results[2] as DataState<BitcoinPriceModel?>;
+      final coingecko = results[3] as DataState<BitcoinPriceModel?>;
+      if (indodax.isSuccess() && indodax.dataSuccess() != null) {
+        bitcoinPrices['indodax'] = indodax.dataSuccess()!;
+      }
+      if (coingecko.isSuccess() && coingecko.dataSuccess() != null) {
+        bitcoinPrices['coingecko'] = coingecko.dataSuccess()!;
+      }
+
+      state = state.copyWith(
+        status: PricesStatus.loaded,
+        goldPrices: goldPrices,
+        bitcoinPrices: bitcoinPrices,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: PricesStatus.error,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  /// Refresh harga.
+  Future<void> refresh() => loadPrices();
+}
 
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD STATE & CONTROLLER

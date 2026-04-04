@@ -45,6 +45,11 @@ class _InvestmentDetailPageState extends ConsumerState<InvestmentDetailPage>
       ref
           .read(investmentTransactionsProvider(_asset.id).notifier)
           .loadTransactions();
+      // Pastikan harga sudah di-load
+      final pricesStatus = ref.read(investmentPricesProvider).status;
+      if (pricesStatus == PricesStatus.initial) {
+        ref.read(investmentPricesProvider.notifier).loadPrices();
+      }
     });
   }
 
@@ -146,9 +151,19 @@ class _AssetSummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final pnl = asset.profitLoss;
-    final isProfit = pnl >= 0;
     final isBtc = asset.type == InvestmentType.bitcoin;
+
+    // Ambil harga efektif dari prices state (sync)
+    final pricesState = ref.watch(investmentPricesProvider);
+    final effectivePrice = pricesState.getEffectivePrice(asset);
+
+    // Hitung nilai & PnL dengan harga efektif
+    final currentValue = asset.totalUnits * effectivePrice;
+    final pnl = currentValue - asset.totalInvested;
+    final isProfit = pnl >= 0;
+    final pnlPercent = asset.totalInvested > 0
+        ? (pnl / asset.totalInvested)
+        : 0.0;
 
     return SakuCard(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -165,7 +180,7 @@ class _AssetSummaryCard extends ConsumerWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            asset.currentValue.toCurrency(),
+            currentValue.toCurrency(),
             style: TextStyleConstants.h6.copyWith(
               fontWeight: FontWeight.w700,
               color: colors.textPrimary,
@@ -182,7 +197,7 @@ class _AssetSummaryCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4.r),
             ),
             child: Text(
-              '${isProfit ? '+' : ''}${pnl.toCurrency()} (${(asset.profitLossPercent * 100).toStringAsFixed(1)}%)',
+              '${isProfit ? '+' : ''}${pnl.toCurrency()} (${(pnlPercent * 100).toStringAsFixed(1)}%)',
               style: TextStyleConstants.label2.copyWith(
                 color: isProfit ? colors.success : colors.error,
                 fontWeight: FontWeight.w600,
@@ -202,7 +217,7 @@ class _AssetSummaryCard extends ConsumerWidget {
             value: asset.avgBuyPrice.toCurrency(),
           ),
           SizedBox(height: 8.h),
-          // Current price with optional edit pencil (PRD §3.2 — Custom only)
+          // Current price with optional edit pencil (PRD §3.2 — manual/custom only)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -216,13 +231,15 @@ class _AssetSummaryCard extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    asset.currentPrice.toCurrency(),
+                    effectivePrice.toCurrency(),
                     style: TextStyleConstants.label1.copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (asset.type == InvestmentType.custom) ...[
+                  // Only show edit for manual price source or custom type
+                  if (asset.priceSource == 'manual' ||
+                      asset.type == InvestmentType.custom) ...[
                     SizedBox(width: 6.w),
                     InkWell(
                       onTap: () => _showEditPriceDialog(context, ref),
