@@ -56,9 +56,11 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
       text:
           '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
     );
-    // Pre-fill sell price with current market price
-    if (_asset.currentPrice > 0) {
-      _priceController.setDoubleValue(_asset.currentPrice);
+    // Pre-fill sell price with effective price from prices controller
+    final pricesState = ref.read(investmentPricesProvider);
+    final effectivePrice = pricesState.getEffectivePrice(_asset);
+    if (effectivePrice > 0) {
+      _priceController.setDoubleValue(effectivePrice);
     }
   }
 

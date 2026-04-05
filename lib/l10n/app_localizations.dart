@@ -3628,6 +3628,12 @@ abstract class AppLocalizations {
   /// **'Total Biaya'**
   String get investmentDetailTotalFee;
 
+  /// No description provided for @investmentPriceLastUpdated.
+  ///
+  /// In id, this message translates to:
+  /// **'Terakhir diperbarui'**
+  String get investmentPriceLastUpdated;
+
   /// No description provided for @investmentDetailTransactions.
   ///
   /// In id, this message translates to:

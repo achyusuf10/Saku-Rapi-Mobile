@@ -1897,6 +1897,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get investmentDetailTotalFee => 'Total Biaya';
 
   @override
+  String get investmentPriceLastUpdated => 'Terakhir diperbarui';
+
+  @override
   String get investmentDetailTransactions => 'Riwayat Transaksi';
 
   @override

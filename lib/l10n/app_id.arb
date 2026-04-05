@@ -919,6 +919,7 @@
   "investmentDetailCurrentValue": "Nilai Saat Ini",
   "investmentDetailProfitLoss": "Keuntungan/Kerugian",
   "investmentDetailTotalFee": "Total Biaya",
+  "investmentPriceLastUpdated": "Terakhir diperbarui",
   "investmentDetailTransactions": "Riwayat Transaksi",
   "investmentDetailBuyHistory": "Riwayat Beli",
   "investmentDetailSellHistory": "Riwayat Jual",

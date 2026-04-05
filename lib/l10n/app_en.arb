@@ -919,6 +919,7 @@
   "investmentDetailCurrentValue": "Current Value",
   "investmentDetailProfitLoss": "Profit/Loss",
   "investmentDetailTotalFee": "Total Fees",
+  "investmentPriceLastUpdated": "Last updated",
   "investmentDetailTransactions": "Transaction History",
   "investmentDetailBuyHistory": "Buy History",
   "investmentDetailSellHistory": "Sell History",

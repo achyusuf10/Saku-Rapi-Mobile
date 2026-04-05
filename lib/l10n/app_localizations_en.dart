@@ -1900,6 +1900,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get investmentDetailTotalFee => 'Total Fees';
 
   @override
+  String get investmentPriceLastUpdated => 'Last updated';
+
+  @override
   String get investmentDetailTransactions => 'Transaction History';
 
   @override

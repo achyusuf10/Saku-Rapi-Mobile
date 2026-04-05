@@ -1141,7 +1141,7 @@ Portfolio investasi dengan 3 jenis aset utama (gold, bitcoin, custom), harga liv
 | `custom_asset_categories` | Kategori aset custom + `unit_label` | Max 3 per user (trigger) |
 | `investment_assets` | Master aset investasi | type CHECK(gold/bitcoin/custom), FK ke gold types & categories |
 | `investment_transactions` | Transaksi beli/jual per aset | direction CHECK(buy/sell), CASCADE delete |
-| `gold_prices` | Cache harga emas dari API | source CHECK(antaremas/logammulia/manual) |
+| `gold_prices` | Cache harga emas dari API (buy_price + sell_price per gram) | source CHECK(antaremas/logammulia), append-only untuk charting historis |
 | `bitcoin_prices` | Cache harga Bitcoin dari API | source UNIQUE untuk UPSERT |
 
 **7 RPC Functions:**
@@ -1155,8 +1155,8 @@ Portfolio investasi dengan 3 jenis aset utama (gold, bitcoin, custom), harga liv
 - `upsert_bitcoin_price` — UPSERT harga Bitcoin per source
 
 **2 Edge Functions:**
-- `gold-price` — Antaremas WordPress + LogamMulia API dengan AI fallback chain (Gemini/Groq)
-- `bitcoin-price` — Indodax + CoinGecko parallel fetch, UPSERT via RPC
+- `gold-price` — Gemini AI Search Grounding untuk antaremas + logammulia, cross-reference harga-emas.org (pg_cron daily 09:00 WIB / 02:00 UTC)
+- `bitcoin-price` — Indodax + CoinGecko parallel fetch, UPSERT via RPC (pg_cron hourly `0 * * * *`)
 
 ### 15.2b. Jenis Aset
 
@@ -1301,6 +1301,7 @@ Form cerdas dengan 3 mode: **create**, **topup**, **edit**.
 - Validasi unit: max = `asset.totalUnits`, min > 0
 - Credit wallet: menggunakan tipe `income` (bukan `transfer_to_asset`)
 - Total = units × pricePerUnit (sell RPC tidak support fee)
+- **Harga jual** pre-filled dengan harga efektif dari prices controller (bukan `asset.currentPrice`)
 - **Catatan:** Fee field dihapus dari sell sheet karena `sell_investment` RPC tidak memiliki parameter fee
 
 ### 15.4c. Settings Sheet (BottomSheet)
@@ -1343,29 +1344,39 @@ Menampilkan aset yang sudah dijual seluruhnya (totalUnits = 0, isActive = false)
 
 ### 15.5. Price Service
 
+**Centralized Price Controller (`InvestmentPricesController`):**
+- Load SEMUA harga sekaligus saat masuk halaman investasi (parallel fetch 4 source)
+- State menyimpan `Map<String, GoldPriceModel>` dan `Map<String, BitcoinPriceModel>`
+- Method `getEffectivePrice(asset)` → akses sync, fallback ke `asset.currentPrice` jika data belum ada
+- Loading indicator saat harga sedang di-fetch
+- Auto-refresh saat tab investasi dikunjungi ulang / pull-to-refresh
+
 ```mermaid
 flowchart TD
-    subgraph Bitcoin["Bitcoin Price"]
+    subgraph Controller["InvestmentPricesController"]
+        LOAD["loadPrices()"]
+        LOAD --> P1["Future.wait 4 source"]
+        P1 --> STATE["State: goldPrices + bitcoinPrices"]
+        STATE --> SYNC["getEffectivePrice(asset)\n→ sync access"]
+    end
+
+    subgraph Bitcoin["Bitcoin Price (Cron: setiap jam)"]
         BTC1["Edge Function\nbitcoin-price"]
         BTC2["Indodax + CoinGecko\nparallel fetch"]
         BTC3["UPSERT via RPC\nupsert_bitcoin_price"]
-        BTC4["Hive cache fallback\n(offline)"]
         BTC1 --> BTC2
         BTC2 -->|"Success"| BTC3
-        BTC2 -->|"Fail"| BTC4
     end
 
-    subgraph Gold["Gold Price"]
+    subgraph Gold["Gold Price (Cron: 09:00 WIB)"]
         G1["Edge Function\ngold-price"]
-        G2["Antaremas WordPress\n+ LogamMulia API"]
-        G3["AI fallback chain\n(Gemini → Groq)"]
-        G4["UPSERT gold_prices\ntabel"]
-        G5["Hive fallback\n(offline only)"]
+        G2["Gemini AI Search\nGrinding (antaremas\n+ logammulia)"]
+        G3["harga-emas.org\nscraping (cross-ref)"]
+        G4["INSERT gold_prices\n(append for history)"]
         G1 --> G2
-        G2 -->|"Fail"| G3
+        G1 --> G3
         G2 -->|"Success"| G4
         G3 -->|"Success"| G4
-        G1 -->|"All fail"| G5
     end
 
     subgraph Manual["Manual Price"]
@@ -1377,6 +1388,11 @@ flowchart TD
         C1["Manual dari\ninvestment_assets.current_price"]
     end
 ```
+
+**Last Updated Indicator:**
+- Tampilkan `fetched_at` timestamp di bawah harga untuk aset non-manual
+- Format: "Terakhir diperbarui: DD MMM HH:mm"
+- Agar user menyadari jika data harga sedang lambat tersinkronisasi
 
 ### 15.6. Dart Architecture (3-File Pattern)
 
@@ -1398,7 +1414,8 @@ flowchart TD
 | Provider | Tipe | Deskripsi |
 |---|---|---|
 | `investmentControllerProvider` | StateNotifier | Dashboard state + CRUD |
-| `investmentTotalValueProvider` | Computed | Sum(aset × current price) |
+| `investmentPricesProvider` | StateNotifier | Centralized prices: load semua harga (gold+bitcoin) sekaligus, akses sync via `getEffectivePrice(asset)` |
+| `investmentTotalValueProvider` | Computed | Sum(aset × effective price dari prices controller) |
 | `investmentTotalInvestedProvider` | Computed | Sum(total invested) |
 | `investmentProfitLossProvider` | Computed | Total value − invested |
 | `activeInvestmentAssetsProvider` | Computed | Filter isActive=true |
@@ -1406,8 +1423,6 @@ flowchart TD
 | `investmentTransactionsProvider(assetId)` | Family StateNotifier | Transaksi per aset (buy/sell tabs) |
 | `customGoldTypesProvider` | StateNotifier | CRUD custom gold types |
 | `customAssetCategoriesProvider` | StateNotifier | CRUD custom categories |
-| `goldPriceProvider(source)` | FutureProvider.family | Harga emas by source |
-| `bitcoinPriceProvider(source)` | FutureProvider.family | Harga BTC by source |
 
 ### 15.7. Asset Type Management
 
@@ -1435,6 +1450,8 @@ flowchart TD
 - [x] Custom asset categories (max 3) dengan unit_label per kategori
 - [x] Detail page dengan tab pembelian/penjualan
 - [x] Sell sheet dengan validasi max unit dan credit wallet toggle (tanpa fee — RPC tidak support)
+- [x] Sell sheet toggle OFF = hanya catat histori sell di `investment_transactions`, TIDAK ada interaksi wallet
+- [x] Sell sheet harga pre-filled dari harga efektif (prices controller), BUKAN `asset.currentPrice`
 - [x] Settings sheet untuk edit metadata aset + delete konfirmasi dengan checkbox revert wallet
 - [x] Inactive page untuk aset yang sudah dijual seluruhnya
 - [x] CRUD dialog untuk custom gold types dan custom asset categories
@@ -1454,6 +1471,18 @@ flowchart TD
 - [x] **P&L percentage badge** di asset list items
 - [x] **Asset type icon badge** di dashboard list (amber gold, orange bitcoin, primary custom)
 - [x] **Settings sheet** mendukung edit gold type dan price source per aset
+- [x] **Terakhir diperbarui** timestamp di detail page untuk aset non-manual (agar user tahu data harga sedang lambat sinkron)
+
+### 15.8b. Edge Cases Investasi
+
+| # | Kasus | Solusi |
+|---|---|---|
+| 1 | **Edit/delete beli → unit negatif** | RPC cek `SUM(buy) - SUM(sell) ≥ 0` sebelum commit. Jika tidak, ROLLBACK + error ke Flutter |
+| 2 | **API harga timeout/error** | Client baca `Last Known Price` dari DB. UI tampilkan "Terakhir diperbarui: [Timestamp]" |
+| 3 | **Revert sell → wallet saldo kurang** | Sistem izinkan saldo wallet negatif (*Negative Balance Allowance*) untuk integritas data |
+| 4 | **Jual semua unit (sell all)** | RPC set `is_active = false`. Aset pindah ke "Aset Tidak Aktif". Top up → `is_active = true` |
+| 5 | **Satuan custom berubah** | UI baca dari `custom_asset_categories.unit_label`, BUKAN hardcode di transaksi |
+| 6 | **Bitcoin charting historis** | Tabel `bitcoin_prices` hanya 2 row (UPSERT). Untuk chart historis di masa depan, gunakan public kline API endpoint (Indodax/CoinGecko) |
 
 ### 15.9. UI/UX & Global Widget Usage
 

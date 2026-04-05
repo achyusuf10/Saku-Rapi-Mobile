@@ -160,6 +160,20 @@ class InvestmentPricesState {
     return asset.currentPrice;
   }
 
+  /// Ambil timestamp terakhir harga di-fetch untuk aset non-manual.
+  DateTime? getPriceFetchedAt(InvestmentAssetModel asset) {
+    if (asset.priceSource == 'manual' || asset.type == InvestmentType.custom) {
+      return null;
+    }
+    if (asset.type == InvestmentType.gold) {
+      return goldPrices[asset.priceSource]?.fetchedAt;
+    }
+    if (asset.type == InvestmentType.bitcoin) {
+      return bitcoinPrices[asset.priceSource]?.fetchedAt;
+    }
+    return null;
+  }
+
   InvestmentPricesState copyWith({
     PricesStatus? status,
     Map<String, GoldPriceModel>? goldPrices,

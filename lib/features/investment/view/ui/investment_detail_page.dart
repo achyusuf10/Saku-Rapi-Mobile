@@ -258,6 +258,20 @@ class _AssetSummaryCard extends ConsumerWidget {
               ),
             ],
           ),
+          // "Terakhir diperbarui" timestamp for non-manual sources
+          if (pricesState.getPriceFetchedAt(asset) != null) ...[
+            SizedBox(height: 2.h),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '${l10n.investmentPriceLastUpdated}: ${pricesState.getPriceFetchedAt(asset)!.extToFormattedString(outputDateFormat: 'dd MMM HH:mm')}',
+                style: TextStyleConstants.label3.copyWith(
+                  color: colors.textSecondary.withValues(alpha: 0.7),
+                  fontSize: 10.sp,
+                ),
+              ),
+            ),
+          ],
           SizedBox(height: 8.h),
           _DetailRow(
             label: l10n.investmentDetailTotalInvested,
