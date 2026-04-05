@@ -12,3 +12,12 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Fastlane
+fastlane/report.xml
+fastlane/README.md
+fastlane/.env
+fastlane/.env.*
+fastlane/firebase-service-account.json
+fastlane/play-store-service-account.json
+vendor/

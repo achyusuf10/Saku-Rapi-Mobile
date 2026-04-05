@@ -86,6 +86,9 @@ class AppThemes {
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFFFAFAFC),
         statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
     ),
     scrollbarTheme: ScrollbarThemeData(
@@ -300,6 +303,9 @@ class AppThemes {
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Color(0xFF2F2F31),
         statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
       iconTheme: const IconThemeData(color: Colors.white),
     ),

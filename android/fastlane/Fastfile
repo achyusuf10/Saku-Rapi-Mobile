@@ -1,0 +1,253 @@
+# ============================================================================
+# SakuRapi - Fastlane Configuration (Android)
+# ============================================================================
+#
+# Flavors             : dev | prod
+# Current destination : Firebase App Distribution (APK)
+# Prepared for        : Play Store (AAB)
+#
+# LANE QUICK REFERENCE
+# ─────────────────────────────────────────────────────────────────────────
+# BUILD ONLY (APK)
+#   build_apk_dev          → Build release APK for dev flavor
+#   build_apk_prod         → Build release APK for prod flavor
+#
+# BUILD ONLY (AAB) — Play Store ready
+#   build_aab_dev          → Build release AAB for dev flavor
+#   build_aab_prod         → Build release AAB for prod flavor
+#
+# UPLOAD ONLY — artifact must already exist
+#   upload_firebase_dev    → Upload existing dev APK to Firebase
+#   upload_firebase_prod   → Upload existing prod APK to Firebase
+#
+# FULL DEPLOY (build APK + upload) — most common
+#   deploy_firebase_dev    → Build APK + upload dev to Firebase
+#   deploy_firebase_prod   → Build APK + upload prod to Firebase
+# ─────────────────────────────────────────────────────────────────────────
+#
+# ============================================================================
+
+default_platform(:android)
+
+# ============================================================================
+# Configuration — edit this section when values change
+# ============================================================================
+
+FIREBASE_APP_IDS = {
+  "dev"  => "1:552332948009:android:04601fd346659c2d4aa238",
+  "prod" => "1:1047479153880:android:acf2a7d7900cff33cd93ad",
+}.freeze
+
+FIREBASE_TESTER_GROUPS = "Tester"
+FIREBASE_CLI_TOKEN     = ENV["FIREBASE_CLI_TOKEN"]
+
+RELEASE_NOTES_FILE = "../release_notes.txt"
+
+FLUTTER_ENTRY_POINTS = {
+  "dev"  => "lib/main_dev.dart",
+  "prod" => "lib/main_prod.dart",
+}.freeze
+
+DART_DEFINE_FILES = {
+  "dev"  => ".env.dev",
+  "prod" => ".env.prod",
+}.freeze
+
+VALID_FLAVORS = FIREBASE_APP_IDS.keys.freeze
+
+# ============================================================================
+
+platform :android do
+
+  # ==========================================================================
+  # [1] BUILD — APK  (for Firebase App Distribution)
+  # ==========================================================================
+
+  desc "Build release APK for DEV flavor"
+  lane :build_apk_dev do
+    build_apk(flavor: "dev")
+  end
+
+  desc "Build release APK for PROD flavor"
+  lane :build_apk_prod do
+    build_apk(flavor: "prod")
+  end
+
+  # ==========================================================================
+  # [2] BUILD — AAB  (for Play Store)
+  # ==========================================================================
+
+  desc "Build release AAB for DEV flavor — Play Store ready"
+  lane :build_aab_dev do
+    build_aab(flavor: "dev")
+  end
+
+  desc "Build release AAB for PROD flavor — Play Store ready"
+  lane :build_aab_prod do
+    build_aab(flavor: "prod")
+  end
+
+  # ==========================================================================
+  # [3] UPLOAD ONLY — Firebase App Distribution
+  #     Artifact (APK) must already exist from a previous build step.
+  #     Useful for re-uploading without rebuilding.
+  # ==========================================================================
+
+  desc "Upload existing DEV APK to Firebase App Distribution"
+  lane :upload_firebase_dev do
+    upload_firebase(flavor: "dev")
+  end
+
+  desc "Upload existing PROD APK to Firebase App Distribution"
+  lane :upload_firebase_prod do
+    upload_firebase(flavor: "prod")
+  end
+
+  # ==========================================================================
+  # [4] FULL DEPLOY — build APK + upload  (most common usage)
+  # ==========================================================================
+
+  desc "Build DEV APK and deploy to Firebase App Distribution"
+  lane :deploy_firebase_dev do
+    build_apk(flavor: "dev")
+    upload_firebase(flavor: "dev")
+  end
+
+  desc "Build PROD APK and deploy to Firebase App Distribution"
+  lane :deploy_firebase_prod do
+    build_apk(flavor: "prod")
+    upload_firebase(flavor: "prod")
+  end
+
+  # --------------------------------------------------------------------------
+  # Future: Play Store deploy lanes
+  # Uncomment when Play Store distribution is ready.
+  #
+  # desc "Build PROD AAB and upload to Play Store Internal Testing"
+  # lane :deploy_play_store_prod do
+  #   build_aab(flavor: "prod")
+  #   upload_play_store(flavor: "prod")
+  # end
+  # --------------------------------------------------------------------------
+
+  # ==========================================================================
+  # Private — Build helpers
+  # ==========================================================================
+
+  private_lane :build_apk do |options|
+    flavor = options[:flavor]
+    validate_flavor!(flavor)
+
+    UI.message("🔨 [APK] Building #{flavor}...")
+    sh(
+      "cd ../.. && flutter build apk " \
+      "--flavor #{flavor} " \
+      "-t #{FLUTTER_ENTRY_POINTS[flavor]} " \
+      "--release " \
+      "--dart-define-from-file=#{DART_DEFINE_FILES[flavor]} " \
+      "--obfuscate " \
+      "--split-debug-info=build/debug-info/#{flavor}"
+    )
+    UI.success("✅ APK #{flavor} ready → build/app/outputs/flutter-apk/app-#{flavor}-release.apk")
+  end
+
+  private_lane :build_aab do |options|
+    flavor = options[:flavor]
+    validate_flavor!(flavor)
+
+    UI.message("🔨 [AAB] Building #{flavor}...")
+    sh(
+      "cd ../.. && flutter build appbundle " \
+      "--flavor #{flavor} " \
+      "-t #{FLUTTER_ENTRY_POINTS[flavor]} " \
+      "--release " \
+      "--dart-define-from-file=#{DART_DEFINE_FILES[flavor]} " \
+      "--obfuscate " \
+      "--split-debug-info=build/debug-info/#{flavor}"
+    )
+    UI.success("✅ AAB #{flavor} ready → build/app/outputs/bundle/#{flavor}Release/app-#{flavor}-release.aab")
+  end
+
+  # ==========================================================================
+  # Private — Upload helpers
+  # ==========================================================================
+
+  private_lane :upload_firebase do |options|
+    flavor = options[:flavor]
+    validate_flavor!(flavor)
+
+    apk_path     = get_apk_path(flavor)
+    release_notes = get_release_notes
+
+    UI.message("🚀 [Firebase] Uploading #{flavor} APK...")
+    firebase_app_distribution(
+      app:                    FIREBASE_APP_IDS[flavor],
+      android_artifact_type:  "APK",
+      android_artifact_path:  apk_path,
+      groups:                 FIREBASE_TESTER_GROUPS,
+      release_notes:          release_notes,
+      firebase_cli_token:     FIREBASE_CLI_TOKEN,
+    )
+    UI.success("✅ #{flavor} uploaded to Firebase App Distribution!")
+  end
+
+  # --------------------------------------------------------------------------
+  # Future: Play Store upload helper
+  # Uncomment when Play Store distribution is ready.
+  #
+  # private_lane :upload_play_store do |options|
+  #   flavor = options[:flavor]
+  #   validate_flavor!(flavor)
+  #
+  #   upload_to_play_store(
+  #     track:                  "internal",
+  #     aab:                    get_aab_path(flavor),
+  #     package_name:           get_package_name(flavor),
+  #     json_key:               "fastlane/play-store-service-account.json",
+  #     skip_upload_metadata:   true,
+  #     skip_upload_images:     true,
+  #     skip_upload_screenshots: true,
+  #   )
+  # end
+  # --------------------------------------------------------------------------
+
+  # ==========================================================================
+  # Utility methods
+  # ==========================================================================
+
+  def validate_flavor!(flavor)
+    unless VALID_FLAVORS.include?(flavor)
+      UI.user_error!("Invalid flavor '#{flavor}'. Valid options: #{VALID_FLAVORS.join(', ')}")
+    end
+  end
+
+  def get_apk_path(flavor)
+    path = File.expand_path("../../build/app/outputs/flutter-apk/app-#{flavor}-release.apk", Dir.pwd)
+    UI.user_error!("APK not found at #{path}. Run build_apk_#{flavor} first.") unless File.exist?(path)
+    path
+  end
+
+  def get_aab_path(flavor)
+    path = File.expand_path("../../build/app/outputs/bundle/#{flavor}Release/app-#{flavor}-release.aab", Dir.pwd)
+    UI.user_error!("AAB not found at #{path}. Run build_aab_#{flavor} first.") unless File.exist?(path)
+    path
+  end
+
+  def get_release_notes
+    notes_path = File.expand_path(RELEASE_NOTES_FILE, Dir.pwd)
+    if File.exist?(notes_path)
+      notes = File.read(notes_path).strip
+      UI.message("📝 Release notes: #{notes_path}")
+      notes
+    else
+      UI.important("⚠️  release_notes.txt not found — using default message.")
+      "Bug fixes and improvements"
+    end
+  end
+
+  def get_package_name(flavor)
+    base = "app.saku_rapi.com"
+    flavor == "prod" ? base : "#{base}.#{flavor}"
+  end
+
+end

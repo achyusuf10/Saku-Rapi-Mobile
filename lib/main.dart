@@ -50,6 +50,16 @@ void _workmanagerCallbackDispatcher() {
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Aktifkan edge-to-edge sekali saat bootstrap, bukan di setiap build().
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  // Fallback style untuk layar tanpa AppBar.
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+
   // Inisialisasi timezone untuk scheduled notifications.
   tz.initializeTimeZones();
   tzLocal.setLocalLocation(tzLocal.getLocation('Asia/Jakarta'));
@@ -107,7 +117,6 @@ class SakuRapiApp extends ConsumerWidget {
     final themeMode = ref.watch(themeControllerProvider);
     final locale = ref.watch(localeControllerProvider);
     final designSize = getDesignSize(context);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return ScreenUtilInit(
       designSize: designSize,
       useInheritedMediaQuery: true,
