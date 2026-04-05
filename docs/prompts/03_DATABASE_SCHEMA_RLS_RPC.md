@@ -1,7 +1,7 @@
 # Prompt 03 — Database Schema, RLS, Trigger, RPC
 
 Patuh penuh pada:
-- `01_PRD.md`
+- `docs/prd/` (PRD per section — lihat `prd/00_INDEX.md`)
 - `02_DATABASE.md`
 - `03_COPILOT_RULES.md`
 - `01_MASTER_SESSION_PROMPT.md`

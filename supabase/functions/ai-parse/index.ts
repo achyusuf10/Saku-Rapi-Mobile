@@ -1,7 +1,11 @@
 /// Supabase Edge Function: ai-parse
 ///
-/// Menerima teks voice/OCR dan mengembalikan hasil parsing
+/// Menerima teks atau gambar dan mengembalikan hasil parsing
 /// terstruktur dari AI (Gemini → Groq → OpenRouter failover).
+///
+/// Mode:
+/// - `text`: Parse teks (dari voice STT / input manual) → Gemini → Groq failover
+/// - `ocr`: Parse gambar struk (Vision AI) → Gemini → Groq → OpenRouter failover
 ///
 /// Optimizations:
 /// - Backend ID mapping: UUID → short ID (e1, i1) di prompt, reverse map di response
@@ -16,7 +20,7 @@ const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
-// Timeout: text models (voice)
+// Timeout: text models (voice STT / text input)
 const GEMINI_TEXT_TIMEOUT_MS = 8000;
 const GROQ_TEXT_TIMEOUT_MS = 6000;
 
@@ -116,10 +120,10 @@ function reverseMapResponse(
 // System prompts (shared rules + few-shot)
 // ─────────────────────────────────────────────────────
 
-function buildVoiceSystemPrompt(): string {
+function buildTextSystemPrompt(): string {
   const today = new Date().toISOString().split('T')[0];
 
-  return `You are a financial transaction parser for an Indonesian personal finance app. Parse voice input text (Indonesian/English) into structured JSON.
+  return `You are a financial transaction parser for an Indonesian personal finance app. Parse user input text (Indonesian/English) into structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
 {"isTransaction":<bool>,"amount":<number|null>,"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>"}
@@ -166,7 +170,7 @@ Output: {"isTransaction":true,"amount":100000,"categoryId":null,"categoryKeyword
 Return ONLY the JSON object.`;
 }
 
-function buildVoiceUserPrompt(text: string, mapping: IdMapping): string {
+function buildTextUserPrompt(text: string, mapping: IdMapping): string {
   let catSection = '';
   if (Object.keys(mapping.promptMap).length > 0) {
     const mapStr = Object.entries(mapping.promptMap)
@@ -235,7 +239,7 @@ function sanitizeJson(raw: string): string {
 }
 
 // ─────────────────────────────────────────────────────
-// AI Provider calls — Text (Voice)
+// AI Provider calls — Text
 // ─────────────────────────────────────────────────────
 
 async function callGemini(
@@ -506,7 +510,7 @@ Deno.serve(async (req) => {
 
     // ── Parse request body ──
     const body = await req.json();
-    const mode: string = body.mode; // 'voice' | 'ocr'
+    const mode: string = body.mode; // 'text' | 'ocr'
 
     if (!mode) {
       return new Response(
@@ -515,9 +519,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (mode !== 'voice' && mode !== 'ocr') {
+    if (mode !== 'text' && mode !== 'ocr') {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid mode. Use "voice" or "ocr".' }),
+        JSON.stringify({ success: false, error: 'Invalid mode. Use "text" or "ocr".' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -529,17 +533,17 @@ Deno.serve(async (req) => {
     // ── Try AI providers based on mode ──
     let result: { data: unknown; provider: string };
 
-    if (mode === 'voice') {
+    if (mode === 'text') {
       const text: string = body.text;
       if (!text) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Missing text for voice mode' }),
+          JSON.stringify({ success: false, error: 'Missing text for text mode' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
 
-      const systemPrompt = buildVoiceSystemPrompt();
-      const userPrompt = buildVoiceUserPrompt(text, mapping);
+      const systemPrompt = buildTextSystemPrompt();
+      const userPrompt = buildTextUserPrompt(text, mapping);
 
       try {
         result = await callGemini(systemPrompt, userPrompt);

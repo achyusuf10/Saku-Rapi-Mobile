@@ -3,7 +3,7 @@
 Gunakan template ini jika kamu ingin membuat prompt tambahan di luar urutan utama.
 
 Patuh penuh pada:
-- `01_PRD.md`
+- `docs/prd/` (PRD per section — lihat `prd/00_INDEX.md`)
 - `02_DATABASE.md`
 - `03_COPILOT_RULES.md`
 - `01_MASTER_SESSION_PROMPT.md`

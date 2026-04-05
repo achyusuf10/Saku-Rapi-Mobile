@@ -260,7 +260,7 @@ Pakai widget global saku_currency_field.dart jika butuh inputan berupa uang, kar
 ## Implementation Guardrails, Flutter Conventions, dan Prompting Rules
 
 > Dokumen ini ditujukan untuk Copilot / AI coding assistant dan developer.
-> Requirement produk ada di `01_PRD.md`.
+> Requirement produk ada di folder [`prd/`](prd/00_INDEX.md) (PRD dipecah per section).
 > Schema database dan constraint ada di `02_DATABASE.md`.
 
 **Status:** Wajib diikuti  
@@ -476,7 +476,7 @@ Copilot **dilarang**:
 Gunakan format prompt seperti ini saat meminta implementasi:
 
 ```text
-Gunakan docs/01_PRD.md, docs/02_DATABASE.md, dan docs/03_COPILOT_RULES.md sebagai sumber kebenaran.
+Gunakan docs/prd/ (PRD per section), docs/02_DATABASE.md, dan docs/03_COPILOT_RULES.md sebagai sumber kebenaran.
 
 Tugas:
 [jelaskan fitur spesifik]
@@ -513,6 +513,6 @@ Sebuah task implementasi dianggap selesai jika:
 
 Jika Copilot bingung atau menemukan konflik:
 1. ikuti `02_DATABASE.md` untuk schema dan constraint,
-2. ikuti `01_PRD.md` untuk business intent dan flow,
+2. ikuti `docs/prd/` untuk business intent dan flow (lihat `prd/00_INDEX.md` untuk navigasi),
 3. ikuti dokumen ini untuk cara implementasi,
 4. jangan membuat asumsi baru tanpa menandainya sebagai TODO/QUESTION.

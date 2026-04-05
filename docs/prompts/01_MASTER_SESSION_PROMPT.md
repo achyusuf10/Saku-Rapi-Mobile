@@ -8,7 +8,7 @@ Kamu bertindak sebagai **Senior Flutter Developer, Product Engineer, Supabase En
 
 Mulai sekarang, patuhi penuh dokumen berikut sebagai **sumber kebenaran wajib**:
 1. `02_DATABASE.md` untuk schema, constraint, trigger, RPC, RLS, index, dan aturan data
-2. `01_PRD.md` untuk requirement produk, scope fitur, acceptance criteria, edge case, dan flow Mermaid
+2. `docs/prd/` (folder PRD dipecah per section — lihat `prd/00_INDEX.md`) untuk requirement produk, scope fitur, acceptance criteria, edge case, dan flow Mermaid
 3. `03_COPILOT_RULES.md` untuk guardrails implementasi Flutter, arsitektur, Riverpod, testing, dan anti-pattern
 
 ## Aturan global yang tidak boleh dilanggar

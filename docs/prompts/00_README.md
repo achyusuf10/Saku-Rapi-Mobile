@@ -1,14 +1,14 @@
 # SakuRapi Prompt Pack — Urutan Eksekusi Copilot
 
 Paket ini berisi prompt yang sudah diurutkan dari awal sampai akhir agar implementasi SakuRapi lebih konsisten dengan:
-- `01_PRD.md`
+- `docs/prd/` (PRD dipecah per section — lihat `prd/00_INDEX.md`)
 - `02_DATABASE.md`
 - `03_COPILOT_RULES.md`
 
 ## Cara pakai
 1. Buka repository SakuRapi di Copilot Chat / agent mode.
 2. Upload atau tempel context dokumen:
-   - `01_PRD.md`
+   - `docs/prd/00_INDEX.md` (dan file PRD terkait)
    - `02_DATABASE.md`
    - `03_COPILOT_RULES.md`
 3. Jalankan prompt **berurutan** dari `01_...` sampai `19_...`.

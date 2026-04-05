@@ -5,7 +5,7 @@ description: Describe when these instructions should be loaded by the agent base
 
 <!-- Tip: Use /create-instructions in chat to generate content with agent assistance -->
 Patuh penuh pada:
-- `01_PRD.md`
+- `prd/00_INDEX.md` (PRD dipecah ke 27 file di folder `docs/prd/`)
 - `02_DATABASE.md`
 - `03_COPILOT_RULES.md`
 - `01_MASTER_SESSION_PROMPT.md`

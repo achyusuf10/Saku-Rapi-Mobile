@@ -7,7 +7,7 @@ Lakukan hardening implementasi project setelah modul utama selesai.
 
 ## Yang harus kamu lakukan
 1. Review seluruh modul yang sudah dibuat terhadap:
-   - `01_PRD.md`
+   - `docs/prd/` (PRD per section)
    - `02_DATABASE.md`
    - `03_COPILOT_RULES.md`
 2. Identifikasi:

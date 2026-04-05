@@ -2,7 +2,7 @@
 ## Schema, Constraint, Trigger, RPC, dan Indexing
 
 > Dokumen ini adalah sumber kebenaran untuk struktur database Supabase/Postgres.
-> Untuk requirement produk dan flow, lihat `01_PRD.md`.
+> Untuk requirement produk dan flow, lihat folder [`prd/`](prd/00_INDEX.md) (PRD dipecah per section).
 > Untuk aturan implementasi Flutter/Copilot, lihat `03_COPILOT_RULES.md`.
 
 **Status:** Final for implementation  

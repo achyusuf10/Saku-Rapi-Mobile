@@ -4,10 +4,10 @@ import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/voice/models/parsing_dictionary_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Remote data source untuk voice feature.
+/// Remote data source untuk voice/text feature.
 ///
 /// Menangani:
-/// - Panggilan Edge Function `ai-parse` (mode voice)
+/// - Panggilan Edge Function `ai-parse` (mode text)
 /// - Fetch `parsing_dictionaries` dari Supabase
 class VoiceRemoteDataSource {
   VoiceRemoteDataSource({SupabaseClient? client})
@@ -16,7 +16,7 @@ class VoiceRemoteDataSource {
   final SupabaseClient _client;
   static const _tag = '[Voice] [VoiceRemoteDataSource]';
 
-  /// Kirim teks hasil STT ke Edge Function `ai-parse` mode voice.
+  /// Kirim teks ke Edge Function `ai-parse` mode text.
   ///
   /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
   /// Returns raw response map: `{ success, mode, provider, data }`.
@@ -34,7 +34,7 @@ class VoiceRemoteDataSource {
 
         // Pastikan session masih valid sebelum invoke Edge Function
 
-        final body = <String, dynamic>{'mode': 'voice', 'text': text};
+        final body = <String, dynamic>{'mode': 'text', 'text': text};
         if (categories.isNotEmpty) {
           body['categories'] = categories;
         }
