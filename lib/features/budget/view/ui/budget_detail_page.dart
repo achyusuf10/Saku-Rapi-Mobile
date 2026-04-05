@@ -10,6 +10,7 @@ import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,7 +31,13 @@ class BudgetDetailPage extends ConsumerStatefulWidget {
 }
 
 class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
-  BudgetModel get _budget => widget.budget;
+  late BudgetModel _budget;
+
+  @override
+  void initState() {
+    super.initState();
+    _budget = widget.budget;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,10 +359,15 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
         ),
         SizedBox(height: 12.h),
         if (detailState.isLoading)
-          Center(
-            child: Padding(
-              padding: EdgeInsets.all(24.w),
-              child: const CircularProgressIndicator(),
+          ...List.generate(
+            3,
+            (_) => Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: ShimmerWidget.box(
+                width: double.infinity,
+                height: 60.h,
+                radius: 12,
+              ),
             ),
           )
         else if (detailState.transactions.isEmpty)
@@ -394,7 +406,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
   Future<void> _onEdit(BuildContext context) async {
     final result = await context.push<Map<String, dynamic>>(
       AppRouter.budgetForm,
-      extra: _budget,
+      extra: <String, dynamic>{'budget': _budget},
     );
     if (result == null || !context.mounted) return;
 
@@ -410,17 +422,18 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
         result['periodType'] as BudgetPeriodType? ?? BudgetPeriodType.monthly;
     final carryForward = result['carryForward'] as bool? ?? false;
 
-    // Check for duplicates
+    // Check for duplicates (exclude self)
     final duplicateId = await controller.findDuplicateBudgetId(
       categoryId: categoryId,
       walletId: walletId,
       startDate: startDate,
       endDate: endDate,
+      excludeBudgetId: _budget.id,
     );
 
     if (!context.mounted) return;
 
-    if (duplicateId != null && duplicateId != _budget.id) {
+    if (duplicateId != null) {
       final categoryName = result['categoryName'] as String? ?? '';
       final walletName =
           result['walletName'] as String? ?? l10n.budgetFilterAll;
@@ -434,8 +447,13 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
       if (confirmed != true || !context.mounted) return;
 
-      await controller.deleteBudget(duplicateId);
+      final deleteResult = await controller.deleteBudget(duplicateId);
       if (!context.mounted) return;
+      if (!deleteResult.isSuccess()) {
+        final (message, _, _, _) = deleteResult.dataError()!;
+        context.showAppAlert(message, alertType: AlertTypeEnum.error);
+        return;
+      }
     }
 
     final updateResult = await controller.updateBudget(
@@ -452,11 +470,13 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
     if (!context.mounted) return;
     if (updateResult.isSuccess()) {
+      // Update local state so detail page reflects changes immediately
+      setState(() => _budget = updateResult.dataSuccess()!);
       context.showAppAlert(
         l10n.budgetSuccessEdit,
         alertType: AlertTypeEnum.success,
       );
-      // Refresh budget list instead of popping
+      // Refresh budget list in background
       await controller.loadBudgets();
     } else {
       final (message, _, _, _) = updateResult.dataError()!;

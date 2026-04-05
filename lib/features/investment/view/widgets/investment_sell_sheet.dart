@@ -6,16 +6,16 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
-import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_bottom_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Bottom sheet untuk menjual unit investasi.
 class InvestmentSellSheet extends ConsumerStatefulWidget {
@@ -232,12 +232,15 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
 
   Widget _buildWalletPickerTile() {
     final l10n = context.l10n;
-    final colors = context.colors;
 
-    return GestureDetector(
+    return SakuWalletPickerTile(
+      label: l10n.investmentFormSelectWallet,
+      selected: _selectedWallet,
+      placeholder: l10n.investmentFormSelectWallet,
+      useBorder: true,
       onTap: () async {
         FocusScope.of(context).unfocus();
-        final result = await WalletPickerSheet.show(
+        final result = await SakuWalletPickerSheet.show(
           context,
           selectedWalletId: _selectedWallet?.id,
         );
@@ -245,69 +248,6 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
           setState(() => _selectedWallet = result);
         }
       },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: _selectedWallet != null ? colors.primary : colors.border,
-            width: _selectedWallet != null ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: FaIcon(
-                  FontAwesomeIcons.wallet,
-                  size: 16.w,
-                  color: colors.primary,
-                ),
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.investmentFormSelectWallet.toUpperCase(),
-                    style: TextStyleConstants.overline.copyWith(
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    _selectedWallet?.name ?? l10n.investmentFormSelectWallet,
-                    style: TextStyleConstants.b2.copyWith(
-                      color: _selectedWallet != null
-                          ? colors.textPrimary
-                          : colors.textSecondary,
-                      fontWeight: _selectedWallet != null
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            FaIcon(
-              FontAwesomeIcons.chevronRight,
-              size: 12.w,
-              color: colors.textSecondary.withValues(alpha: 0.5),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

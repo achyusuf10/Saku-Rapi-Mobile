@@ -72,12 +72,14 @@ class BudgetRepository {
     String? walletId,
     required DateTime startDate,
     required DateTime endDate,
+    String? excludeBudgetId,
   }) {
     return _remote.findDuplicateBudgetId(
       categoryId: categoryId,
       walletId: walletId,
       startDate: startDate,
       endDate: endDate,
+      excludeBudgetId: excludeBudgetId,
     );
   }
 
@@ -181,15 +183,25 @@ class BudgetRepository {
       );
     }
 
-    final updated = existing.copyWith(
+    final updated = BudgetModel(
+      id: existing.id,
+      userId: existing.userId,
       categoryId: categoryId,
       walletId: walletId,
       amount: amount,
+      usedAmount: existing.usedAmount,
       startDate: startDate,
       endDate: endDate,
-      isRecurring: isRecurring,
       periodType: periodType,
+      isRecurring: isRecurring,
       carryForward: carryForward,
+      notificationSent50: existing.notificationSent50,
+      notificationSent80: existing.notificationSent80,
+      notificationSent100: existing.notificationSent100,
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+      category: existing.category,
+      wallet: existing.wallet,
     );
 
     return _remote.updateBudget(updated);

@@ -236,9 +236,14 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
   }
 
   Future<void> _openBudgetForm(BudgetModel? existing) async {
+    final selectedPeriod = ref.read(budgetControllerProvider).selectedPeriodKey;
     final result = await context.push<dynamic>(
       AppRouter.budgetForm,
-      extra: existing,
+      extra: <String, dynamic>{
+        'budget': existing,
+        if (existing == null && selectedPeriod != null)
+          'periodKey': selectedPeriod,
+      },
     );
 
     if (result == null || !mounted) return;
@@ -289,18 +294,19 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
     final endDate = data['endDate'] as DateTime;
     final isRecurring = data['isRecurring'] as bool;
 
-    // Check for duplicates on edit too
+    // Check for duplicates on edit too (exclude self)
     final duplicateId = await controller.findDuplicateBudgetId(
       categoryId: categoryId,
       walletId: walletId,
       startDate: startDate,
       endDate: endDate,
+      excludeBudgetId: existing.id,
     );
 
     if (!mounted) return;
 
-    // If duplicate found and it's not the same budget
-    if (duplicateId != null && duplicateId != existing.id) {
+    // If duplicate found
+    if (duplicateId != null) {
       final categoryName = data['categoryName'] as String? ?? '';
       final walletName = data['walletName'] as String? ?? l10n.budgetFilterAll;
 
@@ -314,8 +320,13 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
       if (confirmed != true || !mounted) return;
 
       // Delete the other duplicate first, then update this one
-      await controller.deleteBudget(duplicateId);
+      final deleteResult = await controller.deleteBudget(duplicateId);
       if (!mounted) return;
+      if (!deleteResult.isSuccess()) {
+        final (message, _, _, _) = deleteResult.dataError()!;
+        context.showAppAlert(message, alertType: AlertTypeEnum.error);
+        return;
+      }
     }
 
     final updateResult = await controller.updateBudget(

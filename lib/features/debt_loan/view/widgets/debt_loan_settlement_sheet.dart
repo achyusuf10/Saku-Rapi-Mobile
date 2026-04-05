@@ -12,6 +12,8 @@ import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyb
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -289,37 +291,20 @@ class _DebtLoanSettlementSheetState
             SizedBox(height: 12.h),
 
             // ─── Wallet picker ───
-            Text(
-              l10n.debtLoanSettlementWallet,
-              style: TextStyleConstants.label1.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: wallets.map((wallet) {
-                final isSelected = _selectedWallet?.id == wallet.id;
-                return ChoiceChip(
-                  label: Text(wallet.name),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    setState(() => _selectedWallet = wallet);
-                  },
-                  selectedColor: colors.primary.withValues(alpha: 0.15),
-                  backgroundColor: colors.surfaceVariant,
-                  labelStyle: TextStyleConstants.label2.copyWith(
-                    color: isSelected ? colors.primary : colors.textPrimary,
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                  side: BorderSide(
-                    color: isSelected ? colors.primary : colors.border,
-                  ),
+            SakuWalletPickerTile(
+              label: l10n.debtLoanSettlementWallet,
+              selected: _selectedWallet,
+              useBorder: true,
+              onTap: () async {
+                FocusScope.of(context).unfocus();
+                final result = await SakuWalletPickerSheet.show(
+                  context,
+                  selectedWalletId: _selectedWallet?.id,
                 );
-              }).toList(),
+                if (result != null) {
+                  setState(() => _selectedWallet = result);
+                }
+              },
             ),
             SizedBox(height: 12.h),
 

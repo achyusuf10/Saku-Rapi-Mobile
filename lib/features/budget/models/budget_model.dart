@@ -240,6 +240,8 @@ class BudgetModel {
       'notification_sent_100': notificationSent100,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      if (category != null) 'categories': category!.toFullMap(),
+      if (wallet != null) 'wallets': wallet!.toFullMap(),
     };
   }
 

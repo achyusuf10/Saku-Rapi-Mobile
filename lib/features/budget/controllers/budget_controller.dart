@@ -256,12 +256,14 @@ class BudgetController extends StateNotifier<BudgetState> {
     String? walletId,
     required DateTime startDate,
     required DateTime endDate,
+    String? excludeBudgetId,
   }) async {
     final result = await _repository.findDuplicateBudgetId(
       categoryId: categoryId,
       walletId: walletId,
       startDate: startDate,
       endDate: endDate,
+      excludeBudgetId: excludeBudgetId,
     );
     if (result.isSuccess()) return result.dataSuccess();
     return null;

@@ -16,9 +16,9 @@ import 'package:app_saku_rapi/features/debt_loan/view/ui/settlement_history_page
 import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page.dart';
+import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
-import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
 import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
@@ -239,8 +239,13 @@ class AppRouter {
         GoRoute(
           path: budgetForm,
           parentNavigatorKey: navigatorKey,
-          builder: (context, state) =>
-              BudgetFormSheet(existingBudget: state.extra as BudgetModel?),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return BudgetFormSheet(
+              existingBudget: extra?['budget'] as BudgetModel?,
+              defaultPeriodKey: extra?['periodKey'] as String?,
+            );
+          },
         ),
         GoRoute(
           path: budgetDetail,

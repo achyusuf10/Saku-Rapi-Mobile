@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_card_tile.dart';
+import 'package:app_saku_rapi/features/budget/view/widgets/budget_shimmer.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +33,7 @@ class CompletedBudgetsPage extends ConsumerWidget {
         centerTitle: false,
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const BudgetShimmer()
           : state.budgets.isEmpty
           ? Center(
               child: Padding(

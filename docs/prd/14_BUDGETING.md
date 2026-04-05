@@ -169,7 +169,7 @@ flowchart TD
 |---|---|---|---|
 | Category | Picker (expense only) | ✅ | — |
 | Amount | Currency (> 0) | ✅ | 0 |
-| Period | Presets + Custom | ❌ | Inherit tab aktif / This Month |
+| Period | Presets + Custom | ❌ | Inherit tab aktif (create) / Deteksi dari tanggal (edit) |
 | Wallet scope | Global / per-wallet | ❌ | Global |
 | Recurring | Toggle checkbox | ❌ | false |
 | Carry-forward | Toggle (muncul jika Recurring = true) | ❌ | false |
@@ -178,8 +178,10 @@ flowchart TD
 
 **Duplicate detection (seragam create & edit):**
 1. Saat submit → cek `findDuplicateBudgetId(categoryId, walletId, startDate, endDate, excludeBudgetId?)`
-2. Jika duplikat → dialog konfirmasi "Ganti" / "Batal"
-3. "Ganti" → RPC `replace_budget` (DELETE + INSERT atomik)
+2. **Edit mode:** `excludeBudgetId` = budget yang sedang diedit (agar tidak mendeteksi dirinya sendiri)
+3. Jika duplikat → dialog konfirmasi "Ganti" / "Batal"
+4. "Ganti" (create) → RPC `replace_budget` (DELETE + INSERT atomik)
+5. "Ganti" (edit) → DELETE duplikat, lalu UPDATE budget saat ini
 
 **Dirty check:** Jika ada perubahan unsaved lalu user close → dialog konfirmasi discard.
 
@@ -269,16 +271,20 @@ flowchart TD
 - [x] Alert 50%/80%/100% hanya terkirim sekali per periode
 - [x] Period tabs dinamis (hanya tampil jika ada budget aktif)
 - [x] Custom budget mendapat tab terpisah dengan label tanggal
-- [x] Duplicate detection seragam di create & edit
+- [x] Duplicate detection seragam di create & edit (exclude self saat edit)
 - [x] Replace budget atomik via RPC
 - [x] Transaksi sub-kategori tampil di detail page
 - [x] BudgetAlertChecker triggered saat halaman budget load
 - [x] Auto-renew via pg_cron aktif
 - [x] Carry-forward menambah sisa positif ke budget baru
 - [x] Spendable negatif saat over budget (bukan 0)
-- [x] Detail page di-refresh setelah edit (bukan pop)
+- [x] Detail page di-refresh setelah edit via `setState` (bukan pop)
 - [x] Form deteksi semua periode saat edit
 - [x] Konfirmasi discard saat close form yang dirty
+- [x] Form inherit period tab aktif saat create budget baru
+- [x] Offline cache menyimpan relasi category & wallet (toFullMap)
+- [x] Edit wallet scope dari per-wallet ke global (null) bekerja benar
+- [x] Gagal hapus duplikat ditangani sebelum update dilanjutkan
 
 ---
 

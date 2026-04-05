@@ -1,6 +1,8 @@
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/repositories/budget_repository.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Helper factory untuk membuat [BudgetModel] minimal.
@@ -417,6 +419,240 @@ void main() {
       );
       final next = state.copyWith(status: BudgetStatus.loaded);
       expect(next.errorMessage, isNull);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Fix #5: toFullMap includes category & wallet nested data
+  // ─────────────────────────────────────────────────────────────
+  group('BudgetModel — toFullMap with relations', () {
+    test('includes categories when category is not null', () {
+      final category = CategoryModel(
+        id: 'cat-1',
+        userId: 'u1',
+        name: 'Makan',
+        icon: 'utensils',
+        color: '#FF5733',
+        type: CategoryType.expense,
+        sortOrder: 0,
+      );
+      final budget = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+        category: category,
+      );
+
+      final map = budget.toFullMap();
+      expect(map.containsKey('categories'), isTrue);
+      final catMap = map['categories'] as Map<String, dynamic>;
+      expect(catMap['id'], 'cat-1');
+      expect(catMap['name'], 'Makan');
+    });
+
+    test('includes wallets when wallet is not null', () {
+      final wallet = WalletModel(
+        id: 'w1',
+        userId: 'u1',
+        name: 'Cash',
+        icon: 'wallet',
+        color: '#33FF57',
+        balance: 1000000,
+        initialBalance: 1000000,
+        currency: 'IDR',
+        excludeFromTotal: false,
+        sortOrder: 0,
+      );
+      final budget = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+        wallet: wallet,
+      );
+
+      final map = budget.toFullMap();
+      expect(map.containsKey('wallets'), isTrue);
+      final walletMap = map['wallets'] as Map<String, dynamic>;
+      expect(walletMap['id'], 'w1');
+      expect(walletMap['name'], 'Cash');
+    });
+
+    test('excludes categories/wallets when null', () {
+      final budget = _budget();
+      final map = budget.toFullMap();
+      expect(map.containsKey('categories'), isFalse);
+      expect(map.containsKey('wallets'), isFalse);
+    });
+
+    test('roundtrip with category preserves relation data', () {
+      final category = CategoryModel(
+        id: 'cat-1',
+        userId: 'u1',
+        name: 'Transport',
+        icon: 'car',
+        color: '#0000FF',
+        type: CategoryType.expense,
+        sortOrder: 1,
+      );
+      final original = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        amount: 300000,
+        usedAmount: 100000,
+        startDate: DateTime(2025, 3, 1),
+        endDate: DateTime(2025, 3, 31),
+        category: category,
+      );
+
+      final map = original.toFullMap();
+      final restored = BudgetModel.fromMap(map);
+
+      expect(restored.category, isNotNull);
+      expect(restored.category!.id, 'cat-1');
+      expect(restored.category!.name, 'Transport');
+      expect(restored.category!.icon, 'car');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Fix: updateBudget constructs model directly (walletId=null)
+  // ─────────────────────────────────────────────────────────────
+  group('BudgetModel — wallet scope edge cases', () {
+    test('model with walletId=null has null walletId in toUpdateMap', () {
+      final budget = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        walletId: null,
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+      );
+      final map = budget.toUpdateMap();
+      expect(map['wallet_id'], isNull);
+    });
+
+    test('model with walletId set has walletId in toUpdateMap', () {
+      final budget = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        walletId: 'w1',
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+      );
+      final map = budget.toUpdateMap();
+      expect(map['wallet_id'], 'w1');
+    });
+
+    test('directly constructing model preserves null walletId', () {
+      // Simulates what the repository updateBudget now does
+      final existing = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        walletId: 'w1', // originally wallet-scoped
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+      );
+
+      // User changes to "All Wallets" (walletId = null)
+      final updated = BudgetModel(
+        id: existing.id,
+        userId: existing.userId,
+        categoryId: existing.categoryId,
+        walletId: null, // changed to global
+        amount: existing.amount,
+        usedAmount: existing.usedAmount,
+        startDate: existing.startDate,
+        endDate: existing.endDate,
+      );
+
+      expect(updated.walletId, isNull);
+      expect(updated.toUpdateMap()['wallet_id'], isNull);
+    });
+
+    test('copyWith cannot clear walletId to null (known limitation)', () {
+      // This demonstrates why repository uses direct construction
+      final existing = BudgetModel(
+        id: 'b1',
+        userId: 'u1',
+        categoryId: 'cat-1',
+        walletId: 'w1',
+        amount: 500000,
+        usedAmount: 200000,
+        startDate: DateTime(2025, 1, 1),
+        endDate: DateTime(2025, 1, 31),
+      );
+
+      final viaCopyWith = existing.copyWith(walletId: null);
+      // copyWith with null value keeps old value — this is the limitation
+      expect(viaCopyWith.walletId, 'w1'); // NOT null
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // BudgetModel — notification flags
+  // ─────────────────────────────────────────────────────────────
+  group('BudgetModel — notification flags', () {
+    test('defaults all notification flags to false', () {
+      final budget = _budget();
+      expect(budget.notificationSent50, isFalse);
+      expect(budget.notificationSent80, isFalse);
+      expect(budget.notificationSent100, isFalse);
+    });
+
+    test('notification flags preserved in toFullMap roundtrip', () {
+      final budget = _budget(
+        notificationSent50: true,
+        notificationSent80: true,
+        notificationSent100: false,
+      );
+      final map = budget.toFullMap();
+      final restored = BudgetModel.fromMap(map);
+      expect(restored.notificationSent50, isTrue);
+      expect(restored.notificationSent80, isTrue);
+      expect(restored.notificationSent100, isFalse);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // CompletedBudgetsState — copyWith + pagination
+  // ─────────────────────────────────────────────────────────────
+  group('CompletedBudgetsState', () {
+    test('defaults to isLoading=true, hasMore=true', () {
+      const state = CompletedBudgetsState();
+      expect(state.isLoading, isTrue);
+      expect(state.hasMore, isTrue);
+      expect(state.isLoadingMore, isFalse);
+      expect(state.budgets, isEmpty);
+    });
+
+    test('copyWith preserves existing values', () {
+      final state = CompletedBudgetsState(
+        budgets: [_budget()],
+        isLoading: false,
+        hasMore: true,
+      );
+      final next = state.copyWith(isLoadingMore: true);
+      expect(next.budgets.length, 1);
+      expect(next.isLoading, isFalse);
+      expect(next.isLoadingMore, isTrue);
+      expect(next.hasMore, isTrue);
     });
   });
 }

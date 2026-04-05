@@ -6,38 +6,70 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Wallet picker tile dengan ikon lingkaran berwarna.
+/// Global wallet picker tile — tap untuk buka bottom sheet pemilihan wallet.
 ///
 /// Menampilkan wallet yang dipilih atau placeholder jika belum dipilih.
-/// Digunakan di form transaksi untuk memilih dompet sumber/tujuan.
-class TransactionWalletPickerTile extends StatelessWidget {
-  const TransactionWalletPickerTile({
+/// Digunakan di semua form yang membutuhkan pemilihan wallet:
+/// - Form transaksi (source & destination wallet)
+/// - Form investasi beli/jual
+/// - Form settlement hutang/piutang
+///
+/// Styling:
+/// - Tanpa border: `useBorder: false` (default) — background `surface`, tanpa border
+/// - Dengan border: `useBorder: true` — background `surfaceVariant`, border berubah
+///   warna saat ada seleksi (primary) atau belum (border default)
+class SakuWalletPickerTile extends StatelessWidget {
+  const SakuWalletPickerTile({
     super.key,
     required this.label,
     required this.onTap,
-    required this.iconColor,
     this.selected,
-    this.excludeWalletId,
+    this.iconColor,
+    this.placeholder,
+    this.useBorder = false,
   });
 
+  /// Label di atas nama wallet (UPPERCASE).
   final String label;
+
+  /// Wallet yang sedang terpilih (null jika belum dipilih).
   final WalletModel? selected;
+
+  /// Callback ketika tile di-tap.
   final VoidCallback onTap;
-  final Color iconColor;
-  final String? excludeWalletId;
+
+  /// Warna ikon dan aksen. Default: `colors.primary`.
+  final Color? iconColor;
+
+  /// Teks placeholder jika belum ada wallet dipilih.
+  /// Default dari l10n.transactionSelectWallet.
+  final String? placeholder;
+
+  /// Gunakan border style (surfaceVariant + dynamic border).
+  ///
+  /// - `false` (default): background surface, tanpa border (gaya form transaksi)
+  /// - `true`: background surfaceVariant, border primary saat selected (gaya investasi)
+  final bool useBorder;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final hasSelection = selected != null;
+    final color = iconColor ?? colors.primary;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          color: useBorder ? colors.surfaceVariant : colors.surface,
+          borderRadius: BorderRadius.circular(useBorder ? 12.r : 14.r),
+          border: useBorder
+              ? Border.all(
+                  color: hasSelection ? color : colors.border,
+                  width: hasSelection ? 1.5 : 1,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -45,14 +77,14 @@ class TransactionWalletPickerTile extends StatelessWidget {
               width: 40.w,
               height: 40.w,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: FaIcon(
                   FontAwesomeIcons.wallet,
                   size: 16.w,
-                  color: iconColor,
+                  color: color,
                 ),
               ),
             ),
@@ -71,7 +103,8 @@ class TransactionWalletPickerTile extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    selected?.name ?? context.l10n.transactionSelectWallet,
+                    selected?.name ??
+                        (placeholder ?? context.l10n.transactionSelectWallet),
                     style: TextStyleConstants.b2.copyWith(
                       color: hasSelection
                           ? colors.textPrimary

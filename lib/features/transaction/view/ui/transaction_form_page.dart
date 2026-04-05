@@ -29,15 +29,15 @@ import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_mult
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_optional_details_section.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_transfer_arrow.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_type_tabs.dart';
-import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_wallet_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/unpaid_transaction_picker_sheet.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
-import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_picker_sheet.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_tile.dart';
 import 'package:app_saku_rapi/utils/function/compress_image_func.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -676,7 +676,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                     ],
 
                     // ─── Wallet ───
-                    TransactionWalletPickerTile(
+                    SakuWalletPickerTile(
                       label: formState.type == TransactionTypeEnum.transfer
                           ? l10n.transactionSourceWallet
                           : l10n.transactionWallet,
@@ -693,11 +693,10 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                             .read(transactionFormControllerProvider.notifier)
                             .swapWallets(),
                       ),
-                      TransactionWalletPickerTile(
+                      SakuWalletPickerTile(
                         label: l10n.transactionDestWallet,
                         selected: formState.destinationWallet,
                         onTap: () => _pickWallet(isSource: false),
-                        excludeWalletId: formState.wallet?.id,
                         iconColor: colors.transfer,
                       ),
                     ],
@@ -824,7 +823,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
-    final result = await WalletPickerSheet.show(
+    final result = await SakuWalletPickerSheet.show(
       context,
       selectedWalletId: isSource
           ? formState.wallet?.id

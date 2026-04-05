@@ -5,12 +5,12 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
-import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
+import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,10 +26,13 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// - Toggle recurring (berulang otomatis)
 /// - Toggle carry forward (sisa budget diteruskan ke periode berikut)
 class BudgetFormSheet extends ConsumerStatefulWidget {
-  const BudgetFormSheet({super.key, this.existingBudget});
+  const BudgetFormSheet({super.key, this.existingBudget, this.defaultPeriodKey});
 
   /// Budget yang akan diedit. `null` berarti mode tambah baru.
   final BudgetModel? existingBudget;
+
+  /// Period key default saat create (inherit dari tab aktif).
+  final String? defaultPeriodKey;
 
   @override
   ConsumerState<BudgetFormSheet> createState() => _BudgetFormSheetState();
@@ -92,7 +95,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   @override
   void initState() {
     super.initState();
-    _setDefaultPeriodToCurrentMonth();
+    _applyDefaultPeriod();
     _prefillFromExistingBudget();
     // Simpan snapshot SETELAH prefill agar initial values akurat
     _captureInitialSnapshot();
@@ -106,11 +109,38 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
 
   // ═══════════════ Inisialisasi ═══════════════
 
-  /// Set default periode ke bulan ini (tanggal 1 s/d akhir bulan).
-  void _setDefaultPeriodToCurrentMonth() {
+  /// Set default periode berdasarkan [defaultPeriodKey] (dari tab aktif)
+  /// atau fallback ke bulan ini.
+  void _applyDefaultPeriod() {
     final now = DateTime.now();
-    _periodStartDate = DateTime(now.year, now.month, 1);
-    _periodEndDate = DateTime(now.year, now.month + 1, 0);
+    final key = widget.defaultPeriodKey;
+
+    if (key == 'weekly') {
+      _activePeriodKey = 'this_week';
+      _periodStartDate = now.subtract(Duration(days: now.weekday - 1));
+      _periodEndDate = now.add(Duration(days: 7 - now.weekday));
+    } else if (key == 'quarterly') {
+      _activePeriodKey = 'this_quarter';
+      final qStart = ((now.month - 1) ~/ 3) * 3 + 1;
+      _periodStartDate = DateTime(now.year, qStart, 1);
+      _periodEndDate = DateTime(now.year, qStart + 3, 0);
+    } else if (key == 'yearly') {
+      _activePeriodKey = 'this_year';
+      _periodStartDate = DateTime(now.year, 1, 1);
+      _periodEndDate = DateTime(now.year, 12, 31);
+    } else if (key != null && key.startsWith('custom_')) {
+      _activePeriodKey = 'custom';
+      final parts = key.split('_');
+      if (parts.length == 3) {
+        _periodStartDate = DateTime.tryParse(parts[1]) ?? DateTime(now.year, now.month, 1);
+        _periodEndDate = DateTime.tryParse(parts[2]) ?? DateTime(now.year, now.month + 1, 0);
+      }
+    } else {
+      // Default: this month
+      _activePeriodKey = 'this_month';
+      _periodStartDate = DateTime(now.year, now.month, 1);
+      _periodEndDate = DateTime(now.year, now.month + 1, 0);
+    }
   }
 
   /// Isi semua field dari [existingBudget] jika mode edit.
@@ -264,7 +294,6 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final wallets = ref.watch(walletListProvider);
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -333,7 +362,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
             title: _appliesToAllWallets
                 ? l10n.budgetAllWallets
                 : (_pickedWallet?.name ?? l10n.budgetSpecificWallet),
-            onTap: () => _openWalletScopePicker(context, wallets),
+            onTap: () => _openWalletScopePicker(context),
           ),
 
           SizedBox(height: 16.h),
@@ -583,122 +612,28 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   /// Buka bottom sheet untuk memilih cakupan wallet.
   ///
   /// User bisa pilih "Semua Wallet" (global) atau wallet tertentu.
-  void _openWalletScopePicker(BuildContext context, List<WalletModel> wallets) {
-    final colors = context.colors;
+  Future<void> _openWalletScopePicker(BuildContext context) async {
     final l10n = context.l10n;
 
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      backgroundColor: colors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: colors.border,
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
-                SizedBox(height: 16.h),
-
-                // Judul
-                Text(
-                  l10n.budgetFormWalletScope,
-                  style: TextStyleConstants.h7.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 12.h),
-
-                // Opsi: Semua Wallet (global)
-                ListTile(
-                  leading: FaIcon(
-                    FontAwesomeIcons.globe,
-                    size: 18.w,
-                    color: colors.primary,
-                  ),
-                  title: Text(
-                    l10n.budgetAllWallets,
-                    style: TextStyleConstants.b2.copyWith(
-                      fontWeight: _appliesToAllWallets
-                          ? FontWeight.w700
-                          : FontWeight.normal,
-                      color: _appliesToAllWallets
-                          ? colors.primary
-                          : colors.textPrimary,
-                    ),
-                  ),
-                  trailing: _appliesToAllWallets
-                      ? FaIcon(
-                          FontAwesomeIcons.circleCheck,
-                          size: 18.w,
-                          color: colors.primary,
-                        )
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _appliesToAllWallets = true;
-                      _pickedWallet = null;
-                    });
-                    Navigator.pop(sheetContext);
-                  },
-                ),
-                Divider(color: colors.border.withValues(alpha: 0.2)),
-
-                // Opsi: Wallet spesifik
-                ...wallets.map((wallet) {
-                  final isSelected =
-                      !_appliesToAllWallets && _pickedWallet?.id == wallet.id;
-                  return ListTile(
-                    leading: SakuCategoryIcon.raw(
-                      iconName: wallet.icon,
-                      colorHex: wallet.color,
-                      size: 32,
-                      iconSize: 14,
-                      borderRadius: 8,
-                    ),
-                    title: Text(
-                      wallet.name,
-                      style: TextStyleConstants.b2.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.normal,
-                        color: isSelected ? colors.primary : colors.textPrimary,
-                      ),
-                    ),
-                    trailing: isSelected
-                        ? FaIcon(
-                            FontAwesomeIcons.circleCheck,
-                            size: 18.w,
-                            color: colors.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        _appliesToAllWallets = false;
-                        _pickedWallet = wallet;
-                      });
-                      Navigator.pop(sheetContext);
-                    },
-                  );
-                }),
-              ],
-            ),
-          ),
-        );
-      },
+    final result = await SakuWalletPickerSheet.showWithAllResult(
+      context,
+      selectedWalletId: _appliesToAllWallets ? null : _pickedWallet?.id,
+      title: l10n.budgetFormWalletScope,
+      allLabel: l10n.budgetAllWallets,
+      showBalance: false,
     );
+
+    if (result == null) return; // dismiss
+
+    setState(() {
+      if (result.isAll) {
+        _appliesToAllWallets = true;
+        _pickedWallet = null;
+      } else {
+        _appliesToAllWallets = false;
+        _pickedWallet = result.wallet;
+      }
+    });
   }
 }
 
