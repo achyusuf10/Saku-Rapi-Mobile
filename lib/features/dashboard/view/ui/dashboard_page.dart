@@ -9,10 +9,10 @@ import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_chart_ca
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_period_summary.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_quick_actions.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_recent_transactions.dart';
+import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_shimmer.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_wallet_section.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -88,9 +88,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               // ─── Body: depends on status ───
               if (dashState.status == DashboardStatus.loading &&
                   dashState.recentTransactions.isEmpty)
-                const SliverFillRemaining(
-                  child: Center(child: SakuLoadingIndicator()),
-                )
+                const SliverFillRemaining(child: DashboardShimmer())
               else if (dashState.status == DashboardStatus.error &&
                   dashState.recentTransactions.isEmpty)
                 SliverFillRemaining(

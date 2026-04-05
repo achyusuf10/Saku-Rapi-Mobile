@@ -40,60 +40,68 @@ class WalletCardTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: colors.border.withValues(alpha: 0.5)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon
-            SakuCategoryIcon.raw(
-              iconName: wallet.icon,
-              colorHex: wallet.color,
-              size: 42,
-              iconSize: 18,
-              borderRadius: 12,
-            ),
-            SizedBox(width: 12.w),
+            Row(
+              children: [
+                // Icon
+                SakuCategoryIcon.raw(
+                  iconName: wallet.icon,
+                  colorHex: wallet.color,
+                  size: 42,
+                  iconSize: 18,
+                  borderRadius: 12,
+                ),
+                SizedBox(width: 12.w),
 
-            // Name + badge
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    wallet.name,
-                    style: TextStyleConstants.b2.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                // Name + badge
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wallet.name,
+                        style: TextStyleConstants.b2.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  if (wallet.excludeFromTotal) ...[
-                    SizedBox(height: 2.h),
+                ),
+                10.horizontalSpace,
+
+                // Balance
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      context.l10n.walletExcludeHint,
-                      style: TextStyleConstants.label2.copyWith(
-                        color: colors.textSecondary,
+                      wallet.balance.toCurrency(),
+                      style: TextStyleConstants.b2.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: wallet.balance >= 0
+                            ? colors.income
+                            : colors.expense,
                       ),
                     ),
                   ],
-                ],
-              ),
-            ),
-
-            // Balance
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  wallet.balance.toCurrency(),
-                  style: TextStyleConstants.b2.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: wallet.balance >= 0 ? colors.income : colors.expense,
-                  ),
                 ),
+
+                // Trailing (optional, e.g. popup menu)
+                if (trailing != null) ...[SizedBox(width: 4.w), trailing!],
               ],
             ),
-
-            // Trailing (optional, e.g. popup menu)
-            if (trailing != null) ...[SizedBox(width: 4.w), trailing!],
+            if (wallet.excludeFromTotal) ...[
+              SizedBox(height: 2.h),
+              Text(
+                "* ${context.l10n.walletExcludeHint}",
+                style: TextStyleConstants.label2.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+            ],
           ],
         ),
       ),

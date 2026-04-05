@@ -163,7 +163,6 @@ class _InvestmentSmartFormPageState
     }
 
     return AppBar(
-      backgroundColor: colors.background,
       title: Text(title),
       actions: [
         if (mode == InvestmentFormMode.edit)

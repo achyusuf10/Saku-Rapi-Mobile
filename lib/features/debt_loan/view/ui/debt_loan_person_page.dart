@@ -7,9 +7,9 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_person_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_person_shimmer.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -90,7 +90,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
     final l10n = context.l10n;
 
     if (state.status == DebtLoanPersonStatus.loading) {
-      return const Center(child: SakuLoadingIndicator());
+      return const DebtLoanPersonShimmer();
     }
 
     if (state.status == DebtLoanPersonStatus.error) {

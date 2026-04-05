@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_adjust_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_card_tile.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_form_sheet.dart';
+import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_shimmer.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_summary_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:flutter/material.dart';
@@ -44,10 +45,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(l10n.walletTitle),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(l10n.walletTitle), centerTitle: false),
       floatingActionButton: FloatingActionButton(
         onPressed: () => WalletFormSheet.show(context),
         backgroundColor: colors.primary,
@@ -68,7 +66,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
   ) {
     // Loading
     if (walletState.status == WalletStatus.loading) {
-      return Center(child: CircularProgressIndicator(color: colors.primary));
+      return const WalletShimmer();
     }
 
     // Error

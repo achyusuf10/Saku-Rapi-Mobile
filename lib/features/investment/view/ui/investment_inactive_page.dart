@@ -25,10 +25,7 @@ class InvestmentInactivePage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: Text(l10n.investmentInactiveTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.investmentInactiveTitle)),
       body: inactiveAssets.isEmpty
           ? SakuEmptyState(
               title: l10n.investmentInactiveEmpty,

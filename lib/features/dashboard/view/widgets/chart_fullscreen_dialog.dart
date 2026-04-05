@@ -80,8 +80,6 @@ class _ChartFullscreenDialogState extends State<ChartFullscreenDialog> {
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: AppBar(
-          backgroundColor: colors.surface,
-          surfaceTintColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.close_rounded, color: colors.textPrimary),
             onPressed: () => Navigator.pop(context),

@@ -9,6 +9,7 @@ import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_category_chart.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_category_pie_chart.dart';
+import 'package:app_saku_rapi/features/reports/view/widgets/report_shimmer.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_summary_card.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_trend_chart.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
@@ -151,7 +152,6 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.background,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -218,8 +218,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     final colors = context.colors;
 
     return switch (reportState.status) {
-      ReportStatus.initial ||
-      ReportStatus.loading => const Center(child: SakuLoadingIndicator()),
+      ReportStatus.initial || ReportStatus.loading => const ReportShimmer(),
       ReportStatus.error => Center(
         child: SakuErrorState(
           message: reportState.errorMessage ?? l10n.reportErrorGeneric,

@@ -269,7 +269,6 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.background,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => _handleClose(context),

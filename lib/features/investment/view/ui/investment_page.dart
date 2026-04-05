@@ -5,12 +5,12 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
+import 'package:app_saku_rapi/features/investment/view/widgets/investment_shimmer.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -58,11 +58,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: Text(l10n.investmentTitle),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(l10n.investmentTitle), centerTitle: false),
       body: _buildBody(state),
       floatingActionButton: state.status == InvestmentStatus.loaded
           ? FloatingActionButton(
@@ -80,7 +76,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     switch (state.status) {
       case InvestmentStatus.initial:
       case InvestmentStatus.loading:
-        return const Center(child: SakuLoadingIndicator());
+        return const InvestmentShimmer();
 
       case InvestmentStatus.error:
         return Center(

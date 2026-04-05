@@ -6,8 +6,8 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_summary_model.dart';
+import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_shimmer.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -121,7 +121,7 @@ class _DebtLoanListView extends ConsumerWidget {
     final errorMessage = state.errorFor(type);
 
     if (status == DebtLoanStatus.loading) {
-      return const Center(child: SakuLoadingIndicator());
+      return const DebtLoanShimmer();
     }
 
     if (status == DebtLoanStatus.error) {

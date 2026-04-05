@@ -10,12 +10,12 @@ import 'package:app_saku_rapi/features/investment/models/investment_asset_model.
 import 'package:app_saku_rapi/features/investment/models/investment_transaction_model.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_sell_sheet.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_settings_sheet.dart';
+import 'package:app_saku_rapi/features/investment/view/widgets/investment_transaction_list_shimmer.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_dialog.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,7 +73,6 @@ class _InvestmentDetailPageState extends ConsumerState<InvestmentDetailPage>
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.background,
         title: Text(latestAsset.name),
         actions: [
           IconButton(
@@ -482,7 +481,7 @@ class _TransactionList extends ConsumerWidget {
     switch (txState.status) {
       case InvestmentStatus.initial:
       case InvestmentStatus.loading:
-        return const Center(child: SakuLoadingIndicator());
+        return const InvestmentTransactionListShimmer();
 
       case InvestmentStatus.error:
         return Center(

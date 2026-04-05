@@ -9,6 +9,7 @@ import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
+import 'package:app_saku_rapi/features/history/view/widgets/history_shimmer.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
@@ -244,7 +245,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
     return switch (historyState.status) {
       HistoryStatus.initial ||
-      HistoryStatus.loading => const Center(child: SakuLoadingIndicator()),
+      HistoryStatus.loading => const HistoryShimmer(),
       HistoryStatus.error => Center(
         child: SakuErrorState(
           message: historyState.errorMessage ?? '',

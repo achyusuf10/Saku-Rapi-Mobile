@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_group_card.dart';
+import 'package:app_saku_rapi/features/budget/view/widgets/budget_shimmer.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_summary_card.dart';
 import 'package:app_saku_rapi/features/notification/controllers/budget_alert_checker.dart';
 import 'package:app_saku_rapi/features/notification/controllers/notification_controller.dart';
@@ -15,7 +16,6 @@ import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
-import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -124,7 +124,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.background,
         title: Text(l10n.budgetTitle),
         centerTitle: false,
         actions: [
@@ -159,7 +158,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
     switch (budgetState.status) {
       case BudgetStatus.initial:
       case BudgetStatus.loading:
-        return const Center(child: SakuLoadingIndicator());
+        return const BudgetShimmer();
 
       case BudgetStatus.error:
         return Center(
