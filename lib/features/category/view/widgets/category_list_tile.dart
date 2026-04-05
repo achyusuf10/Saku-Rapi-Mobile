@@ -90,14 +90,14 @@ class CategoryParentListTile extends StatelessWidget {
               onTap: onTap,
               onLongPress: onLongPress,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                 child: Row(
                   children: [
                     // Icon
                     SakuCategoryIcon(
                       category: category,
-                      size: 38,
-                      iconSize: 15,
+                      size: 42,
+                      iconSize: 18,
                       borderRadius: 11,
                       useGradient: true,
                       colorOverride: category.isHidden
@@ -277,8 +277,8 @@ class CategoryChildListTile extends StatelessWidget {
               // Small icon
               SakuCategoryIcon(
                 category: category,
-                size: 28,
-                iconSize: 11,
+                size: 36,
+                iconSize: 14,
                 borderRadius: 8,
                 colorOverride: category.isHidden
                     ? colors.textSecondary.withValues(alpha: 0.5)
