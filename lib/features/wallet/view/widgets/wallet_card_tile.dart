@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -46,9 +47,9 @@ class WalletCardTile extends StatelessWidget {
             Row(
               children: [
                 // Icon
-                SakuCategoryIcon.raw(
+                SakuCategoryIcon(
                   iconName: wallet.icon,
-                  colorHex: wallet.color,
+                  color: parseHexColor(wallet.color),
                   size: 42,
                   iconSize: 18,
                   borderRadius: 12,

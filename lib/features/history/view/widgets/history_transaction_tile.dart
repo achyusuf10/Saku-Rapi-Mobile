@@ -234,7 +234,7 @@ class HistoryTransactionTile extends StatelessWidget {
 
   Widget _buildIcon(TransactionModel tx, Color fallbackColor) {
     if (tx.categoryIcon != null) {
-      return SakuCategoryIcon.withColor(
+      return SakuCategoryIcon(
         iconName: tx.categoryIcon!,
         color: fallbackColor,
         size: 16,

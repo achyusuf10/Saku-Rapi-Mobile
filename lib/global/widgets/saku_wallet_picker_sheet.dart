@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
@@ -209,7 +210,7 @@ class SakuWalletPickerSheet extends ConsumerWidget {
         shrinkWrap: true,
         padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
         itemCount: wallets.length + (showAllOption ? 1 : 0),
-        separatorBuilder: (_, __) => SizedBox(height: 4.h),
+        separatorBuilder: (_, _) => SizedBox(height: 4.h),
         itemBuilder: (context, index) {
           // ─── "Semua Dompet" option ───
           if (showAllOption && index == 0) {
@@ -425,9 +426,9 @@ class _WalletPickerItem extends StatelessWidget {
         child: Row(
           children: [
             // Icon
-            SakuCategoryIcon.raw(
+            SakuCategoryIcon(
               iconName: wallet.icon,
-              colorHex: wallet.color,
+              color: parseHexColor(wallet.color),
               size: 38,
               iconSize: 16,
               borderRadius: 10,

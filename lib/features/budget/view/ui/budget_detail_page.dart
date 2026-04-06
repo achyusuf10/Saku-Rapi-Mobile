@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
@@ -94,9 +95,9 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
     return Row(
       children: [
-        SakuCategoryIcon.raw(
+        SakuCategoryIcon(
           iconName: _budget.category?.icon ?? 'circleQuestion',
-          colorHex: _budget.category?.color ?? '#6B7280',
+          color: parseHexColor(_budget.category?.color ?? '#6B7280'),
           size: 52,
           iconSize: 22,
           borderRadius: 14,
@@ -387,7 +388,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: detailState.transactions.length,
-            separatorBuilder: (_, __) => SizedBox(height: 4.h),
+            separatorBuilder: (_, _) => SizedBox(height: 4.h),
             itemBuilder: (_, i) {
               final tx = detailState.transactions[i];
               return HistoryTransactionTile(

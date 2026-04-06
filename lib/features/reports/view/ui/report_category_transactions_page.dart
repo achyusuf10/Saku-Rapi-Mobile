@@ -95,7 +95,7 @@ class _ReportCategoryTransactionsPageState
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Center(
-                child: SakuCategoryIcon.withColor(
+                child: SakuCategoryIcon(
                   iconName: arg.categoryIcon,
                   color: catColor,
                   size: 13,
@@ -143,7 +143,7 @@ class _ReportCategoryTransactionsPageState
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         itemCount: _transactions.length,
-        separatorBuilder: (_, __) => SizedBox(height: 4.h),
+        separatorBuilder: (_, _) => SizedBox(height: 4.h),
         itemBuilder: (context, index) {
           final tx = _transactions[index];
           return HistoryTransactionTile(

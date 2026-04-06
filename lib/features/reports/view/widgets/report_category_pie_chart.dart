@@ -106,7 +106,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SakuCategoryIcon.withColor(
+                        SakuCategoryIcon(
                           iconName: cat.categoryIcon,
                           color: catColor,
                           size: 18,
@@ -182,7 +182,7 @@ class _PieLegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SakuCategoryIcon.withColor(
+        SakuCategoryIcon(
           iconName: iconName,
           color: color,
           size: 24,

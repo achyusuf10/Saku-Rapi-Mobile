@@ -4,11 +4,11 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
-import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// - Toggle recurring (berulang otomatis)
 /// - Toggle carry forward (sisa budget diteruskan ke periode berikut)
 class BudgetFormSheet extends ConsumerStatefulWidget {
-  const BudgetFormSheet({super.key, this.existingBudget, this.defaultPeriodKey});
+  const BudgetFormSheet({
+    super.key,
+    this.existingBudget,
+    this.defaultPeriodKey,
+  });
 
   /// Budget yang akan diedit. `null` berarti mode tambah baru.
   final BudgetModel? existingBudget;
@@ -132,8 +136,10 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
       _activePeriodKey = 'custom';
       final parts = key.split('_');
       if (parts.length == 3) {
-        _periodStartDate = DateTime.tryParse(parts[1]) ?? DateTime(now.year, now.month, 1);
-        _periodEndDate = DateTime.tryParse(parts[2]) ?? DateTime(now.year, now.month + 1, 0);
+        _periodStartDate =
+            DateTime.tryParse(parts[1]) ?? DateTime(now.year, now.month, 1);
+        _periodEndDate =
+            DateTime.tryParse(parts[2]) ?? DateTime(now.year, now.month + 1, 0);
       }
     } else {
       // Default: this month
@@ -316,14 +322,11 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
           _BudgetFormSectionTile(
             icon: FontAwesomeIcons.circleQuestion,
             iconColor: colors.textSecondary,
-            leading: _pickedCategory != null
-                ? SakuCategoryIcon(
-                    category: _pickedCategory!,
-                    size: 36,
-                    iconSize: 16,
-                    borderRadius: 10,
-                  )
-                : null,
+            leading: _pickedCategory?.toIcon(
+              size: 36,
+              iconSize: 16,
+              borderRadius: 10,
+            ),
             title: _pickedCategory?.name ?? l10n.budgetFormCategorySelect,
             titleColor: _pickedCategory != null
                 ? colors.textPrimary

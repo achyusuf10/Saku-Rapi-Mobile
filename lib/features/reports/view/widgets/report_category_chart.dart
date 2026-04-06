@@ -78,7 +78,7 @@ class _CategoryRow extends StatelessWidget {
       child: Row(
         children: [
           // Icon circle
-          SakuCategoryIcon.withColor(
+          SakuCategoryIcon(
             iconName: category.categoryIcon,
             color: catColor,
             size: 36,

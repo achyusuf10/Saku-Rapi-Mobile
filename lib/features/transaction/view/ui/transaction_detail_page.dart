@@ -152,10 +152,11 @@ class TransactionDetailPage extends ConsumerWidget {
               value: transaction.items.first.categoryName ?? '-',
               icon: FontAwesomeIcons.layerGroup,
               leading: transaction.items.first.categoryIcon != null
-                  ? SakuCategoryIcon.raw(
+                  ? SakuCategoryIcon(
                       iconName: transaction.items.first.categoryIcon!,
-                      colorHex:
-                          transaction.items.first.categoryColor ?? '#6B7280',
+                      color: parseHexColor(
+                        transaction.items.first.categoryColor ?? '#6B7280',
+                      ),
                       size: 14,
                       showBackground: false,
                     )
@@ -548,7 +549,7 @@ class _ItemRow extends StatelessWidget {
       child: Row(
         children: [
           if (item.categoryIcon != null)
-            SakuCategoryIcon.withColor(
+            SakuCategoryIcon(
               iconName: item.categoryIcon!,
               color: iconColor,
               size: 14,

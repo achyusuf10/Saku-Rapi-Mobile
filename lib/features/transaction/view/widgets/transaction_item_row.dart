@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
@@ -232,9 +233,11 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
               child: Row(
                 children: [
                   if (widget.item.categoryIcon != null) ...[
-                    SakuCategoryIcon.raw(
+                    SakuCategoryIcon(
                       iconName: widget.item.categoryIcon!,
-                      colorHex: widget.item.categoryColor ?? '#6B7280',
+                      color: parseHexColor(
+                        widget.item.categoryColor ?? '#6B7280',
+                      ),
                       size: 16,
                       showBackground: false,
                     ),

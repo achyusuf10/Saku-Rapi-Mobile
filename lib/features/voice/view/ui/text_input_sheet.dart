@@ -5,9 +5,9 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/voice/controllers/text_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
-import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -466,14 +466,11 @@ class _TextPreviewCard extends ConsumerWidget {
               iconColor: colors.accent,
               label: l10n.transactionCategory,
               value: matchedCategory?.name ?? result.categoryKeyword!,
-              leading: matchedCategory != null
-                  ? SakuCategoryIcon(
-                      category: matchedCategory,
-                      size: 14,
-                      showBackground: false,
-                      colorOverride: colors.accent,
-                    )
-                  : null,
+              leading: matchedCategory?.toIcon(
+                size: 14,
+                showBackground: false,
+                colorOverride: colors.accent,
+              ),
             ),
           ],
 

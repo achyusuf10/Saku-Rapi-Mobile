@@ -244,8 +244,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final l10n = context.l10n;
 
     return switch (historyState.status) {
-      HistoryStatus.initial ||
-      HistoryStatus.loading => const HistoryShimmer(),
+      HistoryStatus.initial || HistoryStatus.loading => const HistoryShimmer(),
       HistoryStatus.error => Center(
         child: SakuErrorState(
           message: historyState.errorMessage ?? '',
@@ -644,7 +643,7 @@ class _GroupHeader extends StatelessWidget {
 
   Widget _buildTxIcon(TransactionModel tx, Color fallbackColor) {
     if (tx.categoryIcon != null) {
-      return SakuCategoryIcon.withColor(
+      return SakuCategoryIcon(
         iconName: tx.categoryIcon!,
         color: fallbackColor,
         size: 14,

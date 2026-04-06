@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
@@ -103,9 +104,9 @@ class _BudgetRow extends StatelessWidget {
             Row(
               children: [
                 // Category icon
-                SakuCategoryIcon.raw(
+                SakuCategoryIcon(
                   iconName: budget.category?.icon ?? 'circleQuestion',
-                  colorHex: budget.category?.color ?? '#6B7280',
+                  color: parseHexColor(budget.category?.color ?? '#6B7280'),
                   size: isParent ? 42 : 34,
                   iconSize: isParent ? 18 : 14,
                   borderRadius: isParent ? 12 : 10,

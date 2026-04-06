@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
@@ -135,9 +136,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
                 // Preview
                 Center(
-                  child: SakuCategoryIcon.raw(
+                  child: SakuCategoryIcon(
                     iconName: _selectedIcon,
-                    colorHex: _selectedColor,
+                    color: parseHexColor(_selectedColor),
                     size: 56,
                     iconSize: 24,
                     borderRadius: 16,
@@ -167,9 +168,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                     Expanded(
                       child: _PickerTile(
                         label: l10n.categoryIconPicker,
-                        child: SakuCategoryIcon.raw(
+                        child: SakuCategoryIcon(
                           iconName: _selectedIcon,
-                          colorHex: _selectedColor,
+                          color: parseHexColor(_selectedColor),
                           size: 18,
                           showBackground: false,
                         ),
@@ -219,11 +220,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                           value: p.id,
                           child: Row(
                             children: [
-                              SakuCategoryIcon(
-                                category: p,
-                                size: 14,
-                                showBackground: false,
-                              ),
+                              p.toIcon(size: 14, showBackground: false),
                               SizedBox(width: 8.w),
                               Flexible(
                                 child: Text(

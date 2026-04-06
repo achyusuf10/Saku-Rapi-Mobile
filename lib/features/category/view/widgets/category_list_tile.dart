@@ -2,7 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -94,8 +94,7 @@ class CategoryParentListTile extends StatelessWidget {
                 child: Row(
                   children: [
                     // Icon
-                    SakuCategoryIcon(
-                      category: category,
+                    category.toIcon(
                       size: 42,
                       iconSize: 18,
                       borderRadius: 11,
@@ -275,8 +274,7 @@ class CategoryChildListTile extends StatelessWidget {
           child: Row(
             children: [
               // Small icon
-              SakuCategoryIcon(
-                category: category,
+              category.toIcon(
                 size: 36,
                 iconSize: 14,
                 borderRadius: 8,

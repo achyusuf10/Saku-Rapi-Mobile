@@ -155,12 +155,11 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                     Expanded(
                       child: _PickerTile(
                         label: l10n.walletIcon,
-                        child: SakuCategoryIcon.raw(
+                        child: SakuCategoryIcon(
                           iconName: _selectedIcon,
-                          colorHex: '#6B7280',
+                          color: colors.textPrimary,
                           size: 20,
                           showBackground: false,
-                          colorOverride: colors.textPrimary,
                         ),
                         onTap: () => _pickIcon(context),
                       ),

@@ -138,7 +138,7 @@ class _WalletMiniCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: walletColor.withValues(alpha: 0.15),
                 ),
-                child: SakuCategoryIcon.withColor(
+                child: SakuCategoryIcon(
                   iconName: wallet.icon,
                   color: walletColor,
                   size: 12,

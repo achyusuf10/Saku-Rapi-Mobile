@@ -55,7 +55,7 @@ class TransactionCategoryPickerTile extends StatelessWidget {
               ),
               child: Center(
                 child: hasCategory
-                    ? SakuCategoryIcon.withColor(
+                    ? SakuCategoryIcon(
                         iconName: item!.categoryIcon!,
                         color: circleColor,
                         size: 16,

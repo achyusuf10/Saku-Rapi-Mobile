@@ -80,14 +80,13 @@ class SakuWalletFilterButton extends ConsumerWidget {
                           wallet.color,
                           fallback: colors.textSecondary,
                         ),
-                  leading: SakuCategoryIcon.raw(
+                  leading: SakuCategoryIcon(
                     iconName: wallet.icon,
-                    colorHex: wallet.color,
+                    color: selectedWalletId == wallet.id
+                        ? colors.primary
+                        : parseHexColor(wallet.color),
                     size: 14,
                     showBackground: false,
-                    colorOverride: selectedWalletId == wallet.id
-                        ? colors.primary
-                        : null,
                   ),
                   label: wallet.name,
                   isSelected: selectedWalletId == wallet.id,
@@ -110,19 +109,20 @@ class SakuWalletFilterButton extends ConsumerWidget {
                         color: colors.primary,
                         size: 16.w,
                       )
-                    : SakuCategoryIcon.raw(
+                    : SakuCategoryIcon(
                         iconName:
                             wallets
                                 .where((w) => w.id == selectedWalletId)
                                 .firstOrNull
                                 ?.icon ??
                             'wallet',
-                        colorHex:
-                            wallets
-                                .where((w) => w.id == selectedWalletId)
-                                .firstOrNull
-                                ?.color ??
-                            '#6B7280',
+                        color: parseHexColor(
+                          wallets
+                                  .where((w) => w.id == selectedWalletId)
+                                  .firstOrNull
+                                  ?.color ??
+                              '#6B7280',
+                        ),
                         size: 16,
                         showBackground: false,
                       ),
