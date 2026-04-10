@@ -26,8 +26,8 @@ class TextInputSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      isDismissible: true,
-      enableDrag: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (_) => const TextInputSheet(),
     );
@@ -62,122 +62,130 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
     final colors = context.colors;
     final l10n = context.l10n;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      padding: EdgeInsets.only(
-        top: 16.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32.h,
-        left: 24.w,
-        right: 24.w,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Drag handle ──
-          Container(
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-              color: colors.textSecondary.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2.r),
+    final isProcessing = state.status == TextInputStatus.processing;
+
+    return PopScope(
+      canPop: !isProcessing,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirmed = await context.showConfirmDialog(
+          title: l10n.aiParseCancelTitle,
+          message: l10n.aiParseCancelMessage,
+          confirmLabel: l10n.aiParseCancelConfirm,
+          cancelLabel: l10n.confirmCancel,
+        );
+        if (confirmed == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.only(
+          top: 16.h,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 32.h,
+          left: 24.w,
+          right: 24.w,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Drag handle ──
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: colors.textSecondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
             ),
-          ),
 
-          SizedBox(height: 24.h),
+            SizedBox(height: 24.h),
 
-          // ── Title ──
-          Text(
-            l10n.textInputTitle,
-            style: TextStyleConstants.h6.copyWith(
-              color: state.status == TextInputStatus.done
-                  ? colors.success
-                  : state.status == TextInputStatus.error
-                  ? colors.expense
-                  : colors.textPrimary,
+            // ── Title ──
+            Text(
+              l10n.textInputTitle,
+              style: TextStyleConstants.h6.copyWith(
+                color: state.status == TextInputStatus.done
+                    ? colors.success
+                    : state.status == TextInputStatus.error
+                    ? colors.expense
+                    : colors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
 
-          SizedBox(height: 16.h),
+            SizedBox(height: 16.h),
 
-          // ── Text field + submit ──
-          if (state.status != TextInputStatus.done) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SakuTextField(
-                    controller: _textController,
-                    focusNode: _focusNode,
-                    enabled: state.status != TextInputStatus.processing,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _submit(),
-                    maxLines: 3,
-                    minLines: 1,
-                    maxLength: 60,
+            // ── Text field ──
+            if (state.status != TextInputStatus.done) ...[
+              SakuTextField(
+                controller: _textController,
+                focusNode: _focusNode,
+                enabled: state.status != TextInputStatus.processing,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submit(),
+                maxLines: 3,
+                minLines: 1,
+                maxLength: 60,
+              ),
+            ],
+
+            // ── Processing indicator ──
+            if (state.status == TextInputStatus.processing) ...[
+              SizedBox(height: 16.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16.w,
+                    height: 16.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.w,
+                      valueColor: AlwaysStoppedAnimation(colors.primary),
+                    ),
                   ),
-                ),
-                SizedBox(width: 8.w),
-                _SubmitButton(
-                  isProcessing: state.status == TextInputStatus.processing,
-                  onTap: _submit,
-                ),
-              ],
-            ),
-          ],
-
-          // ── Processing indicator ──
-          if (state.status == TextInputStatus.processing) ...[
-            SizedBox(height: 16.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 16.w,
-                  height: 16.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.w,
-                    valueColor: AlwaysStoppedAnimation(colors.primary),
+                  SizedBox(width: 8.w),
+                  Text(
+                    l10n.textInputAnalyzing,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: colors.primary,
+                    ),
                   ),
-                ),
-                SizedBox(width: 8.w),
-                Text(
-                  l10n.textInputAnalyzing,
-                  style: TextStyleConstants.b2.copyWith(color: colors.primary),
-                ),
-              ],
+                ],
+              ),
+            ],
+
+            // ── Preview ──
+            if (state.status == TextInputStatus.done &&
+                state.parseResult != null) ...[
+              SizedBox(height: 16.h),
+              _TextPreviewCard(result: state.parseResult!),
+            ],
+
+            // ── Error ──
+            if (state.status == TextInputStatus.error) ...[
+              SizedBox(height: 16.h),
+              _TextErrorDisplay(errorMessage: state.errorMessage),
+            ],
+
+            SizedBox(height: 24.h),
+
+            // ── Action buttons ──
+            _TextActionButtons(
+              state: state,
+              onCancel: () => Navigator.of(context).pop(),
+              onSubmit: _submit,
+              onRetry: () {
+                ref.read(textInputControllerProvider.notifier).reset();
+                _focusNode.requestFocus();
+              },
+              onDone: () => Navigator.of(context).pop(state.parseResult),
             ),
           ],
-
-          // ── Preview ──
-          if (state.status == TextInputStatus.done &&
-              state.parseResult != null) ...[
-            SizedBox(height: 16.h),
-            _TextPreviewCard(result: state.parseResult!),
-          ],
-
-          // ── Error ──
-          if (state.status == TextInputStatus.error) ...[
-            SizedBox(height: 16.h),
-            _TextErrorDisplay(errorMessage: state.errorMessage),
-          ],
-
-          SizedBox(height: 24.h),
-
-          // ── Action buttons ──
-          _TextActionButtons(
-            state: state,
-            onCancel: () => Navigator.of(context).pop(),
-            onRetry: () {
-              ref.read(textInputControllerProvider.notifier).reset();
-              _focusNode.requestFocus();
-            },
-            onDone: () => Navigator.of(context).pop(state.parseResult),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -191,55 +199,6 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
 }
 
 // ═══════════════ Sub-widgets ═══════════════
-
-/// Tombol submit berbentuk bulat di samping text field.
-class _SubmitButton extends StatelessWidget {
-  const _SubmitButton({required this.isProcessing, required this.onTap});
-
-  final bool isProcessing;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final onPrimary = _foregroundForBackground(colors.primary);
-
-    return GestureDetector(
-      onTap: isProcessing ? null : onTap,
-      child: Container(
-        width: 48.w,
-        height: 48.w,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isProcessing
-              ? colors.primary.withValues(alpha: 0.3)
-              : colors.primary,
-        ),
-        child: Center(
-          child: isProcessing
-              ? SizedBox(
-                  width: 20.w,
-                  height: 20.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.w,
-                    valueColor: AlwaysStoppedAnimation(onPrimary),
-                  ),
-                )
-              : FaIcon(
-                  FontAwesomeIcons.paperPlane,
-                  size: 18.w,
-                  color: onPrimary,
-                ),
-        ),
-      ),
-    );
-  }
-
-  Color _foregroundForBackground(Color backgroundColor) {
-    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
-    return brightness == Brightness.dark ? Colors.white : Colors.black87;
-  }
-}
 
 /// Error display.
 class _TextErrorDisplay extends StatelessWidget {
@@ -288,12 +247,14 @@ class _TextActionButtons extends StatelessWidget {
   const _TextActionButtons({
     required this.state,
     required this.onCancel,
+    required this.onSubmit,
     required this.onRetry,
     required this.onDone,
   });
 
   final TextInputState state;
   final VoidCallback onCancel;
+  final VoidCallback onSubmit;
   final VoidCallback onRetry;
   final VoidCallback onDone;
 
@@ -304,12 +265,10 @@ class _TextActionButtons extends StatelessWidget {
 
     return Row(
       children: [
-        // Cancel / Retry button
+        // Left: "Batalkan" (always, secondary)
         Expanded(
           child: OutlinedButton(
-            onPressed: state.status == TextInputStatus.done
-                ? onRetry
-                : onCancel,
+            onPressed: onCancel,
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12.h),
               side: BorderSide(
@@ -320,9 +279,7 @@ class _TextActionButtons extends StatelessWidget {
               ),
             ),
             child: Text(
-              state.status == TextInputStatus.done
-                  ? l10n.voiceRetryButton
-                  : l10n.confirmCancel,
+              l10n.confirmCancel,
               style: TextStyleConstants.b2.copyWith(
                 color: colors.textSecondary,
               ),
@@ -332,13 +289,34 @@ class _TextActionButtons extends StatelessWidget {
 
         SizedBox(width: 12.w),
 
-        // Action button
+        // Right: main action (Analisis / loading / Coba Lagi / Lanjutkan)
         Expanded(child: _buildActionButton(colors, l10n)),
       ],
     );
   }
 
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
+    // Processing → disabled loading
+    if (state.status == TextInputStatus.processing) {
+      return ElevatedButton(
+        onPressed: null,
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+        child: SizedBox(
+          width: 18.w,
+          height: 18.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.w,
+            valueColor: AlwaysStoppedAnimation(colors.textSecondary as Color),
+          ),
+        ),
+      );
+    }
+
     // Error → "Coba Lagi"
     if (state.status == TextInputStatus.error) {
       final buttonColor = colors.info as Color;
@@ -381,20 +359,22 @@ class _TextActionButtons extends StatelessWidget {
       );
     }
 
-    // Idle / Processing → disabled
+    // Idle → "Analisis"
+    final buttonColor = colors.primary as Color;
     return ElevatedButton(
-      onPressed: null,
+      onPressed: onSubmit,
       style: ElevatedButton.styleFrom(
+        backgroundColor: buttonColor,
         padding: EdgeInsets.symmetric(vertical: 12.h),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
       ),
       child: Text(
-        state.status == TextInputStatus.processing
-            ? l10n.voicePleaseWait
-            : l10n.textInputSubmit,
-        style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
+        l10n.textInputSubmit,
+        style: TextStyleConstants.b2.copyWith(
+          color: _foregroundForBackground(buttonColor),
+        ),
       ),
     );
   }

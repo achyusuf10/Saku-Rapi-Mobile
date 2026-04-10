@@ -1812,6 +1812,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get textInputEmpty => 'Silakan masukkan deskripsi transaksi';
 
   @override
+  String get aiParseCancelTitle => 'Batalkan Analisis?';
+
+  @override
+  String get aiParseCancelMessage =>
+      'AI sedang menganalisis data. Yakin ingin membatalkan?';
+
+  @override
+  String get aiParseCancelConfirm => 'Ya, Batalkan';
+
+  @override
   String get navInvestment => 'Investasi';
 
   @override

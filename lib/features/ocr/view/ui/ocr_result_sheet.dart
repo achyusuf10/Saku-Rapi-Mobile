@@ -35,6 +35,8 @@ class OcrResultSheet extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (_) => const OcrResultSheet(),
     );
@@ -47,13 +49,31 @@ class OcrResultSheet extends ConsumerWidget {
     final state = ref.watch(ocrScanControllerProvider);
     final ctrl = ref.read(ocrScanControllerProvider.notifier);
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: 0.92.sh),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      child: SafeArea(
+    final isAnalyzing =
+        state.status == OcrScanStatus.extractingText ||
+        state.status == OcrScanStatus.analyzingAi;
+
+    return PopScope(
+      canPop: !isAnalyzing,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirmed = await context.showConfirmDialog(
+          title: l10n.aiParseCancelTitle,
+          message: l10n.aiParseCancelMessage,
+          confirmLabel: l10n.aiParseCancelConfirm,
+          cancelLabel: l10n.confirmCancel,
+        );
+        if (confirmed == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Container(
+        constraints: BoxConstraints(maxHeight: 0.92.sh),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -93,6 +113,7 @@ class OcrResultSheet extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

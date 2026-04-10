@@ -86,18 +86,35 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
       if (_pulseController.isAnimating) _pulseController.stop();
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      padding: EdgeInsets.only(
-        top: 16.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32.h,
-        left: 24.w,
-        right: 24.w,
-      ),
-      child: Column(
+    final isProcessing = state.status == VoiceInputStatus.processing;
+
+    return PopScope(
+      canPop: !isProcessing,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirmed = await context.showConfirmDialog(
+          title: l10n.aiParseCancelTitle,
+          message: l10n.aiParseCancelMessage,
+          confirmLabel: l10n.aiParseCancelConfirm,
+          cancelLabel: l10n.confirmCancel,
+        );
+        if (confirmed == true && context.mounted) {
+          ref.read(voiceInputControllerProvider.notifier).cancel();
+          Navigator.of(context).pop();
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.only(
+          top: 16.h,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 32.h,
+          left: 24.w,
+          right: 24.w,
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // ── Drag handle ──
@@ -181,6 +198,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
             },
           ),
         ],
+        ),
       ),
     );
   }

@@ -3460,6 +3460,24 @@ abstract class AppLocalizations {
   /// **'Silakan masukkan deskripsi transaksi'**
   String get textInputEmpty;
 
+  /// No description provided for @aiParseCancelTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Batalkan Analisis?'**
+  String get aiParseCancelTitle;
+
+  /// No description provided for @aiParseCancelMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'AI sedang menganalisis data. Yakin ingin membatalkan?'**
+  String get aiParseCancelMessage;
+
+  /// No description provided for @aiParseCancelConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Ya, Batalkan'**
+  String get aiParseCancelConfirm;
+
   /// No description provided for @navInvestment.
   ///
   /// In id, this message translates to:

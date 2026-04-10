@@ -176,7 +176,7 @@ extension ContextExt on BuildContext {
       barrierLabel: 'ConfirmDialog',
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 250),
-      transitionBuilder: (_, Animation<double> anim, __, Widget child) {
+      transitionBuilder: (_, Animation<double> anim, _, Widget child) {
         return FadeTransition(
           opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
           child: ScaleTransition(
@@ -185,7 +185,7 @@ extension ContextExt on BuildContext {
           ),
         );
       },
-      pageBuilder: (ctx, __, ___) {
+      pageBuilder: (ctx, _, _) {
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 340.w),
@@ -285,7 +285,7 @@ extension ContextExt on BuildContext {
                               confirmLabel,
                               style: TextStyleConstants.b2.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: appColors.surface,
                               ),
                             ),
                           ),
