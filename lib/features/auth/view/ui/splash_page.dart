@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
@@ -75,22 +76,21 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             // App Name
             Text(
               l10n.appName,
-              style: TextStyle(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
+              style: TextStyleConstants.h4.copyWith(
+                fontWeight: FontWeight.w700,
                 color: colors.textPrimary,
               ),
             ),
             SizedBox(height: 32.h),
 
-            // Loading indicator
+            // Subtle loading bar
             SizedBox(
-              width: 24.w,
-              height: 24.w,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5.w,
-                color: colors.primary,
-                strokeCap: StrokeCap.round,
+              width: 120.w,
+              child: LinearProgressIndicator(
+                minHeight: 4.h,
+                borderRadius: BorderRadius.circular(99.r),
+                backgroundColor: colors.surfaceVariant,
+                valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
               ),
             ),
           ],

@@ -153,7 +153,7 @@ class _CategoryListTab extends ConsumerWidget {
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         itemCount: groupedCategories.length,
-        separatorBuilder: (_, __) => SizedBox(height: 4.h),
+        separatorBuilder: (_, index) => SizedBox(height: 4.h),
         itemBuilder: (context, index) {
           final parent = groupedCategories[index];
           return _CategoryManagementTile(category: parent, type: type);
@@ -193,6 +193,7 @@ class _CategoryManagementTile extends ConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
                 color: colors.textSecondary.withValues(alpha: 0.1),
+                border: Border.all(color: colors.border),
                 borderRadius: BorderRadius.circular(4.r),
               ),
               child: Text(
@@ -208,7 +209,7 @@ class _CategoryManagementTile extends ConsumerWidget {
             FaIcon(
               FontAwesomeIcons.lock,
               size: 10.w,
-              color: colors.textSecondary.withValues(alpha: 0.5),
+              color: colors.textSecondary.withValues(alpha: 0.7),
             ),
             SizedBox(width: 4.w),
           ],
@@ -230,7 +231,7 @@ class _CategoryManagementTile extends ConsumerWidget {
             FaIcon(
               FontAwesomeIcons.eyeSlash,
               size: 10.w,
-              color: colors.textSecondary.withValues(alpha: 0.5),
+              color: colors.textSecondary.withValues(alpha: 0.7),
             ),
         ],
       ),
@@ -256,7 +257,7 @@ class _CategoryManagementTile extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
-      backgroundColor: colors.background,
+      backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
@@ -283,7 +284,12 @@ class _CategoryManagementTile extends ConsumerWidget {
                   size: 16.w,
                   color: colors.textPrimary,
                 ),
-                title: Text(l10n.categoryEdit, style: TextStyleConstants.b2),
+                title: Text(
+                  l10n.categoryEdit,
+                  style: TextStyleConstants.b2.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showEditForm(context, category);
@@ -301,7 +307,9 @@ class _CategoryManagementTile extends ConsumerWidget {
               ),
               title: Text(
                 category.isHidden ? l10n.categoryShow : l10n.categoryHide,
-                style: TextStyleConstants.b2,
+                style: TextStyleConstants.b2.copyWith(
+                  color: colors.textPrimary,
+                ),
               ),
               onTap: () {
                 Navigator.pop(ctx);

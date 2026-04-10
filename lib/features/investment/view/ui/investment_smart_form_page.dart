@@ -201,11 +201,13 @@ class _InvestmentSmartFormPageState
       hint: l10n.investmentFormUnitsHint,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       validator: (v) {
-        if (v == null || v.trim().isEmpty)
+        if (v == null || v.trim().isEmpty) {
           return l10n.investmentFormUnitsRequired;
+        }
         final parsed = double.tryParse(v);
-        if (parsed == null || parsed <= 0)
+        if (parsed == null || parsed <= 0) {
           return l10n.investmentFormUnitsRequired;
+        }
         return null;
       },
     );
@@ -358,8 +360,8 @@ class _TypeSelectorSection extends ConsumerWidget {
                         width: isSelected ? 2 : 1,
                       ),
                       color: isSelected
-                          ? colors.primary.withValues(alpha: 0.08)
-                          : colors.surface,
+                          ? colors.primary.withValues(alpha: 0.1)
+                          : colors.surfaceVariant,
                     ),
                     child: Column(
                       children: [
@@ -379,7 +381,7 @@ class _TypeSelectorSection extends ConsumerWidget {
                                 : colors.textSecondary,
                             fontWeight: isSelected
                                 ? FontWeight.w600
-                                : FontWeight.w400,
+                                : FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
                         ),

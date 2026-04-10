@@ -546,7 +546,7 @@ class _BudgetPeriodList extends ConsumerWidget {
             Text(
               l10n.budgetActiveBudgets,
               style: TextStyleConstants.h7.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
               ),
             ),
@@ -572,7 +572,7 @@ class _BudgetPeriodList extends ConsumerWidget {
             Text(
               l10n.budgetUpcomingBudgets,
               style: TextStyleConstants.h7.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
               ),
             ),

@@ -48,7 +48,8 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
       padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -70,7 +71,10 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
           // ─── Title ───
           Text(
             l10n.historyFilter,
-            style: TextStyleConstants.h7.copyWith(fontWeight: FontWeight.bold),
+            style: TextStyleConstants.h7.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
           ),
           SizedBox(height: 20.h),
 
@@ -78,6 +82,7 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
           Text(
             l10n.historySelectType,
             style: TextStyleConstants.label1.copyWith(
+              color: colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -92,6 +97,7 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
           Text(
             l10n.historyFilter,
             style: TextStyleConstants.label1.copyWith(
+              color: colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -121,12 +127,17 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
           Row(
             children: [
               Expanded(
-                child: SakuButton(
-                  text: l10n.historyResetFilter,
-                  isOutlined: true,
+                child: TextButton(
                   onPressed: () {
                     Navigator.pop(context, const _FilterResult.reset());
                   },
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.textSecondary,
+                    textStyle: TextStyleConstants.label1.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: Text(l10n.historyResetFilter),
                 ),
               ),
               SizedBox(width: 12.w),
@@ -229,14 +240,12 @@ class _FilterChip extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected
-              ? colors.primary.withValues(alpha: 0.12)
+              ? colors.primaryLight.withValues(alpha: 0.16)
               : colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected
-                ? colors.primary
-                : colors.border.withValues(alpha: 0.3),
-            width: isSelected ? 1.5 : 1,
+            color: isSelected ? colors.primary : colors.border,
+            width: 1,
           ),
         ),
         child: Row(
@@ -246,7 +255,7 @@ class _FilterChip extends StatelessWidget {
               label,
               style: TextStyleConstants.label2.copyWith(
                 color: isSelected ? colors.primary : colors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
@@ -281,13 +290,11 @@ class _GroupChip extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected
-              ? colors.primary.withValues(alpha: 0.12)
+              ? colors.primaryLight.withValues(alpha: 0.16)
               : colors.surfaceVariant,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected
-                ? colors.primary
-                : colors.border.withValues(alpha: 0.3),
+            color: isSelected ? colors.primary : colors.border,
           ),
         ),
         child: Row(
@@ -303,7 +310,7 @@ class _GroupChip extends StatelessWidget {
               label,
               style: TextStyleConstants.label2.copyWith(
                 color: isSelected ? colors.primary : colors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],

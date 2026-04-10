@@ -96,6 +96,7 @@ class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
               l10n.categoryIconPicker,
               style: TextStyleConstants.h7.copyWith(
                 fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -117,7 +118,7 @@ class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
                   size: 20.w,
                 ),
                 filled: true,
-                fillColor: colors.surface,
+                fillColor: colors.surfaceVariant,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide(color: colors.border),
@@ -158,7 +159,7 @@ class _CategoryIconPickerSheetState extends State<CategoryIconPickerSheet> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? colors.primary.withValues(alpha: 0.15)
-                          : colors.surface,
+                          : colors.surfaceVariant,
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: isSelected ? colors.primary : colors.border,

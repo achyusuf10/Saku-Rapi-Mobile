@@ -250,7 +250,13 @@ class _SectionHeader extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-      color: colors.surfaceVariant,
+      decoration: BoxDecoration(
+        color: colors.surfaceVariant,
+        border: Border(
+          top: BorderSide(color: colors.border),
+          bottom: BorderSide(color: colors.border),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -265,7 +271,7 @@ class _SectionHeader extends StatelessWidget {
             '$prefix${amount.toCurrency()}',
             style: TextStyleConstants.label1.copyWith(
               color: typeColor,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -299,10 +305,26 @@ class _DebtLoanPersonTile extends StatelessWidget {
           ),
         );
       },
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        margin: EdgeInsets.fromLTRB(16.w, 6.h, 16.w, 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
+        ),
         child: Row(
           children: [
+            Container(
+              width: 4.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: typeColor,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(width: 10.w),
             // Avatar
             CircleAvatar(
               radius: 20.r,
@@ -313,7 +335,7 @@ class _DebtLoanPersonTile extends StatelessWidget {
                     : '?',
                 style: TextStyleConstants.h7.copyWith(
                   color: typeColor,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -327,6 +349,7 @@ class _DebtLoanPersonTile extends StatelessWidget {
                   Text(
                     summary.withPerson ?? l10n.debtLoanSomeone,
                     style: TextStyleConstants.b1.copyWith(
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -349,7 +372,7 @@ class _DebtLoanPersonTile extends StatelessWidget {
                   '$prefix${summary.remaining.toCurrency()}',
                   style: TextStyleConstants.b2.copyWith(
                     color: typeColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 SizedBox(height: 2.h),

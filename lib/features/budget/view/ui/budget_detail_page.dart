@@ -110,7 +110,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
               Text(
                 _budget.category?.name ?? '-',
                 style: TextStyleConstants.h6.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: colors.textPrimary,
                 ),
               ),
@@ -141,7 +141,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -162,7 +162,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
                     Text(
                       _budget.usedAmount.toCurrency(),
                       style: TextStyleConstants.h7.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: statusColor,
                       ),
                     ),
@@ -183,7 +183,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
                     Text(
                       _budget.remaining.toCurrency(),
                       style: TextStyleConstants.h7.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: colors.income,
                       ),
                     ),
@@ -262,7 +262,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -313,7 +313,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [

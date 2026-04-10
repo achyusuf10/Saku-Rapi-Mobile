@@ -36,12 +36,8 @@ class ReportTrendChart extends StatelessWidget {
     required dynamic colors,
     required bool isDark,
   }) {
-    final textColor = isDark
-        ? const Color(0xFF9CA3AF)
-        : const Color(0xFF6B7280);
-    final gridColor = isDark
-        ? const Color(0xFF374151)
-        : const Color(0xFFE5E7EB);
+    final textColor = colors.textSecondary as Color;
+    final gridColor = colors.border as Color;
 
     return SfCartesianChart(
       margin: EdgeInsets.zero,
@@ -70,8 +66,9 @@ class ReportTrendChart extends StatelessWidget {
         ),
       ),
       tooltipBehavior: TooltipBehavior(
-        color: isDark ? const Color(0xFF1F2937) : Colors.white,
-
+        color: colors.surface,
+        borderColor: colors.border,
+        borderWidth: 1,
         enable: true,
         header: '',
         canShowMarker: true,
@@ -87,7 +84,10 @@ class ReportTrendChart extends StatelessWidget {
               children: [
                 Text(
                   _formatDate(d.date),
-                  style: TextStyle(color: textColor, fontSize: 10.sp),
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 10.sp,
+                  ),
                 ),
                 SizedBox(height: 2.h),
                 Text(

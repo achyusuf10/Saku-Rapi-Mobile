@@ -12,8 +12,7 @@ class HistoryShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final baseColor = context.colors.surfaceVariant;
 
     return ShimmerWidget.custom(
       child: SingleChildScrollView(

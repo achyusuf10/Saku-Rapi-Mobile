@@ -247,6 +247,7 @@ class _VoiceMicButton extends StatelessWidget {
         : isProcessing
         ? colors.primary
         : colors.info;
+    final onBgColor = _foregroundForBackground(bgColor);
 
     final icon = isProcessing
         ? FontAwesomeIcons.spinner
@@ -271,9 +272,9 @@ class _VoiceMicButton extends StatelessWidget {
                 boxShadow: [
                   if (isListening)
                     BoxShadow(
-                      color: colors.expense.withValues(alpha: 0.3),
-                      blurRadius: 20.r,
-                      spreadRadius: 5.r,
+                      color: colors.expense.withValues(alpha: 0.25),
+                      blurRadius: 12.r,
+                      spreadRadius: 2.r,
                     ),
                 ],
               ),
@@ -284,18 +285,21 @@ class _VoiceMicButton extends StatelessWidget {
                         height: 28.w,
                         child: CircularProgressIndicator(
                           strokeWidth: 3.w,
-                          valueColor: const AlwaysStoppedAnimation(
-                            Colors.white,
-                          ),
+                          valueColor: AlwaysStoppedAnimation(onBgColor),
                         ),
                       )
-                    : FaIcon(icon, size: 28.w, color: Colors.white),
+                    : FaIcon(icon, size: 28.w, color: onBgColor),
               ),
             ),
           ),
         );
       },
     );
+  }
+
+  Color _foregroundForBackground(Color backgroundColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
 
@@ -451,10 +455,11 @@ class _VoiceActionButtons extends StatelessWidget {
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
     // Permission denied → "Buka Pengaturan"
     if (state.status == VoiceInputStatus.permissionDenied) {
+      final buttonColor = colors.primary as Color;
       return ElevatedButton(
         onPressed: onOpenSettings,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.primary,
+          backgroundColor: buttonColor,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -462,17 +467,20 @@ class _VoiceActionButtons extends StatelessWidget {
         ),
         child: Text(
           l10n.voiceOpenSettings,
-          style: TextStyleConstants.b2.copyWith(color: Colors.white),
+          style: TextStyleConstants.b2.copyWith(
+            color: _foregroundForBackground(buttonColor),
+          ),
         ),
       );
     }
 
     // Error → "Coba Lagi"
     if (state.status == VoiceInputStatus.error) {
+      final buttonColor = colors.info as Color;
       return ElevatedButton(
         onPressed: onRetry,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.info,
+          backgroundColor: buttonColor,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -480,17 +488,20 @@ class _VoiceActionButtons extends StatelessWidget {
         ),
         child: Text(
           l10n.retryButton,
-          style: TextStyleConstants.b2.copyWith(color: Colors.white),
+          style: TextStyleConstants.b2.copyWith(
+            color: _foregroundForBackground(buttonColor),
+          ),
         ),
       );
     }
 
     // Done → "Lanjutkan"
     if (state.status == VoiceInputStatus.done) {
+      final buttonColor = colors.success as Color;
       return ElevatedButton(
         onPressed: onDone,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.success,
+          backgroundColor: buttonColor,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -498,7 +509,9 @@ class _VoiceActionButtons extends StatelessWidget {
         ),
         child: Text(
           l10n.voiceContinueButton,
-          style: TextStyleConstants.b2.copyWith(color: Colors.white),
+          style: TextStyleConstants.b2.copyWith(
+            color: _foregroundForBackground(buttonColor),
+          ),
         ),
       );
     }
@@ -517,6 +530,11 @@ class _VoiceActionButtons extends StatelessWidget {
         style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
       ),
     );
+  }
+
+  Color _foregroundForBackground(Color backgroundColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
 

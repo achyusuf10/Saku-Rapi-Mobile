@@ -265,7 +265,7 @@ class _AssetSummaryCard extends ConsumerWidget {
               child: Text(
                 '${l10n.investmentPriceLastUpdated}: ${pricesState.getPriceFetchedAt(asset)!.extToFormattedString(outputDateFormat: 'dd MMM HH:mm')}',
                 style: TextStyleConstants.label3.copyWith(
-                  color: colors.textSecondary.withValues(alpha: 0.7),
+                  color: colors.textSecondary,
                   fontSize: 10.sp,
                 ),
               ),
@@ -433,8 +433,8 @@ class _ActionButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 12.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-          color: color.withValues(alpha: 0.05),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+          color: color.withValues(alpha: 0.1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -510,7 +510,7 @@ class _TransactionList extends ConsumerWidget {
         return ListView.separated(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           itemCount: transactions.length,
-          separatorBuilder: (_, __) => SizedBox(height: 8.h),
+          separatorBuilder: (_, index) => SizedBox(height: 8.h),
           itemBuilder: (context, index) {
             final tx = transactions[index];
             return _TransactionItem(

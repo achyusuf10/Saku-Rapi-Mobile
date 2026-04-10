@@ -28,7 +28,6 @@ class ReportCategoryPieChart extends StatelessWidget {
     if (categories.isEmpty) return SizedBox(height: 100.h);
 
     final colors = context.colors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [
@@ -38,8 +37,9 @@ class ReportCategoryPieChart extends StatelessWidget {
           child: SfCircularChart(
             margin: EdgeInsets.zero,
             tooltipBehavior: TooltipBehavior(
-              color: isDark ? const Color(0xFF1F2937) : Colors.white,
-
+              color: colors.surface,
+              borderColor: colors.border,
+              borderWidth: 1,
               enable: true,
               header: '',
               builder: (data, point, series, pointIdx, seriesIdx) {
@@ -68,9 +68,8 @@ class ReportCategoryPieChart extends StatelessWidget {
                       SizedBox(width: 6.w),
                       Text(
                         '${cat.categoryName} · $percent%',
-                        style: TextStyle(
+                        style: TextStyleConstants.label2.copyWith(
                           color: colors.textPrimary,
-                          fontSize: 11.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -96,7 +95,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                   connectorLineSettings: ConnectorLineSettings(
                     length: '20%',
                     type: ConnectorType.curve,
-                    color: colors.textSecondary.withValues(alpha: 0.4),
+                    color: colors.border,
                   ),
                   builder: (data, point, series, pointIdx, seriesIdx) {
                     final cat = data as ReportCategoryBreakdownModel;
@@ -116,10 +115,9 @@ class ReportCategoryPieChart extends StatelessWidget {
                         SizedBox(width: 3.w),
                         Text(
                           '$percent%',
-                          style: TextStyle(
-                            color: colors.textSecondary,
+                          style: TextStyleConstants.label3.copyWith(
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 9.sp,
                           ),
                         ),
                       ],
@@ -140,7 +138,7 @@ class ReportCategoryPieChart extends StatelessWidget {
           children: categories.map((cat) {
             final catColor = parseHexColor(cat.categoryColor);
             return Material(
-              color: Colors.transparent,
+              type: MaterialType.transparency,
               child: InkWell(
                 onTap: onCategoryTap != null ? () => onCategoryTap!(cat) : null,
                 borderRadius: BorderRadius.circular(6.r),

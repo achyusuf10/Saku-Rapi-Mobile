@@ -202,7 +202,7 @@ class _NumericKey extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         // Validasi sebelum insert
         if (!_validator.canInsert(label, controller.text)) return;
@@ -244,7 +244,7 @@ class _OperatorKey extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         final currentText = controller.text;
 

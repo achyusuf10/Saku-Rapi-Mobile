@@ -41,7 +41,7 @@ class BudgetCardTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +91,7 @@ class BudgetCardTile extends StatelessWidget {
                     Text(
                       budget.amount.toCurrency(),
                       style: TextStyleConstants.b1.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: colors.textPrimary,
                       ),
                     ),

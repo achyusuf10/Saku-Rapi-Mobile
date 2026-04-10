@@ -7,9 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// Progress bar untuk budget usage yang reusable.
 ///
 /// Menampilkan bar horizontal dengan warna yang berubah sesuai persentase:
-/// - Hijau (< 60%): aman
-/// - Kuning (60–79%): waspada
-/// - Oranye (80–99%): mendekati limit
+/// - Hijau (< 80%): aman
+/// - Kuning (80–99%): mendekati limit
 /// - Merah (>= 100%): over budget
 class BudgetProgressBar extends StatelessWidget {
   const BudgetProgressBar({
@@ -30,7 +29,7 @@ class BudgetProgressBar extends StatelessWidget {
   /// Jika diberikan, akan menampilkan marker vertikal pada posisi ini.
   final double? expectedRatio;
 
-  /// Tinggi bar. Default: 6.
+  /// Tinggi bar. Default: 8.
   final double? height;
 
   /// Warna background bar (track). Default: surfaceVariant.
@@ -48,8 +47,8 @@ class BudgetProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final barHeight = height ?? 6.h;
-    final radius = borderRadius ?? barHeight / 2;
+    final barHeight = height ?? 8.h;
+    final radius = borderRadius ?? 4.r;
     final bgColor = backgroundColor ?? colors.surfaceVariant;
     final fgColor = foregroundColor ?? _colorForRatio(ratio, colors);
     // Clamp display value to 1.0 max for the bar width
@@ -122,7 +121,6 @@ class BudgetProgressBar extends StatelessWidget {
   static Color _colorForRatio(double ratio, dynamic colors) {
     if (ratio >= 1.0) return colors.error as Color;
     if (ratio >= 0.8) return colors.warning as Color;
-    if (ratio >= 0.6) return const Color(0xFFF59E0B); // amber
     return colors.income as Color;
   }
 
@@ -131,7 +129,6 @@ class BudgetProgressBar extends StatelessWidget {
     final colors = context.colors;
     if (ratio >= 1.0) return colors.error;
     if (ratio >= 0.8) return colors.warning;
-    if (ratio >= 0.6) return const Color(0xFFF59E0B);
     return colors.income;
   }
 }

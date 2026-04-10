@@ -369,7 +369,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
           ),
 
           SizedBox(height: 16.h),
-          Divider(color: colors.border.withValues(alpha: 0.3)),
+          Divider(color: colors.border),
           SizedBox(height: 8.h),
 
           // ─── Toggle Budget Berulang ───
@@ -499,7 +499,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
       useSafeArea: true,
       backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -536,7 +536,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
                       style: TextStyleConstants.b2.copyWith(
                         fontWeight: _activePeriodKey == preset.key
                             ? FontWeight.w700
-                            : FontWeight.normal,
+                            : FontWeight.w500,
                         color: _activePeriodKey == preset.key
                             ? colors.primary
                             : colors.textPrimary,
@@ -573,7 +573,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
                     style: TextStyleConstants.b2.copyWith(
                       fontWeight: _activePeriodKey == 'custom'
                           ? FontWeight.w700
-                          : FontWeight.normal,
+                          : FontWeight.w500,
                       color: _activePeriodKey == 'custom'
                           ? colors.primary
                           : colors.textPrimary,

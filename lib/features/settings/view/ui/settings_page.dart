@@ -54,10 +54,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(l10n.profileSettings),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(l10n.profileSettings), centerTitle: false),
       body: ListView(
         padding: EdgeInsets.only(bottom: 32.h),
         children: [
@@ -337,11 +334,13 @@ class _OptionSheet<T> extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? colors.primary.withValues(alpha: 0.08)
-                      : Colors.transparent,
+                      : colors.surfaceVariant,
                   borderRadius: BorderRadius.circular(12.r),
-                  border: isSelected
-                      ? Border.all(color: colors.primary.withValues(alpha: 0.5))
-                      : null,
+                  border: Border.all(
+                    color: isSelected
+                        ? colors.primary.withValues(alpha: 0.5)
+                        : colors.border,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -360,7 +359,7 @@ class _OptionSheet<T> extends StatelessWidget {
                               : colors.textPrimary,
                           fontWeight: isSelected
                               ? FontWeight.w600
-                              : FontWeight.w400,
+                              : FontWeight.w500,
                         ),
                       ),
                     ),

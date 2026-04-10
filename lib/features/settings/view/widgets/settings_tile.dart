@@ -39,18 +39,17 @@ class SettingsTile extends StatelessWidget {
   /// Widget di sisi kanan (opsional). Jika null, tampilkan chevron.
   final Widget? trailing;
 
-  /// Override warna ikon (default: primary).
+  /// Override warna ikon (default: textSecondary).
   final Color? iconColor;
 
-  /// Override warna background ikon (default: primary 10%).
+  /// Override warna background ikon (default: surfaceVariant).
   final Color? iconBackgroundColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final effectiveIconColor = iconColor ?? colors.primary;
-    final effectiveBgColor =
-        iconBackgroundColor ?? effectiveIconColor.withValues(alpha: 0.1);
+    final effectiveIconColor = iconColor ?? colors.textSecondary;
+    final effectiveBgColor = iconBackgroundColor ?? colors.surfaceVariant;
 
     return InkWell(
       onTap: onTap,
@@ -65,6 +64,7 @@ class SettingsTile extends StatelessWidget {
               height: 36.w,
               decoration: BoxDecoration(
                 color: effectiveBgColor,
+                border: Border.all(color: colors.border),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Center(
@@ -81,7 +81,7 @@ class SettingsTile extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyleConstants.b2.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
                     ),
                   ),
@@ -89,7 +89,7 @@ class SettingsTile extends StatelessWidget {
                     SizedBox(height: 2.h),
                     Text(
                       subtitle!,
-                      style: TextStyleConstants.label3.copyWith(
+                      style: TextStyleConstants.label2.copyWith(
                         color: colors.textSecondary,
                       ),
                     ),
@@ -151,7 +151,7 @@ class SettingsGroup extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -161,7 +161,7 @@ class SettingsGroup extends StatelessWidget {
               Divider(
                 height: 1,
                 indent: 64.w,
-                color: colors.border.withValues(alpha: 0.3),
+                color: colors.border.withValues(alpha: 0.8),
               ),
           ],
         ],

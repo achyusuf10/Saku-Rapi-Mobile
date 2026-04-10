@@ -12,8 +12,7 @@ class SettlementHistoryShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final baseColor = context.colors.surfaceVariant;
 
     return ShimmerWidget.custom(
       child: SingleChildScrollView(
@@ -117,7 +116,7 @@ class _DateHeaderSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-      color: baseColor.withValues(alpha: 0.5),
+      color: baseColor,
       child: Row(
         children: [
           _Box(width: 28.w, height: 28.h, radius: 4.r, color: baseColor),

@@ -594,6 +594,8 @@ class OcrResultSheet extends ConsumerWidget {
     final colors = context.colors;
     final l10n = context.l10n;
     final nav = Navigator.of(context);
+    final accentColor = colors.accent;
+    final accentForeground = _foregroundForBackground(accentColor);
 
     return Container(
       padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 12.h),
@@ -661,10 +663,12 @@ class OcrResultSheet extends ConsumerWidget {
               icon: FaIcon(FontAwesomeIcons.check, size: 14.w),
               label: Text(l10n.ocrUseResult),
               style: ElevatedButton.styleFrom(
-                backgroundColor: colors.accent,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: colors.accent.withValues(alpha: 0.3),
-                disabledForegroundColor: Colors.white54,
+                backgroundColor: accentColor,
+                foregroundColor: accentForeground,
+                disabledBackgroundColor: accentColor.withValues(alpha: 0.3),
+                disabledForegroundColor: accentForeground.withValues(
+                  alpha: 0.65,
+                ),
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
@@ -675,6 +679,11 @@ class OcrResultSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Color _foregroundForBackground(Color backgroundColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
 

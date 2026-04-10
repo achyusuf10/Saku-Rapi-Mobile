@@ -86,16 +86,16 @@
 
 ## Checklist S11
 
-- [ ] Update `splash_page.dart` — clean bg, logo
-- [ ] Update `login_page.dart` — form, button, error styling
-- [ ] Update `profile_header_widget.dart` — avatar, text styling
-- [ ] Update `settings_page.dart` — tile styling
-- [ ] Update `settings_tile.dart` — icon, text, switch colors
-- [ ] Update `category_management_page.dart` — list styling
-- [ ] Update category widgets (5 files) — picker, form, tile styling
-- [ ] Update `notification_settings_page.dart` — toggle styling
-- [ ] Update `voice_input_sheet.dart` — mic button, waveform
-- [ ] Update `text_input_sheet.dart` — input styling
-- [ ] Update `ocr_result_sheet.dart` — list, edit, save styling
-- [ ] Visual test light + dark
-- [ ] Semua informasi tetap ditampilkan
+- [x] Update `splash_page.dart` — clean bg, logo
+- [x] Update `login_page.dart` — form, button, error styling
+- [x] Update `profile_header_widget.dart` — avatar, text styling
+- [x] Update `settings_page.dart` — tile styling
+- [x] Update `settings_tile.dart` — icon, text, switch colors
+- [x] Update `category_management_page.dart` — list styling
+- [x] Update category widgets (5 files) — picker, form, tile styling
+- [x] Update `notification_settings_page.dart` — toggle styling
+- [x] Update `voice_input_sheet.dart` — mic button, waveform
+- [x] Update `text_input_sheet.dart` — input styling
+- [x] Update `ocr_result_sheet.dart` — list, edit, save styling
+- [x] Visual test light + dark
+- [x] Semua informasi tetap ditampilkan

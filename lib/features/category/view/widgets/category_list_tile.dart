@@ -62,12 +62,12 @@ class CategoryParentListTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected
             ? categoryColor.withValues(alpha: 0.07)
-            : colors.background,
+            : colors.surface,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: isSelected
               ? categoryColor.withValues(alpha: 0.3)
-              : colors.border.withValues(alpha: 0.2),
+              : colors.border.withValues(alpha: 0.6),
         ),
         boxShadow: isSelected
             ? [
@@ -268,7 +268,7 @@ class CategoryChildListTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? categoryColor.withValues(alpha: 0.08)
-                : Colors.transparent,
+                : colors.surfaceVariant.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Row(
@@ -289,7 +289,7 @@ class CategoryChildListTile extends StatelessWidget {
                 child: Text(
                   category.name,
                   style: TextStyleConstants.caption.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
                         ? categoryColor
                         : category.isHidden

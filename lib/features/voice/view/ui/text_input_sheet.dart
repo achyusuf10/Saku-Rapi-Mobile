@@ -202,6 +202,7 @@ class _SubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final onPrimary = _foregroundForBackground(colors.primary);
 
     return GestureDetector(
       onTap: isProcessing ? null : onTap,
@@ -221,17 +222,22 @@ class _SubmitButton extends StatelessWidget {
                   height: 20.w,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.w,
-                    valueColor: const AlwaysStoppedAnimation(Colors.white),
+                    valueColor: AlwaysStoppedAnimation(onPrimary),
                   ),
                 )
               : FaIcon(
                   FontAwesomeIcons.paperPlane,
                   size: 18.w,
-                  color: Colors.white,
+                  color: onPrimary,
                 ),
         ),
       ),
     );
+  }
+
+  Color _foregroundForBackground(Color backgroundColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
 
@@ -335,10 +341,11 @@ class _TextActionButtons extends StatelessWidget {
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
     // Error → "Coba Lagi"
     if (state.status == TextInputStatus.error) {
+      final buttonColor = colors.info as Color;
       return ElevatedButton(
         onPressed: onRetry,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.info,
+          backgroundColor: buttonColor,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -346,17 +353,20 @@ class _TextActionButtons extends StatelessWidget {
         ),
         child: Text(
           l10n.retryButton,
-          style: TextStyleConstants.b2.copyWith(color: Colors.white),
+          style: TextStyleConstants.b2.copyWith(
+            color: _foregroundForBackground(buttonColor),
+          ),
         ),
       );
     }
 
     // Done → "Lanjutkan"
     if (state.status == TextInputStatus.done) {
+      final buttonColor = colors.success as Color;
       return ElevatedButton(
         onPressed: onDone,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.success,
+          backgroundColor: buttonColor,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -364,7 +374,9 @@ class _TextActionButtons extends StatelessWidget {
         ),
         child: Text(
           l10n.voiceContinueButton,
-          style: TextStyleConstants.b2.copyWith(color: Colors.white),
+          style: TextStyleConstants.b2.copyWith(
+            color: _foregroundForBackground(buttonColor),
+          ),
         ),
       );
     }
@@ -385,6 +397,11 @@ class _TextActionButtons extends StatelessWidget {
         style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
       ),
     );
+  }
+
+  Color _foregroundForBackground(Color backgroundColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
+    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
 

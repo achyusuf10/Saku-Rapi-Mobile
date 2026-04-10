@@ -133,9 +133,7 @@ class _CategoryRow extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: ratio.clamp(0.0, 1.0),
                           minHeight: 6.h,
-                          backgroundColor: colors.surfaceVariant.withValues(
-                            alpha: 0.6,
-                          ),
+                          backgroundColor: colors.surfaceVariant,
                           valueColor: AlwaysStoppedAnimation<Color>(catColor),
                         ),
                       ),

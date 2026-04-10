@@ -62,7 +62,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colors.background,
+        color: colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       child: Column(
@@ -86,6 +86,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
               l10n.categoryColorPicker,
               style: TextStyleConstants.h7.copyWith(
                 fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -116,9 +117,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
                       color: color,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected
-                            ? colors.textPrimary
-                            : Colors.transparent,
+                        color: isSelected ? colors.textPrimary : colors.border,
                         width: 3,
                       ),
                     ),
@@ -127,7 +126,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
                             child: FaIcon(
                               FontAwesomeIcons.check,
                               size: 16.w,
-                              color: Colors.white,
+                              color: _getOnSwatchColor(color),
                             ),
                           )
                         : null,
@@ -142,6 +141,11 @@ class CategoryColorPickerSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+Color _getOnSwatchColor(Color swatch) {
+  final brightness = ThemeData.estimateBrightnessForColor(swatch);
+  return brightness == Brightness.dark ? Colors.white : Colors.black87;
 }
 
 /// Parse hex color string ke [Color].

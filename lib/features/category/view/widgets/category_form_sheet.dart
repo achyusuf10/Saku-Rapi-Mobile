@@ -100,7 +100,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
       decoration: BoxDecoration(
-        color: colors.background,
+        color: colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       child: SingleChildScrollView(

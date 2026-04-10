@@ -46,15 +46,15 @@
 
 ## Checklist S10
 
-- [ ] Update `investment_page.dart` — portfolio card, asset list
-- [ ] Update `investment_inactive_page.dart` — inactive state
-- [ ] Update `investment_smart_form_page.dart` — form styling
-- [ ] Update `investment_detail_page.dart` — chart, detail, actions
-- [ ] Update `custom_asset_category_dialog.dart` — dialog style
-- [ ] Update `custom_gold_type_dialog.dart` — dialog style
-- [ ] Update `investment_sell_sheet.dart` — form styling
-- [ ] Update `investment_settings_sheet.dart` — settings styling
-- [ ] Update shimmer files — colors
-- [ ] Visual test light + dark
-- [ ] Gain/loss colors correct
-- [ ] Semua informasi tetap ditampilkan
+- [x] Update `investment_page.dart` — portfolio card, asset list
+- [x] Update `investment_inactive_page.dart` — inactive state
+- [x] Update `investment_smart_form_page.dart` — form styling
+- [x] Update `investment_detail_page.dart` — chart, detail, actions
+- [x] Update `custom_asset_category_dialog.dart` — dialog style
+- [x] Update `custom_gold_type_dialog.dart` — dialog style
+- [x] Update `investment_sell_sheet.dart` — form styling
+- [x] Update `investment_settings_sheet.dart` — settings styling
+- [x] Update shimmer files — colors
+- [x] Visual test light + dark
+- [x] Gain/loss colors correct
+- [x] Semua informasi tetap ditampilkan

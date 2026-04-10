@@ -182,7 +182,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
       useSafeArea: true,
       backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (_) => DebtLoanSettlementSheet(
         transactions: unpaidTxs,
@@ -240,7 +240,7 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
       useSafeArea: true,
       backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (_) => DebtLoanSettlementSheet(
         transactions: [tx],
@@ -277,61 +277,69 @@ class _PersonSummaryCard extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.debtLoanPersonIncome,
-                style: TextStyleConstants.label2.copyWith(
-                  color: colors.textSecondary,
+      child: Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.debtLoanPersonIncome,
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.textSecondary,
+                  ),
                 ),
-              ),
-              Text(
-                state.totalSettled.toCurrency(),
-                style: TextStyleConstants.b2.copyWith(
-                  color: colors.income,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  state.totalSettled.toCurrency(),
+                  style: TextStyleConstants.b2.copyWith(
+                    color: colors.income,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 4.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.debtLoanPersonExpense,
-                style: TextStyleConstants.label2.copyWith(
-                  color: colors.textSecondary,
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.debtLoanPersonExpense,
+                  style: TextStyleConstants.label2.copyWith(
+                    color: colors.textSecondary,
+                  ),
                 ),
-              ),
-              Text(
-                '+${state.totalPrincipal.toCurrency()}',
-                style: TextStyleConstants.b2.copyWith(
-                  color: typeColor,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  '+${state.totalPrincipal.toCurrency()}',
+                  style: TextStyleConstants.b2.copyWith(
+                    color: typeColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 4.h),
-          Divider(color: colors.border, height: 1),
-          SizedBox(height: 4.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                '-${state.totalRemaining.toCurrency()}',
-                style: TextStyleConstants.b1.copyWith(
-                  color: colors.expense,
-                  fontWeight: FontWeight.bold,
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Divider(color: colors.border, height: 1),
+            SizedBox(height: 4.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '-${state.totalRemaining.toCurrency()}',
+                  style: TextStyleConstants.b1.copyWith(
+                    color: colors.expense,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -366,7 +374,7 @@ class _DateHeader extends StatelessWidget {
           // Date number
           Text(
             DateFormat('dd', locale).format(date),
-            style: TextStyleConstants.h5.copyWith(fontWeight: FontWeight.bold),
+            style: TextStyleConstants.h5.copyWith(fontWeight: FontWeight.w700),
           ),
           SizedBox(width: 8.w),
           // Day name + month/year
@@ -394,7 +402,7 @@ class _DateHeader extends StatelessWidget {
             '$prefix${dayTotal.toCurrency()}',
             style: TextStyleConstants.b2.copyWith(
               color: typeColor,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -466,6 +474,7 @@ class _DebtLoanTransactionTile extends StatelessWidget {
                             ? l10n.transactionDebt
                             : l10n.transactionLoan),
                     style: TextStyleConstants.b2.copyWith(
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
@@ -518,7 +527,7 @@ class _DebtLoanTransactionTile extends StatelessWidget {
                   '$prefix${transaction.totalAmount.toCurrency()}',
                   style: TextStyleConstants.b2.copyWith(
                     color: typeColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 if (transaction.remaining > 0) ...[

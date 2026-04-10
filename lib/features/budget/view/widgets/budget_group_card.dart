@@ -45,7 +45,7 @@ class BudgetGroupCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +155,7 @@ class _BudgetRow extends StatelessWidget {
                                   ? TextStyleConstants.b1
                                   : TextStyleConstants.b2)
                               .copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: colors.textPrimary,
                               ),
                     ),
@@ -214,7 +214,7 @@ class _ChildrenSection extends StatelessWidget {
             Container(
               width: 2.w,
               decoration: BoxDecoration(
-                color: colors.border.withValues(alpha: 0.5),
+                color: colors.border,
                 borderRadius: BorderRadius.circular(1.r),
               ),
             ),
@@ -225,11 +225,7 @@ class _ChildrenSection extends StatelessWidget {
               child: Column(
                 children: [
                   for (int i = 0; i < children.length; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        color: colors.border.withValues(alpha: 0.2),
-                      ),
+                    if (i > 0) Divider(height: 1, color: colors.border),
                     _BudgetRow(
                       budget: children[i],
                       onTap: () => onTap?.call(children[i]),

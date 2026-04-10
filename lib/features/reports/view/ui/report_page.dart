@@ -477,10 +477,7 @@ class _ReportCategorySectionState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Divider(
-                              height: 1,
-                              color: colors.border.withValues(alpha: 0.4),
-                            ),
+                            Divider(height: 1, color: colors.border),
                             SizedBox(height: 12.h),
                             ReportCategoryChart(
                               categories: othersEntry.otherItems,
@@ -625,8 +622,9 @@ class _ReportInsightSection extends ConsumerWidget {
       width: double.infinity,
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: colors.surfaceVariant.withValues(alpha: 0.5),
+        color: colors.surfaceVariant,
         borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +639,7 @@ class _ReportInsightSection extends ConsumerWidget {
             child: Text(
               text,
               style: TextStyleConstants.label2.copyWith(
-                color: colors.textSecondary,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -673,7 +671,8 @@ class _ViewModeToggle extends StatelessWidget {
         width: 32.w,
         height: 32.w,
         decoration: BoxDecoration(
-          color: colors.surfaceVariant.withValues(alpha: 0.5),
+          color: colors.surfaceVariant,
+          border: Border.all(color: colors.border),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Center(
@@ -704,7 +703,8 @@ class _BreakdownToggle extends StatelessWidget {
     final l10n = context.l10n;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surfaceVariant.withValues(alpha: 0.5),
+        color: colors.surfaceVariant,
+        border: Border.all(color: colors.border),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
@@ -748,14 +748,14 @@ class _ToggleItem extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
         decoration: BoxDecoration(
-          color: isSelected ? colors.primary : Colors.transparent,
+          color: isSelected ? colors.primary : colors.surface,
           borderRadius: BorderRadius.circular(7.r),
         ),
         child: Text(
           label,
           style: TextStyleConstants.label3.copyWith(
             color: isSelected ? colors.onPrimary : colors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),

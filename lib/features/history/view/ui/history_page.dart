@@ -333,9 +333,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   decoration: BoxDecoration(
                     color: colors.surface,
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: colors.border.withValues(alpha: 0.4),
-                    ),
+                    border: Border.all(color: colors.border),
                   ),
                   child: Column(
                     children: [
@@ -353,7 +351,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                     HistoryGroupMode.byCategory
                                 ? 16.w
                                 : 70.w,
-                            color: colors.border.withValues(alpha: 0.3),
+                            color: colors.border,
                           ),
                       ],
                     ],
@@ -413,7 +411,7 @@ class _SummaryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           children: [
@@ -452,7 +450,7 @@ class _SummaryCard extends StatelessWidget {
                             Text(
                               income.toCompactCurrency(),
                               style: TextStyleConstants.caption.copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: colors.income,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -463,11 +461,7 @@ class _SummaryCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 36.h,
-                  color: colors.border.withValues(alpha: 0.3),
-                ),
+                Container(width: 1, height: 36.h, color: colors.border),
                 SizedBox(width: 12.w),
                 // Expense
                 Expanded(
@@ -502,7 +496,7 @@ class _SummaryCard extends StatelessWidget {
                             Text(
                               expense.toCompactCurrency(),
                               style: TextStyleConstants.caption.copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: colors.expense,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -530,10 +524,10 @@ class _SummaryCard extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.08),
+                  color: colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                   border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.3),
+                    color: colors.primary.withValues(alpha: 0.35),
                     width: 1,
                   ),
                 ),
@@ -633,7 +627,7 @@ class _GroupHeader extends StatelessWidget {
         Text(
           '${isPositive ? '+' : ''}${total.toCompactCurrency()}',
           style: TextStyleConstants.caption.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: isPositive ? colors.income : colors.expense,
           ),
         ),

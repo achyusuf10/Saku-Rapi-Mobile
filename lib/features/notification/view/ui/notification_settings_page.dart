@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/notification/controllers/notification_controller.dart';
 import 'package:app_saku_rapi/features/settings/view/widgets/settings_tile.dart';
+import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -52,7 +53,7 @@ class _NotificationSettingsPageState
       backgroundColor: colors.background,
       appBar: AppBar(title: Text(l10n.notifTitle), centerTitle: false),
       body: status == NotificationSettingsStatus.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: SakuLoadingIndicator())
           : ListView(
               padding: EdgeInsets.only(bottom: 32.h),
               children: [
@@ -192,12 +193,15 @@ class _ReminderToggleTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(isReminderEnabledProvider);
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return SettingsTile(
       icon: FontAwesomeIcons.clockRotateLeft,
       label: l10n.notifReminderSubtitle,
       trailing: Switch.adaptive(
         value: enabled,
+        activeThumbColor: colors.primary,
+        activeTrackColor: colors.primary.withValues(alpha: 0.35),
         onChanged: (val) {
           ref.read(notificationControllerProvider.notifier).toggleReminder(val);
         },
@@ -261,12 +265,15 @@ class _BudgetAlertToggleTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(isBudgetAlertEnabledProvider);
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return SettingsTile(
       icon: FontAwesomeIcons.chartPie,
       label: l10n.notifBudgetSubtitle,
       trailing: Switch.adaptive(
         value: enabled,
+        activeThumbColor: colors.primary,
+        activeTrackColor: colors.primary.withValues(alpha: 0.35),
         onChanged: (val) {
           ref
               .read(notificationControllerProvider.notifier)
@@ -285,12 +292,15 @@ class _BudgetAlert50ToggleTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(isBudgetAlert50EnabledProvider);
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return SettingsTile(
       icon: FontAwesomeIcons.chartPie,
       label: l10n.notifBudget50Subtitle,
       trailing: Switch.adaptive(
         value: enabled,
+        activeThumbColor: colors.primary,
+        activeTrackColor: colors.primary.withValues(alpha: 0.35),
         onChanged: (val) {
           ref
               .read(notificationControllerProvider.notifier)
@@ -309,12 +319,15 @@ class _DebtReminderToggleTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(isDebtReminderEnabledProvider);
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return SettingsTile(
       icon: FontAwesomeIcons.handHoldingDollar,
       label: l10n.notifDebtSubtitle,
       trailing: Switch.adaptive(
         value: enabled,
+        activeThumbColor: colors.primary,
+        activeTrackColor: colors.primary.withValues(alpha: 0.35),
         onChanged: (val) {
           ref
               .read(notificationControllerProvider.notifier)
@@ -398,15 +411,13 @@ class _DebtDaysBeforeTile extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (colors.primary as Color).withValues(alpha: 0.08)
-                        : Colors.transparent,
+                        : (colors.surfaceVariant as Color),
                     borderRadius: BorderRadius.circular(12.r),
-                    border: isSelected
-                        ? Border.all(
-                            color: (colors.primary as Color).withValues(
-                              alpha: 0.5,
-                            ),
-                          )
-                        : null,
+                    border: Border.all(
+                      color: isSelected
+                          ? (colors.primary as Color).withValues(alpha: 0.5)
+                          : (colors.border as Color),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -427,7 +438,7 @@ class _DebtDaysBeforeTile extends ConsumerWidget {
                                 : colors.textPrimary as Color,
                             fontWeight: isSelected
                                 ? FontWeight.w600
-                                : FontWeight.w400,
+                                : FontWeight.w500,
                           ),
                         ),
                       ),

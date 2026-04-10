@@ -43,8 +43,8 @@ class BudgetSummaryCard extends ConsumerWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -67,15 +67,6 @@ class BudgetSummaryCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: BudgetProgressBar.colorForRatio(ratio, context),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: BudgetProgressBar.colorForRatio(
-                            ratio,
-                            context,
-                          ).withValues(alpha: 0.4),
-                          blurRadius: 6,
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -99,7 +90,7 @@ class BudgetSummaryCard extends ConsumerWidget {
                 ? '+${spendable.toCurrency()}'
                 : spendable.toCurrency(),
             style: TextStyleConstants.h5.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: spendable > 0 ? colors.income : colors.error,
             ),
           ),
@@ -112,20 +103,12 @@ class BudgetSummaryCard extends ConsumerWidget {
                 value: totalBudget.toCompactCurrency(),
                 label: l10n.budgetTotalBudgetLabel,
               ),
-              Container(
-                width: 1,
-                height: 32.h,
-                color: colors.border.withValues(alpha: 0.3),
-              ),
+              Container(width: 1, height: 32.h, color: colors.border),
               _StatItem(
                 value: totalUsed.toCompactCurrency(),
                 label: l10n.budgetUsed,
               ),
-              Container(
-                width: 1,
-                height: 32.h,
-                color: colors.border.withValues(alpha: 0.3),
-              ),
+              Container(width: 1, height: 32.h, color: colors.border),
               _StatItem(
                 value: l10n.budgetDaysRemaining(daysRemaining),
                 label: l10n.budgetEndOfPeriodLabel,

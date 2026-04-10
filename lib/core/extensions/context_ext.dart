@@ -114,8 +114,7 @@ extension ContextExt on BuildContext {
                       if (title.isNotEmpty)
                         Text(
                           title,
-                          style: TextStyle(
-                            fontSize: 14.sp,
+                          style: TextStyleConstants.b2.copyWith(
                             fontWeight: FontWeight.w600,
                             color: context.colors.textPrimary,
                           ),

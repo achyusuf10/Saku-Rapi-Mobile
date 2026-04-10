@@ -114,69 +114,77 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
         // ─── Summary ───
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.debtLoanPersonIncome,
-                    style: TextStyleConstants.label2.copyWith(
-                      color: colors.textSecondary,
+          child: Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: colors.border),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.debtLoanPersonIncome,
+                      style: TextStyleConstants.label2.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    totalIncome > 0
-                        ? '+${totalIncome.toCurrency()}'
-                        : totalIncome.toCurrency(),
-                    style: TextStyleConstants.b2.copyWith(
-                      color: totalIncome > 0
-                          ? colors.income
-                          : colors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                    Text(
+                      totalIncome > 0
+                          ? '+${totalIncome.toCurrency()}'
+                          : totalIncome.toCurrency(),
+                      style: TextStyleConstants.b2.copyWith(
+                        color: totalIncome > 0
+                            ? colors.income
+                            : colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.debtLoanPersonExpense,
-                    style: TextStyleConstants.label2.copyWith(
-                      color: colors.textSecondary,
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.debtLoanPersonExpense,
+                      style: TextStyleConstants.label2.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    totalExpense > 0
-                        ? '+${totalExpense.toCurrency()}'
-                        : totalExpense.toCurrency(),
-                    style: TextStyleConstants.b2.copyWith(
-                      color: totalExpense > 0
-                          ? colors.expense
-                          : colors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                    Text(
+                      totalExpense > 0
+                          ? '+${totalExpense.toCurrency()}'
+                          : totalExpense.toCurrency(),
+                      style: TextStyleConstants.b2.copyWith(
+                        color: totalExpense > 0
+                            ? colors.expense
+                            : colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4.h),
-              Divider(color: colors.border, height: 1),
-              SizedBox(height: 4.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    '-${(totalExpense > 0 ? totalExpense : totalIncome).toCurrency()}',
-                    style: TextStyleConstants.b1.copyWith(
-                      color: colors.expense,
-                      fontWeight: FontWeight.bold,
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Divider(color: colors.border, height: 1),
+                SizedBox(height: 4.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      '-${(totalExpense > 0 ? totalExpense : totalIncome).toCurrency()}',
+                      style: TextStyleConstants.b1.copyWith(
+                        color: colors.expense,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
 
@@ -215,7 +223,7 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
               Text(
                 DateFormat('dd', locale).format(date),
                 style: TextStyleConstants.h5.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               SizedBox(width: 8.w),
@@ -242,7 +250,7 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
                 '-${dayTotal.toCurrency()}',
                 style: TextStyleConstants.b2.copyWith(
                   color: context.colors.expense,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -343,6 +351,7 @@ class _SettlementTile extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyleConstants.b2.copyWith(
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -381,7 +390,7 @@ class _SettlementTile extends StatelessWidget {
               '-${settlement.totalAmount.toCurrency()}',
               style: TextStyleConstants.b2.copyWith(
                 color: color,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

@@ -91,7 +91,8 @@ class _ReportCategoryTransactionsPageState
               width: 28.w,
               height: 28.w,
               decoration: BoxDecoration(
-                color: catColor.withValues(alpha: 0.15),
+                color: catColor.withValues(alpha: 0.12),
+                border: Border.all(color: context.colors.border),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Center(

@@ -51,8 +51,8 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 children: [
                   Text(
                     user?.fullName ?? user?.email ?? '-',
-                    style: TextStyleConstants.b1.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: TextStyleConstants.h7.copyWith(
+                      fontWeight: FontWeight.w700,
                       color: colors.textPrimary,
                     ),
                     maxLines: 1,
@@ -62,7 +62,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
                     SizedBox(height: 2.h),
                     Text(
                       user!.email,
-                      style: TextStyleConstants.label2.copyWith(
+                      style: TextStyleConstants.b2.copyWith(
                         color: colors.textSecondary,
                       ),
                       maxLines: 1,

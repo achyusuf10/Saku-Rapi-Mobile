@@ -155,7 +155,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
             width: 36.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: colors.border.withValues(alpha: 0.4),
+              color: colors.border.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -297,7 +297,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                     : null,
                 suffixIconConstraints: const BoxConstraints(),
                 filled: true,
-                fillColor: colors.background,
+                fillColor: colors.surfaceVariant,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 14.w,
                   vertical: 10.h,
@@ -335,7 +335,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 : ListView.separated(
                     padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 8.h),
                     itemCount: filteredCategories.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 4.h),
+                    separatorBuilder: (_, index) => SizedBox(height: 4.h),
                     itemBuilder: (context, index) {
                       final parent = filteredCategories[index];
                       return CategoryParentListTile(

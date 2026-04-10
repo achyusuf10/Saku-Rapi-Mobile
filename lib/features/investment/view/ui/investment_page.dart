@@ -168,7 +168,6 @@ class _PortfolioSummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalInvested = ref.watch(investmentTotalInvestedProvider);
 
     // Watch prices state untuk loading indicator
@@ -180,60 +179,43 @@ class _PortfolioSummaryCard extends ConsumerWidget {
     final pnl = ref.watch(investmentProfitLossProvider);
 
     final isProfit = pnl >= 0;
+    final pnlColor = isProfit ? colors.income : colors.expense;
     final pnlPercent = totalInvested > 0 ? ((pnl / totalInvested) * 100) : 0.0;
 
-    return Container(
-      width: double.infinity,
+    return SakuCard(
+      borderRadius: 20.r,
       padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF065F46), const Color(0xFF047857)]
-              : [colors.primaryDark, colors.primary],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? const Color(0xFF065F46).withValues(alpha: 0.4)
-                : colors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+      backgroundColor: colors.surface,
+      border: Border.all(color: colors.border),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               FaIcon(
                 FontAwesomeIcons.chartLine,
                 size: 14.w,
-                color: colors.onPrimary.withValues(alpha: 0.85),
+                color: colors.primary,
               ),
               SizedBox(width: 8.w),
               Text(
                 l10n.investmentTotalValue,
                 style: TextStyleConstants.label2.copyWith(
-                  color: colors.onPrimary.withValues(alpha: 0.85),
+                  color: colors.textSecondary,
                 ),
               ),
             ],
           ),
           SizedBox(height: 8.h),
-          // Total value (with loading indicator)
           if (isLoading)
             SizedBox(
-              height: 32.h,
-              width: 150.w,
+              width: 160.w,
               child: LinearProgressIndicator(
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                minHeight: 6.h,
+                borderRadius: BorderRadius.circular(4.r),
+                backgroundColor: colors.surfaceVariant,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.white.withValues(alpha: 0.5),
+                  colors.textSecondary.withValues(alpha: 0.5),
                 ),
               ),
             )
@@ -241,16 +223,16 @@ class _PortfolioSummaryCard extends ConsumerWidget {
             Text(
               totalValue.toCurrency(),
               style: TextStyleConstants.h4.copyWith(
-                color: colors.onPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
           SizedBox(height: 12.h),
-          // P&L badge
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: pnlColor.withValues(alpha: 0.12),
+              border: Border.all(color: pnlColor.withValues(alpha: 0.2)),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Row(
@@ -261,19 +243,18 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                       ? FontAwesomeIcons.arrowTrendUp
                       : FontAwesomeIcons.arrowTrendDown,
                   size: 12.w,
-                  color: isProfit
-                      ? const Color(0xFF86EFAC)
-                      : const Color(0xFFFCA5A5),
+                  color: pnlColor,
                 ),
                 SizedBox(width: 6.w),
                 if (isLoading)
                   SizedBox(
                     width: 80.w,
-                    height: 14.h,
                     child: LinearProgressIndicator(
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      minHeight: 4.h,
+                      borderRadius: BorderRadius.circular(3.r),
+                      backgroundColor: colors.surfaceVariant,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withValues(alpha: 0.5),
+                        colors.textSecondary.withValues(alpha: 0.5),
                       ),
                     ),
                   )
@@ -281,9 +262,7 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                   Text(
                     '${isProfit ? '+' : ''}${pnl.toCurrency()} (${pnlPercent.toStringAsFixed(1)}%)',
                     style: TextStyleConstants.label2.copyWith(
-                      color: isProfit
-                          ? const Color(0xFF86EFAC)
-                          : const Color(0xFFFCA5A5),
+                      color: pnlColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -291,7 +270,6 @@ class _PortfolioSummaryCard extends ConsumerWidget {
             ),
           ),
           SizedBox(height: 16.h),
-          // Bottom row: invested & profit
           Row(
             children: [
               Expanded(
@@ -301,20 +279,22 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                     Text(
                       l10n.investmentTotalInvested,
                       style: TextStyleConstants.label3.copyWith(
-                        color: colors.onPrimary.withValues(alpha: 0.7),
+                        color: colors.textSecondary,
                       ),
                     ),
                     SizedBox(height: 2.h),
                     Text(
                       totalInvested.toCurrency(),
                       style: TextStyleConstants.b2.copyWith(
-                        color: colors.onPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
+              Container(width: 1.w, height: 30.h, color: colors.border),
+              SizedBox(width: 16.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,18 +302,19 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                     Text(
                       l10n.investmentProfitLoss,
                       style: TextStyleConstants.label3.copyWith(
-                        color: colors.onPrimary.withValues(alpha: 0.7),
+                        color: colors.textSecondary,
                       ),
                     ),
                     SizedBox(height: 2.h),
                     if (isLoading)
                       SizedBox(
                         width: 80.w,
-                        height: 14.h,
                         child: LinearProgressIndicator(
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          minHeight: 4.h,
+                          borderRadius: BorderRadius.circular(3.r),
+                          backgroundColor: colors.surfaceVariant,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white.withValues(alpha: 0.5),
+                            colors.textSecondary.withValues(alpha: 0.5),
                           ),
                         ),
                       )
@@ -341,9 +322,7 @@ class _PortfolioSummaryCard extends ConsumerWidget {
                       Text(
                         '${isProfit ? '+' : ''}${pnl.toCurrency()}',
                         style: TextStyleConstants.b2.copyWith(
-                          color: isProfit
-                              ? const Color(0xFF86EFAC)
-                              : const Color(0xFFFCA5A5),
+                          color: pnlColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -422,9 +401,9 @@ class _AssetListItem extends ConsumerWidget {
   Color _typeColor(InvestmentType type, dynamic colors) {
     switch (type) {
       case InvestmentType.gold:
-        return const Color(0xFFD97706);
+        return colors.warning as Color;
       case InvestmentType.bitcoin:
-        return const Color(0xFFF7931A);
+        return colors.info as Color;
       case InvestmentType.custom:
         return colors.primary as Color;
     }
@@ -517,6 +496,7 @@ class _AssetListItem extends ConsumerWidget {
                       ),
                       decoration: BoxDecoration(
                         color: colors.textSecondary.withValues(alpha: 0.1),
+                        border: Border.all(color: colors.border),
                         borderRadius: BorderRadius.circular(4.r),
                       ),
                       child: Text(
@@ -548,6 +528,10 @@ class _AssetListItem extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: (isProfit ? colors.success : colors.error).withValues(
                     alpha: 0.1,
+                  ),
+                  border: Border.all(
+                    color: (isProfit ? colors.success : colors.error)
+                        .withValues(alpha: 0.2),
                   ),
                   borderRadius: BorderRadius.circular(4.r),
                 ),

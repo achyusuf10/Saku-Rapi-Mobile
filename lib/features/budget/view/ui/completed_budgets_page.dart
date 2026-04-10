@@ -50,7 +50,7 @@ class CompletedBudgetsPage extends ConsumerWidget {
           : ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
               itemCount: state.budgets.length + 1,
-              separatorBuilder: (_, __) => SizedBox(height: 12.h),
+              separatorBuilder: (_, index) => SizedBox(height: 12.h),
               itemBuilder: (_, i) {
                 // Last item: load more trigger
                 if (i == state.budgets.length) {

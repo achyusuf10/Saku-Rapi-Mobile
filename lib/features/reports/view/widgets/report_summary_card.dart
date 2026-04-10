@@ -32,7 +32,7 @@ class ReportSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ class ReportSummaryCard extends StatelessWidget {
               Text(
                 '${isPositiveNet ? '+' : ''}${summary.net.toCurrency()}',
                 style: TextStyleConstants.h7.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: isPositiveNet ? colors.income : colors.expense,
                 ),
               ),

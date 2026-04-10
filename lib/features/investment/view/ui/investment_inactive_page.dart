@@ -35,7 +35,7 @@ class InvestmentInactivePage extends ConsumerWidget {
           : ListView.separated(
               padding: EdgeInsets.all(16.w),
               itemCount: inactiveAssets.length,
-              separatorBuilder: (_, __) => SizedBox(height: 8.h),
+              separatorBuilder: (_, index) => SizedBox(height: 8.h),
               itemBuilder: (_, index) =>
                   _InactiveAssetItem(asset: inactiveAssets[index]),
             ),
@@ -92,6 +92,7 @@ class _InactiveAssetItem extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: colors.textSecondary.withValues(alpha: 0.1),
+                border: Border.all(color: colors.border),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Text(

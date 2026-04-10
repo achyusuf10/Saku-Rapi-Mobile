@@ -55,80 +55,83 @@ class HistoryTransactionTile extends StatelessWidget {
         transaction.type == TransactionTypeEnum.income ||
         transaction.type == TransactionTypeEnum.debt;
 
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      borderRadius: BorderRadius.circular(12.r),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-        child: Row(
-          children: [
-            // ─── Category Icon ───
-            Container(
-              width: 42.w,
-              height: 42.w,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: typeColor.withValues(alpha: 0.1),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+          child: Row(
+            children: [
+              // ─── Category Icon ───
+              Container(
+                width: 42.w,
+                height: 42.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: typeColor.withValues(alpha: 0.1),
+                ),
+                child: Center(child: _buildIcon(transaction, typeColor)),
               ),
-              child: Center(child: _buildIcon(transaction, typeColor)),
-            ),
-            SizedBox(width: 12.w),
+              SizedBox(width: 12.w),
 
-            // ─── Category Name + Note ───
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _titleForTransaction(transaction, context),
-                    style: TextStyleConstants.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  if (transaction.note != null &&
-                      transaction.note!.isNotEmpty) ...[
-                    SizedBox(height: 2.h),
+              // ─── Category Name + Note ───
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      transaction.note!,
-                      style: TextStyleConstants.label3.copyWith(
-                        color: colors.textSecondary,
+                      _titleForTransaction(transaction, context),
+                      style: TextStyleConstants.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
+                    if (transaction.note != null &&
+                        transaction.note!.isNotEmpty) ...[
+                      SizedBox(height: 2.h),
+                      Text(
+                        transaction.note!,
+                        style: TextStyleConstants.label3.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
                   ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+
+              // ─── Amount + Time ───
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
+                    style: TextStyleConstants.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: isIncoming ? colors.income : colors.expense,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    transaction.date.extToFormattedString(
+                      outputDateFormat: 'HH:mm',
+                    ),
+                    style: TextStyleConstants.label3.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
-            ),
-            SizedBox(width: 8.w),
-
-            // ─── Amount + Time ───
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
-                  style: TextStyleConstants.caption.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isIncoming ? colors.income : colors.expense,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  transaction.date.extToFormattedString(
-                    outputDateFormat: 'HH:mm',
-                  ),
-                  style: TextStyleConstants.label3.copyWith(
-                    color: colors.textSecondary.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -189,7 +192,7 @@ class HistoryTransactionTile extends StatelessWidget {
               Text(
                 '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
                 style: TextStyleConstants.caption.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: isIncoming ? colors.income : colors.expense,
                 ),
               ),

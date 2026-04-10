@@ -74,7 +74,7 @@ class DebtLoanSettlementSheet extends ConsumerStatefulWidget {
       useSafeArea: true,
       backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (_) => DebtLoanSettlementSheet.edit(
         settlement: settlement,
@@ -177,7 +177,8 @@ class _DebtLoanSettlementSheetState
                     child: Text(
                       l10n.debtLoanSettlementEditTitle,
                       style: TextStyleConstants.h7.copyWith(
-                        fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -199,7 +200,8 @@ class _DebtLoanSettlementSheetState
               Text(
                 l10n.debtLoanSettlementTitle,
                 style: TextStyleConstants.h7.copyWith(
-                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 4.h),
@@ -239,9 +241,9 @@ class _DebtLoanSettlementSheetState
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: 0.08),
+                color: typeColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: typeColor.withValues(alpha: 0.2)),
+                border: Border.all(color: typeColor.withValues(alpha: 0.35)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,7 +258,7 @@ class _DebtLoanSettlementSheetState
                     _maxAmount.toCurrency(),
                     style: TextStyleConstants.b1.copyWith(
                       color: typeColor,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -282,7 +284,7 @@ class _DebtLoanSettlementSheetState
                     'MAX',
                     style: TextStyleConstants.label2.copyWith(
                       color: colors.primary,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -455,7 +457,7 @@ class _TransactionOption extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? typeColor.withValues(alpha: 0.08)
-              : Colors.transparent,
+              : colors.surface,
           borderRadius: BorderRadius.circular(10.r),
           border: Border.all(color: isSelected ? typeColor : colors.border),
         ),
@@ -475,7 +477,10 @@ class _TransactionOption extends StatelessWidget {
                     (type == 'debt'
                         ? l10n.transactionDebt
                         : l10n.transactionLoan),
-                style: TextStyleConstants.b2,
+                style: TextStyleConstants.b2.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
