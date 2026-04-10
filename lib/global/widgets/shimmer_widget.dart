@@ -75,22 +75,17 @@ class ShimmerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Shimmer.fromColors(
       period: const Duration(milliseconds: 600),
-      baseColor: !context.isDarkMode
-          ? Colors.grey.shade300
-          : Colors.grey.shade800,
-      highlightColor: !context.isDarkMode
-          ? Colors.grey.shade100
-          : Colors.grey.shade700,
+      baseColor: colors.surfaceVariant,
+      highlightColor: colors.surface,
       child: switch (type) {
-        'list' => _buildListWidget(),
+        'list' => _buildListWidget(context),
         'box' => Container(
           width: width,
           decoration: BoxDecoration(
-            color:
-                colorWidget ??
-                (!context.isDarkMode ? Colors.white : Colors.grey.shade800),
+            color: colorWidget ?? colors.surface,
             borderRadius: BorderRadius.circular(radius),
           ),
           height: height,
@@ -100,7 +95,8 @@ class ShimmerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildListWidget() {
+  Widget _buildListWidget(BuildContext context) {
+    final colors = context.colors;
     return ListView.separated(
       primary: isScrolled,
       separatorBuilder: (context, index) => seperatorWidget,
@@ -109,11 +105,11 @@ class ShimmerWidget extends StatelessWidget {
       padding:
           padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 10).w,
       physics: isScrolled ? null : const NeverScrollableScrollPhysics(),
-      itemBuilder: (_, __) {
+      itemBuilder: (context, index) {
         return customItemWidget ??
             Container(
               decoration: BoxDecoration(
-                color: colorWidget ?? Colors.white,
+                color: colorWidget ?? colors.surface,
                 borderRadius: BorderRadius.all(Radius.circular(radius)),
               ),
               height: height ?? 50.w,

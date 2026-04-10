@@ -197,9 +197,7 @@ class _SakuPeriodTab extends StatelessWidget {
                 FaIcon(
                   FontAwesomeIcons.calendarDays,
                   size: 10.w,
-                  color: isCustomSaved
-                      ? colors.primary
-                      : colors.textSecondary.withValues(alpha: 0.6),
+                  color: isCustomSaved ? colors.primary : colors.textSecondary,
                 ),
                 SizedBox(width: 4.w),
               ],
@@ -207,7 +205,7 @@ class _SakuPeriodTab extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 style: TextStyleConstants.label2.copyWith(
                   color: isSelected
-                      ? Colors.white
+                      ? colors.onPrimary
                       : isCustomSaved
                       ? colors.primary
                       : colors.textSecondary,

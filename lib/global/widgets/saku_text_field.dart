@@ -113,7 +113,7 @@ class SakuTextField extends StatelessWidget {
             label!,
             style: TextStyleConstants.label1.copyWith(
               fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
+              color: colors.textSecondary,
             ),
           ),
           SizedBox(height: 6.h),

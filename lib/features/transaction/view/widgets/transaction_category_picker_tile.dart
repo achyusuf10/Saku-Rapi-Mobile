@@ -42,7 +42,8 @@ class TransactionCategoryPickerTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [

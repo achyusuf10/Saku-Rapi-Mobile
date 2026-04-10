@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -49,8 +50,7 @@ class SakuLoadingIndicator extends StatelessWidget {
             SizedBox(height: 16.h),
             Text(
               message!,
-              style: TextStyle(
-                fontSize: 14.sp,
+              style: TextStyleConstants.b2.copyWith(
                 color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,

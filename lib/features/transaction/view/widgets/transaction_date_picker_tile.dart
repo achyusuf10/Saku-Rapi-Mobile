@@ -31,7 +31,8 @@ class TransactionDatePickerTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
@@ -110,34 +111,5 @@ class TransactionDatePickerTile extends StatelessWidget {
       pickedTime?.minute ?? current.minute,
     );
     onChanged(combined);
-  }
-
-  String _formatTime(DateTime date) {
-    final h = date.hour.toString().padLeft(2, '0');
-    final m = date.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final isToday =
-        date.year == now.year && date.month == now.month && date.day == now.day;
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    final dateStr = '${date.day} ${months[date.month - 1]} ${date.year}';
-    if (isToday) return 'Today, $dateStr';
-    return dateStr;
   }
 }

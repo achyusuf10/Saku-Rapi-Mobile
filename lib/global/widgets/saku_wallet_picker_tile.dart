@@ -63,7 +63,7 @@ class SakuWalletPickerTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: useBorder ? colors.surfaceVariant : colors.surface,
-          borderRadius: BorderRadius.circular(useBorder ? 12.r : 14.r),
+          borderRadius: BorderRadius.circular(12.r),
           border: useBorder
               ? Border.all(
                   color: hasSelection ? color : colors.border,
@@ -120,7 +120,7 @@ class SakuWalletPickerTile extends StatelessWidget {
             FaIcon(
               FontAwesomeIcons.chevronRight,
               size: 12.w,
-              color: colors.textSecondary.withValues(alpha: 0.5),
+              color: colors.textSecondary.withValues(alpha: 0.7),
             ),
           ],
         ),

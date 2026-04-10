@@ -23,7 +23,6 @@ class DashboardTrendReportChart extends ConsumerWidget {
     final colors = context.colors;
     final l10n = context.l10n;
     final chartState = ref.watch(dashboardChartControllerProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
     final isDaily = chartState.chartMode == DashboardChartMode.daily;
 
@@ -100,12 +99,8 @@ class DashboardTrendReportChart extends ConsumerWidget {
       );
     }
 
-    final textColor = isDark
-        ? const Color(0xFF9CA3AF)
-        : const Color(0xFF6B7280);
-    final gridColor = isDark
-        ? const Color(0xFF2D3F38)
-        : const Color(0xFFE5E7EB);
+    final textColor = colors.textSecondary;
+    final gridColor = colors.border.withValues(alpha: 0.75);
 
     // For insight: compare current cumulative total to 3-month avg total
     final currentTotal = currentCumulative.isNotEmpty
@@ -193,7 +188,7 @@ class DashboardTrendReportChart extends ConsumerWidget {
               ),
             ),
             tooltipBehavior: TooltipBehavior(
-              color: isDark ? const Color(0xFF1F2937) : Colors.white,
+              color: colors.surface,
 
               enable: true,
               header: '',
@@ -211,7 +206,18 @@ class DashboardTrendReportChart extends ConsumerWidget {
                     horizontal: 10.w,
                     vertical: 6.h,
                   ),
-
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: colors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +282,7 @@ class DashboardTrendReportChart extends ConsumerWidget {
                 dataSource: trendData,
                 xValueMapper: (d, _) => d.label,
                 yValueMapper: (d, _) => d.avg3,
-                color: const Color(0xFF9CA3AF),
+                color: colors.textSecondary.withValues(alpha: 0.75),
                 width: 1.5,
                 dashArray: const <double>[6, 4],
                 markerSettings: const MarkerSettings(isVisible: false),

@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Card total saldo dashboard dengan gradient emerald.
+/// Card total saldo dashboard dengan gaya minimal dan kontras tinggi.
 ///
 /// Menampilkan total balance (hanya wallet non-excluded),
 /// income/expense bulan ini, dan toggle visibility.
@@ -24,28 +24,30 @@ class DashboardBalanceCard extends ConsumerWidget {
     final chartState = ref.watch(dashboardChartControllerProvider);
     final totalBalance = ref.watch(dashboardTotalBalanceProvider);
     final isHidden = dashState.isBalanceHidden;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDarkMode;
+    final cardBackground = isDark ? colors.surface : colors.primary;
+    final cardBorder = isDark
+        ? colors.border
+        : colors.primaryDark.withValues(alpha: 0.25);
+    final primaryTextColor = isDark ? colors.textPrimary : colors.onPrimary;
+    final secondaryTextColor = isDark
+        ? colors.textSecondary
+        : colors.onPrimary.withValues(alpha: 0.82);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF065F46), const Color(0xFF047857)]
-              : [colors.primaryDark, colors.primary],
-        ),
+        color: cardBackground,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: cardBorder),
         boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? const Color(0xFF065F46).withValues(alpha: 0.4)
-                : colors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -60,13 +62,13 @@ class DashboardBalanceCard extends ConsumerWidget {
                   FaIcon(
                     FontAwesomeIcons.shieldHalved,
                     size: 14.w,
-                    color: colors.onPrimary.withValues(alpha: 0.85),
+                    color: secondaryTextColor,
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     l10n.dashboardTotalBalance,
                     style: TextStyleConstants.label1.copyWith(
-                      color: colors.onPrimary.withValues(alpha: 0.85),
+                      color: secondaryTextColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -79,7 +81,7 @@ class DashboardBalanceCard extends ConsumerWidget {
                 child: FaIcon(
                   isHidden ? FontAwesomeIcons.eyeSlash : FontAwesomeIcons.eye,
                   size: 16.w,
-                  color: colors.onPrimary.withValues(alpha: 0.75),
+                  color: secondaryTextColor,
                 ),
               ),
             ],
@@ -90,8 +92,8 @@ class DashboardBalanceCard extends ConsumerWidget {
           Text(
             isHidden ? '••••••••' : totalBalance.toCurrency(),
             style: TextStyleConstants.h4.copyWith(
-              color: colors.onPrimary,
-              fontWeight: FontWeight.bold,
+              color: primaryTextColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
           SizedBox(height: 16.h),
@@ -108,7 +110,8 @@ class DashboardBalanceCard extends ConsumerWidget {
                       : chartState.currentPeriodIncome.toCurrency(
                           withPrefix: false,
                         ),
-                  iconColor: Color.fromARGB(255, 88, 255, 188), // Emerald 300
+                  iconColor: colors.income,
+                  isDark: isDark,
                 ),
               ),
               SizedBox(width: 10.w),
@@ -121,7 +124,8 @@ class DashboardBalanceCard extends ConsumerWidget {
                       : chartState.currentPeriodExpense.toCurrency(
                           withPrefix: false,
                         ),
-                  iconColor: const Color(0xFFFCA5A5), // Red 300
+                  iconColor: colors.expense,
+                  isDark: isDark,
                 ),
               ),
             ],
@@ -139,12 +143,14 @@ class _MiniStat extends StatelessWidget {
     required this.label,
     required this.value,
     required this.iconColor,
+    required this.isDark,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final Color iconColor;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +160,9 @@ class _MiniStat extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
-        color: colors.onPrimary.withValues(alpha: 0.15),
+        color: isDark
+            ? colors.surfaceVariant.withValues(alpha: 0.7)
+            : colors.onPrimary.withValues(alpha: 0.14),
       ),
       child: Row(
         children: [
@@ -174,7 +182,9 @@ class _MiniStat extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyleConstants.label3.copyWith(
-                    color: colors.onPrimary.withValues(alpha: 0.85),
+                    color: isDark
+                        ? colors.textSecondary
+                        : colors.onPrimary.withValues(alpha: 0.82),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -182,7 +192,7 @@ class _MiniStat extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyleConstants.label2.copyWith(
-                    color: colors.onPrimary,
+                    color: isDark ? colors.textPrimary : colors.onPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,

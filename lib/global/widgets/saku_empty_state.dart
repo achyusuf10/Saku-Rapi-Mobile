@@ -45,7 +45,7 @@ class SakuEmptyState extends StatelessWidget {
             FaIcon(
               icon ?? FontAwesomeIcons.folderOpen,
               size: 48.w,
-              color: colors.textSecondary.withValues(alpha: 0.4),
+              color: colors.textSecondary.withValues(alpha: 0.5),
             ),
             SizedBox(height: 16.h),
             if (title != null) ...[

@@ -39,7 +39,7 @@ class SakuCategoryIcon extends StatelessWidget {
   ///
   /// [size] — ukuran container (default 38).
   /// [iconSize] — ukuran ikon di dalam container. Jika null, dihitung otomatis ~40% dari size.
-  /// [borderRadius] — radius sudut container. Jika null, dihitung ~29% dari size.
+  /// [borderRadius] — radius sudut container. Default: 10.
   /// [showBackground] — tampilkan container background atau hanya icon.
   /// [useGradient] — pakai gradient background (seperti parent category tile).
   const SakuCategoryIcon({
@@ -68,7 +68,7 @@ class SakuCategoryIcon extends StatelessWidget {
   /// - Jika null & showBackground=false: sama dengan [size] (icon size langsung).
   final double? iconSize;
 
-  /// Border radius container. Jika null, dihitung ~29% dari [size].
+  /// Border radius container. Default: 10.
   final double? borderRadius;
 
   /// Tampilkan container background. Default true.
@@ -91,7 +91,7 @@ class SakuCategoryIcon extends StatelessWidget {
 
     if (!showBackground) return iconWidget;
 
-    final effectiveBorderRadius = borderRadius ?? (size * 0.29);
+    final effectiveBorderRadius = borderRadius ?? 10;
 
     return Container(
       width: size.w,

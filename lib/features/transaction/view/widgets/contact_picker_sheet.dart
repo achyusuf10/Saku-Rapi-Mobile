@@ -122,7 +122,7 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
       ),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -148,7 +148,7 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
                 Text(
                   l10n.contactPickerTitle,
                   style: TextStyleConstants.h7.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
                   ),
                 ),
@@ -363,6 +363,7 @@ class _SavedContactItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.background,
           borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
@@ -378,7 +379,7 @@ class _SavedContactItem extends StatelessWidget {
                   contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
                   style: TextStyleConstants.b1.copyWith(
                     color: colors.primary,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -438,6 +439,7 @@ class _PhonebookItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.background,
           borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
@@ -455,7 +457,7 @@ class _PhonebookItem extends StatelessWidget {
                       : '?',
                   style: TextStyleConstants.b1.copyWith(
                     color: colors.primaryLight,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

@@ -219,7 +219,7 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
               widget.label!,
               style: TextStyleConstants.label1.copyWith(
                 fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+                color: colors.textSecondary,
               ),
             ),
             SizedBox(height: 6.h),
@@ -281,7 +281,7 @@ class _SakuCurrencyFieldState extends State<SakuCurrencyField> {
       prefixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
       filled: true,
       fillColor: colors.surfaceVariant,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.w),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: colors.border),

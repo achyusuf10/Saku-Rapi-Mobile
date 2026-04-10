@@ -356,6 +356,10 @@ class _DynamicSubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final accentTextColor =
+        ThemeData.estimateBrightnessForColor(colors.accent) == Brightness.dark
+        ? Colors.white
+        : const Color(0xFF0F172A);
 
     return ListenableBuilder(
       listenable: controller,
@@ -381,7 +385,7 @@ class _DynamicSubmitButton extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: accentTextColor,
                   ),
                 ),
               ),
@@ -405,7 +409,7 @@ class _DynamicSubmitButton extends StatelessWidget {
                 child: FaIcon(
                   FontAwesomeIcons.chevronRight,
                   size: 24.sp,
-                  color: Colors.white,
+                  color: colors.onPrimary,
                 ),
               ),
             ),

@@ -137,7 +137,7 @@ class SakuWalletPickerSheet extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
         ),
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.6,
@@ -166,7 +166,7 @@ class SakuWalletPickerSheet extends ConsumerWidget {
                 child: Text(
                   sheetTitle,
                   style: TextStyleConstants.h6.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
                   ),
                 ),
@@ -267,7 +267,8 @@ class _WalletPickerShimmer extends StatelessWidget {
 class _ShimmerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final baseColor = context.isDarkMode ? Colors.grey.shade800 : Colors.white;
+    final colors = context.colors;
+    final baseColor = colors.surfaceVariant;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),

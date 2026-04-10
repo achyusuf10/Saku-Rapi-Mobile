@@ -65,7 +65,8 @@ class _TransactionOptionalDetailsSectionState
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -111,7 +112,7 @@ class _TransactionOptionalDetailsSectionState
             firstChild: const SizedBox.shrink(),
             secondChild: Column(
               children: [
-                Divider(height: 1, color: colors.border.withValues(alpha: 0.3)),
+                Divider(height: 1, color: colors.border),
                 Padding(
                   padding: EdgeInsets.all(14.w),
                   child: Column(
@@ -206,7 +207,7 @@ class TransactionAttachmentField extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: colors.border),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -234,7 +235,7 @@ class TransactionAttachmentField extends StatelessWidget {
                   child: FaIcon(
                     FontAwesomeIcons.xmark,
                     size: 10.w,
-                    color: Colors.white,
+                    color: colors.onPrimary,
                   ),
                 ),
               ),
@@ -271,7 +272,7 @@ class TransactionAttachmentField extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.background,
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

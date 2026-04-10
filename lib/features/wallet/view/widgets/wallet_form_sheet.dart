@@ -64,7 +64,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
       initialValue: w?.initialBalance,
     );
     _selectedIcon = w?.icon ?? 'wallet';
-    _selectedColor = w?.color ?? '#10B981';
+    _selectedColor = w?.color ?? '#0F172A';
     _excludeFromTotal = w?.excludeFromTotal ?? false;
     _initialBalance = w?.initialBalance ?? 0;
   }
@@ -85,7 +85,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       padding: EdgeInsets.only(bottom: bottomInset),
       child: SingleChildScrollView(
@@ -114,7 +114,8 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                 Text(
                   _isEdit ? l10n.walletEdit : l10n.walletAdd,
                   style: TextStyleConstants.h6.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: 20.h),
@@ -207,6 +208,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                             Text(
                               l10n.walletExcludeFromTotal,
                               style: TextStyleConstants.b2.copyWith(
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -356,7 +358,7 @@ class _PickerTile extends StatelessWidget {
           label,
           style: TextStyleConstants.label1.copyWith(
             fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
+            color: colors.textSecondary,
           ),
         ),
         SizedBox(height: 6.h),

@@ -94,6 +94,7 @@ class _SakuButtonState extends State<SakuButton> {
           onPressed: enabled ? _handleTap : null,
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: enabled ? bgColor : colors.border),
+            foregroundColor: enabled ? bgColor : colors.textSecondary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radius),
             ),
@@ -132,28 +133,35 @@ class _SakuButtonState extends State<SakuButton> {
     }
 
     if (widget.icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          widget.icon!,
-          SizedBox(width: 8.w),
-          Flexible(
-            child: Text(
-              widget.text,
-              style: TextStyleConstants.b2.copyWith(
-                fontWeight: FontWeight.w600,
+      return IconTheme(
+        data: IconThemeData(color: foreground),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.icon!,
+            SizedBox(width: 8.w),
+            Flexible(
+              child: Text(
+                widget.text,
+                style: TextStyleConstants.b2.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: foreground,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
     return Text(
       widget.text,
-      style: TextStyleConstants.b2.copyWith(fontWeight: FontWeight.w600),
+      style: TextStyleConstants.b2.copyWith(
+        fontWeight: FontWeight.w600,
+        color: foreground,
+      ),
       overflow: TextOverflow.ellipsis,
     );
   }

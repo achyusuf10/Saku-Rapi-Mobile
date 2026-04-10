@@ -48,11 +48,8 @@ class SakuBottomSheet extends StatelessWidget {
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       backgroundColor: Colors.transparent,
-      builder: (_) => SakuBottomSheet(
-        title: title,
-        trailing: trailing,
-        child: child,
-      ),
+      builder: (_) =>
+          SakuBottomSheet(title: title, trailing: trailing, child: child),
     );
   }
 
@@ -63,7 +60,7 @@ class SakuBottomSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -96,7 +93,7 @@ class SakuBottomSheet extends StatelessWidget {
                     child: Text(
                       title!,
                       style: TextStyleConstants.h7.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: colors.textPrimary,
                       ),
                     ),

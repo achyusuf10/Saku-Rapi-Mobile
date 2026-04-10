@@ -65,31 +65,42 @@ class SakuDialog extends StatelessWidget {
       context: context,
       barrierDismissible: barrierDismissible,
       barrierLabel: 'SakuDialog',
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
       transitionDuration: const Duration(milliseconds: 250),
-      transitionBuilder: (_, Animation<double> anim, __, Widget child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-          child: ScaleTransition(
-            scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
-            child: child,
-          ),
-        );
-      },
-      pageBuilder: (ctx, __, ___) {
-        return Center(
-          child: SakuDialog(
-            title: title,
-            content: content,
-            onTapPositive: onTapPositive,
-            onTapNegative: onTapNegative,
-            labelPositive: labelPositive,
-            labelNegative: labelNegative,
-            icon: icon,
-            positiveColor: positiveColor,
-          ),
-        );
-      },
+      transitionBuilder:
+          (
+            BuildContext transitionContext,
+            Animation<double> anim,
+            Animation<double> secondaryAnim,
+            Widget child,
+          ) {
+            return FadeTransition(
+              opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+              child: ScaleTransition(
+                scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+                child: child,
+              ),
+            );
+          },
+      pageBuilder:
+          (
+            BuildContext pageContext,
+            Animation<double> primaryAnim,
+            Animation<double> secondaryAnim,
+          ) {
+            return Center(
+              child: SakuDialog(
+                title: title,
+                content: content,
+                onTapPositive: onTapPositive,
+                onTapNegative: onTapNegative,
+                labelPositive: labelPositive,
+                labelNegative: labelNegative,
+                icon: icon,
+                positiveColor: positiveColor,
+              ),
+            );
+          },
     );
   }
 
@@ -99,6 +110,11 @@ class SakuDialog extends StatelessWidget {
     final hasPositive = onTapPositive != null;
     final hasNegative = onTapNegative != null;
     final effectivePositiveColor = positiveColor ?? colors.primary;
+    final positiveTextColor =
+        ThemeData.estimateBrightnessForColor(effectivePositiveColor) ==
+            Brightness.dark
+        ? Colors.white
+        : const Color(0xFF0F172A);
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 340.w),
@@ -108,12 +124,12 @@ class SakuDialog extends StatelessWidget {
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
             color: colors.surface,
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -125,7 +141,7 @@ class SakuDialog extends StatelessWidget {
                 width: 56.r,
                 height: 56.r,
                 decoration: BoxDecoration(
-                  color: effectivePositiveColor.withValues(alpha: 0.15),
+                  color: effectivePositiveColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -140,7 +156,7 @@ class SakuDialog extends StatelessWidget {
               Text(
                 title,
                 style: TextStyleConstants.h6.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
@@ -195,7 +211,7 @@ class SakuDialog extends StatelessWidget {
                             labelPositive ?? '',
                             style: TextStyleConstants.b2.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: positiveTextColor,
                             ),
                           ),
                         ),

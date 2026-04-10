@@ -57,7 +57,7 @@ class DashboardPeriodSummary extends ConsumerWidget {
                 DashboardChartMode.daily => l10n.dashboardDailyMode,
               }),
               style: TextStyleConstants.b2.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
               ),
             ),
@@ -205,8 +205,8 @@ class _SummaryItem extends StatelessWidget {
           child: Text(
             value,
             style: TextStyleConstants.b2.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colors.textPrimary,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
             overflow: TextOverflow.ellipsis,
           ),

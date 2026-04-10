@@ -39,7 +39,7 @@ class DashboardWalletSection extends ConsumerWidget {
               Text(
                 l10n.dashboardMyWallets,
                 style: TextStyleConstants.b1.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: colors.textPrimary,
                 ),
               ),
@@ -71,7 +71,7 @@ class DashboardWalletSection extends ConsumerWidget {
                       FaIcon(
                         FontAwesomeIcons.wallet,
                         size: 28.w,
-                        color: colors.textSecondary.withValues(alpha: 0.4),
+                        color: colors.textSecondary.withValues(alpha: 0.5),
                       ),
                       SizedBox(height: 8.h),
                       Text(
@@ -122,9 +122,9 @@ class _WalletMiniCard extends StatelessWidget {
       width: 160.w,
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         color: colors.surface,
-        border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _WalletMiniCard extends StatelessWidget {
                 padding: EdgeInsets.all(6.w),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: walletColor.withValues(alpha: 0.15),
+                  color: walletColor.withValues(alpha: 0.12),
                 ),
                 child: SakuCategoryIcon(
                   iconName: wallet.icon,
@@ -170,7 +170,7 @@ class _WalletMiniCard extends StatelessWidget {
           Text(
             isHidden ? '••••' : wallet.balance.toCurrency(),
             style: TextStyleConstants.b2.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: colors.textPrimary,
             ),
             overflow: TextOverflow.ellipsis,

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Sistem warna kustom SakuRapi menggunakan [ThemeExtension].
 ///
-/// Menggunakan palet **Soft Emerald Green** sebagai primary,
-/// *Off-White* untuk Light Mode, dan *Soft Dark Hijau* untuk Dark Mode.
+/// Menggunakan palet **Financial Trust**:
+/// navy untuk authority, gold untuk aksen premium,
+/// dan slate netral agar dark mode tetap tenang (tidak neon).
 ///
 /// Akses via `context.colors.primary`, `context.colors.background`, dll.
 class AppColorScheme extends ThemeExtension<AppColorScheme> {
@@ -30,7 +31,7 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     required this.info,
   });
 
-  /// Warna utama brand (Emerald 500).
+  /// Warna utama brand.
   final Color primary;
 
   /// Versi lebih muda dari primary (untuk background chip, badge).
@@ -93,48 +94,48 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   /// Skema warna untuk **Light Mode**.
   static const light = AppColorScheme(
-    primary: Color(0xFF10B981), // Emerald 500
-    primaryLight: Color(0xFFD1FAE5), // Emerald 100
-    primaryDark: Color(0xFF059669), // Emerald 600
-    accent: Color(0xFFF59E0B), // Amber 500
-    background: Color(0xFFF8FAF9), // Hijau off-white soft
-    surface: Color(0xFFFFFFFF), // Pure White
-    surfaceVariant: Color(0xFFF0FDF4), // Emerald 50
-    border: Color(0xFFE5E7EB), // Gray 200
-    textPrimary: Color(0xFF111827), // Gray 900
-    textSecondary: Color(0xFF6B7280), // Gray 500
-    income: Color(0xFF10B981), // Emerald 500
-    expense: Color(0xFFEF4444), // Red 500
-    transfer: Color(0xFF3B82F6), // Blue 500
-    debt: Color(0xFFF97316), // Orange 500
-    loan: Color(0xFFA855F7), // Purple 500
-    warning: Color(0xFFEAB308), // Yellow 500
+    primary: Color(0xFF0F172A), // Slate 900 (Trust Navy)
+    primaryLight: Color(0xFFE2E8F0), // Slate 200
+    primaryDark: Color(0xFF020617), // Slate 950
+    accent: Color(0xFFCA8A04), // Yellow 600 (Premium Gold)
+    background: Color(0xFFF8FAFC), // Slate 50
+    surface: Color(0xFFFFFFFF), // White
+    surfaceVariant: Color(0xFFF1F5F9), // Slate 100
+    border: Color(0xFFE2E8F0), // Slate 200
+    textPrimary: Color(0xFF0F172A), // Slate 900
+    textSecondary: Color(0xFF64748B), // Slate 500
+    income: Color(0xFF059669), // Emerald 600
+    expense: Color(0xFFDC2626), // Red 600
+    transfer: Color(0xFF2563EB), // Blue 600
+    debt: Color(0xFFEA580C), // Orange 600
+    loan: Color(0xFF9333EA), // Purple 600
+    warning: Color(0xFFCA8A04), // Yellow 600
     error: Color(0xFFDC2626), // Red 600
-    success: Color(0xFF10B981), // Emerald 500
-    info: Color(0xFF3B82F6), // Blue 500
+    success: Color(0xFF059669), // Emerald 600
+    info: Color(0xFF2563EB), // Blue 600
     onPrimary: Color(0xFFFFFFFF), // White
   );
 
   /// Skema warna untuk **Dark Mode**.
   static const dark = AppColorScheme(
-    primary: Color(0xFF10B981), // Emerald 500 (konsisten)
-    primaryLight: Color(0xFF064E3B), // Emerald 900
-    primaryDark: Color(0xFF34D399), // Emerald 400
-    accent: Color(0xFFFBBF24), // Amber 400
-    background: Color(0xFF0F1412), // Dark hijau sangat gelap
-    surface: Color(0xFF1A2420), // Dark surface hint hijau
-    surfaceVariant: Color(0xFF1F2D28), // Dark surface variant
-    border: Color(0xFF374151), // Gray 700
-    textPrimary: Color(0xFFF9FAFB), // Gray 50
-    textSecondary: Color(0xFF9CA3AF), // Gray 400
+    primary: Color(0xFFE2E8F0), // Slate 200
+    primaryLight: Color(0xFF1E293B), // Slate 800
+    primaryDark: Color(0xFFF8FAFC), // Slate 50
+    accent: Color(0xFFEAB308), // Yellow 500
+    background: Color(0xFF0F172A), // Slate 900
+    surface: Color(0xFF1E293B), // Slate 800
+    surfaceVariant: Color(0xFF334155), // Slate 700
+    border: Color(0xFF334155), // Slate 700
+    textPrimary: Color(0xFFF1F5F9), // Slate 100
+    textSecondary: Color(0xFF94A3B8), // Slate 400
     income: Color(0xFF34D399), // Emerald 400
     expense: Color(0xFFF87171), // Red 400
     transfer: Color(0xFF60A5FA), // Blue 400
     debt: Color(0xFFFB923C), // Orange 400
     loan: Color(0xFFC084FC), // Purple 400
-    warning: Color(0xFFFCD34D), // Yellow 300
+    warning: Color(0xFFEAB308), // Yellow 500
     error: Color(0xFFF87171), // Red 400
-    onPrimary: Color(0xFFFFFFFF), // White
+    onPrimary: Color(0xFF0F172A), // Slate 900
     success: Color(0xFF34D399), // Emerald 400
     info: Color(0xFF60A5FA), // Blue 400
   );

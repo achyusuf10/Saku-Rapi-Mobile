@@ -12,8 +12,8 @@ class DashboardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final colors = context.colors;
+    final baseColor = colors.surfaceVariant;
 
     return ShimmerWidget.custom(
       child: SingleChildScrollView(
@@ -72,13 +72,13 @@ class _BalanceCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = baseColor.withValues(alpha: 0.5);
+    final cardColor = baseColor.withValues(alpha: 0.6);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(12.r),
         color: baseColor,
       ),
       child: Column(
@@ -259,8 +259,9 @@ class _WalletSectionSkeleton extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             itemCount: 3,
-            separatorBuilder: (_, __) => SizedBox(width: 10.w),
-            itemBuilder: (_, __) => _WalletCardSkeleton(baseColor: baseColor),
+            separatorBuilder: (context, index) => SizedBox(width: 10.w),
+            itemBuilder: (context, index) =>
+                _WalletCardSkeleton(baseColor: baseColor),
           ),
         ),
       ],
@@ -278,7 +279,7 @@ class _WalletCardSkeleton extends StatelessWidget {
       width: 160.w,
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         color: baseColor,
       ),
       child: Column(
@@ -314,7 +315,7 @@ class _PeriodSummarySkeleton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
           color: baseColor,
         ),
         child: Column(
@@ -397,7 +398,7 @@ class _ChartCarouselSkeleton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
           color: baseColor,
         ),
         child: Column(
@@ -489,7 +490,7 @@ class _RecentTransactionsSkeleton extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 16.w),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(12.r),
               color: baseColor,
             ),
             child: Column(

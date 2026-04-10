@@ -35,7 +35,8 @@ class TransactionFormSaveBar extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+        border: Border(top: BorderSide(color: colors.border)),
         boxShadow: [
           BoxShadow(
             color: colors.textPrimary.withValues(alpha: 0.06),
@@ -51,9 +52,9 @@ class TransactionFormSaveBar extends StatelessWidget {
           icon: FaIcon(
             FontAwesomeIcons.circleCheck,
             size: 16.w,
-            color: Colors.white,
+            color: colors.onPrimary,
           ),
-          backgroundColor: typeColor,
+          backgroundColor: colors.primary,
           onPressed: isDisabled ? null : onSave,
           isLoading: formState.isSaving,
         ),

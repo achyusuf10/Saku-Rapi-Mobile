@@ -39,7 +39,7 @@ class ImageSourcePickerSheet extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       child: SafeArea(
         top: false,
@@ -120,14 +120,14 @@ class _SourceOption extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         onTap: onTap,
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 24.h),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: color.withValues(alpha: 0.15)),
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [

@@ -96,8 +96,9 @@ class SakuWalletFilterButton extends ConsumerWidget {
           ],
           child: Container(
             decoration: BoxDecoration(
-              color: colors.border,
+              color: colors.surfaceVariant,
               borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: colors.border),
             ),
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.w),
             child: Row(

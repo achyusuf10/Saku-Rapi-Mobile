@@ -39,7 +39,7 @@ class WalletCardTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,6 +64,7 @@ class WalletCardTile extends StatelessWidget {
                       Text(
                         wallet.name,
                         style: TextStyleConstants.b2.copyWith(
+                          color: colors.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -81,10 +82,8 @@ class WalletCardTile extends StatelessWidget {
                     Text(
                       wallet.balance.toCurrency(),
                       style: TextStyleConstants.b2.copyWith(
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
-                        color: wallet.balance >= 0
-                            ? colors.income
-                            : colors.expense,
                       ),
                     ),
                   ],

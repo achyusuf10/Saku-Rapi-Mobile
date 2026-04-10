@@ -55,7 +55,7 @@ class UnpaidTransactionPickerSheet extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.65,
@@ -80,7 +80,7 @@ class UnpaidTransactionPickerSheet extends ConsumerWidget {
             child: Text(
               l10n.debtLoanFormPickTransaction,
               style: TextStyleConstants.h7.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
               ),
             ),
@@ -118,7 +118,7 @@ class UnpaidTransactionPickerSheet extends ConsumerWidget {
                 shrinkWrap: true,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 itemCount: state.transactions.length,
-                separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                separatorBuilder: (_, index) => SizedBox(height: 8.h),
                 itemBuilder: (context, index) {
                   final txn = state.transactions[index];
                   final isSelected = txn.id == selectedId;
@@ -188,7 +188,7 @@ class _TransactionItem extends StatelessWidget {
                   (txn.withPerson ?? '?')[0].toUpperCase(),
                   style: TextStyleConstants.b1.copyWith(
                     color: accentColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

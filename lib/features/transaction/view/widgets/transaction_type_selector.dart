@@ -56,11 +56,11 @@ class TransactionTypeSelector extends StatelessWidget {
                 color: isSelected
                     ? typeColor.withValues(alpha: 0.15)
                     : colors.surface,
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
                   color: isSelected
-                      ? typeColor
-                      : colors.border.withValues(alpha: 0.5),
+                      ? typeColor.withValues(alpha: 0.8)
+                      : colors.border,
                   width: isSelected ? 1.5 : 1,
                 ),
               ),

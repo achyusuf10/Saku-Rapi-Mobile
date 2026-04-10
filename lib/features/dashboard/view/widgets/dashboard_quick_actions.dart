@@ -139,6 +139,7 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final iconColor = action.color;
 
     return GestureDetector(
       onTap: action.onTap,
@@ -148,11 +149,12 @@ class _QuickActionButton extends StatelessWidget {
             width: 48.w,
             height: 48.w,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: action.color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+              color: colors.surfaceVariant,
+              border: Border.all(color: colors.border),
             ),
             child: Center(
-              child: FaIcon(action.icon, size: 18.w, color: action.color),
+              child: FaIcon(action.icon, size: 18.w, color: iconColor),
             ),
           ),
           SizedBox(height: 6.h),

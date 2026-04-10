@@ -80,7 +80,7 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.3)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +228,7 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
               decoration: BoxDecoration(
                 color: colors.background,
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+                border: Border.all(color: colors.border),
               ),
               child: Row(
                 children: [

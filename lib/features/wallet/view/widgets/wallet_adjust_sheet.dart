@@ -68,7 +68,7 @@ class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       padding: EdgeInsets.only(bottom: bottomInset),
       child: SingleChildScrollView(
@@ -97,7 +97,8 @@ class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
                 Text(
                   l10n.walletAdjust,
                   style: TextStyleConstants.h6.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -144,6 +145,7 @@ class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
                     decoration: BoxDecoration(
                       color: colors.surfaceVariant,
                       borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(color: colors.border),
                     ),
                     child: Row(
                       children: [
@@ -156,7 +158,7 @@ class _WalletAdjustSheetState extends ConsumerState<WalletAdjustSheet> {
                         Text(
                           '${_diff > 0 ? '+' : ''}${_diff.toCurrency()}',
                           style: TextStyleConstants.b2.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: _diff > 0 ? colors.income : colors.expense,
                           ),
                         ),

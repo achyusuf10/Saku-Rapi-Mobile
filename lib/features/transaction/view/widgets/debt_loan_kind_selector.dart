@@ -133,13 +133,13 @@ class _TypeButton extends StatelessWidget {
               FaIcon(
                 icon,
                 size: 16.sp,
-                color: isSelected ? Colors.white : colors.textSecondary,
+                color: isSelected ? colors.onPrimary : colors.textSecondary,
               ),
               SizedBox(width: 8.w),
               Text(
                 label,
                 style: TextStyleConstants.label1.copyWith(
-                  color: isSelected ? Colors.white : colors.textSecondary,
+                  color: isSelected ? colors.onPrimary : colors.textSecondary,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
@@ -202,7 +202,7 @@ class _SettlementToggle extends StatelessWidget {
                 value: isSettlement,
                 onChanged: onChanged,
                 activeTrackColor: activeColor,
-                activeThumbColor: Colors.white,
+                activeThumbColor: colors.onPrimary,
               ),
             ),
           ),

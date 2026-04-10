@@ -162,9 +162,18 @@ class _WalletPageState extends ConsumerState<WalletPage> {
               value: 'edit',
               child: Row(
                 children: [
-                  FaIcon(FontAwesomeIcons.penToSquare, size: 14.w),
+                  FaIcon(
+                    FontAwesomeIcons.penToSquare,
+                    size: 14.w,
+                    color: context.colors.textPrimary,
+                  ),
                   SizedBox(width: 10.w),
-                  Text(l10n.walletOptionEdit),
+                  Text(
+                    l10n.walletOptionEdit,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: context.colors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -172,9 +181,18 @@ class _WalletPageState extends ConsumerState<WalletPage> {
               value: 'adjust',
               child: Row(
                 children: [
-                  FaIcon(FontAwesomeIcons.scaleBalanced, size: 14.w),
+                  FaIcon(
+                    FontAwesomeIcons.scaleBalanced,
+                    size: 14.w,
+                    color: context.colors.textPrimary,
+                  ),
                   SizedBox(width: 10.w),
-                  Text(l10n.walletOptionAdjust),
+                  Text(
+                    l10n.walletOptionAdjust,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: context.colors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -226,7 +244,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
     );
 
     if (confirmed != true) return;
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     context.showLoadingOverlay();
 
@@ -235,7 +253,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
           .read(walletControllerProvider.notifier)
           .deleteWallet(wallet.id);
 
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (result.isSuccess()) {
         context.showAppAlert(
@@ -247,7 +265,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
         context.showAppAlert(message, alertType: AlertTypeEnum.error);
       }
     } finally {
-      if (context.mounted) {
+      if (mounted) {
         context.closeOverlay();
       }
     }
@@ -267,7 +285,7 @@ class _SectionHeader extends StatelessWidget {
     return Text(
       title,
       style: TextStyleConstants.label1.copyWith(
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: colors.textSecondary,
       ),
     );

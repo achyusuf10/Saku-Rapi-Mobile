@@ -9,7 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Card ringkasan total saldo semua wallet (yang termasuk dalam total).
 ///
 /// Menampilkan total balance, jumlah wallet, dan label deskriptif.
-/// Menggunakan gradient emerald yang konsisten dengan card-card lain.
+/// Menggunakan gaya flat dengan kontras tinggi untuk light/dark mode.
 class WalletSummaryCard extends StatelessWidget {
   const WalletSummaryCard({
     super.key,
@@ -27,27 +27,21 @@ class WalletSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF065F46), const Color(0xFF047857)]
-              : [colors.primaryDark, colors.primary],
-        ),
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? const Color(0xFF065F46).withValues(alpha: 0.4)
-                : colors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.14 : 0.06,
+            ),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -60,13 +54,13 @@ class WalletSummaryCard extends StatelessWidget {
               FaIcon(
                 FontAwesomeIcons.wallet,
                 size: 14.w,
-                color: colors.onPrimary.withValues(alpha: 0.85),
+                color: colors.primary,
               ),
               SizedBox(width: 8.w),
               Text(
                 l10n.walletTotalBalance,
                 style: TextStyleConstants.label1.copyWith(
-                  color: colors.onPrimary.withValues(alpha: 0.85),
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -78,8 +72,8 @@ class WalletSummaryCard extends StatelessWidget {
           Text(
             totalBalance.toCurrency(),
             style: TextStyleConstants.h4.copyWith(
-              color: colors.onPrimary,
-              fontWeight: FontWeight.bold,
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w700,
             ),
           ),
           SizedBox(height: 16.h),
@@ -89,7 +83,8 @@ class WalletSummaryCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12.r),
-              color: colors.onPrimary.withValues(alpha: 0.15),
+              color: colors.surfaceVariant,
+              border: Border.all(color: colors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -97,13 +92,13 @@ class WalletSummaryCard extends StatelessWidget {
                 FaIcon(
                   FontAwesomeIcons.creditCard,
                   size: 12.w,
-                  color: Color.fromARGB(255, 88, 255, 188), // Emerald
+                  color: colors.primary,
                 ),
                 SizedBox(width: 8.w),
                 Text(
                   '$walletCount ${l10n.walletTitle.toLowerCase()}',
                   style: TextStyleConstants.label2.copyWith(
-                    color: colors.onPrimary.withValues(alpha: 0.9),
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

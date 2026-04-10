@@ -36,7 +36,7 @@ class TransactionMultiItemSection extends ConsumerWidget {
           decoration: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
           ),
           child: Center(
             child: Text(
@@ -80,7 +80,7 @@ class TransactionMultiItemSection extends ConsumerWidget {
                   color: formState.isTotalMatched
                       ? colors.income
                       : colors.error,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -96,6 +96,9 @@ class TransactionMultiItemSection extends ConsumerWidget {
                 ? colors.income.withValues(alpha: 0.06)
                 : colors.error.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: formState.isTotalMatched ? colors.income : colors.error,
+            ),
           ),
           child: Column(
             children: [

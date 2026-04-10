@@ -111,12 +111,12 @@ class _SakuSubPeriodTabsState extends State<SakuSubPeriodTabs> {
                   padding: EdgeInsets.symmetric(horizontal: 10.w),
                   decoration: BoxDecoration(
                     color: index == selectedIndex
-                        ? colors.primary.withValues(alpha: 0.12)
+                        ? colors.primary
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(
                       color: index == selectedIndex
-                          ? colors.primary.withValues(alpha: 0.5)
+                          ? colors.primary
                           : colors.border.withValues(alpha: 0.25),
                       width: index == selectedIndex ? 1.2 : 0.8,
                     ),
@@ -126,7 +126,7 @@ class _SakuSubPeriodTabsState extends State<SakuSubPeriodTabs> {
                       duration: const Duration(milliseconds: 180),
                       style: TextStyleConstants.label3.copyWith(
                         color: index == selectedIndex
-                            ? colors.primary
+                            ? colors.onPrimary
                             : colors.textSecondary,
                         fontWeight: index == selectedIndex
                             ? FontWeight.w700

@@ -12,8 +12,9 @@ class AppThemes {
   static ThemeData lightTheme(BuildContext context) => ThemeData(
     useMaterial3: false,
     brightness: Brightness.light,
+    scaffoldBackgroundColor: AppColorScheme.light.background,
     iconTheme: IconThemeData(
-      color: Colors.black,
+      color: AppColorScheme.light.textPrimary,
       size: context.getValueByLayout(
         phonePortrait: 24,
         phoneLandscape: 24.w,
@@ -21,41 +22,44 @@ class AppThemes {
         tabletLandscape: 24.w,
       ),
     ),
-
-    scaffoldBackgroundColor: AppColorScheme.light.background,
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith<Color>(
         (states) => AppColorScheme.light.primary,
       ),
       trackColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.selected)) {
-          return AppColorScheme.light.primary.withValues(alpha: 0.5);
+          return AppColorScheme.light.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.light.border.withValues(alpha: 0.9);
+        return AppColorScheme.light.border;
       }),
     ),
     colorScheme: ColorScheme.light(
       primary: AppColorScheme.light.primary,
+      onPrimary: AppColorScheme.light.onPrimary,
       error: AppColorScheme.light.error,
+      onError: AppColorScheme.light.onPrimary,
       tertiary: AppColorScheme.light.accent,
       primaryContainer: AppColorScheme.light.surface,
       secondaryContainer: AppColorScheme.light.surfaceVariant,
       tertiaryContainer: AppColorScheme.light.surfaceVariant,
+      surface: AppColorScheme.light.surface,
+      onSurface: AppColorScheme.light.textPrimary,
       outline: AppColorScheme.light.border,
     ),
-    textTheme: GoogleFonts.nunitoSansTextTheme(
+    textTheme: GoogleFonts.ibmPlexSansTextTheme(
       TextTheme(
-        bodyMedium: TextStyleConstants.caption.copyWith(
+        bodyLarge: TextStyleConstants.b1.copyWith(
           color: AppColorScheme.light.textPrimary,
         ),
-        bodyLarge: TextStyleConstants.caption.copyWith(
+        bodyMedium: TextStyleConstants.b2.copyWith(
           color: AppColorScheme.light.textPrimary,
         ),
         bodySmall: TextStyleConstants.caption.copyWith(
           color: AppColorScheme.light.textSecondary,
         ),
-        titleMedium: TextStyleConstants.caption.copyWith(
-          color: AppColorScheme.light.textSecondary,
+        titleMedium: TextStyleConstants.h7.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColorScheme.light.textPrimary,
         ),
       ),
     ),
@@ -74,17 +78,18 @@ class AppThemes {
         ),
       ),
       centerTitle: false,
-      backgroundColor: const Color(0xFFFAFAFC),
+      backgroundColor: AppColorScheme.light.surface,
       scrolledUnderElevation: 0,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: Border(bottom: BorderSide(color: AppColorScheme.light.border)),
       titleTextStyle: TextStyleConstants.h7.copyWith(
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
         color: AppColorScheme.light.textPrimary,
       ),
-      iconTheme: const IconThemeData(color: Colors.black),
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.15),
+      iconTheme: IconThemeData(color: AppColorScheme.light.textPrimary),
       systemOverlayStyle: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFAFAFC),
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarDividerColor: Colors.transparent,
@@ -108,10 +113,10 @@ class AppThemes {
       overlayColor: AppColorScheme.light.primary.withValues(alpha: 0.12),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: AppColorScheme.light.background,
+      backgroundColor: AppColorScheme.light.surface,
       selectedItemColor: AppColorScheme.light.primary,
       unselectedItemColor: AppColorScheme.light.textSecondary,
-      elevation: 10,
+      elevation: 0,
       showUnselectedLabels: true,
       selectedIconTheme: IconThemeData(color: AppColorScheme.light.primary),
       unselectedIconTheme: IconThemeData(
@@ -119,7 +124,7 @@ class AppThemes {
       ),
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: TextStyleConstants.caption.copyWith(
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
         color: AppColorScheme.light.primary,
       ),
       unselectedLabelStyle: TextStyleConstants.caption.copyWith(
@@ -131,9 +136,9 @@ class AppThemes {
       backgroundColor: AppColorScheme.light.primary,
       foregroundColor: AppColorScheme.light.onPrimary,
     ),
-    dividerTheme: const DividerThemeData(
-      // color: AppColors.grey[300],
+    dividerTheme: DividerThemeData(
       thickness: 1,
+      color: AppColorScheme.light.border,
     ),
     buttonTheme: ButtonThemeData(
       textTheme: ButtonTextTheme.normal,
@@ -141,45 +146,54 @@ class AppThemes {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        disabledBackgroundColor: Colors.grey[400],
-        disabledForegroundColor: Colors.grey[300],
-        textStyle: GoogleFonts.poppins(
-          fontSize: 14.sp,
+        disabledBackgroundColor: AppColorScheme.light.border,
+        disabledForegroundColor: AppColorScheme.light.textSecondary,
+        textStyle: TextStyleConstants.b2.copyWith(
           color: AppColorScheme.light.onPrimary,
           fontWeight: FontWeight.w600,
         ),
         backgroundColor: AppColorScheme.light.primary,
         foregroundColor: AppColorScheme.light.onPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
-      fillColor: const Color(0xFFFAFAFC),
+      fillColor: AppColorScheme.light.surfaceVariant,
       filled: true,
-      hintStyle: GoogleFonts.nunitoSans(
+      hintStyle: TextStyleConstants.caption.copyWith(
         color: AppColorScheme.light.textSecondary,
-        fontSize: TextStyleConstants.caption.fontSize,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.light.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.light.primary),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.light.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.light.error),
       ),
     ),
-    // checkboxTheme: CheckboxThemeData(
-    //   fillColor: MaterialStateProperty.resolveWith<Color>(
-    //     (states) => AppColors.cyanLight,
-    //   ),
-    // ),
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith<Color>(
         (states) => AppColorScheme.light.primary,
       ),
     ),
-
     datePickerTheme: DatePickerThemeData(
-      // Background of the dialog surface
       backgroundColor: AppColorScheme.light.background,
       rangePickerBackgroundColor: AppColorScheme.light.background,
-      // Header (selected date display)
       headerBackgroundColor: AppColorScheme.light.primary,
       headerForegroundColor: AppColorScheme.light.onPrimary,
-      // Day cells
       dayForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.light.onPrimary;
@@ -195,20 +209,17 @@ class AppThemes {
         }
         return Colors.transparent;
       }),
-      // Today circle
       todayForegroundColor: WidgetStateProperty.all(
         AppColorScheme.light.primary,
       ),
       todayBackgroundColor: WidgetStateProperty.all(Colors.transparent),
       todayBorder: BorderSide(color: AppColorScheme.light.primary, width: 1.5),
-      // Range selection highlight (for DateRangePicker)
       rangeSelectionBackgroundColor: AppColorScheme.light.primary.withValues(
         alpha: 0.12,
       ),
       rangeSelectionOverlayColor: WidgetStateProperty.all(
         AppColorScheme.light.primary.withValues(alpha: 0.08),
       ),
-      // Year/month picker
       yearForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.light.onPrimary;
@@ -221,16 +232,13 @@ class AppThemes {
         }
         return Colors.transparent;
       }),
-      // Confirm/cancel button
       confirmButtonStyle: TextButton.styleFrom(
         foregroundColor: AppColorScheme.light.primary,
       ),
       cancelButtonStyle: TextButton.styleFrom(
-        foregroundColor: AppColorScheme.light.onPrimary,
+        foregroundColor: AppColorScheme.light.textSecondary,
       ),
-      // Shape
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      // --- Range picker (full-screen) specific ---
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       rangePickerHeaderBackgroundColor: AppColorScheme.light.primary,
       rangePickerHeaderForegroundColor: AppColorScheme.light.onPrimary,
       rangePickerShape: const RoundedRectangleBorder(),
@@ -250,8 +258,12 @@ class AppThemes {
 
   // dark theme
   static ThemeData darkTheme(BuildContext context) => ThemeData(
+    useMaterial3: false,
+    brightness: Brightness.dark,
+    primaryColor: AppColorScheme.dark.primary,
+    scaffoldBackgroundColor: AppColorScheme.dark.background,
     iconTheme: IconThemeData(
-      color: Colors.white,
+      color: AppColorScheme.dark.textPrimary,
       size: context.getValueByLayout(
         phonePortrait: 24,
         phoneLandscape: 24.w,
@@ -259,27 +271,45 @@ class AppThemes {
         tabletLandscape: 24.w,
       ),
     ),
-    useMaterial3: false,
-    primaryColor: AppColorScheme.dark.primary,
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color.fromARGB(255, 41, 41, 41),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith<Color>(
         (states) => AppColorScheme.dark.primary,
       ),
       trackColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.selected)) {
-          return AppColorScheme.dark.primary.withValues(alpha: 0.5);
+          return AppColorScheme.dark.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.dark.border.withValues(alpha: 0.9);
+        return AppColorScheme.dark.border;
       }),
     ),
-    textTheme: GoogleFonts.nunitoSansTextTheme(
+    colorScheme: ColorScheme.dark(
+      primary: AppColorScheme.dark.primary,
+      onPrimary: AppColorScheme.dark.onPrimary,
+      error: AppColorScheme.dark.error,
+      onError: AppColorScheme.dark.onPrimary,
+      tertiary: AppColorScheme.dark.accent,
+      primaryContainer: AppColorScheme.dark.surface,
+      secondaryContainer: AppColorScheme.dark.surfaceVariant,
+      tertiaryContainer: AppColorScheme.dark.surfaceVariant,
+      surface: AppColorScheme.dark.surface,
+      onSurface: AppColorScheme.dark.textPrimary,
+      outline: AppColorScheme.dark.border,
+    ),
+    textTheme: GoogleFonts.ibmPlexSansTextTheme(
       TextTheme(
-        bodyMedium: TextStyleConstants.caption.copyWith(color: Colors.white),
-        bodyLarge: TextStyleConstants.caption.copyWith(color: Colors.white),
-        bodySmall: TextStyleConstants.caption.copyWith(color: Colors.white),
-        titleMedium: TextStyleConstants.caption.copyWith(color: Colors.white),
+        bodyLarge: TextStyleConstants.b1.copyWith(
+          color: AppColorScheme.dark.textPrimary,
+        ),
+        bodyMedium: TextStyleConstants.b2.copyWith(
+          color: AppColorScheme.dark.textPrimary,
+        ),
+        bodySmall: TextStyleConstants.caption.copyWith(
+          color: AppColorScheme.dark.textSecondary,
+        ),
+        titleMedium: TextStyleConstants.h7.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColorScheme.dark.textPrimary,
+        ),
       ),
     ),
     appBarTheme: AppBarTheme(
@@ -292,25 +322,184 @@ class AppThemes {
         ),
       ),
       centerTitle: false,
-      backgroundColor: const Color(0xFF2F2F31),
+      backgroundColor: AppColorScheme.dark.surface,
       scrolledUnderElevation: 0,
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.6),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: Border(bottom: BorderSide(color: AppColorScheme.dark.border)),
       titleTextStyle: TextStyleConstants.h7.copyWith(
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
+        fontWeight: FontWeight.w600,
+        color: AppColorScheme.dark.textPrimary,
       ),
       systemOverlayStyle: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF2F2F31),
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarDividerColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: IconThemeData(color: AppColorScheme.dark.textPrimary),
     ),
-    scrollbarTheme: ScrollbarThemeData(radius: Radius.circular(4.r)),
-
+    scrollbarTheme: ScrollbarThemeData(
+      radius: Radius.circular(4.r),
+      thickness: WidgetStatePropertyAll(4.w),
+      thumbColor: WidgetStatePropertyAll(
+        AppColorScheme.dark.border.withValues(alpha: 0.9),
+      ),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: AppColorScheme.dark.primary,
+      strokeCap: StrokeCap.round,
+      circularTrackColor: AppColorScheme.dark.surfaceVariant,
+    ),
+    sliderTheme: SliderThemeData(
+      padding: EdgeInsets.symmetric(vertical: 8.w),
+      activeTrackColor: AppColorScheme.dark.primary,
+      thumbColor: AppColorScheme.dark.primary,
+      overlayColor: AppColorScheme.dark.primary.withValues(alpha: 0.12),
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: AppColorScheme.dark.surface,
+      selectedItemColor: AppColorScheme.dark.primary,
+      unselectedItemColor: AppColorScheme.dark.textSecondary,
+      elevation: 0,
+      showUnselectedLabels: true,
+      selectedIconTheme: IconThemeData(color: AppColorScheme.dark.primary),
+      unselectedIconTheme: IconThemeData(
+        color: AppColorScheme.dark.textSecondary,
+      ),
+      type: BottomNavigationBarType.fixed,
+      selectedLabelStyle: TextStyleConstants.caption.copyWith(
+        fontWeight: FontWeight.w600,
+        color: AppColorScheme.dark.primary,
+      ),
+      unselectedLabelStyle: TextStyleConstants.caption.copyWith(
+        fontWeight: FontWeight.w400,
+        color: AppColorScheme.dark.textSecondary,
+      ),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: AppColorScheme.dark.primary,
+      foregroundColor: AppColorScheme.dark.onPrimary,
+    ),
+    dividerTheme: DividerThemeData(
+      thickness: 1,
+      color: AppColorScheme.dark.border,
+    ),
+    buttonTheme: ButtonThemeData(
+      textTheme: ButtonTextTheme.normal,
+      buttonColor: AppColorScheme.dark.primary,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        disabledBackgroundColor: AppColorScheme.dark.border,
+        disabledForegroundColor: AppColorScheme.dark.textSecondary,
+        textStyle: TextStyleConstants.b2.copyWith(
+          color: AppColorScheme.dark.onPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        backgroundColor: AppColorScheme.dark.primary,
+        foregroundColor: AppColorScheme.dark.onPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      fillColor: AppColorScheme.dark.surfaceVariant,
+      filled: true,
+      hintStyle: TextStyleConstants.caption.copyWith(
+        color: AppColorScheme.dark.textSecondary,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.dark.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.dark.primary),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.dark.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: AppColorScheme.dark.error),
+      ),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>(
+        (states) => AppColorScheme.dark.primary,
+      ),
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: AppColorScheme.dark.background,
+      rangePickerBackgroundColor: AppColorScheme.dark.background,
+      headerBackgroundColor: AppColorScheme.dark.primary,
+      headerForegroundColor: AppColorScheme.dark.onPrimary,
+      dayForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.dark.onPrimary;
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return AppColorScheme.dark.textSecondary.withValues(alpha: 0.35);
+        }
+        return AppColorScheme.dark.textPrimary;
+      }),
+      dayBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.dark.primary;
+        }
+        return Colors.transparent;
+      }),
+      todayForegroundColor: WidgetStateProperty.all(
+        AppColorScheme.dark.primary,
+      ),
+      todayBackgroundColor: WidgetStateProperty.all(Colors.transparent),
+      todayBorder: BorderSide(color: AppColorScheme.dark.primary, width: 1.5),
+      rangeSelectionBackgroundColor: AppColorScheme.dark.primary.withValues(
+        alpha: 0.16,
+      ),
+      rangeSelectionOverlayColor: WidgetStateProperty.all(
+        AppColorScheme.dark.primary.withValues(alpha: 0.08),
+      ),
+      yearForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.dark.onPrimary;
+        }
+        return AppColorScheme.dark.textPrimary;
+      }),
+      yearBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColorScheme.dark.primary;
+        }
+        return Colors.transparent;
+      }),
+      confirmButtonStyle: TextButton.styleFrom(
+        foregroundColor: AppColorScheme.dark.primary,
+      ),
+      cancelButtonStyle: TextButton.styleFrom(
+        foregroundColor: AppColorScheme.dark.textSecondary,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+      rangePickerHeaderBackgroundColor: AppColorScheme.dark.primary,
+      rangePickerHeaderForegroundColor: AppColorScheme.dark.onPrimary,
+      rangePickerShape: const RoundedRectangleBorder(),
+      rangePickerSurfaceTintColor: Colors.transparent,
+    ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      fillColor: AppColorScheme.dark.primary.withValues(alpha: 0.12),
+      selectedColor: AppColorScheme.dark.primary,
+      color: AppColorScheme.dark.textPrimary,
+      borderRadius: BorderRadius.circular(8.r),
+      borderColor: AppColorScheme.dark.border,
+      selectedBorderColor: AppColorScheme.dark.primary,
+      disabledBorderColor: AppColorScheme.dark.border.withValues(alpha: 0.5),
+      disabledColor: AppColorScheme.dark.textSecondary.withValues(alpha: 0.5),
+    ),
     extensions: const [FlashBarTheme(), FlashToastTheme(), AppColorScheme.dark],
   );
 }

@@ -87,7 +87,7 @@ class _ChartFullscreenDialogState extends State<ChartFullscreenDialog> {
           title: Text(
             widget.title,
             style: TextStyleConstants.b2.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: colors.textPrimary,
             ),
           ),

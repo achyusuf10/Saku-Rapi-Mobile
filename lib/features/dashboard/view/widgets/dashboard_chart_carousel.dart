@@ -80,7 +80,7 @@ class _DashboardChartCarouselState
                     titles[_currentPage],
                     textAlign: TextAlign.center,
                     style: TextStyleConstants.b2.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
                     ),
                   ),
@@ -200,7 +200,7 @@ class _ModeSelector extends StatelessWidget {
       onSelected: onSelect,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       color: colors.surface,
-      elevation: 4,
+      elevation: 0,
       itemBuilder: (_) => items
           .map(
             (entry) => PopupMenuItem<DashboardChartMode>(
@@ -213,7 +213,7 @@ class _ModeSelector extends StatelessWidget {
                       style: TextStyleConstants.label1.copyWith(
                         color: colors.textPrimary,
                         fontWeight: entry.$1 == currentMode
-                            ? FontWeight.bold
+                            ? FontWeight.w600
                             : FontWeight.normal,
                       ),
                     ),

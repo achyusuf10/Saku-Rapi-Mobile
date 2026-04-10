@@ -22,7 +22,6 @@ class DashboardComparisonChart extends ConsumerWidget {
     final chartState = ref.watch(dashboardChartControllerProvider);
     final isMonthly = chartState.chartMode == DashboardChartMode.monthly;
     final isDaily = chartState.chartMode == DashboardChartMode.daily;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final String currentLabel;
     final String previousLabel;
@@ -43,12 +42,8 @@ class DashboardComparisonChart extends ConsumerWidget {
     final prevIncome = chartState.previousPeriodIncome;
     final prevExpense = chartState.previousPeriodExpense;
 
-    final textColor = isDark
-        ? const Color(0xFF9CA3AF)
-        : const Color(0xFF6B7280);
-    final gridColor = isDark
-        ? const Color(0xFF2D3F38)
-        : const Color(0xFFE5E7EB);
+    final textColor = colors.textSecondary;
+    final gridColor = colors.border.withValues(alpha: 0.75);
 
     final chartData = <_ComparisonData>[
       _ComparisonData(
@@ -149,7 +144,7 @@ class DashboardComparisonChart extends ConsumerWidget {
               ),
             ),
             tooltipBehavior: TooltipBehavior(
-              color: isDark ? const Color(0xFF1F2937) : Colors.white,
+              color: colors.surface,
               enable: true,
               header: '',
               builder: (data, point, series, pointIdx, seriesIdx) {
@@ -161,7 +156,18 @@ class DashboardComparisonChart extends ConsumerWidget {
                     horizontal: 10.w,
                     vertical: 6.h,
                   ),
-
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: colors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,7 +366,7 @@ class _SummaryItem extends StatelessWidget {
               child: Text(
                 value,
                 style: TextStyleConstants.b2.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: valueColor,
                 ),
                 overflow: TextOverflow.ellipsis,

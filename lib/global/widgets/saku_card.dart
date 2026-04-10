@@ -30,7 +30,7 @@ class SakuCard extends StatelessWidget {
   /// Callback saat card di-tap.
   final VoidCallback? onTap;
 
-  /// Border radius. Default: 16.
+  /// Border radius. Default: 12.
   final double? borderRadius;
 
   /// Background color kustom.
@@ -45,19 +45,19 @@ class SakuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final radius = borderRadius ?? 16.r;
+    final radius = borderRadius ?? 12.r;
+    final shadowAlpha = context.isDarkMode ? 0.15 : 0.06;
 
     return Container(
       margin: margin,
       decoration: BoxDecoration(
         color: backgroundColor ?? colors.surface,
         borderRadius: BorderRadius.circular(radius),
-        border:
-            border ?? Border.all(color: colors.border.withValues(alpha: 0.5)),
+        border: border ?? Border.all(color: colors.border),
         boxShadow: [
           if ((elevation ?? 0) > 0)
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withValues(alpha: shadowAlpha),
               blurRadius: elevation! * 2,
               offset: Offset(0, elevation!),
             ),

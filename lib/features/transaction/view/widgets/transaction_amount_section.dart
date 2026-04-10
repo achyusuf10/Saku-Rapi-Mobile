@@ -31,6 +31,7 @@ class TransactionAmountSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [

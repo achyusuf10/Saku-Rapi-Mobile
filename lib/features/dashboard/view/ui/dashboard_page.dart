@@ -78,7 +78,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       user?.fullName?.split(' ').first ?? '—',
                     ),
                     style: TextStyleConstants.h5.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
                     ),
                   ),

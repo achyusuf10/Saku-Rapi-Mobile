@@ -84,6 +84,7 @@ class _TransactionTypeTabsState extends State<TransactionTypeTabs>
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.border),
       ),
       child: TabBar(
         controller: _tabController,
@@ -99,7 +100,7 @@ class _TransactionTypeTabsState extends State<TransactionTypeTabs>
         ),
         dividerColor: Colors.transparent,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
-        labelColor: Colors.white,
+        labelColor: colors.onPrimary,
         unselectedLabelColor: colors.textSecondary,
         labelStyle: TextStyleConstants.label1.copyWith(
           fontWeight: FontWeight.w700,

@@ -99,7 +99,7 @@ class _SakuDropdownState<T> extends State<SakuDropdown<T>> {
             widget.label!,
             style: TextStyleConstants.label1.copyWith(
               fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
+              color: colors.textSecondary,
             ),
           ),
           SizedBox(height: 6.h),
@@ -178,9 +178,9 @@ class _SakuDropdownState<T> extends State<SakuDropdown<T>> {
               border: Border.all(color: colors.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),

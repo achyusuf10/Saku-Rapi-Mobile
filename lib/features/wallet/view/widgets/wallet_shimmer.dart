@@ -12,8 +12,8 @@ class WalletShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final colors = context.colors;
+    final baseColor = colors.surfaceVariant;
 
     return ShimmerWidget.custom(
       child: SingleChildScrollView(
@@ -66,7 +66,7 @@ class _WalletSummaryCardSkeleton extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(12.r),
         color: baseColor,
       ),
       child: Column(

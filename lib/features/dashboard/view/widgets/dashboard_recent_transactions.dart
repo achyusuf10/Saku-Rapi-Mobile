@@ -47,7 +47,7 @@ class DashboardRecentTransactions extends ConsumerWidget {
               Text(
                 l10n.dashboardRecentTransactions,
                 style: TextStyleConstants.b1.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: colors.textPrimary,
                 ),
               ),
@@ -79,7 +79,7 @@ class DashboardRecentTransactions extends ConsumerWidget {
                       FaIcon(
                         FontAwesomeIcons.receipt,
                         size: 28.w,
-                        color: colors.textSecondary.withValues(alpha: 0.4),
+                        color: colors.textSecondary.withValues(alpha: 0.5),
                       ),
                       SizedBox(height: 8.h),
                       Text(
@@ -136,11 +136,7 @@ class DashboardRecentTransactions extends ConsumerWidget {
                         },
                       ),
                       if (i < entry.value.length - 1)
-                        Divider(
-                          height: 1,
-                          indent: 56.w,
-                          color: colors.border.withValues(alpha: 0.5),
-                        ),
+                        Divider(height: 1, indent: 56.w, color: colors.border),
                     ],
                   ],
                 ),
