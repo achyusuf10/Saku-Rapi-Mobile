@@ -95,13 +95,13 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
   /// Skema warna untuk **Light Mode**.
   static const light = AppColorScheme(
     primary: Color(0xFF0F172A), // Slate 900 (Trust Navy)
-    primaryLight: Color(0xFFE2E8F0), // Slate 200
+    primaryLight: Color(0xFFCBD5E1), // Slate 300
     primaryDark: Color(0xFF020617), // Slate 950
     accent: Color(0xFFCA8A04), // Yellow 600 (Premium Gold)
-    background: Color(0xFFF8FAFC), // Slate 50
+    background: Color(0xFFF1F5F9), // Slate 100
     surface: Color(0xFFFFFFFF), // White
-    surfaceVariant: Color(0xFFF1F5F9), // Slate 100
-    border: Color(0xFFE2E8F0), // Slate 200
+    surfaceVariant: Color(0xFFE2E8F0), // Slate 200
+    border: Color(0xFFCBD5E1), // Slate 300
     textPrimary: Color(0xFF0F172A), // Slate 900
     textSecondary: Color(0xFF64748B), // Slate 500
     income: Color(0xFF059669), // Emerald 600
