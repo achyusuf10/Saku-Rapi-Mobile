@@ -15,7 +15,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class AiQuotaInfoRow extends ConsumerWidget {
   const AiQuotaInfoRow({super.key, required this.mode});
 
-  /// Mode quota: 'text', 'voice', atau 'ocr'.
+  /// Mode quota: `'text'`, `'voice'`, atau `'ocr'`.
   final String mode;
 
   @override
@@ -26,7 +26,6 @@ class AiQuotaInfoRow extends ConsumerWidget {
 
     return quotaAsync.when(
       loading: () => _buildRow(
-        colors: colors,
         icon: FontAwesomeIcons.spinner,
         iconColor: colors.textSecondary,
         text: '...',
@@ -38,7 +37,6 @@ class AiQuotaInfoRow extends ConsumerWidget {
 
         if (quota.isExhausted) {
           return _buildRow(
-            colors: colors,
             icon: FontAwesomeIcons.circleExclamation,
             iconColor: colors.expense,
             text: l10n.aiQuotaExhausted,
@@ -47,7 +45,6 @@ class AiQuotaInfoRow extends ConsumerWidget {
         }
 
         return _buildRow(
-          colors: colors,
           icon: FontAwesomeIcons.bolt,
           iconColor: colors.info,
           text: l10n.aiQuotaRemaining(quota.remaining, quota.limit),
@@ -58,7 +55,6 @@ class AiQuotaInfoRow extends ConsumerWidget {
   }
 
   Widget _buildRow({
-    required dynamic colors,
     required IconData icon,
     required Color iconColor,
     required String text,
@@ -80,9 +76,10 @@ class AiQuotaInfoRow extends ConsumerWidget {
     );
   }
 
-  /// Check apakah kuota habis (helper untuk disable tombol di luar widget).
+  /// Check apakah kuota habis (helper statis untuk disable tombol dari luar).
   static bool isExhausted(AllAiQuotasModel? quotas, String mode) {
     if (quotas == null) return false;
     return quotas.quotaForMode(mode).isExhausted;
   }
 }
+
