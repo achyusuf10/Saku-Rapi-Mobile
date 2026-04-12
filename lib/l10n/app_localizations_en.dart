@@ -2340,4 +2340,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiQuotaLabel => 'AI Quota';
+
+  @override
+  String get settingsSendReport => 'Send Report';
+
+  @override
+  String get sendReportTitle => 'Send Report';
+
+  @override
+  String get sendReportCategory => 'Category';
+
+  @override
+  String get sendReportCategoryHint => 'Select report category';
+
+  @override
+  String get sendReportFormTitle => 'Title';
+
+  @override
+  String get sendReportFormTitleHint => 'Write a short report title';
+
+  @override
+  String get sendReportDescription => 'Description';
+
+  @override
+  String get sendReportDescriptionHint =>
+      'Describe the issue or request in detail';
+
+  @override
+  String get sendReportPhoto => 'Attachment Photo';
+
+  @override
+  String get sendReportAddPhoto => 'Add Photo (Optional)';
+
+  @override
+  String get sendReportChangePhoto => 'Change Photo';
+
+  @override
+  String get sendReportRemovePhoto => 'Remove Photo';
+
+  @override
+  String get sendReportSubmit => 'Send Report';
+
+  @override
+  String get sendReportSuccessTitle => 'Report Sent';
+
+  @override
+  String get sendReportSuccessMessage =>
+      'Thank you! We have received your report.';
+
+  @override
+  String get sendReportValidateCategory => 'Please select a report category';
+
+  @override
+  String get sendReportValidateTitle => 'Title must be at least 5 characters';
+
+  @override
+  String get sendReportValidateDescription =>
+      'Description must be at least 10 characters';
+
+  @override
+  String get sendReportCategoryBugReport => 'Bug Report';
+
+  @override
+  String get sendReportCategoryFeatureRequest => 'Feature Request';
+
+  @override
+  String get sendReportCategoryAccountIssue => 'Account Issue';
+
+  @override
+  String get sendReportCategoryPaymentIssue => 'Payment Issue';
+
+  @override
+  String get sendReportCategoryOther => 'Other';
 }

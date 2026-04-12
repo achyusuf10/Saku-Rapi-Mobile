@@ -78,7 +78,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 label: l10n.profileDebtLoan,
                 onTap: () => context.push(AppRouter.debtLoan),
               ),
-
             ],
           ),
 
@@ -121,6 +120,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           SettingsSectionHeader(title: l10n.profileSectionOther),
           SettingsGroup(
             children: [
+              SettingsTile(
+                icon: FontAwesomeIcons.flag,
+                label: l10n.settingsSendReport,
+                onTap: () => context.push(AppRouter.sendReport),
+              ),
               SettingsTile(
                 icon: FontAwesomeIcons.circleInfo,
                 label: l10n.profileAppVersion,
@@ -259,7 +263,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     try {
       var res = await ref.read(authControllerProvider.notifier).signOut();
-      if (!mounted) return;
+
+      if (context.mounted == false) {
+        return;
+      }
       if (res == true) {
         context.go(AppRouter.login);
       }

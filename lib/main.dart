@@ -62,7 +62,9 @@ Future<void> bootstrap() async {
     goRouterLogger.onRecord.listen((record) {
       // Log ke console
       AppLogger.call(
-        '[GoRouter] ${record.level.name}: ${record.time}: ${record.message}',
+        '${record.level.name}: ${record.time}: ${record.message}',
+        name: 'GoRouter',
+        colorLog: ColorLog.yellow,
       );
     });
   }

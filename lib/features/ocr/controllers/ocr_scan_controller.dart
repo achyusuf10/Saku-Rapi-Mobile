@@ -159,7 +159,9 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-
+    if (context.mounted == false) {
+      return;
+    }
     await _processImage(context, imageFile);
   }
 
@@ -170,6 +172,9 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     final imageFile = await _imageService.pickFromGallery();
     if (imageFile == null) {
       state = const OcrScanState(status: OcrScanStatus.idle);
+      return;
+    }
+    if (context.mounted == false) {
       return;
     }
 

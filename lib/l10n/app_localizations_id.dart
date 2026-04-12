@@ -2341,4 +2341,75 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get aiQuotaLabel => 'Kuota AI';
+
+  @override
+  String get settingsSendReport => 'Kirim Laporan';
+
+  @override
+  String get sendReportTitle => 'Kirim Laporan';
+
+  @override
+  String get sendReportCategory => 'Kategori';
+
+  @override
+  String get sendReportCategoryHint => 'Pilih kategori laporan';
+
+  @override
+  String get sendReportFormTitle => 'Judul';
+
+  @override
+  String get sendReportFormTitleHint => 'Tuliskan judul laporan singkat';
+
+  @override
+  String get sendReportDescription => 'Deskripsi';
+
+  @override
+  String get sendReportDescriptionHint =>
+      'Jelaskan masalah atau permintaanmu secara detail';
+
+  @override
+  String get sendReportPhoto => 'Foto Lampiran';
+
+  @override
+  String get sendReportAddPhoto => 'Tambah Foto (Opsional)';
+
+  @override
+  String get sendReportChangePhoto => 'Ganti Foto';
+
+  @override
+  String get sendReportRemovePhoto => 'Hapus Foto';
+
+  @override
+  String get sendReportSubmit => 'Kirim Laporan';
+
+  @override
+  String get sendReportSuccessTitle => 'Laporan Terkirim';
+
+  @override
+  String get sendReportSuccessMessage =>
+      'Terima kasih! Laporan kamu sudah kami terima.';
+
+  @override
+  String get sendReportValidateCategory => 'Pilih kategori laporan';
+
+  @override
+  String get sendReportValidateTitle => 'Judul minimal 5 karakter';
+
+  @override
+  String get sendReportValidateDescription => 'Deskripsi minimal 10 karakter';
+
+  @override
+  String get sendReportCategoryBugReport => 'Laporan Bug';
+
+  @override
+  String get sendReportCategoryFeatureRequest => 'Permintaan Fitur';
+
+  @override
+  String get sendReportCategoryAccountIssue => 'Masalah Akun';
+
+  @override
+  String get sendReportCategoryPaymentIssue => 'Masalah Pembayaran';
+
+  @override
+  String get sendReportCategoryOther => 'Lainnya';
 }

@@ -4443,6 +4443,144 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Kuota AI'**
   String get aiQuotaLabel;
+
+  /// No description provided for @settingsSendReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim Laporan'**
+  String get settingsSendReport;
+
+  /// No description provided for @sendReportTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim Laporan'**
+  String get sendReportTitle;
+
+  /// No description provided for @sendReportCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori'**
+  String get sendReportCategory;
+
+  /// No description provided for @sendReportCategoryHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih kategori laporan'**
+  String get sendReportCategoryHint;
+
+  /// No description provided for @sendReportFormTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Judul'**
+  String get sendReportFormTitle;
+
+  /// No description provided for @sendReportFormTitleHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Tuliskan judul laporan singkat'**
+  String get sendReportFormTitleHint;
+
+  /// No description provided for @sendReportDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Deskripsi'**
+  String get sendReportDescription;
+
+  /// No description provided for @sendReportDescriptionHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Jelaskan masalah atau permintaanmu secara detail'**
+  String get sendReportDescriptionHint;
+
+  /// No description provided for @sendReportPhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Foto Lampiran'**
+  String get sendReportPhoto;
+
+  /// No description provided for @sendReportAddPhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah Foto (Opsional)'**
+  String get sendReportAddPhoto;
+
+  /// No description provided for @sendReportChangePhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Ganti Foto'**
+  String get sendReportChangePhoto;
+
+  /// No description provided for @sendReportRemovePhoto.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Foto'**
+  String get sendReportRemovePhoto;
+
+  /// No description provided for @sendReportSubmit.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim Laporan'**
+  String get sendReportSubmit;
+
+  /// No description provided for @sendReportSuccessTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Terkirim'**
+  String get sendReportSuccessTitle;
+
+  /// No description provided for @sendReportSuccessMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Terima kasih! Laporan kamu sudah kami terima.'**
+  String get sendReportSuccessMessage;
+
+  /// No description provided for @sendReportValidateCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih kategori laporan'**
+  String get sendReportValidateCategory;
+
+  /// No description provided for @sendReportValidateTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Judul minimal 5 karakter'**
+  String get sendReportValidateTitle;
+
+  /// No description provided for @sendReportValidateDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Deskripsi minimal 10 karakter'**
+  String get sendReportValidateDescription;
+
+  /// No description provided for @sendReportCategoryBugReport.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Bug'**
+  String get sendReportCategoryBugReport;
+
+  /// No description provided for @sendReportCategoryFeatureRequest.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan Fitur'**
+  String get sendReportCategoryFeatureRequest;
+
+  /// No description provided for @sendReportCategoryAccountIssue.
+  ///
+  /// In id, this message translates to:
+  /// **'Masalah Akun'**
+  String get sendReportCategoryAccountIssue;
+
+  /// No description provided for @sendReportCategoryPaymentIssue.
+  ///
+  /// In id, this message translates to:
+  /// **'Masalah Pembayaran'**
+  String get sendReportCategoryPaymentIssue;
+
+  /// No description provided for @sendReportCategoryOther.
+  ///
+  /// In id, this message translates to:
+  /// **'Lainnya'**
+  String get sendReportCategoryOther;
 }
 
 class _AppLocalizationsDelegate

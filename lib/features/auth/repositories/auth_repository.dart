@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/auth/datasource/auth_local_data_source.dart';
 import 'package:app_saku_rapi/features/auth/datasource/auth_remote_data_source.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
+import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Repository utama untuk modul autentikasi.
@@ -95,7 +96,9 @@ class AuthRepository {
 
     return result.map(
       success: (_) {
-        _localDataSource.clearUserCache();
+        // Wipe seluruh Hive box agar tidak ada cache akun lama
+        // yang tertinggal ketika user login dengan akun berbeda.
+        HiveService.reset();
 
         AppLogger.logSuccess('Sign-out complete', runtimeType: AuthRepository);
 

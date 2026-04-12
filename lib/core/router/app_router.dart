@@ -17,6 +17,7 @@ import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
+import 'package:app_saku_rapi/features/user_report/view/ui/send_report_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
 
@@ -93,6 +94,7 @@ class AppRouter {
   static const String debtLoan = '/debt-loan';
   static const String debtLoanPerson = '/debt-loan/person';
   static const String settlementHistory = '/debt-loan/settlement-history';
+  static const String sendReport = '/settings/send-report';
 
   // ───────────────── Shell Keys ─────────────────
 
@@ -324,6 +326,11 @@ class AppRouter {
           builder: (context, state) {
             return const InvestmentInactivePage();
           },
+        ),
+        GoRoute(
+          path: sendReport,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const SendReportPage(),
         ),
       ],
     );
