@@ -210,7 +210,7 @@ Aturan keuangan yang harus ditegakkan di level arsitektur:
 |---|---|
 | **Integer untuk uang** | Semua nilai moneter bertipe `int`, bukan `double` |
 | **UTC timestamp storage** | Semua timestamp point-in-time disimpan sebagai UTC ISO 8601 |
-| **Date-only storage** | Field kalender (`date`, `due_date`, periode budget) disimpan sebagai `YYYY-MM-DD` |
+| **Calendar date storage** | Field kalender murni seperti `due_date` dan periode budget disimpan sebagai `YYYY-MM-DD`; event time seperti `transactions.date` dan `investment_transactions.date` tetap timestamp UTC |
 | **Local rendering** | UI menampilkan timestamp dalam local device user (`toLocal()`) |
 | **Balance via trigger** | Tidak ada code Dart yang mengubah `wallet.balance` secara langsung |
 | **AI prefill only** | Hasil AI parsing hanya mengisi form, user wajib konfirmasi |

@@ -55,8 +55,8 @@ Lihat detail lengkap di → [[wiki/concepts/matrix-transaksi|Matrix Transaksi]]
 |---|---|
 | **Mata uang** | IDR only (Rupiah Indonesia) |
 | **Timezone tampilan** | local device user (`toLocal()`) |
-| **Timezone penyimpanan** | timestamp UTC di database |
-| **Field kalender** | tetap `date-only` (`YYYY-MM-DD`) |
+| **Timezone penyimpanan** | semua point-in-time timestamp disimpan UTC di database |
+| **Field kalender** | hanya field kalender murni seperti `due_date` dan periode budget yang tetap `date-only` (`YYYY-MM-DD`) |
 | **Tipe data uang** | `int` (bukan `double`) — menghindari floating-point error |
 | **Format tampilan** | Helper `extToRupiah()` untuk formatting |
 
@@ -76,7 +76,7 @@ Settlement (`debt_payment`, `loan_collection`) tidak masuk laporan dan tidak mas
 Aplikasi hanya mendukung mata uang Rupiah Indonesia (IDR). Tidak ada multi-currency.
 
 ### 4. UTC Storage, Local Rendering
-Semua timestamp disimpan dalam UTC. Rendering di UI menggunakan local device user, sedangkan field kalender murni tetap `date-only`.
+Semua timestamp point-in-time (misalnya `transactions.date`, `investment_transactions.date`, `created_at`, `fetched_at`) disimpan dalam UTC. Rendering di UI menggunakan local device user, sedangkan field kalender murni seperti `due_date` dan periode budget tetap `date-only`.
 
 ### 5. Integer untuk Uang
 Semua nilai moneter disimpan sebagai `int`. Tidak boleh `double` atau `float` untuk menghindari floating-point precision error.

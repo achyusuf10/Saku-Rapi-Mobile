@@ -49,6 +49,8 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 | Kontak (with_person) | — | — | — | ✅ (wajib) |
 | Catatan | opsional | opsional | opsional | opsional |
 
+**Catatan waktu:** field tanggal transaksi adalah **point-in-time event**. Jika user memilih jam, Flutter mengirim nilai sebagai **UTC ISO 8601**, lalu UI merendernya kembali dalam local timezone device user. Hanya `due_date` yang tetap date-only.
+
 ## Fitur Utama
 
 ### Multi-item Support
@@ -91,7 +93,7 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 | destination_wallet_id | uuid nullable FK | wallet tujuan (transfer) |
 | type | text not null | `income`, `expense`, `transfer`, `debt`, `loan`, `adjustment`, `transfer_to_asset` |
 | total_amount | numeric not null | grand total, CHECK > 0 |
-| date | date not null | tanggal kalender transaksi |
+| date | timestamptz not null | waktu transaksi UTC (point-in-time) |
 | merchant_name | text nullable | |
 | note | text nullable | |
 | attachment_url | text nullable | |
@@ -104,7 +106,7 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 | contact_id | uuid nullable FK | referensi ke contacts |
 | created_at / updated_at | timestamptz | timestamp audit UTC |
 
-**Catatan:** `date` dan `due_date` tidak lagi membawa jam. UI menampilkan timestamp audit (`created_at`/`updated_at`) dalam local device user.
+**Catatan:** `date` adalah waktu kejadian transaksi yang disimpan sebagai `timestamptz` (UTC) lalu dirender lokal di client. `due_date` tetap field kalender murni (`YYYY-MM-DD`).
 
 ### Tabel `transaction_items`
 

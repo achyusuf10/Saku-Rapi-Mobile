@@ -265,6 +265,8 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | note | text nullable | |
 | created_at | timestamptz | default now() |
 
+**Catatan:** `date` adalah point-in-time investasi yang disimpan sebagai `timestamptz` (UTC) lalu dirender lokal di client.
+
 **Constraint:**
 - `direction` CHECK: `buy`, `sell`
 - `units > 0`, `price_per_unit > 0`, `fee >= 0`

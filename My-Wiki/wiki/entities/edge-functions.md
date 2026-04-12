@@ -68,7 +68,7 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
     "categoryId": "<uuid>",
     "note": "Makan siang",
     "suggestedWallet": "GoPay",
-    "date": "2026-04-12"
+    "date": "2026-04-12T19:30:00"
   },
   "quota": { "used": 1, "limit": 5, "remaining": 4 }
 }
@@ -80,6 +80,9 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 - Jika AI gagal → error code: `AI_TIMEOUT`, `AI_RATE_LIMIT`, `AI_AUTH_ERROR`, `AI_CONFIG_ERROR`, `AI_ERROR`
 - Catat usage setelah AI berhasil (via `log_ai_usage` RPC)
 - `localDate` dari Flutter dipakai untuk relative-date prompt (`hari ini`, `kemarin`) dan untuk menghitung kuota harian via `ai_usage_logs.usage_date`
+- Source `ai-parse` sekarang mengizinkan `data.date` berupa:
+  - `YYYY-MM-DD` jika input hanya menyebut tanggal
+  - `YYYY-MM-DDTHH:mm:ss` jika input menyebut jam eksplisit
 
 **Model yang dipakai:**
 - Text/Voice: `gemini-2.5-flash-lite` (timeout 10s)
