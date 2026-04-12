@@ -15,7 +15,7 @@ class CategoryColorPickerSheet extends StatelessWidget {
   final String? selectedColor;
 
   /// Daftar warna yang tersedia untuk dipilih.
-  static const List<String> _availableColors = [
+  static const List<String> availableColors = [
     '#F59E0B', // Amber
     '#EF4444', // Red
     '#3B82F6', // Blue
@@ -40,6 +40,12 @@ class CategoryColorPickerSheet extends StatelessWidget {
     '#2563EB', // Blue dark
     '#DC2626', // Red dark
     '#059669', // Emerald dark
+    '#6D28D9', // Purple dark
+    '#1D4ED8', // Blue-700
+    '#B91C1C', // Red-700
+    '#047857', // Emerald-700
+    '#9333EA', // Purple-700,
+    '#0F172A', // Slate-900
   ];
 
   /// Menampilkan color picker dan return hex color terpilih.
@@ -102,9 +108,9 @@ class CategoryColorPickerSheet extends StatelessWidget {
                 mainAxisSpacing: 12.h,
                 crossAxisSpacing: 12.w,
               ),
-              itemCount: _availableColors.length,
+              itemCount: availableColors.length,
               itemBuilder: (context, index) {
-                final hex = _availableColors[index];
+                final hex = availableColors[index];
                 final isSelected =
                     hex.toLowerCase() == selectedColor?.toLowerCase();
                 final color = _parseColor(hex);

@@ -64,7 +64,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
       initialValue: w?.initialBalance,
     );
     _selectedIcon = w?.icon ?? 'wallet';
-    _selectedColor = w?.color ?? '#0F172A';
+    _selectedColor = w?.color ?? CategoryColorPickerSheet.availableColors.first;
     _excludeFromTotal = w?.excludeFromTotal ?? false;
     _initialBalance = w?.initialBalance ?? 0;
   }

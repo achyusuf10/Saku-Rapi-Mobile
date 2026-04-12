@@ -200,7 +200,7 @@ class _ModeSelector extends StatelessWidget {
       onSelected: onSelect,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       color: colors.surface,
-      elevation: 0,
+      elevation: 3,
       itemBuilder: (_) => items
           .map(
             (entry) => PopupMenuItem<DashboardChartMode>(

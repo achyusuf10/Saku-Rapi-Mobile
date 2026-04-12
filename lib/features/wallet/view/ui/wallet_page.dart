@@ -149,11 +149,18 @@ class _WalletPageState extends ConsumerState<WalletPage> {
       wallet: wallet,
       onTap: () => _showWalletActions(wallet),
       trailing: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+
         icon: FaIcon(
           FontAwesomeIcons.ellipsisVertical,
           size: 16.w,
           color: context.colors.textSecondary,
         ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        color: context.colors.surface,
+        elevation: 3,
         onSelected: (value) => _handleMenuAction(value, wallet),
         itemBuilder: (context) {
           final l10n = context.l10n;

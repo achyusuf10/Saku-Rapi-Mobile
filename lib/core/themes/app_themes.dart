@@ -30,7 +30,7 @@ class AppThemes {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.light.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.light.border;
+        return AppColorScheme.light.background.withValues(alpha: 0.5);
       }),
     ),
     colorScheme: ColorScheme.light(
@@ -279,7 +279,7 @@ class AppThemes {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.dark.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.dark.border;
+        return AppColorScheme.dark.background.withValues(alpha: 0.5);
       }),
     ),
     colorScheme: ColorScheme.dark(
