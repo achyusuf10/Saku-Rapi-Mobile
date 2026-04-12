@@ -5,13 +5,12 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/ocr/datasource/ocr_remote_data_source.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
-import 'package:app_saku_rapi/features/ocr/services/ocr_local_parser.dart';
 
 /// Repository untuk fitur OCR Receipt.
 ///
 /// Pipeline:
 /// 1. Kirim gambar ke Vision AI (Gemini → Groq failover)
-/// 2. Jika kedua AI busy → controller fallback ke ML Kit + local parser
+/// 2. Jika AI gagal → lempar exception ke controller (tampilkan error)
 /// 3. Balancing items vs grand total
 class OcrRepository {
   OcrRepository({OcrRemoteDataSource? remoteDataSource})
@@ -24,8 +23,7 @@ class OcrRepository {
   ///
   /// [categories] berisi daftar kategori expense user ({id, name})
   /// yang dikirim ke AI agar bisa auto-assign kategori per item.
-  /// Throws [Exception] jika AI gagal (AI_BUSY) — controller akan
-  /// melakukan fallback ke ML Kit OCR + local parser.
+  /// Throws [Exception] jika AI gagal — controller akan tampilkan error + retry.
   Future<OcrParseResultModel> parseImage(
     File imageFile, {
     List<Map<String, String>> categories = const [],
@@ -44,20 +42,9 @@ class OcrRepository {
       return OcrParseResultModel.fromEdgeFunctionMap(data);
     }
 
-    // AI gagal → lempar exception agar controller fallback ke ML Kit
     final errorMsg = aiResult.dataError()?.toString() ?? 'AI_BUSY';
-    AppLogger.call(
-      '$_tag AI failed: $errorMsg — controller will fallback to ML Kit',
-    );
+    AppLogger.call('$_tag AI failed: $errorMsg');
     throw Exception(errorMsg);
-  }
-
-  /// Parse teks mentah (hasil ML Kit) menggunakan local regex parser.
-  ///
-  /// Digunakan sebagai fallback ketika kedua AI provider gagal.
-  OcrParseResultModel parseTextLocally(String rawText) {
-    AppLogger.call('$_tag Using local OCR parser (ML Kit fallback)');
-    return OcrLocalParser.parse(rawText);
   }
 
   /// Balancing: jika total items != grandTotal, tambahkan item selisih.

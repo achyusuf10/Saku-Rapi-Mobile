@@ -1,14 +1,11 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
-import 'package:app_saku_rapi/features/voice/models/parsing_dictionary_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk voice/text feature.
 ///
-/// Menangani:
-/// - Panggilan Edge Function `ai-parse` (mode text)
-/// - Fetch `parsing_dictionaries` dari Supabase
+/// Menangani panggilan Edge Function `ai-parse` (mode text).
 class VoiceRemoteDataSource {
   VoiceRemoteDataSource({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
@@ -54,39 +51,6 @@ class VoiceRemoteDataSource {
         // AI_BUSY atau error lain dari Edge Function
         final errMsg = data['error'] as String? ?? 'Unknown AI error';
         throw Exception(errMsg);
-      },
-    );
-  }
-
-  /// Fetch semua parsing dictionaries dari Supabase.
-  ///
-  /// RLS memastikan hanya data yang sesuai yang dikembalikan.
-  Future<DataState<List<ParsingDictionaryModel>>>
-  fetchParsingDictionaries() async {
-    return SupabaseHandler.call<List<ParsingDictionaryModel>>(
-      function: () async {
-        AppLogger.call(
-          '$_tag fetchParsingDictionaries',
-          colorLog: ColorLog.blue,
-        );
-
-        final response = await _client
-            .from('parsing_dictionaries')
-            .select()
-            .order('keyword', ascending: true);
-
-        final dictionaries = (response as List)
-            .map(
-              (e) => ParsingDictionaryModel.fromMap(e as Map<String, dynamic>),
-            )
-            .toList();
-
-        AppLogger.logSuccess(
-          '$_tag Fetched ${dictionaries.length} dictionaries',
-          runtimeType: VoiceRemoteDataSource,
-        );
-
-        return dictionaries;
       },
     );
   }

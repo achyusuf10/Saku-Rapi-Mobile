@@ -1236,9 +1236,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get voicePreviewDestWallet => 'Wallet Tujuan';
 
   @override
-  String get ocrExtractingText => 'Membaca teks dari struk...';
-
-  @override
   String get ocrAnalyzingAi => 'Menganalisis dengan AI...';
 
   @override

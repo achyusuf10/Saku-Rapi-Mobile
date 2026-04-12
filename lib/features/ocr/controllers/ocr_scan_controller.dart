@@ -49,9 +49,6 @@ enum OcrScanStatus {
   /// Crop gambar.
   cropping,
 
-  /// Mengekstrak teks dari gambar (ML Kit).
-  extractingText,
-
   /// Mengirim ke AI untuk parsing.
   analyzingAi,
 
@@ -81,7 +78,7 @@ class OcrScanState {
   /// File gambar yang diambil (setelah crop/compress).
   final File? imageFile;
 
-  /// Teks mentah hasil ML Kit OCR.
+  /// Teks mentah (tidak lagi dipakai, dipertahankan untuk kompatibilitas state).
   final String? rawOcrText;
 
   /// Hasil parsing terstruktur.
@@ -120,9 +117,8 @@ class OcrScanState {
 /// 1. Permission check
 /// 2. Image pick (camera/gallery)
 /// 3. Image crop
-/// 4. Image compress + ML Kit OCR
-/// 5. AI parse (Edge Function) → local fallback
-/// 6. Result review
+/// 4. Image compress → AI Vision parse (Edge Function)
+/// 5. Result review — error + retry jika AI gagal
 class OcrScanController extends StateNotifier<OcrScanState> {
   OcrScanController({
     required OcrRepository repository,
@@ -180,7 +176,7 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     await _processImage(context, imageFile);
   }
 
-  /// Proses gambar: crop → compress → AI Vision → (fallback) ML Kit → local parser.
+  /// Proses gambar: crop → compress → AI Vision parse.
   Future<void> _processImage(BuildContext context, File imageFile) async {
     // Crop
     state = state.copyWith(status: OcrScanStatus.cropping);
@@ -217,24 +213,12 @@ class OcrScanController extends StateNotifier<OcrScanState> {
         categories: categoryMaps,
       );
     } catch (aiError) {
-      // Kedua AI gagal → fallback ke ML Kit OCR + local parser
-      AppLogger.call(
-        '$_tag Vision AI failed ($aiError), falling back to ML Kit OCR',
+      AppLogger.call('$_tag Vision AI failed: $aiError');
+      state = state.copyWith(
+        status: OcrScanStatus.error,
+        errorMessage: 'AI_FAILED',
       );
-
-      state = state.copyWith(status: OcrScanStatus.extractingText);
-      final rawText = await _imageService.extractText(finalImage);
-
-      if (rawText == null || rawText.isEmpty) {
-        state = state.copyWith(
-          status: OcrScanStatus.error,
-          errorMessage: 'NO_TEXT',
-        );
-        return;
-      }
-
-      state = state.copyWith(rawOcrText: rawText);
-      result = _repository.parseTextLocally(rawText);
+      return;
     }
 
     // Handle gambar bukan transaksi

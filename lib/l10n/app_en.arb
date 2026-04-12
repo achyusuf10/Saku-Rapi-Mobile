@@ -563,7 +563,7 @@
   "voicePreviewTitle": "Transaction Preview",
   "voicePreviewType": "Type",
   "voicePreviewDestWallet": "Destination Wallet",
-  "ocrExtractingText": "Reading text from receipt...",
+
   "ocrAnalyzingAi": "Analyzing with AI...",
   "ocrPickerTitle": "Scan Shopping Receipt",
   "ocrCropToolbar": "Select Receipt Area",

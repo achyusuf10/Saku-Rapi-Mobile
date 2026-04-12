@@ -49,9 +49,7 @@ class OcrResultSheet extends ConsumerWidget {
     final state = ref.watch(ocrScanControllerProvider);
     final ctrl = ref.read(ocrScanControllerProvider.notifier);
 
-    final isAnalyzing =
-        state.status == OcrScanStatus.extractingText ||
-        state.status == OcrScanStatus.analyzingAi;
+    final isAnalyzing = state.status == OcrScanStatus.analyzingAi;
 
     return PopScope(
       canPop: !isAnalyzing,
@@ -144,9 +142,6 @@ class OcrResultSheet extends ConsumerWidget {
     if (state.status == OcrScanStatus.pickingImage ||
         state.status == OcrScanStatus.cropping) {
       return _buildLoadingState(l10n.ocrProcessing, colors);
-    }
-    if (state.status == OcrScanStatus.extractingText) {
-      return _buildLoadingState(l10n.ocrExtractingText, colors);
     }
     if (state.status == OcrScanStatus.analyzingAi) {
       return _buildLoadingState(l10n.ocrAnalyzingAi, colors);

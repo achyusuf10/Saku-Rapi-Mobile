@@ -16,5 +16,5 @@ DROP TABLE IF EXISTS public.notification_settings CASCADE;
 -- ─── 3. Remove notification_sent columns dari budgets ───
 ALTER TABLE public.budgets
   DROP COLUMN IF EXISTS notification_sent_50,
-  DROP COLUMN IF EXISTS notification_sent_80,
+  DROP COLUMN IF EXISTS notification_sent_80, 
   DROP COLUMN IF EXISTS notification_sent_100;

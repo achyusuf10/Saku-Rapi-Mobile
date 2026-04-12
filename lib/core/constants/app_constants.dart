@@ -40,9 +40,6 @@ class AppConstants {
 
   // ── Cache TTL ──
 
-  /// TTL cache kamus parsing AI (24 jam).
-  static const Duration cacheTtlDictionary = Duration(hours: 24);
-
   /// TTL cache harga investasi (1 jam).
   static const Duration cacheTtlInvestmentPrice = Duration(hours: 1);
 

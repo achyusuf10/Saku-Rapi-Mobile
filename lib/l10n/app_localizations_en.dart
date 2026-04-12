@@ -1238,9 +1238,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voicePreviewDestWallet => 'Destination Wallet';
 
   @override
-  String get ocrExtractingText => 'Reading text from receipt...';
-
-  @override
   String get ocrAnalyzingAi => 'Analyzing with AI...';
 
   @override
@@ -1815,14 +1812,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get textInputEmpty => 'Please enter a transaction description';
 
   @override
-  String get aiParseCancelTitle => 'Batalkan Analisis?';
+  String get aiParseCancelTitle => 'Cancel Analysis?';
 
   @override
   String get aiParseCancelMessage =>
-      'AI sedang menganalisis data. Yakin ingin membatalkan?';
+      'AI is currently analyzing data. Are you sure you want to cancel?';
 
   @override
-  String get aiParseCancelConfirm => 'Ya, Batalkan';
+  String get aiParseCancelConfirm => 'Yes, Cancel';
 
   @override
   String get navInvestment => 'Investment';

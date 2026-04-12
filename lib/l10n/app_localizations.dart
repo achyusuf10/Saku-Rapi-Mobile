@@ -2432,12 +2432,6 @@ abstract class AppLocalizations {
   /// **'Wallet Tujuan'**
   String get voicePreviewDestWallet;
 
-  /// No description provided for @ocrExtractingText.
-  ///
-  /// In id, this message translates to:
-  /// **'Membaca teks dari struk...'**
-  String get ocrExtractingText;
-
   /// No description provided for @ocrAnalyzingAi.
   ///
   /// In id, this message translates to:
