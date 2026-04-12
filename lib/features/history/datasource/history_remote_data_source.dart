@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -52,8 +53,8 @@ class HistoryRemoteDataSource {
               )
             ''')
             .eq('user_id', _userId)
-            .gte('date', startDate.toIso8601String())
-            .lte('date', endDate.toIso8601String());
+            .gte('date', SakuDateUtils.formatDate(startDate))
+            .lte('date', SakuDateUtils.formatDate(endDate));
 
         if (walletId != null) {
           query = query.eq('wallet_id', walletId);

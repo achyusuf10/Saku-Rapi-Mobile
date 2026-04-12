@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
@@ -137,9 +138,11 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
       final parts = key.split('_');
       if (parts.length == 3) {
         _periodStartDate =
-            DateTime.tryParse(parts[1]) ?? DateTime(now.year, now.month, 1);
+            SakuDateUtils.parseOptionalDate(parts[1]) ??
+            DateTime(now.year, now.month, 1);
         _periodEndDate =
-            DateTime.tryParse(parts[2]) ?? DateTime(now.year, now.month + 1, 0);
+            SakuDateUtils.parseOptionalDate(parts[2]) ??
+            DateTime(now.year, now.month + 1, 0);
       }
     } else {
       // Default: this month

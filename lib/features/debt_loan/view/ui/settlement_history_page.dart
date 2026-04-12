@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_settlement_sheet.dart';
@@ -210,7 +211,10 @@ class _SettlementHistoryPageState extends ConsumerState<SettlementHistoryPage> {
     final locale = context.locale.languageCode;
 
     for (final entry in grouped.entries) {
-      final date = DateTime.parse(entry.key);
+      final date = SakuDateUtils.parseRequiredDate(
+        entry.key,
+        fieldName: 'group_key',
+      );
       final dayTotal = entry.value.fold(0.0, (sum, s) => sum + s.totalAmount);
 
       // Date header

@@ -4,7 +4,7 @@ type: concept
 tags: [arsitektur, flutter, riverpod, supabase, hive, gorouter, 3-file-pattern, model, provider, ui]
 sources: [raw/docs/prd/01_TENTANG_SAKURAPI.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/00_SakuRapi_Coding_Rules.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # Arsitektur Aplikasi
@@ -209,8 +209,9 @@ Aturan keuangan yang harus ditegakkan di level arsitektur:
 | Guardrail | Implementasi |
 |---|---|
 | **Integer untuk uang** | Semua nilai moneter bertipe `int`, bukan `double` |
-| **UTC storage** | Semua `DateTime` disimpan sebagai UTC di database |
-| **Jakarta rendering** | UI menampilkan waktu dalam timezone `Asia/Jakarta` |
+| **UTC timestamp storage** | Semua timestamp point-in-time disimpan sebagai UTC ISO 8601 |
+| **Date-only storage** | Field kalender (`date`, `due_date`, periode budget) disimpan sebagai `YYYY-MM-DD` |
+| **Local rendering** | UI menampilkan timestamp dalam local device user (`toLocal()`) |
 | **Balance via trigger** | Tidak ada code Dart yang mengubah `wallet.balance` secara langsung |
 | **AI prefill only** | Hasil AI parsing hanya mengisi form, user wajib konfirmasi |
 

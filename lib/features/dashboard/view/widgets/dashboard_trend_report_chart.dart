@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,14 +67,14 @@ class DashboardTrendReportChart extends ConsumerWidget {
     } else if (isMonthly) {
       final dateFormat = DateFormat('dd/MM');
       xLabels = currentFilled.map((e) {
-        final d = DateTime.tryParse(e['date'] as String);
+        final d = SakuDateUtils.parseOptionalDate(e['date']);
         return d != null ? dateFormat.format(d) : '';
       }).toList();
     } else {
       // Weekly: show day names (Sen, Sel, Rab...)
       final dayFormat = DateFormat('EEE', 'id_ID');
       xLabels = currentFilled.map((e) {
-        final d = DateTime.tryParse(e['date'] as String);
+        final d = SakuDateUtils.parseOptionalDate(e['date']);
         return d != null ? dayFormat.format(d) : '';
       }).toList();
     }

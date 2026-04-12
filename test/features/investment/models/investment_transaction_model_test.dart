@@ -100,7 +100,7 @@ void main() {
       expect(tx.deductWallet, true);
       expect(tx.linkedWalletTransactionId, 'wt-1');
       expect(tx.note, 'First purchase');
-      expect(tx.createdAt, DateTime.utc(2025, 7, 1));
+      expect(tx.createdAt?.toUtc(), DateTime.utc(2025, 7, 1));
     });
 
     test('handles integer numeric values', () {

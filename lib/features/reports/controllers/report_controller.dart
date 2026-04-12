@@ -130,15 +130,8 @@ class ReportState {
         customStart != null &&
         customEnd != null) {
       return (
-        DateTime.utc(customStart!.year, customStart!.month, customStart!.day),
-        DateTime.utc(
-          customEnd!.year,
-          customEnd!.month,
-          customEnd!.day,
-          23,
-          59,
-          59,
-        ),
+        DateTime(customStart!.year, customStart!.month, customStart!.day),
+        DateTime(customEnd!.year, customEnd!.month, customEnd!.day, 23, 59, 59),
       );
     }
 
@@ -155,36 +148,36 @@ class ReportState {
     final now = DateTime.now();
     return switch (period) {
       AppPeriod.daily => (
-        DateTime.utc(now.year, now.month, now.day),
-        DateTime.utc(now.year, now.month, now.day, 23, 59, 59),
+        DateTime(now.year, now.month, now.day),
+        DateTime(now.year, now.month, now.day, 23, 59, 59),
       ),
       AppPeriod.weekly => () {
         final weekday = now.weekday;
         final monday = now.subtract(Duration(days: weekday - 1));
         final sunday = monday.add(const Duration(days: 6));
         return (
-          DateTime.utc(monday.year, monday.month, monday.day),
-          DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+          DateTime(monday.year, monday.month, monday.day),
+          DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59),
         );
       }(),
       AppPeriod.monthly => (
-        DateTime.utc(now.year, now.month),
-        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+        DateTime(now.year, now.month),
+        DateTime(now.year, now.month + 1, 0, 23, 59, 59),
       ),
       AppPeriod.quarterly => () {
         final qStart = ((now.month - 1) ~/ 3) * 3 + 1;
         return (
-          DateTime.utc(now.year, qStart),
-          DateTime.utc(now.year, qStart + 3, 0, 23, 59, 59),
+          DateTime(now.year, qStart),
+          DateTime(now.year, qStart + 3, 0, 23, 59, 59),
         );
       }(),
       AppPeriod.yearly => (
-        DateTime.utc(now.year),
-        DateTime.utc(now.year, 12, 31, 23, 59, 59),
+        DateTime(now.year),
+        DateTime(now.year, 12, 31, 23, 59, 59),
       ),
       AppPeriod.custom => (
-        DateTime.utc(now.year, now.month),
-        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+        DateTime(now.year, now.month),
+        DateTime(now.year, now.month + 1, 0, 23, 59, 59),
       ),
     };
   }
@@ -197,8 +190,8 @@ class ReportState {
     final prevEnd = start.subtract(const Duration(seconds: 1));
     final prevStart = prevEnd.subtract(duration);
     return (
-      DateTime.utc(prevStart.year, prevStart.month, prevStart.day),
-      DateTime.utc(prevEnd.year, prevEnd.month, prevEnd.day, 23, 59, 59),
+      DateTime(prevStart.year, prevStart.month, prevStart.day),
+      DateTime(prevEnd.year, prevEnd.month, prevEnd.day, 23, 59, 59),
     );
   }
 
@@ -257,8 +250,8 @@ class ReportState {
               ? (appContext?.l10n.today ?? 'Hari Ini')
               : '${cursor.day} ${_shortMonth(cursor.month)}',
           dateRange: (
-            DateTime.utc(cursor.year, cursor.month, cursor.day),
-            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+            DateTime(cursor.year, cursor.month, cursor.day),
+            DateTime(cursor.year, cursor.month, cursor.day, 23, 59, 59),
           ),
         ),
       );
@@ -290,8 +283,8 @@ class ReportState {
               ? (appContext?.l10n.thisWeek ?? 'Minggu Ini')
               : '${monday.day}-${sunday.day} ${_shortMonth(sunday.month)}',
           dateRange: (
-            DateTime.utc(monday.year, monday.month, monday.day),
-            DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+            DateTime(monday.year, monday.month, monday.day),
+            DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59),
           ),
         ),
       );
@@ -316,8 +309,8 @@ class ReportState {
               ? (appContext?.l10n.thisMonth ?? 'Bulan Ini')
               : '${_fullMonth(cursor.month)} ${cursor.year}',
           dateRange: (
-            DateTime.utc(cursor.year, cursor.month, 1),
-            DateTime.utc(cursor.year, cursor.month + 1, 0, 23, 59, 59),
+            DateTime(cursor.year, cursor.month, 1),
+            DateTime(cursor.year, cursor.month + 1, 0, 23, 59, 59),
           ),
         ),
       );
@@ -343,8 +336,8 @@ class ReportState {
               ? (appContext?.l10n.thisQuarter ?? 'Kuartal Ini')
               : 'Q$qNum $year',
           dateRange: (
-            DateTime.utc(year, qStart, 1),
-            DateTime.utc(year, qStart + 3, 0, 23, 59, 59),
+            DateTime(year, qStart, 1),
+            DateTime(year, qStart + 3, 0, 23, 59, 59),
           ),
         ),
       );
@@ -365,10 +358,7 @@ class ReportState {
           label: y == now.year
               ? (appContext?.l10n.thisYear ?? 'Tahun Ini')
               : '$y',
-          dateRange: (
-            DateTime.utc(y, 1, 1),
-            DateTime.utc(y, 12, 31, 23, 59, 59),
-          ),
+          dateRange: (DateTime(y, 1, 1), DateTime(y, 12, 31, 23, 59, 59)),
         ),
       );
     }

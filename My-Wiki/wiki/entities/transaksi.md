@@ -4,7 +4,7 @@ type: entity
 tags: [transaksi, fitur, form, rpc, multi-item]
 sources: [raw/docs/prd/09_TRANSAKSI.md, raw/docs/prd/10_TRANSACTION_DETAIL.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # Transaksi
@@ -91,18 +91,20 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 | destination_wallet_id | uuid nullable FK | wallet tujuan (transfer) |
 | type | text not null | `income`, `expense`, `transfer`, `debt`, `loan`, `adjustment`, `transfer_to_asset` |
 | total_amount | numeric not null | grand total, CHECK > 0 |
-| date | timestamptz not null | UTC |
+| date | date not null | tanggal kalender transaksi |
 | merchant_name | text nullable | |
 | note | text nullable | |
 | attachment_url | text nullable | |
 | with_person | text nullable | wajib untuk debt/loan |
 | status | text nullable | `unpaid`, `paid`, `partial` (debt/loan) |
-| due_date | timestamptz nullable | |
+| due_date | date nullable | tanggal jatuh tempo kalender |
 | is_multi_item | boolean not null default false | |
 | reference_transaction_id | uuid nullable FK self | untuk settlement |
 | settlement_kind | text nullable | `debt_payment`, `loan_collection` |
 | contact_id | uuid nullable FK | referensi ke contacts |
-| created_at / updated_at | timestamptz | |
+| created_at / updated_at | timestamptz | timestamp audit UTC |
+
+**Catatan:** `date` dan `due_date` tidak lagi membawa jam. UI menampilkan timestamp audit (`created_at`/`updated_at`) dalam local device user.
 
 ### Tabel `transaction_items`
 

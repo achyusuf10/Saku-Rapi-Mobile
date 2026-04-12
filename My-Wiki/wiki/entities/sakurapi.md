@@ -4,14 +4,14 @@ type: entity
 tags: [app, overview, flutter, supabase]
 sources: [raw/docs/prd/01_TENTANG_SAKURAPI.md, raw/docs/prd/02_PRIORITAS_FITUR.md, raw/docs/prd/25_ROADMAP.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # SakuRapi
 
 ## Deskripsi
 
-SakuRapi adalah aplikasi pencatat keuangan pribadi untuk platform Android, dibangun menggunakan **Flutter** sebagai framework UI dan **Supabase** sebagai backend (auth, database PostgreSQL, storage, edge functions). Aplikasi ini ditargetkan secara eksklusif untuk **pasar Indonesia** — hanya mendukung mata uang **IDR** dan timezone **Asia/Jakarta**.
+SakuRapi adalah aplikasi pencatat keuangan pribadi untuk platform Android, dibangun menggunakan **Flutter** sebagai framework UI dan **Supabase** sebagai backend (auth, database PostgreSQL, storage, edge functions). Aplikasi ini ditargetkan secara eksklusif untuk **pasar Indonesia** — hanya mendukung mata uang **IDR**; timestamp disimpan UTC dan dirender mengikuti local device user.
 
 Versi dokumen saat ini: **PRD v7.0**. Status pengembangan: **Phase 12 — Polish & QA** (aktif).
 

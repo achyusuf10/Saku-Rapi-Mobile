@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
@@ -45,8 +46,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
       if (status == BudgetStatus.initial) {
         ref.read(budgetControllerProvider.notifier).loadBudgets();
       }
-
-
     });
   }
 
@@ -454,8 +453,8 @@ class _PeriodTabBar extends StatelessWidget {
     if (key.startsWith('custom_')) {
       final parts = key.split('_');
       if (parts.length == 3) {
-        final start = DateTime.tryParse(parts[1]);
-        final end = DateTime.tryParse(parts[2]);
+        final start = SakuDateUtils.parseOptionalDate(parts[1]);
+        final end = SakuDateUtils.parseOptionalDate(parts[2]);
         if (start != null && end != null) {
           return '${start.extToFormattedString(outputDateFormat: 'dd MMM')} - ${end.extToFormattedString(outputDateFormat: 'dd MMM')}';
         }
@@ -493,8 +492,7 @@ class _BudgetPeriodList extends ConsumerWidget {
     final budgets = periodKey != null
         ? allBudgets.where((b) {
             if (b.periodType == BudgetPeriodType.custom) {
-              return 'custom_${b.startDate.toIso8601String().substring(0, 10)}_${b.endDate.toIso8601String().substring(0, 10)}' ==
-                  periodKey;
+              return b.periodKey == periodKey;
             }
             return b.periodType.value == periodKey;
           }).toList()

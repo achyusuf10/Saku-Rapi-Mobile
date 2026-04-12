@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 
 /// Model data untuk transaksi.
@@ -92,7 +93,7 @@ class TransactionModel {
       destinationWalletId: map['destination_wallet_id'] as String?,
       type: TransactionTypeEnum.fromString(map['type'] as String),
       totalAmount: _toDouble(map['total_amount']),
-      date: DateTime.parse(map['date'] as String),
+      date: SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date'),
       merchantName: map['merchant_name'] as String?,
       note: map['note'] as String?,
       attachmentUrl: map['attachment_url'] as String?,
@@ -101,7 +102,10 @@ class TransactionModel {
           ? DebtStatusEnum.fromString(map['status'] as String)
           : null,
       dueDate: map['due_date'] != null
-          ? DateTime.parse(map['due_date'] as String)
+          ? SakuDateUtils.parseRequiredDate(
+              map['due_date'],
+              fieldName: 'due_date',
+            )
           : null,
       isMultiItem: (map['is_multi_item'] as bool?) ?? false,
       referenceTransactionId: map['reference_transaction_id'] as String?,
@@ -109,10 +113,16 @@ class TransactionModel {
           ? DebtLoanKindEnum.fromString(map['settlement_kind'] as String)
           : null,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
       updatedAt: map['updated_at'] != null
-          ? DateTime.parse(map['updated_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['updated_at'],
+              fieldName: 'updated_at',
+            )
           : null,
       items: items,
       // Joined display fields from nested select
@@ -155,18 +165,18 @@ class TransactionModel {
       'destination_wallet_id': destinationWalletId,
       'type': type.toDbValue(),
       'total_amount': totalAmount,
-      'date': date.toIso8601String(),
+      'date': SakuDateUtils.formatDate(date),
       'merchant_name': merchantName,
       'note': note,
       'attachment_url': attachmentUrl,
       'with_person': withPerson,
       'status': status?.toDbValue(),
-      'due_date': dueDate?.toIso8601String(),
+      'due_date': SakuDateUtils.formatOptionalDate(dueDate),
       'is_multi_item': isMultiItem,
       'reference_transaction_id': referenceTransactionId,
       'settlement_kind': settlementKind?.toDbValue(),
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
+      'updated_at': SakuDateUtils.formatOptionalTimestamp(updatedAt),
       'transaction_items': items.map((item) => item.toFullMap()).toList(),
       'contact_id': contactId,
     };

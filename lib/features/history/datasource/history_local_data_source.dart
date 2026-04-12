@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
@@ -66,8 +67,9 @@ class HistoryLocalDataSource {
         'walletId': ?walletId,
         if (typeFilter != null) 'typeFilter': typeFilter.name,
         'subPeriodIndex': ?subPeriodIndex,
-        if (customStart != null) 'customStart': customStart.toIso8601String(),
-        if (customEnd != null) 'customEnd': customEnd.toIso8601String(),
+        if (customStart != null)
+          'customStart': SakuDateUtils.formatDate(customStart),
+        if (customEnd != null) 'customEnd': SakuDateUtils.formatDate(customEnd),
       };
       HiveService.set<String>(key: _filterPrefsKey, data: jsonEncode(map));
       AppLogger.call('$_tag saveFilterPrefs: period=${period.name}');

@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
 /// Model untuk satu transaksi hutang/piutang beserta info pelunasannya.
 ///
@@ -43,7 +44,7 @@ class DebtLoanTransactionModel {
       walletName: map['wallet_name'] as String?,
       type: map['type'] as String,
       totalAmount: _toDouble(map['total_amount']),
-      date: DateTime.parse(map['date'] as String),
+      date: SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date'),
       note: map['note'] as String?,
       withPerson: map['with_person'] as String?,
       contactId: map['contact_id'] as String?,
@@ -51,12 +52,18 @@ class DebtLoanTransactionModel {
           ? DebtStatusEnum.fromString(map['status'] as String)
           : null,
       dueDate: map['due_date'] != null
-          ? DateTime.parse(map['due_date'] as String)
+          ? SakuDateUtils.parseRequiredDate(
+              map['due_date'],
+              fieldName: 'due_date',
+            )
           : null,
       totalSettled: _toDouble(map['total_settled']),
       remaining: _toDouble(map['remaining']),
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
     );
   }

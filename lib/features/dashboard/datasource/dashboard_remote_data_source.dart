@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,8 +75,8 @@ class DashboardRemoteDataSource {
             .from('transactions')
             .select('type, total_amount, settlement_kind')
             .eq('user_id', _userId)
-            .gte('date', startDate.toIso8601String())
-            .lte('date', endDate.toIso8601String())
+            .gte('date', SakuDateUtils.formatDate(startDate))
+            .lte('date', SakuDateUtils.formatDate(endDate))
             .inFilter('type', ['income', 'expense'])
             .isFilter('settlement_kind', null);
 
@@ -112,8 +113,8 @@ class DashboardRemoteDataSource {
             .from('transactions')
             .select('type, total_amount, date, settlement_kind')
             .eq('user_id', _userId)
-            .gte('date', startDate.toIso8601String())
-            .lte('date', endDate.toIso8601String())
+            .gte('date', SakuDateUtils.formatDate(startDate))
+            .lte('date', SakuDateUtils.formatDate(endDate))
             .inFilter('type', ['income', 'expense'])
             .isFilter('settlement_kind', null)
             .order('date', ascending: true);
@@ -122,7 +123,9 @@ class DashboardRemoteDataSource {
         final Map<String, Map<String, double>> dailyMap = {};
 
         for (final row in response) {
-          final dateStr = (row['date'] as String).substring(0, 10);
+          final dateStr = SakuDateUtils.formatDate(
+            SakuDateUtils.parseRequiredDate(row['date'], fieldName: 'date'),
+          );
           dailyMap.putIfAbsent(dateStr, () => {'income': 0.0, 'expense': 0.0});
           final amount = _toDouble(row['total_amount']);
           if (row['type'] == 'income') {

@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_local_data_source.dart';
 import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/history/repositories/history_repository.dart';
@@ -107,7 +108,7 @@ class HistoryState {
   }
 
   /// Hitung date range berdasarkan period + subPeriodIndex saat ini.
-  /// Semua batas menggunakan UTC aman untuk query Supabase.
+  /// Semua batas memakai local calendar date untuk query field `date`.
   (DateTime start, DateTime end) get dateRange {
     // Custom mode — gunakan custom date range.
     if (period == HistoryPeriod.custom &&
@@ -120,15 +121,8 @@ class HistoryState {
         return tabs[idx].dateRange;
       }
       return (
-        DateTime.utc(customStart!.year, customStart!.month, customStart!.day),
-        DateTime.utc(
-          customEnd!.year,
-          customEnd!.month,
-          customEnd!.day,
-          23,
-          59,
-          59,
-        ),
+        DateTime(customStart!.year, customStart!.month, customStart!.day),
+        DateTime(customEnd!.year, customEnd!.month, customEnd!.day, 23, 59, 59),
       );
     }
 
@@ -143,8 +137,8 @@ class HistoryState {
     final now = DateTime.now();
     return switch (period) {
       HistoryPeriod.daily => (
-        DateTime.utc(now.year, now.month, now.day),
-        DateTime.utc(now.year, now.month, now.day, 23, 59, 59),
+        DateTime(now.year, now.month, now.day),
+        DateTime(now.year, now.month, now.day, 23, 59, 59),
       ),
       HistoryPeriod.weekly => () {
         // Monday-based week
@@ -152,28 +146,28 @@ class HistoryState {
         final monday = now.subtract(Duration(days: weekday - 1));
         final sunday = monday.add(const Duration(days: 6));
         return (
-          DateTime.utc(monday.year, monday.month, monday.day),
-          DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+          DateTime(monday.year, monday.month, monday.day),
+          DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59),
         );
       }(),
       HistoryPeriod.monthly => (
-        DateTime.utc(now.year, now.month, 1),
-        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+        DateTime(now.year, now.month, 1),
+        DateTime(now.year, now.month + 1, 0, 23, 59, 59),
       ),
       HistoryPeriod.quarterly => () {
         final qStart = ((now.month - 1) ~/ 3) * 3 + 1;
         return (
-          DateTime.utc(now.year, qStart, 1),
-          DateTime.utc(now.year, qStart + 3, 0, 23, 59, 59),
+          DateTime(now.year, qStart, 1),
+          DateTime(now.year, qStart + 3, 0, 23, 59, 59),
         );
       }(),
       HistoryPeriod.yearly => (
-        DateTime.utc(now.year, 1, 1),
-        DateTime.utc(now.year, 12, 31, 23, 59, 59),
+        DateTime(now.year, 1, 1),
+        DateTime(now.year, 12, 31, 23, 59, 59),
       ),
       HistoryPeriod.custom => (
-        DateTime.utc(now.year, now.month, 1),
-        DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59),
+        DateTime(now.year, now.month, 1),
+        DateTime(now.year, now.month + 1, 0, 23, 59, 59),
       ),
     };
   }
@@ -206,8 +200,8 @@ class HistoryState {
               ? (appContext?.l10n.today ?? 'Hari Ini')
               : '${cursor.day} ${_shortMonth(cursor.month)}',
           dateRange: (
-            DateTime.utc(cursor.year, cursor.month, cursor.day),
-            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+            DateTime(cursor.year, cursor.month, cursor.day),
+            DateTime(cursor.year, cursor.month, cursor.day, 23, 59, 59),
           ),
         ),
       );
@@ -239,8 +233,8 @@ class HistoryState {
               ? (appContext?.l10n.thisWeek ?? 'Minggu Ini')
               : '${monday.day}-${sunday.day} ${_shortMonth(sunday.month)}',
           dateRange: (
-            DateTime.utc(monday.year, monday.month, monday.day),
-            DateTime.utc(sunday.year, sunday.month, sunday.day, 23, 59, 59),
+            DateTime(monday.year, monday.month, monday.day),
+            DateTime(sunday.year, sunday.month, sunday.day, 23, 59, 59),
           ),
         ),
       );
@@ -265,8 +259,8 @@ class HistoryState {
               ? (appContext?.l10n.thisMonth ?? 'Bulan Ini')
               : '${_fullMonth(cursor.month)} ${cursor.year}',
           dateRange: (
-            DateTime.utc(cursor.year, cursor.month, 1),
-            DateTime.utc(cursor.year, cursor.month + 1, 0, 23, 59, 59),
+            DateTime(cursor.year, cursor.month, 1),
+            DateTime(cursor.year, cursor.month + 1, 0, 23, 59, 59),
           ),
         ),
       );
@@ -293,8 +287,8 @@ class HistoryState {
               ? (appContext?.l10n.thisQuarter ?? 'Kuartal Ini')
               : 'Q$qNum $year',
           dateRange: (
-            DateTime.utc(year, qStart, 1),
-            DateTime.utc(year, qStart + 3, 0, 23, 59, 59),
+            DateTime(year, qStart, 1),
+            DateTime(year, qStart + 3, 0, 23, 59, 59),
           ),
         ),
       );
@@ -315,10 +309,7 @@ class HistoryState {
           label: y == now.year
               ? (appContext?.l10n.thisYear ?? 'Tahun Ini')
               : '$y',
-          dateRange: (
-            DateTime.utc(y, 1, 1),
-            DateTime.utc(y, 12, 31, 23, 59, 59),
-          ),
+          dateRange: (DateTime(y, 1, 1), DateTime(y, 12, 31, 23, 59, 59)),
         ),
       );
     }
@@ -349,8 +340,8 @@ class HistoryState {
               ? (appContext?.l10n.today ?? 'Hari Ini')
               : '${cursor.day} ${_shortMonth(cursor.month)}',
           dateRange: (
-            DateTime.utc(cursor.year, cursor.month, cursor.day),
-            DateTime.utc(cursor.year, cursor.month, cursor.day, 23, 59, 59),
+            DateTime(cursor.year, cursor.month, cursor.day),
+            DateTime(cursor.year, cursor.month, cursor.day, 23, 59, 59),
           ),
         ),
       );
@@ -505,9 +496,12 @@ class HistoryController extends StateNotifier<HistoryState> {
       DateTime? customStart, customEnd;
       final customStartRaw = prefs['customStart'] as String?;
       final customEndRaw = prefs['customEnd'] as String?;
-      if (customStartRaw != null)
-        customStart = DateTime.tryParse(customStartRaw);
-      if (customEndRaw != null) customEnd = DateTime.tryParse(customEndRaw);
+      if (customStartRaw != null) {
+        customStart = SakuDateUtils.parseOptionalDate(customStartRaw);
+      }
+      if (customEndRaw != null) {
+        customEnd = SakuDateUtils.parseOptionalDate(customEndRaw);
+      }
 
       // ── subPeriodIndex: validasi agar tidak out of bounds ──
       int? subPeriodIndex = prefs['subPeriodIndex'] as int?;

@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/voice/models/ai_quota_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,7 +37,11 @@ class VoiceRemoteDataSource {
 
         // Pastikan session masih valid sebelum invoke Edge Function
 
-        final body = <String, dynamic>{'mode': mode, 'text': text};
+        final body = <String, dynamic>{
+          'mode': mode,
+          'text': text,
+          'localDate': SakuDateUtils.formatDate(DateTime.now()),
+        };
         if (categories.isNotEmpty) {
           body['categories'] = categories;
         }
@@ -69,7 +74,10 @@ class VoiceRemoteDataSource {
       function: () async {
         AppLogger.call('$_tag getAllAiQuotas', colorLog: ColorLog.blue);
 
-        final response = await _client.rpc('get_all_ai_quotas');
+        final response = await _client.rpc(
+          'get_all_ai_quotas',
+          params: {'p_usage_date': SakuDateUtils.formatDate(DateTime.now())},
+        );
 
         if (response == null) {
           throw Exception('get_all_ai_quotas returned null');
@@ -82,4 +90,3 @@ class VoiceRemoteDataSource {
     );
   }
 }
-

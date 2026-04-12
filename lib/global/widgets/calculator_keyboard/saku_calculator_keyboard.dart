@@ -68,7 +68,7 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 12.h),
+              padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
               child: Row(
                 children: [
                   // Kolom kiri (3 kolom angka & operator)

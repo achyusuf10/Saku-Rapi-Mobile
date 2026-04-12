@@ -159,7 +159,7 @@ void main() {
       expect(asset.priceSource, 'antaremas');
       expect(asset.currentPrice, 1500000);
       expect(asset.isActive, true);
-      expect(asset.createdAt, DateTime.utc(2025));
+      expect(asset.createdAt?.toUtc(), DateTime.utc(2025));
       expect(asset.totalBuyUnits, 10.5);
       expect(asset.totalSellUnits, 2.0);
       expect(asset.totalUnits, 8.5);

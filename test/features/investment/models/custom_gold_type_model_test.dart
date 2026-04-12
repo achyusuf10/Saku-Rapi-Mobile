@@ -24,8 +24,8 @@ void main() {
       expect(model.id, 'gt-abc');
       expect(model.userId, 'user-1');
       expect(model.name, 'Emas UBS');
-      expect(model.createdAt, DateTime.utc(2025));
-      expect(model.updatedAt, DateTime.utc(2025, 1, 2));
+      expect(model.createdAt?.toUtc(), DateTime.utc(2025));
+      expect(model.updatedAt?.toUtc(), DateTime.utc(2025, 1, 2));
     });
 
     test('handles missing timestamps', () {

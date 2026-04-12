@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+
 /// Model data kategori dari tabel `public.categories`.
 ///
 /// Mendukung hierarki parent-child max 2 level.
@@ -79,10 +81,16 @@ class CategoryModel {
       isHidden: map['is_hidden'] as bool? ?? false,
       sortOrder: map['sort_order'] as int? ?? 0,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
       updatedAt: map['updated_at'] != null
-          ? DateTime.parse(map['updated_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['updated_at'],
+              fieldName: 'updated_at',
+            )
           : null,
     );
   }
@@ -110,8 +118,8 @@ class CategoryModel {
     return {
       'id': id,
       ...toMap(),
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
+      'updated_at': SakuDateUtils.formatOptionalTimestamp(updatedAt),
     };
   }
 

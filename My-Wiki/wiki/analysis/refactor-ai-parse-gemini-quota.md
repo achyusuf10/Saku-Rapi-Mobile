@@ -18,8 +18,8 @@ Refactor besar pada sistem AI Parse (Input Text, Input Suara, Input OCR) dengan 
 
 | Sebelum | Sesudah |
 |---------|---------|
-| Text: Gemini 2.5 Flash → Groq fallback → OpenRouter fallback | Text: Gemini 1.5 Flash saja |
-| Voice: Same as text | Voice: Gemini 1.5 Flash saja |
+| Text: Gemini 2.5 Flash → Groq fallback → OpenRouter fallback | Text: Gemini 2.5 Flash Lite saja |
+| Voice: Same as text | Voice: Gemini 2.5 Flash Lite saja |
 | OCR: Gemini 2.5 Flash Lite → Groq Vision → OpenRouter Vision | OCR: Gemini 2.5 Flash saja |
 
 **Alasan:** Groq dan OpenRouter sering timeout, rate limit, dan kualitas parsing tidak konsisten. Gemini lebih stabil dan gratis untuk volume rendah.
@@ -45,7 +45,7 @@ Refactor besar pada sistem AI Parse (Input Text, Input Suara, Input OCR) dengan 
 | Free | 5/hari | 5/hari | 3/hari |
 | Premium | 20/hari | 20/hari | 10/hari |
 
-**`ai_usage_logs`** — Log setiap penggunaan AI yang berhasil (user_id, mode, provider, timestamp).
+**`ai_usage_logs`** — Log setiap penggunaan AI yang berhasil (`user_id`, `mode`, `provider`, `created_at`, `usage_date`).
 
 #### Kolom Baru di `users`
 
@@ -54,11 +54,11 @@ Refactor besar pada sistem AI Parse (Input Text, Input Suara, Input OCR) dengan 
 
 #### RPC Functions
 
-1. **`check_ai_quota(p_mode)`** — Cek apakah user masih punya kuota. Otomatis downgrade jika tier expired.
-2. **`log_ai_usage(p_mode, p_provider)`** — Catat penggunaan setelah AI parse berhasil.
-3. **`get_all_ai_quotas()`** — Ambil semua kuota user (text/voice/ocr) untuk ditampilkan di UI.
+1. **`check_ai_quota(p_mode, p_usage_date)`** — Cek apakah user masih punya kuota. Otomatis downgrade jika tier expired.
+2. **`log_ai_usage(p_mode, p_provider, p_usage_date)`** — Catat penggunaan setelah AI parse berhasil.
+3. **`get_all_ai_quotas(p_usage_date)`** — Ambil semua kuota user (text/voice/ocr) untuk ditampilkan di UI.
 
-Semua RPC menggunakan `SECURITY DEFINER` dan timezone `Asia/Jakarta` untuk batas hari.
+Semua RPC menggunakan `SECURITY DEFINER`; batas hari dihitung dari `usage_date` yang dikirim client (`localDate`), bukan lagi hardcoded `Asia/Jakarta`.
 
 #### Auto-Downgrade
 

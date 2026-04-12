@@ -32,7 +32,7 @@ void main() {
       expect(model.userId, 'user-1');
       expect(model.name, 'Reksadana');
       expect(model.unitLabel, 'Unit');
-      expect(model.createdAt, DateTime.utc(2025));
+      expect(model.createdAt?.toUtc(), DateTime.utc(2025));
     });
 
     test('defaults unit_label to Unit when missing', () {

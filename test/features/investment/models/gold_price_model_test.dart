@@ -17,7 +17,7 @@ void main() {
       expect(model.source, 'antaremas');
       expect(model.buyPrice, 1500000.0);
       expect(model.sellPrice, 1480000.0);
-      expect(model.fetchedAt, DateTime.utc(2025, 7, 1, 12));
+      expect(model.fetchedAt.toUtc(), DateTime.utc(2025, 7, 1, 12));
     });
 
     test('handles integer prices', () {
@@ -126,7 +126,7 @@ void main() {
       expect(restored.source, original.source);
       expect(restored.buyPrice, original.buyPrice);
       expect(restored.sellPrice, original.sellPrice);
-      expect(restored.fetchedAt, original.fetchedAt);
+      expect(restored.fetchedAt.toUtc(), original.fetchedAt.toUtc());
     });
   });
 }

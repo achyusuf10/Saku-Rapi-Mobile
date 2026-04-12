@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
 /// Model untuk satu transaksi pelunasan/penerimaan.
 ///
@@ -37,7 +38,7 @@ class SettlementHistoryModel {
       walletName: map['wallet_name'] as String?,
       type: map['type'] as String,
       totalAmount: _toDouble(map['total_amount']),
-      date: DateTime.parse(map['date'] as String),
+      date: SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date'),
       note: map['note'] as String?,
       withPerson: map['with_person'] as String?,
       settlementKind: DebtLoanKindEnum.fromString(
@@ -45,7 +46,10 @@ class SettlementHistoryModel {
       ),
       referenceTransactionId: map['reference_transaction_id'] as String,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
     );
   }

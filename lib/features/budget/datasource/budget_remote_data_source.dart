@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,6 +24,9 @@ class BudgetRemoteDataSource {
   static const _selectWithJoin = '*, categories(*), wallets(*)';
 
   String get _userId => _client.auth.currentUser!.id;
+  Future<void> _syncRecurringBudgets(String today) async {
+    await _client.rpc('auto_renew_budgets', params: {'p_today': today});
+  }
 
   // ───────────────── READ ─────────────────
 
@@ -31,9 +35,8 @@ class BudgetRemoteDataSource {
     return SupabaseHandler.call<List<BudgetModel>>(
       function: () async {
         AppLogger.call('$_tag getActiveBudgets');
-        final now = DateTime.now();
-        final today =
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+        final today = SakuDateUtils.formatDate(DateTime.now());
+        await _syncRecurringBudgets(today);
 
         final response = await _client
             .from(_table)
@@ -53,6 +56,8 @@ class BudgetRemoteDataSource {
     return SupabaseHandler.call<List<BudgetModel>>(
       function: () async {
         AppLogger.call('$_tag getAllBudgets');
+        final today = SakuDateUtils.formatDate(DateTime.now());
+        await _syncRecurringBudgets(today);
         final response = await _client
             .from(_table)
             .select(_selectWithJoin)
@@ -69,9 +74,8 @@ class BudgetRemoteDataSource {
     return SupabaseHandler.call<List<BudgetModel>>(
       function: () async {
         AppLogger.call('$_tag getUpcomingBudgets');
-        final now = DateTime.now();
-        final today =
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+        final today = SakuDateUtils.formatDate(DateTime.now());
+        await _syncRecurringBudgets(today);
 
         final response = await _client
             .from(_table)
@@ -95,9 +99,8 @@ class BudgetRemoteDataSource {
         AppLogger.call(
           '$_tag getCompletedBudgets: limit=$limit offset=$offset',
         );
-        final now = DateTime.now();
-        final today =
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+        final today = SakuDateUtils.formatDate(DateTime.now());
+        await _syncRecurringBudgets(today);
 
         final response = await _client
             .from(_table)
@@ -205,11 +208,8 @@ class BudgetRemoteDataSource {
             'p_category_id': newBudget.categoryId,
             'p_wallet_id': newBudget.walletId,
             'p_amount': newBudget.amount,
-            'p_start_date': newBudget.startDate.toIso8601String().substring(
-              0,
-              10,
-            ),
-            'p_end_date': newBudget.endDate.toIso8601String().substring(0, 10),
+            'p_start_date': SakuDateUtils.formatDate(newBudget.startDate),
+            'p_end_date': SakuDateUtils.formatDate(newBudget.endDate),
             'p_is_recurring': newBudget.isRecurring,
             'p_period_type': newBudget.periodType.value,
             'p_carry_forward': newBudget.carryForward,
@@ -260,10 +260,8 @@ class BudgetRemoteDataSource {
     return SupabaseHandler.call<bool>(
       function: () async {
         AppLogger.call('$_tag hasDuplicateBudget: cat=$categoryId');
-        final startStr =
-            '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
-        final endStr =
-            '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+        final startStr = SakuDateUtils.formatDate(startDate);
+        final endStr = SakuDateUtils.formatDate(endDate);
 
         var query = _client
             .from(_table)
@@ -301,10 +299,8 @@ class BudgetRemoteDataSource {
     return SupabaseHandler.call<String?>(
       function: () async {
         AppLogger.call('$_tag findDuplicateBudgetId: cat=$categoryId');
-        final startStr =
-            '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
-        final endStr =
-            '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+        final startStr = SakuDateUtils.formatDate(startDate);
+        final endStr = SakuDateUtils.formatDate(endDate);
 
         var query = _client
             .from(_table)
@@ -348,8 +344,8 @@ class BudgetRemoteDataSource {
           '$startDate - $endDate, wallet=$walletId',
         );
 
-        final startStr = startDate.toIso8601String().substring(0, 10);
-        final endStr = endDate.toIso8601String().substring(0, 10);
+        final startStr = SakuDateUtils.formatDate(startDate);
+        final endStr = SakuDateUtils.formatDate(endDate);
 
         var query = _client
             .from('transactions')

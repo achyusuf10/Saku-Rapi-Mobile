@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk panggilan Edge Function OCR.
@@ -39,6 +40,7 @@ class OcrRemoteDataSource {
           'mode': 'ocr',
           'image': base64Image,
           'mimeType': 'image/jpeg',
+          'localDate': SakuDateUtils.formatDate(DateTime.now()),
         };
         if (categories.isNotEmpty) {
           body['categories'] = categories;

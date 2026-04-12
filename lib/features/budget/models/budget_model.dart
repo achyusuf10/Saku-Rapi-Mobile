@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 
@@ -43,7 +44,6 @@ class BudgetModel {
     this.category,
     this.wallet,
   });
-
 
   /// UUID primary key.
   final String id;
@@ -101,6 +101,15 @@ class BudgetModel {
   /// Apakah budget sudah terpakai >= 100%.
   bool get isOverBudget => usedAmount >= amount;
 
+  String get periodKey {
+    if (periodType == BudgetPeriodType.custom) {
+      return 'custom_'
+          '${SakuDateUtils.formatDate(startDate)}_'
+          '${SakuDateUtils.formatDate(endDate)}';
+    }
+    return periodType.value;
+  }
+
   /// Apakah budget sudah terpakai >= 50%.
   bool get isHalfUsed => usageRatio >= 0.5;
 
@@ -156,18 +165,30 @@ class BudgetModel {
       walletId: map['wallet_id'] as String?,
       amount: _toDouble(map['amount']),
       usedAmount: _toDouble(map['used_amount']),
-      startDate: DateTime.parse(map['start_date'] as String),
-      endDate: DateTime.parse(map['end_date'] as String),
+      startDate: SakuDateUtils.parseRequiredDate(
+        map['start_date'],
+        fieldName: 'start_date',
+      ),
+      endDate: SakuDateUtils.parseRequiredDate(
+        map['end_date'],
+        fieldName: 'end_date',
+      ),
       periodType: BudgetPeriodType.fromString(
         (map['period_type'] as String?) ?? 'monthly',
       ),
       isRecurring: (map['is_recurring'] as bool?) ?? false,
       carryForward: (map['carry_forward'] as bool?) ?? false,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
       updatedAt: map['updated_at'] != null
-          ? DateTime.parse(map['updated_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['updated_at'],
+              fieldName: 'updated_at',
+            )
           : null,
       category: map['categories'] != null
           ? CategoryModel.fromMap(map['categories'] as Map<String, dynamic>)
@@ -185,8 +206,8 @@ class BudgetModel {
       'category_id': categoryId,
       'wallet_id': walletId,
       'amount': amount,
-      'start_date': _formatDate(startDate),
-      'end_date': _formatDate(endDate),
+      'start_date': SakuDateUtils.formatDate(startDate),
+      'end_date': SakuDateUtils.formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
       'carry_forward': carryForward,
@@ -199,8 +220,8 @@ class BudgetModel {
       'category_id': categoryId,
       'wallet_id': walletId,
       'amount': amount,
-      'start_date': _formatDate(startDate),
-      'end_date': _formatDate(endDate),
+      'start_date': SakuDateUtils.formatDate(startDate),
+      'end_date': SakuDateUtils.formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
       'carry_forward': carryForward,
@@ -216,13 +237,13 @@ class BudgetModel {
       'wallet_id': walletId,
       'amount': amount,
       'used_amount': usedAmount,
-      'start_date': _formatDate(startDate),
-      'end_date': _formatDate(endDate),
+      'start_date': SakuDateUtils.formatDate(startDate),
+      'end_date': SakuDateUtils.formatDate(endDate),
       'period_type': periodType.value,
       'is_recurring': isRecurring,
       'carry_forward': carryForward,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
+      'updated_at': SakuDateUtils.formatOptionalTimestamp(updatedAt),
       if (category != null) 'categories': category!.toFullMap(),
       if (wallet != null) 'wallets': wallet!.toFullMap(),
     };
@@ -272,9 +293,5 @@ class BudgetModel {
     if (value is int) return value.toDouble();
     if (value is String) return double.tryParse(value) ?? 0;
     return 0;
-  }
-
-  static String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

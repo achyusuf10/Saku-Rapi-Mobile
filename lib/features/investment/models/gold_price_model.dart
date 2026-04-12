@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+
 /// Model data untuk harga emas.
 ///
 /// Merepresentasikan satu record dari tabel `public.gold_prices`.
@@ -32,7 +34,10 @@ class GoldPriceModel {
       buyPrice: _toDouble(map['buy_price']),
       sellPrice: _toDouble(map['sell_price']),
       fetchedAt: map['fetched_at'] != null
-          ? DateTime.parse(map['fetched_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['fetched_at'],
+              fieldName: 'fetched_at',
+            )
           : DateTime.now(),
     );
   }
@@ -43,7 +48,7 @@ class GoldPriceModel {
       'source': source,
       'buy_price': buyPrice,
       'sell_price': sellPrice,
-      'fetched_at': fetchedAt.toIso8601String(),
+      'fetched_at': SakuDateUtils.formatTimestamp(fetchedAt),
     };
   }
 

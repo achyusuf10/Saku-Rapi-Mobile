@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+
 /// Model hasil parsing OCR struk dari AI (Edge Function) atau local fallback.
 ///
 /// Mendukung semua jenis transaksi: expense (multi-item), income, transfer,
@@ -112,7 +114,7 @@ class OcrParseResultModel {
     DateTime? parsedDate;
     final rawDate = data['date'] as String?;
     if (rawDate != null && rawDate.isNotEmpty) {
-      parsedDate = DateTime.tryParse(rawDate);
+      parsedDate = SakuDateUtils.parseOptionalDate(rawDate);
     }
 
     // Parse items — hanya untuk expense
@@ -167,7 +169,7 @@ class OcrParseResultModel {
       'isTransaction': isTransaction,
       'type': type,
       'merchantName': merchantName,
-      'date': date?.toIso8601String(),
+      'date': SakuDateUtils.formatOptionalDate(date),
       'grandTotal': grandTotal,
       'items': items.map((i) => i.toMap()).toList(),
       'categoryId': categoryId,

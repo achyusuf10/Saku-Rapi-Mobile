@@ -36,9 +36,7 @@ final budgetAvailablePeriodTypesProvider = Provider<List<String>>((ref) {
   final keys = <String>{};
   for (final b in budgets) {
     if (b.periodType == BudgetPeriodType.custom) {
-      keys.add(
-        'custom_${b.startDate.toIso8601String().substring(0, 10)}_${b.endDate.toIso8601String().substring(0, 10)}',
-      );
+      keys.add(b.periodKey);
     } else {
       keys.add(b.periodType.value);
     }
@@ -71,8 +69,7 @@ final budgetByPeriodProvider = Provider<List<BudgetModel>>((ref) {
 
   return budgets.where((b) {
     if (b.periodType == BudgetPeriodType.custom) {
-      return 'custom_${b.startDate.toIso8601String().substring(0, 10)}_${b.endDate.toIso8601String().substring(0, 10)}' ==
-          selectedKey;
+      return b.periodKey == selectedKey;
     }
     return b.periodType.value == selectedKey;
   }).toList();

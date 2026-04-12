@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:intl/intl.dart';
 
 extension StringExtension on String {
@@ -154,10 +155,8 @@ extension StringExtension on String {
 
   String extToConvertToLocal() {
     try {
-      final tempString = '$this.000+0700';
-      return DateTime.parse(
-        tempString,
-      ).toLocal().extToFormattedString(outputDateFormat: 'dd-MM-yyyy - HH:mm');
+      final local = SakuDateUtils.parseFlexibleLocalDateTime(this);
+      return local.extToFormattedString(outputDateFormat: 'dd-MM-yyyy - HH:mm');
     } catch (e) {
       return this;
     }
@@ -209,7 +208,7 @@ extension StringExtension on String {
   /// The string should be in a format that can be parsed by DateTime.parse().
   /// Returns the converted DateTime object in the local time zone.
   DateTime extToDateLocal() {
-    return DateTime.parse(this).toLocal();
+    return SakuDateUtils.parseFlexibleLocalDateTime(this);
   }
 
   /// Converts a string representation of a date to a UTC [DateTime] object.
@@ -217,7 +216,7 @@ extension StringExtension on String {
   /// The string should be in a format that can be parsed by [DateTime.parse].
   /// Returns the converted [DateTime] object in UTC.
   DateTime extToDateUtc() {
-    return DateTime.parse(this).toUtc();
+    return SakuDateUtils.parseFlexibleLocalDateTime(this).toUtc();
   }
 
   /// Returns the file name without the file extension.

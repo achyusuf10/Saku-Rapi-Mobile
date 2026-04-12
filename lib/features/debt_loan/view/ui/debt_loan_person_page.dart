@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_person_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/settlement_history_argument.dart';
@@ -147,7 +148,10 @@ class _DebtLoanPersonPageState extends ConsumerState<DebtLoanPersonPage> {
 
     final widgets = <Widget>[];
     for (final entry in grouped.entries) {
-      final date = DateTime.parse(entry.key);
+      final date = SakuDateUtils.parseRequiredDate(
+        entry.key,
+        fieldName: 'group_key',
+      );
       widgets.add(
         _DateHeader(date: date, type: widget.type, transactions: entry.value),
       );

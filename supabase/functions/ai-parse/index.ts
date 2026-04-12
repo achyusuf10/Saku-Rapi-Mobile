@@ -129,8 +129,8 @@ function reverseMapResponse(
 // System prompts (shared rules + few-shot)
 // ─────────────────────────────────────────────────────
 
-function buildTextSystemPrompt(): string {
-  const today = new Date().toISOString().split('T')[0];
+function buildTextSystemPrompt(today: string): string {
+  const yesterday = shiftDateString(today, -1);
 
   return `You are a financial transaction parser for an Indonesian personal finance app. Parse user input text (Indonesian/English) into structured JSON.
 
@@ -168,10 +168,10 @@ Input: "Beli Degan 10K"
 Output: {"isTransaction":true,"amount":10000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli Degan","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":null}
 
 Input: "Beli nasi goreng di warteg kemarin 15rb"
-Output: {"isTransaction":true,"amount":15000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli nasi goreng di warteg","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
+Output: {"isTransaction":true,"amount":15000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli nasi goreng di warteg","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${yesterday}"}
 
 Input: "gaji masuk 5.5jt kemarin di BCA"
-Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","debtLoanKind":null,"suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
+Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","debtLoanKind":null,"suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${yesterday}"}
 
 Input: "hutang ke Budi 200rb"
 Output: {"isTransaction":true,"amount":200000,"categoryId":null,"categoryKeyword":"hutang","note":null,"type":"debt","debtLoanKind":"debt","suggestedWallet":null,"destinationWallet":null,"withPerson":"Budi","merchantName":null,"date":null}
@@ -196,8 +196,7 @@ function buildTextUserPrompt(text: string, mapping: IdMapping): string {
   return `${text}${catSection}`;
 }
 
-function buildOcrSystemPrompt(): string {
-  const today = new Date().toISOString().split('T')[0];
+function buildOcrSystemPrompt(today: string): string {
 
   return `You are a financial document parser for an Indonesian personal finance app. Analyze receipt/invoice/document images and extract structured JSON.
 
@@ -251,6 +250,26 @@ function sanitizeJson(raw: string): string {
   cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, '');
   cleaned = cleaned.replace(/\n?```\s*$/i, '');
   return cleaned.trim();
+}
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function getUtcDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function resolvePromptDate(localDate: unknown): string {
+  if (typeof localDate === 'string' && DATE_ONLY_PATTERN.test(localDate)) {
+    return localDate;
+  }
+  return getUtcDateString();
+}
+
+function shiftDateString(dateString: string, days: number): string {
+  const [year, month, day] = dateString.split('-').map((value) => Number(value));
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().split('T')[0];
 }
 
 function encodeBase64Url(input: Uint8Array | string): string {
@@ -587,9 +606,12 @@ Deno.serve(async (req) => {
       );
     }
 
+    const localDate = resolvePromptDate(body.localDate);
+
     // ── Quota check (before AI call) ──
     const { data: quotaData, error: quotaError } = await supabase.rpc('check_ai_quota', {
       p_mode: mode,
+      p_usage_date: localDate,
     });
 
     if (quotaError) {
@@ -635,7 +657,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const systemPrompt = buildTextSystemPrompt();
+      const systemPrompt = buildTextSystemPrompt(localDate);
       const userPrompt = buildTextUserPrompt(text, mapping);
 
       try {
@@ -660,7 +682,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const systemPrompt = buildOcrSystemPrompt();
+      const systemPrompt = buildOcrSystemPrompt(localDate);
       const userPrompt = buildOcrUserPrompt(mapping);
 
       try {
@@ -679,6 +701,7 @@ Deno.serve(async (req) => {
     const { data: usageData, error: usageError } = await supabase.rpc('log_ai_usage', {
       p_mode: mode,
       p_provider: result.provider,
+      p_usage_date: localDate,
     });
 
     if (usageError) {

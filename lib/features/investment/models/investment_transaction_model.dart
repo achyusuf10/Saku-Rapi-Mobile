@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+
 /// Model data untuk transaksi investasi (buy/sell).
 ///
 /// Merepresentasikan satu record dari tabel `public.investment_transactions`.
@@ -78,11 +80,14 @@ class InvestmentTransactionModel {
       deductWallet: (map['deduct_wallet'] as bool?) ?? false,
       linkedWalletTransactionId: map['linked_wallet_transaction_id'] as String?,
       date: map['date'] != null
-          ? DateTime.parse(map['date'] as String)
+          ? SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date')
           : DateTime.now(),
       note: map['note'] as String?,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
     );
   }
@@ -99,9 +104,9 @@ class InvestmentTransactionModel {
       'wallet_id': walletId,
       'deduct_wallet': deductWallet,
       'linked_wallet_transaction_id': linkedWalletTransactionId,
-      'date': date.toIso8601String(),
+      'date': SakuDateUtils.formatDate(date),
       'note': note,
-      'created_at': createdAt?.toIso8601String(),
+      'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
     };
   }
 

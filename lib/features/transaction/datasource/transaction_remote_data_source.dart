@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -55,8 +56,8 @@ class TransactionRemoteDataSource {
               )
             ''')
             .eq('user_id', _userId)
-            .gte('date', startDate.toIso8601String())
-            .lte('date', endDate.toIso8601String());
+            .gte('date', SakuDateUtils.formatDate(startDate))
+            .lte('date', SakuDateUtils.formatDate(endDate));
 
         if (walletId != null) {
           query = query.eq('wallet_id', walletId);
@@ -132,14 +133,14 @@ class TransactionRemoteDataSource {
             'p_destination_wallet_id': destinationWalletId,
             'p_type': type,
             'p_total_amount': totalAmount,
-            'p_date': date.toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(date),
             'p_merchant_name': merchantName,
             'p_note': note,
             'p_attachment_url': attachmentUrl,
             'p_with_person': withPerson,
             'p_contact_id': contactId,
             'p_status': status,
-            'p_due_date': dueDate?.toIso8601String(),
+            'p_due_date': SakuDateUtils.formatOptionalDate(dueDate),
             'p_is_multi_item': isMultiItem,
             'p_reference_transaction_id': referenceTransactionId,
             'p_settlement_kind': settlementKind,
@@ -186,14 +187,14 @@ class TransactionRemoteDataSource {
             'p_destination_wallet_id': destinationWalletId,
             'p_type': type,
             'p_total_amount': totalAmount,
-            'p_date': date.toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(date),
             'p_merchant_name': merchantName,
             'p_note': note,
             'p_attachment_url': attachmentUrl,
             'p_with_person': withPerson,
             'p_contact_id': contactId,
             'p_status': status,
-            'p_due_date': dueDate?.toIso8601String(),
+            'p_due_date': SakuDateUtils.formatOptionalDate(dueDate),
             'p_is_multi_item': isMultiItem,
             'p_reference_transaction_id': referenceTransactionId,
             'p_settlement_kind': settlementKind,
@@ -246,7 +247,9 @@ class TransactionRemoteDataSource {
           params: {
             'p_wallet_id': walletId,
             'p_target_balance': targetBalance,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
           },
         );
@@ -286,7 +289,9 @@ class TransactionRemoteDataSource {
             'p_settlement_kind': settlementKind,
             'p_amount': amount,
             'p_wallet_id': walletId,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
           },
         );

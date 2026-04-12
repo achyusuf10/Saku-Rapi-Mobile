@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/investment/models/bitcoin_price_model.dart';
 import 'package:app_saku_rapi/features/investment/models/custom_asset_category_model.dart';
 import 'package:app_saku_rapi/features/investment/models/custom_gold_type_model.dart';
@@ -80,7 +81,9 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,
@@ -112,7 +115,9 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,
@@ -142,7 +147,9 @@ class InvestmentRemoteDataSource {
             'p_asset_id': assetId,
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
             'p_credit_wallet': creditWallet,
             'p_wallet_id': walletId,
@@ -174,7 +181,9 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': (date ?? DateTime.now()).toIso8601String(),
+            'p_date': SakuDateUtils.formatDate(
+              date ?? SakuDateUtils.todayLocal(),
+            ),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,

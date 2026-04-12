@@ -15,7 +15,7 @@ void main() {
       expect(model.id, 'bp-1');
       expect(model.source, 'indodax');
       expect(model.priceIdr, 1500000000.0);
-      expect(model.fetchedAt, DateTime.utc(2025, 7, 1, 12));
+      expect(model.fetchedAt.toUtc(), DateTime.utc(2025, 7, 1, 12));
     });
 
     test('handles integer price', () {
@@ -112,7 +112,7 @@ void main() {
       expect(restored.id, original.id);
       expect(restored.source, original.source);
       expect(restored.priceIdr, original.priceIdr);
-      expect(restored.fetchedAt, original.fetchedAt);
+      expect(restored.fetchedAt.toUtc(), original.fetchedAt.toUtc());
     });
   });
 }

@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+
 /// Model data user yang di-mirror dari tabel `public.users`.
 ///
 /// Sinkronisasi dari `auth.users` dilakukan otomatis oleh trigger
@@ -39,10 +41,16 @@ class UserModel {
       fullName: map['full_name'] as String?,
       avatarUrl: map['avatar_url'] as String?,
       createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['created_at'],
+              fieldName: 'created_at',
+            )
           : null,
       updatedAt: map['updated_at'] != null
-          ? DateTime.parse(map['updated_at'] as String)
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['updated_at'],
+              fieldName: 'updated_at',
+            )
           : null,
     );
   }
@@ -54,8 +62,8 @@ class UserModel {
       'email': email,
       'full_name': fullName,
       'avatar_url': avatarUrl,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
+      'updated_at': SakuDateUtils.formatOptionalTimestamp(updatedAt),
     };
   }
 

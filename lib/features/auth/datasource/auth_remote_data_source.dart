@@ -76,7 +76,7 @@ class AuthRemoteDataSource {
         }
 
         AppLogger.call(
-          '[Auth] [AuthRemoteDataSource] Google token obtained, signing into Supabase...',
+          '[Auth] [AuthRemoteDataSource] Google token obtained, signing into Supabase... $idToken',
           colorLog: ColorLog.blue,
         );
 

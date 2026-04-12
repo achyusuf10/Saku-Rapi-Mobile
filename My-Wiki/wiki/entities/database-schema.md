@@ -4,7 +4,7 @@ type: entity
 tags: [database, schema, supabase, postgres, rls, trigger, rpc, index]
 sources: [raw/docs/02_DATABASE.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # Database Schema
@@ -24,7 +24,7 @@ updated: 2026-04-10
 3. `transactions` adalah ledger utama.
 4. `transaction_items` wajib ada minimal 1 row untuk setiap transaksi.
 5. `sum(transaction_items.amount)` harus sama dengan `transactions.total_amount`.
-6. Semua tanggal operasional disimpan UTC, lalu dirender dengan timezone Asia/Jakarta.
+6. Timestamp disimpan UTC; field kalender murni disimpan sebagai `date`; UI merender timestamp ke local device user.
 7. MVP single currency: `IDR`.
 
 ---
@@ -106,19 +106,21 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | destination_wallet_id | uuid nullable FK | wallet tujuan untuk transfer |
 | type | text not null | `income`, `expense`, `transfer`, `debt`, `loan`, `adjustment`, `transfer_to_asset` |
 | total_amount | numeric not null | grand total |
-| date | timestamptz not null | UTC |
+| date | date not null | tanggal kalender transaksi |
 | merchant_name | text nullable | |
 | note | text nullable | catatan header |
 | attachment_url | text nullable | |
 | with_person | text nullable | wajib untuk debt/loan |
 | status | text nullable | `unpaid`, `paid`, `partial` (untuk debt/loan origin) |
-| due_date | timestamptz nullable | |
+| due_date | date nullable | tanggal jatuh tempo kalender |
 | is_multi_item | boolean not null default false | |
 | reference_transaction_id | uuid nullable FK self | untuk settlement |
 | settlement_kind | text nullable | `debt_payment`, `loan_collection` |
 | contact_id | uuid nullable FK | referensi ke `contacts.id` |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
+
+**Catatan:** `date` dan `due_date` adalah field kalender murni (`YYYY-MM-DD`). Timestamp audit tetap ada di `created_at` dan `updated_at` sebagai `timestamptz`.
 
 **Constraint:**
 - `total_amount > 0`
@@ -168,13 +170,12 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | start_date | date not null | |
 | end_date | date not null | |
 | is_recurring | boolean not null default false | auto clone |
-| notification_sent_50 | boolean not null default false | **Dihapus di Migration 015** |
-| notification_sent_80 | boolean not null default false | **Dihapus di Migration 015** |
-| notification_sent_100 | boolean not null default false | **Dihapus di Migration 015** |
 | carry_forward | boolean not null default false | rollover sisa positif ke periode baru |
 | period_type | text not null default 'monthly' | `weekly`, `monthly`, `quarterly`, `yearly`, `custom` |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
+
+**Catatan:** Kolom notification flags sudah dihapus di Migration 015. Renewal budget sekarang fokus pada period rollover + carry forward.
 
 **Constraint:**
 - Hanya boleh menunjuk category `type = 'expense'`
@@ -260,7 +261,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | wallet_id | uuid nullable FK → wallets | wallet terkait |
 | deduct_wallet | boolean not null default false | apakah memotong/menambah saldo wallet |
 | linked_wallet_transaction_id | uuid nullable FK → transactions | transaksi wallet terkait |
-| date | timestamptz not null default now() | tanggal transaksi |
+| date | date not null default current_date | tanggal transaksi kalender |
 | note | text nullable | |
 | created_at | timestamptz | default now() |
 
@@ -374,10 +375,11 @@ Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
 | id | uuid PK | default gen_random_uuid() |
 | user_id | uuid FK | references users(id) on delete cascade |
 | mode | text not null | 'text', 'voice', atau 'ocr' |
-| provider | text not null | e.g. 'gemini-2.5-flash-lite', 'gemini-2.5-flash' |
+| provider | text nullable | model/provider yang dipakai saat parse |
 | created_at | timestamptz | default now() |
+| usage_date | date not null | tanggal lokal user saat kuota dihitung |
 
-**Index:** (user_id, mode, created_at) untuk query kuota harian
+**Index:** (user_id, mode, usage_date) untuk query kuota harian; `created_at` tetap dipakai sebagai audit timestamp UTC
 **RLS:** select hanya row milik sendiri (user_id = auth.uid())
 
 Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse]]
@@ -394,7 +396,7 @@ Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Pars
 | `update_wallet_balance()` | after insert/update/delete on `transactions` | update saldo wallet |
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
 | `set_updated_at()` | before update | applied to: wallets, categories, transactions, budgets, contacts, investment_assets, custom_gold_types, custom_asset_categories (9 tabel; `notification_settings` dihapus di Migration 015) |
-| `auto_renew_budgets()` | pg_cron daily | clone recurring budgets; period-aware date calculation; carry_forward support; reset notification flags |
+| `auto_renew_budgets(p_today date default current_date)` | pg_cron daily + on-demand | clone recurring budgets; period-aware date calculation; carry_forward support; bisa disinkronkan pakai tanggal lokal client |
 | `check_max_custom_gold_types()` | before insert on `custom_gold_types` | max 2 jenis emas custom per user |
 | `check_max_custom_asset_categories()` | before insert on `custom_asset_categories` | max 3 kategori custom per user |
 
@@ -451,7 +453,7 @@ Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Pars
 - **`log_ai_usage(p_mode, p_provider)`** — Catat penggunaan AI setelah parse berhasil. Return `{used, limit, remaining}`.
 - **`get_all_ai_quotas()`** — Ambil semua kuota user (text/voice/ocr) untuk UI. Auto-downgrade jika expired.
 
-> **Catatan:** Semua AI Quota RPC menggunakan `SECURITY DEFINER` dan `auth.uid()` internal. Batas hari menggunakan timezone `Asia/Jakarta`.
+> **Catatan:** Semua AI Quota RPC menggunakan `SECURITY DEFINER` dan `auth.uid()` internal. Batas hari dihitung dari `usage_date` (tanggal lokal user yang dikirim client), sedangkan `created_at` tetap UTC untuk audit.
 
 ---
 

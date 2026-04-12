@@ -4,7 +4,7 @@ type: concept
 tags: [keuangan, aturan, trigger, wallet, balance, keputusan-final]
 sources: [raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # Aturan Keuangan Fundamental
@@ -54,8 +54,9 @@ Lihat detail lengkap di → [[wiki/concepts/matrix-transaksi|Matrix Transaksi]]
 | Aspek | Aturan |
 |---|---|
 | **Mata uang** | IDR only (Rupiah Indonesia) |
-| **Timezone tampilan** | `Asia/Jakarta` (WIB, UTC+7) |
-| **Timezone penyimpanan** | UTC di database |
+| **Timezone tampilan** | local device user (`toLocal()`) |
+| **Timezone penyimpanan** | timestamp UTC di database |
+| **Field kalender** | tetap `date-only` (`YYYY-MM-DD`) |
 | **Tipe data uang** | `int` (bukan `double`) — menghindari floating-point error |
 | **Format tampilan** | Helper `extToRupiah()` untuk formatting |
 
@@ -74,8 +75,8 @@ Settlement (`debt_payment`, `loan_collection`) tidak masuk laporan dan tidak mas
 ### 3. IDR Only
 Aplikasi hanya mendukung mata uang Rupiah Indonesia (IDR). Tidak ada multi-currency.
 
-### 4. UTC Storage, Jakarta Display
-Semua timestamp disimpan dalam UTC. Rendering di UI menggunakan `Asia/Jakarta`.
+### 4. UTC Storage, Local Rendering
+Semua timestamp disimpan dalam UTC. Rendering di UI menggunakan local device user, sedangkan field kalender murni tetap `date-only`.
 
 ### 5. Integer untuk Uang
 Semua nilai moneter disimpan sebagai `int`. Tidak boleh `double` atau `float` untuk menghindari floating-point precision error.

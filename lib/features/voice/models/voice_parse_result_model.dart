@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
 /// Model hasil parsing voice dari AI (Edge Function) atau local fallback.
 ///
@@ -98,7 +99,7 @@ class VoiceParseResultModel {
     DateTime? date;
     final rawDate = data['date'] as String?;
     if (rawDate != null && rawDate.isNotEmpty) {
-      date = DateTime.tryParse(rawDate);
+      date = SakuDateUtils.parseOptionalDate(rawDate);
     }
 
     return VoiceParseResultModel(
@@ -180,7 +181,7 @@ class VoiceParseResultModel {
       'destinationWallet': destinationWallet,
       'withPerson': withPerson,
       'merchantName': merchantName,
-      'date': date?.toIso8601String(),
+      'date': SakuDateUtils.formatOptionalDate(date),
     };
   }
 

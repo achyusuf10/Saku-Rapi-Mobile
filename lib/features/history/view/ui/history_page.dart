@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
@@ -370,7 +371,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
     // key is 'YYYY-MM-DD'
     try {
-      final date = DateTime.parse(key);
+      final date = SakuDateUtils.parseRequiredDate(key, fieldName: 'group_key');
       return date.extToDateStringDDMMMMYYYY();
     } catch (_) {
       return key;

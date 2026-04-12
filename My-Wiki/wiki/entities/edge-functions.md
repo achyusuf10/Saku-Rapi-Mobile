@@ -4,7 +4,7 @@ type: entity
 tags: [edge-functions, supabase, backend, deno, typescript, ai, api]
 sources: [raw/docs/prd/20_EXTERNAL_API.md, raw/docs/03_COPILOT_RULES.md, raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/15_INVESTASI.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 ## Deskripsi
@@ -46,22 +46,29 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 ```json
 {
   "mode": "text" | "voice" | "ocr",
-  "content": "<teks>" | "<base64_image>",
-  "dictionary": [...],
-  "user_id": "<uuid>"
+  "text": "<teks>",
+  "image": "<base64_image>",
+  "mimeType": "image/jpeg",
+  "categories": [
+    { "id": "<uuid>", "name": "Makan", "type": "expense" }
+  ],
+  "localDate": "2026-04-12"
 }
 ```
 
 **Response ke Flutter (success):**
 ```json
 {
+  "success": true,
+  "mode": "text",
+  "provider": "gemini-2.5-flash-lite",
   "data": {
-    "type": "expense|income|transfer|hutang|piutang|...",
+    "type": "expense|income|transfer|debt|loan",
     "amount": 50000,
-    "category_id": "<uuid>",
-    "description": "Makan siang",
-    "wallet_id": "<uuid>",
-    "date": "2024-01-15T12:00:00Z"
+    "categoryId": "<uuid>",
+    "note": "Makan siang",
+    "suggestedWallet": "GoPay",
+    "date": "2026-04-12"
   },
   "quota": { "used": 1, "limit": 5, "remaining": 4 }
 }
@@ -72,6 +79,7 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 - Jika kuota habis → HTTP 429 `DAILY_QUOTA_EXCEEDED`
 - Jika AI gagal → error code: `AI_TIMEOUT`, `AI_RATE_LIMIT`, `AI_AUTH_ERROR`, `AI_CONFIG_ERROR`, `AI_ERROR`
 - Catat usage setelah AI berhasil (via `log_ai_usage` RPC)
+- `localDate` dari Flutter dipakai untuk relative-date prompt (`hari ini`, `kemarin`) dan untuk menghitung kuota harian via `ai_usage_logs.usage_date`
 
 **Model yang dipakai:**
 - Text/Voice: `gemini-2.5-flash-lite` (timeout 10s)
@@ -94,6 +102,7 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 - Fallback AI: **Vertex AI Gemini 2.5 Flash** saja
 - Groq dan OpenRouter sudah dihapus dari fallback chain
 - Cache hasil 1 hari di `gold_prices` table
+- `fetched_at` tetap disimpan sebagai timestamp UTC; UI Flutter menampilkannya dalam local device user
 - Juga dipicu oleh **cron job** (pg_cron) — berjalan terjadwal di server
 
 ## Detail: `bitcoin-price`
