@@ -4,7 +4,7 @@ type: source
 tags: [copilot-rules, guardrails, financial-rules, testing, arsitektur, conventions, sakurapi]
 sources: [raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # SakuRapi Merged Copilot Rules — Ringkasan
@@ -73,7 +73,9 @@ Mencegah Copilot/AI dari 4 kesalahan utama:
 
 **Date handling:**
 - Timestamp disimpan **UTC**
-- Grouping harian/mingguan/bulanan menggunakan timezone **Asia/Jakarta**
+- Field kalender murni tetap `date-only`
+- Parsing, serialization, dan UTC boundary query wajib lewat **`SakuDateUtils`**
+- Grouping harian/mingguan/bulanan untuk kolom timestamp mengikuti **local timezone user**, bukan hardcoded **Asia/Jakarta**
 - Jangan campur `DateTime.now()` lokal untuk logic inti tanpa normalisasi timezone
 
 **Domain validation (sebelum save):**

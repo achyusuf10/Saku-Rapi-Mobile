@@ -4,7 +4,7 @@ type: source
 tags: [coding-rules, arsitektur, riverpod, ui, formatting, conventions, sakurapi]
 sources: [raw/docs/00_SakuRapi_Coding_Rules.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # SakuRapi Coding Rules & Guidelines — Ringkasan
@@ -15,7 +15,7 @@ updated: 2026-04-10
 
 ## Ringkasan
 
-Dokumen ini adalah panduan utama untuk semua aturan coding di proyek SakuRapi. Mencakup konvensi state management menggunakan Riverpod, arsitektur 3-File Pattern pada data layer, aturan modularitas komponen UI, standar performa tinggi, serta konvensi formatting untuk mata uang dan tanggal yang **wajib** menggunakan extension terpusat.
+Dokumen ini adalah panduan utama untuk semua aturan coding di proyek SakuRapi. Mencakup konvensi state management menggunakan Riverpod, arsitektur 3-File Pattern pada data layer, aturan modularitas komponen UI, standar performa tinggi, serta konvensi formatting untuk mata uang dan tanggal yang **wajib** menggunakan extension terpusat di UI dan `SakuDateUtils` untuk contract domain date.
 
 Inti dari dokumen ini adalah menjaga konsistensi dan kualitas kode di seluruh codebase. Setiap fitur harus mengikuti struktur folder yang ketat, menggunakan widget global yang sudah tersedia, dan menghindari hardcoded value di mana pun. Prinsip SOLID diterapkan secara ketat, dan semua class serta fungsi wajib dilengkapi docstrings (`///`).
 
@@ -63,8 +63,10 @@ Dokumen juga menegaskan penggunaan MCP tools (Supabase MCP dan Dart/Flutter MCP)
 ### Formatting Tanggal & Waktu (WAJIB pakai extension)
 - **DateTime**: `date_time_ext.dart` → `extToFormattedString()`, `extToTimeString()`, `extToDateStringDDMMMMYYYY()`, `extTimeAgo()`, plus utilitas cek tanggal (`extIsToday`, `extIsYesterday`, dll)
 - **String**: `string_ext.dart` → `extToDateTime()`, `extToDateLocal()`, `extToDateUtc()`, `extToCustomFormattedDate()`, `extToDateDDMMMMYYYY()`
+- **Contract backend/model/query**: `SakuDateUtils` → `formatTimestamp()`, `parseRequiredTimestamp()`, `formatDate()`, `parseRequiredDate()`, `localDayRangeUtc()`
 - Locale otomatis mengikuti pengaturan user — tanpa hardcode locale
 - **DILARANG** manual `DateFormat` di UI
+- **DILARANG** raw `DateTime.parse()`, raw `.toIso8601String()`, offset timezone manual, atau `substring(0, 10)` untuk logic tanggal domain
 
 ### Penanganan Edge Cases di UI
 - **Loading**: `ShimmerWidget` sebagai placeholder — dilarang `CircularProgressIndicator` standar
@@ -96,7 +98,7 @@ Dokumen juga menegaskan penggunaan MCP tools (Supabase MCP dan Dart/Flutter MCP)
 
 ## Relevansi untuk SakuRapi
 
-Dokumen ini adalah fondasi teknis utama yang mengatur bagaimana seluruh codebase SakuRapi ditulis. Setiap developer dan AI assistant **wajib** merujuk dokumen ini sebelum menulis kode apapun. Aturan formatting terpusat (currency & date extension) sangat krusial untuk menjaga konsistensi tampilan dan mendukung skalabilitas ke multi-currency di masa depan. Arsitektur 3-File Pattern memastikan separation of concerns yang jelas antara akses data lokal, remote, dan orkestrasi bisnis.
+Dokumen ini adalah fondasi teknis utama yang mengatur bagaimana seluruh codebase SakuRapi ditulis. Setiap developer dan AI assistant **wajib** merujuk dokumen ini sebelum menulis kode apapun. Aturan formatting terpusat (currency & date extension) sangat krusial untuk menjaga konsistensi tampilan, sementara `SakuDateUtils` menjaga contract UTC timestamp vs date-only tetap konsisten di semua layer. Arsitektur 3-File Pattern memastikan separation of concerns yang jelas antara akses data lokal, remote, dan orkestrasi bisnis.
 
 ## Halaman Terkait
 

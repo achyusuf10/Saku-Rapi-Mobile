@@ -4,7 +4,7 @@ type: concept
 tags: [coding-rules, arsitektur, konvensi, flutter, riverpod, copilot, testing, forbidden]
 sources: [raw/docs/00_SakuRapi_Coding_Rules.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # Coding Rules
@@ -167,6 +167,20 @@ Gunakan `SakuCurrencyField` (widget global) untuk input berupa uang — otomatis
 
 **DILARANG KERAS** format tanggal secara manual di UI. WAJIB gunakan extension.
 
+### Parsing & Serialization Domain Date
+
+**WAJIB** gunakan `lib/core/utils/saku_date_utils.dart` sebagai source of truth untuk parsing, serialization, dan date-range contract di model, datasource, RPC payload, dan filter query.
+
+| Kebutuhan | Gunakan |
+|---|---|
+| Timestamp UTC (`transactions.date`, `investment_transactions.date`, `created_at`, `updated_at`, `fetched_at`) | `formatTimestamp()`, `parseRequiredTimestamp()` |
+| Calendar date murni (`due_date`, `budgets.start_date`, `budgets.end_date`) | `formatDate()`, `parseRequiredDate()` |
+| Prefill AI yang bisa berisi tanggal atau datetime | `parseOptionalFlexibleLocalDateTime()` |
+| Filter local-day user ke kolom `timestamptz` | `localDayRangeUtc()` |
+
+- Extension tanggal/string tetap dipakai untuk **formatting UI**, bukan sebagai source of truth contract backend.
+- DILARANG menambah raw `DateTime.parse()`, raw `.toIso8601String()`, offset timezone manual, atau `substring(0, 10)` di model/data source untuk logic tanggal domain.
+
 ### Extension `DateTime?` (`lib/core/extensions/date_time_ext.dart`)
 
 | Method | Contoh Output |
@@ -196,6 +210,8 @@ Gunakan `SakuCurrencyField` (widget global) untuk input berupa uang — otomatis
 | `str.extToConvertToLocal()` | `19-03-2025 - 14:30` |
 
 > Semua extension date otomatis mengikuti locale aktif aplikasi — tanpa hardcode locale.
+>
+> Untuk parse/serialize ke Supabase atau contract model, gunakan `SakuDateUtils`, bukan extension string/date ini.
 
 ---
 
@@ -311,6 +327,7 @@ Copilot dan developer **DILARANG**:
 8. Memecah satu write atomik menjadi beberapa write rawan race condition
 9. Menaruh business rules ke dalam widget
 10. Menambah dependency berat tanpa alasan jelas
+11. Menambah raw `DateTime.parse()`, raw `.toIso8601String()`, timezone offset manual, atau filter tanggal string di model/data source alih-alih `SakuDateUtils`
 
 ---
 

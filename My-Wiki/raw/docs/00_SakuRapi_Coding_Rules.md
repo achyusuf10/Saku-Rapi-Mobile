@@ -157,6 +157,15 @@ Text(DateFormat('dd MMMM yyyy').format(date))
 - `lib/core/extensions/date_time_ext.dart` → untuk tipe `DateTime` dan `DateTime?`
 - `lib/core/extensions/string_ext.dart` → untuk tipe `String` dan `String?` yang berisi nilai tanggal
 
+**Untuk parse/serialize contract tanggal di model, datasource, RPC payload, dan filter query, WAJIB gunakan** `lib/core/utils/saku_date_utils.dart`.
+- `formatTimestamp()` / `parseRequiredTimestamp()` → untuk field timestamp UTC seperti `transactions.date`, `investment_transactions.date`, `created_at`, `updated_at`, `fetched_at`
+- `formatDate()` / `parseRequiredDate()` → untuk field calendar-only seperti `due_date`, `start_date`, `end_date`
+- `parseOptionalFlexibleLocalDateTime()` → hanya untuk hasil AI/voice/OCR yang bisa berisi `YYYY-MM-DD` atau `YYYY-MM-DDTHH:mm:ss`
+- `localDayRangeUtc()` → untuk query local-day user terhadap kolom `timestamptz`
+- **DILARANG** menambah raw `DateTime.parse()`, raw `.toIso8601String()`, raw `toUtc()/toLocal()`, offset timezone manual, atau `substring(0, 10)` di model/data source untuk contract tanggal
+
+> Gunakan extension tanggal di bawah ini untuk **formatting UI**, bukan untuk serialization contract backend.
+
 ### Extension yang Tersedia
 
 **Dari `DateTime?` — `lib/core/extensions/date_time_ext.dart`:**
@@ -217,7 +226,7 @@ nullDate.extToTimeString();                               // → '-'
 String? isoDate = '2025-03-19T07:30:00.000Z';
 isoDate.extToDateDDMMMMYYYY();                            // → '19 Maret 2025'
 
-// Konversi UTC string ke local (WIB +0700) langsung ke display string
+// Konversi UTC string ke local device user langsung ke display string
 '2025-03-19T07:30:00'.extToConvertToLocal();              // → '19-03-2025 - 14:30'
 ```
 

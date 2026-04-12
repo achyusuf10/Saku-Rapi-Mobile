@@ -123,6 +123,15 @@ return response.map(
 Currency extensions: `lib/core/extensions/int_ext.dart`, `double_ext.dart`
 Date extensions: `lib/core/extensions/date_time_ext.dart`, `string_ext.dart`
 
+### Domain Date Contract (Use `SakuDateUtils`)
+
+- Use `lib/core/utils/saku_date_utils.dart` for all domain date parsing, serialization, and local-day query boundaries.
+- `formatTimestamp()` / `parseRequiredTimestamp()` for UTC timestamp fields such as `transactions.date`, `investment_transactions.date`, `created_at`, `updated_at`, and `fetched_at`.
+- `formatDate()` / `parseRequiredDate()` for true calendar-only fields such as `transactions.due_date`, `budgets.start_date`, and `budgets.end_date`.
+- `parseOptionalFlexibleLocalDateTime()` only for AI-prefill fields that may contain either `yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ss`.
+- `localDayRangeUtc()` when filtering `timestamptz` columns by a user-local date range.
+- Do not introduce new raw `DateTime.parse()`, raw `.toIso8601String()`, manual timezone offsets, or `substring(0, 10)` date grouping in models/datasources. Date extensions are for display formatting, not backend contract logic.
+
 ### Currency Input
 
 Use `SakuCurrencyField` widget for money input fields (handles thousand formatting).
@@ -161,7 +170,7 @@ Format: `[Sync|Offline|Online] [{FeatureName}] {message}`
 5. Complex writes (create/update transaction, settle debt, investment buy) must use Supabase **RPC** for atomicity
 6. AI voice/OCR output is only a suggestion — never auto-save
 7. Use `int` (minor units) or consistent `Decimal` for money calculations — not `double`
-8. All dates stored UTC, rendered in `Asia/Jakarta` timezone
+8. Point-in-time timestamps are stored as UTC ISO 8601 and rendered in each user's local timezone; true calendar fields stay date-only
 
 ## Supabase Edge Functions
 

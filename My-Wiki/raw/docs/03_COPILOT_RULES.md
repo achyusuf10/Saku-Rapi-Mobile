@@ -333,7 +333,9 @@ Setiap feature data minimal mengikuti pola:
 
 ### 4.2 Date handling
 - Timestamp disimpan UTC.
-- Grouping harian/mingguan/bulanan menggunakan timezone Asia/Jakarta.
+- Field kalender murni seperti `transactions.due_date` dan periode budget tetap `YYYY-MM-DD`.
+- Parsing, serialization, dan boundary query tanggal wajib lewat `SakuDateUtils` (`formatTimestamp`, `parseRequiredTimestamp`, `formatDate`, `parseRequiredDate`, `localDayRangeUtc`).
+- Grouping dan filter harian/mingguan/bulanan untuk kolom `timestamptz` mengikuti local timezone user melalui UTC boundary dari `SakuDateUtils`, bukan hardcode `Asia/Jakarta`.
 - Jangan campur `DateTime.now()` lokal device untuk logic inti tanpa normalisasi timezone.
 
 ### 4.3 Domain validation
