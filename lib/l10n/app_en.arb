@@ -1123,5 +1123,8 @@
   "investmentEditCurrentPriceHint": "Enter current market price",
   "investmentSettingsGoldType": "Gold Type",
   "investmentSettingsPriceSource": "Price Source",
-  "investmentWalletRequired": "Please select a wallet first"
+  "investmentWalletRequired": "Please select a wallet first",
+  "aiParseCancelTitle": "Cancel Analysis?",
+  "aiParseCancelMessage": "AI is currently analyzing data. Are you sure you want to cancel?",
+  "aiParseCancelConfirm": "Yes, Cancel"
 }
