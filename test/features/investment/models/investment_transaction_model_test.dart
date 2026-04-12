@@ -100,6 +100,7 @@ void main() {
       expect(tx.deductWallet, true);
       expect(tx.linkedWalletTransactionId, 'wt-1');
       expect(tx.note, 'First purchase');
+      expect(tx.date.toUtc(), DateTime.utc(2025, 7, 1));
       expect(tx.createdAt?.toUtc(), DateTime.utc(2025, 7, 1));
     });
 
@@ -174,6 +175,15 @@ void main() {
       expect(map['wallet_id'], 'w-1');
       expect(map['deduct_wallet'], true);
       expect(map['note'], 'Test note');
+    });
+
+    test('serializes date as UTC ISO 8601 timestamp', () {
+      final tx = _tx(date: DateTime.utc(2025, 7, 1, 9, 45).toLocal());
+
+      expect(
+        tx.toFullMap()['date'],
+        DateTime.utc(2025, 7, 1, 9, 45).toIso8601String(),
+      );
     });
   });
 

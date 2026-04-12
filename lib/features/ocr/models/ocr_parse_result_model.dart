@@ -11,7 +11,7 @@ import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 ///   "isTransaction": <boolean>,
 ///   "type": "<expense | income | transfer | debt | loan>",
 ///   "merchantName": "<string | null>",
-///   "date": "<yyyy-MM-dd | null>",
+///   "date": "<yyyy-MM-dd | yyyy-MM-ddTHH:mm:ss | null>",
 ///   "grandTotal": <number | null>,
 ///   "items": [...],
 ///   "categoryId": "<UUID | null>",
@@ -114,7 +114,7 @@ class OcrParseResultModel {
     DateTime? parsedDate;
     final rawDate = data['date'] as String?;
     if (rawDate != null && rawDate.isNotEmpty) {
-      parsedDate = SakuDateUtils.parseOptionalDate(rawDate);
+      parsedDate = SakuDateUtils.parseOptionalFlexibleLocalDateTime(rawDate);
     }
 
     // Parse items — hanya untuk expense
@@ -169,7 +169,7 @@ class OcrParseResultModel {
       'isTransaction': isTransaction,
       'type': type,
       'merchantName': merchantName,
-      'date': SakuDateUtils.formatOptionalDate(date),
+      'date': SakuDateUtils.formatOptionalTimestamp(date),
       'grandTotal': grandTotal,
       'items': items.map((i) => i.toMap()).toList(),
       'categoryId': categoryId,

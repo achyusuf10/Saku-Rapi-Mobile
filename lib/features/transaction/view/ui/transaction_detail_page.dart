@@ -113,7 +113,9 @@ class TransactionDetailPage extends ConsumerWidget {
 
           _DetailSection(
             label: l10n.transactionDate,
-            value: transaction.date.extToDateStringDDMMMMYYYY(),
+            value: transaction.date.extToFormattedString(
+              outputDateFormat: 'dd MMMM yyyy HH:mm',
+            ),
             icon: FontAwesomeIcons.calendarDay,
           ),
 
@@ -429,14 +431,12 @@ class _DetailSection extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
-    this.iconColor,
     this.leading,
   });
 
   final String label;
   final String value;
   final IconData icon;
-  final Color? iconColor;
 
   /// Widget custom leading (override icon + iconColor).
   final Widget? leading;
@@ -450,12 +450,7 @@ class _DetailSection extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          leading ??
-              FaIcon(
-                icon,
-                size: 14.w,
-                color: iconColor ?? colors.textSecondary,
-              ),
+          leading ?? FaIcon(icon, size: 14.w, color: colors.textSecondary),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(

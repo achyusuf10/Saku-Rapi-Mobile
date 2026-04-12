@@ -211,7 +211,9 @@ class _TransactionItem extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    txn.date.extToDateStringDDMMMMYYYY(),
+                    txn.date.extToFormattedString(
+                      outputDateFormat: 'dd MMMM yyyy HH:mm',
+                    ),
                     style: TextStyleConstants.caption.copyWith(
                       color: colors.textSecondary,
                     ),

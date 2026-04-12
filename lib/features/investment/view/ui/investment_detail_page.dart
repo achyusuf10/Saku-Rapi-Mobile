@@ -590,7 +590,9 @@ class _TransactionItem extends StatelessWidget {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  tx.date.extToFormattedString(outputDateFormat: 'dd MMM yyyy'),
+                  tx.date.extToFormattedString(
+                    outputDateFormat: 'dd MMM yyyy HH:mm',
+                  ),
                   style: TextStyleConstants.label2.copyWith(
                     color: colors.textSecondary,
                   ),

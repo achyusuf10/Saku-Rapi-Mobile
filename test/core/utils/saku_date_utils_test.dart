@@ -42,5 +42,38 @@ void main() {
       expect(parsed.minute, 0);
       expect(parsed.isUtc, isFalse);
     });
+
+    test(
+      'parseOptionalFlexibleLocalDateTime keeps explicit local time details',
+      () {
+        final parsed = SakuDateUtils.parseOptionalFlexibleLocalDateTime(
+          '2026-04-12T08:45:00',
+        );
+
+        expect(parsed, isNotNull);
+        expect(parsed!.year, 2026);
+        expect(parsed.month, 4);
+        expect(parsed.day, 12);
+        expect(parsed.hour, 8);
+        expect(parsed.minute, 45);
+        expect(parsed.isUtc, isFalse);
+      },
+    );
+
+    test(
+      'localDayRangeUtc converts local day boundaries to UTC ISO strings',
+      () {
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: DateTime(2026, 4, 12, 18, 30),
+          endDate: DateTime(2026, 4, 12, 23, 59),
+        );
+
+        expect(DateTime.parse(range.startUtc).toLocal(), DateTime(2026, 4, 12));
+        expect(
+          DateTime.parse(range.endUtcExclusive).toLocal(),
+          DateTime(2026, 4, 13),
+        );
+      },
+    );
   });
 }

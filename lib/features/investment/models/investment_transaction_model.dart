@@ -46,7 +46,7 @@ class InvestmentTransactionModel {
   /// ID transaksi di tabel `transactions` yang linked (nullable).
   final String? linkedWalletTransactionId;
 
-  /// Tanggal transaksi.
+  /// Waktu transaksi investasi.
   final DateTime date;
 
   /// Catatan opsional.
@@ -80,7 +80,7 @@ class InvestmentTransactionModel {
       deductWallet: (map['deduct_wallet'] as bool?) ?? false,
       linkedWalletTransactionId: map['linked_wallet_transaction_id'] as String?,
       date: map['date'] != null
-          ? SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date')
+          ? SakuDateUtils.parseRequiredTimestamp(map['date'], fieldName: 'date')
           : DateTime.now(),
       note: map['note'] as String?,
       createdAt: map['created_at'] != null
@@ -104,7 +104,7 @@ class InvestmentTransactionModel {
       'wallet_id': walletId,
       'deduct_wallet': deductWallet,
       'linked_wallet_transaction_id': linkedWalletTransactionId,
-      'date': SakuDateUtils.formatDate(date),
+      'date': SakuDateUtils.formatTimestamp(date),
       'note': note,
       'created_at': SakuDateUtils.formatOptionalTimestamp(createdAt),
     };

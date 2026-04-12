@@ -41,6 +41,11 @@ class HistoryRemoteDataSource {
           'limit=$limit, offset=$offset',
         );
 
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: startDate,
+          endDate: endDate,
+        );
+
         var query = _client
             .from(_table)
             .select('''
@@ -53,8 +58,8 @@ class HistoryRemoteDataSource {
               )
             ''')
             .eq('user_id', _userId)
-            .gte('date', SakuDateUtils.formatDate(startDate))
-            .lte('date', SakuDateUtils.formatDate(endDate));
+            .gte('date', range.startUtc)
+            .lt('date', range.endUtcExclusive);
 
         if (walletId != null) {
           query = query.eq('wallet_id', walletId);

@@ -92,7 +92,7 @@
 | attachment_url | text nullable | |
 | with_person | text nullable | wajib untuk debt/loan |
 | status | text nullable | `unpaid`, `paid`, `partial` untuk debt/loan origin |
-| due_date | timestamptz nullable | |
+| due_date | date nullable | tanggal jatuh tempo kalender |
 | is_multi_item | boolean not null default false | |
 | reference_transaction_id | uuid nullable FK self | untuk settlement |
 | settlement_kind | text nullable | `debt_payment`, `loan_collection` |

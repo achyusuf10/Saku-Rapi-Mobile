@@ -44,7 +44,10 @@ class DebtLoanTransactionModel {
       walletName: map['wallet_name'] as String?,
       type: map['type'] as String,
       totalAmount: _toDouble(map['total_amount']),
-      date: SakuDateUtils.parseRequiredDate(map['date'], fieldName: 'date'),
+      date: SakuDateUtils.parseRequiredTimestamp(
+        map['date'],
+        fieldName: 'date',
+      ),
       note: map['note'] as String?,
       withPerson: map['with_person'] as String?,
       contactId: map['contact_id'] as String?,

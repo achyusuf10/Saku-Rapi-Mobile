@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/debt_status_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
@@ -515,6 +516,23 @@ class _DebtLoanTransactionTile extends StatelessWidget {
                             color: statusColor,
                             fontWeight: FontWeight.w600,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 2.h),
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.clock,
+                        size: 10.w,
+                        color: colors.textSecondary,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        transaction.date.extToTimeString(),
+                        style: TextStyleConstants.label2.copyWith(
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],

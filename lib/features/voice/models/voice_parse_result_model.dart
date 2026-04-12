@@ -16,7 +16,7 @@ import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 ///   "destinationWallet": "<wallet name | null>",
 ///   "withPerson": "<person name | null>",
 ///   "merchantName": "<merchant | null>",
-///   "date": "<yyyy-MM-dd | null>"
+///   "date": "<yyyy-MM-dd | yyyy-MM-ddTHH:mm:ss | null>"
 /// }
 /// ```
 class VoiceParseResultModel {
@@ -80,7 +80,7 @@ class VoiceParseResultModel {
   /// Nama merchant/toko.
   final String? merchantName;
 
-  /// Tanggal transaksi hasil parsing (yyyy-MM-dd).
+  /// Tanggal/waktu transaksi hasil parsing.
   final DateTime? date;
 
   /// Parse dari response Edge Function voice mode.
@@ -99,7 +99,7 @@ class VoiceParseResultModel {
     DateTime? date;
     final rawDate = data['date'] as String?;
     if (rawDate != null && rawDate.isNotEmpty) {
-      date = SakuDateUtils.parseOptionalDate(rawDate);
+      date = SakuDateUtils.parseOptionalFlexibleLocalDateTime(rawDate);
     }
 
     return VoiceParseResultModel(
@@ -181,7 +181,7 @@ class VoiceParseResultModel {
       'destinationWallet': destinationWallet,
       'withPerson': withPerson,
       'merchantName': merchantName,
-      'date': SakuDateUtils.formatOptionalDate(date),
+      'date': SakuDateUtils.formatOptionalTimestamp(date),
     };
   }
 

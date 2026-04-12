@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
+import 'package:app_saku_rapi/features/auth/utils/google_id_token_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,16 +36,22 @@ class AuthRemoteDataSource {
 
   /// Initialize [GoogleSignIn] singleton (lazy, sekali saja).
   Future<void> _ensureInitialized() {
+    if (_webClientId.isEmpty) {
+      throw Exception(
+        'GOOGLE_WEB_CLIENT_ID belum dikonfigurasi. '
+        'Google Sign-In native membutuhkan Web Client ID untuk Supabase.',
+      );
+    }
+
     return _initialization ??=
-        GoogleSignIn.instance.initialize(
-          serverClientId: _webClientId.isNotEmpty ? _webClientId : null,
-        )..catchError((dynamic _) {
-          AppLogger.logError(
-            'Google Sign-In initialization failed',
-            runtimeType: AuthRemoteDataSource,
-          );
-          _initialization = null;
-        });
+        GoogleSignIn.instance.initialize(serverClientId: _webClientId)
+          ..catchError((dynamic _) {
+            AppLogger.logError(
+              'Google Sign-In initialization failed',
+              runtimeType: AuthRemoteDataSource,
+            );
+            _initialization = null;
+          });
   }
 
   /// Melakukan Google Sign-In dan autentikasi ke Supabase.
@@ -68,22 +75,15 @@ class AuthRemoteDataSource {
 
         await _ensureInitialized();
 
-        final googleUser = await GoogleSignIn.instance.authenticate();
-        final idToken = googleUser.authentication.idToken;
-
-        if (idToken == null) {
-          throw Exception('Gagal mendapatkan ID Token dari Google');
-        }
+        final googleUser = await _resolveGoogleUser();
+        final idToken = _readValidIdToken(googleUser);
 
         AppLogger.call(
-          '[Auth] [AuthRemoteDataSource] Google token obtained, signing into Supabase... $idToken',
+          '[Auth] [AuthRemoteDataSource] Google token obtained, signing into Supabase...',
           colorLog: ColorLog.blue,
         );
 
-        final response = await _client.auth.signInWithIdToken(
-          provider: OAuthProvider.google,
-          idToken: idToken,
-        );
+        final response = await _signInToSupabase(idToken: idToken);
 
         AppLogger.logSuccess(
           'User signed in: ${response.user?.email}',
@@ -108,9 +108,28 @@ class AuthRemoteDataSource {
           colorLog: ColorLog.yellow,
         );
 
-        await _client.auth.signOut();
         await _ensureInitialized();
+
+        Object? supabaseError;
+        StackTrace? supabaseStackTrace;
+
+        try {
+          await _client.auth.signOut();
+        } catch (error, stackTrace) {
+          supabaseError = error;
+          supabaseStackTrace = stackTrace;
+
+          AppLogger.logError(
+            'Supabase sign-out failed, continuing Google cleanup: $error',
+            runtimeType: AuthRemoteDataSource,
+          );
+        }
+
         await GoogleSignIn.instance.signOut();
+
+        if (supabaseError != null && supabaseStackTrace != null) {
+          Error.throwWithStackTrace(supabaseError, supabaseStackTrace);
+        }
 
         AppLogger.logSuccess(
           'User signed out successfully',
@@ -208,5 +227,106 @@ class AuthRemoteDataSource {
   /// untuk merespons login/logout secara realtime.
   Stream<AuthState> onAuthStateChange() {
     return _client.auth.onAuthStateChange;
+  }
+
+  Future<GoogleSignInAccount> _resolveGoogleUser() async {
+    final restoredUser = await _attemptLightweightAuthentication();
+
+    if (restoredUser != null) {
+      final restoredIdToken = restoredUser.authentication.idToken;
+
+      if (restoredIdToken != null &&
+          restoredIdToken.isNotEmpty &&
+          !GoogleIdTokenUtils.isExpiredOrNearExpiry(restoredIdToken)) {
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Reusing active Google session.',
+          colorLog: ColorLog.blue,
+        );
+        return restoredUser;
+      }
+
+      AppLogger.call(
+        '[Auth] [AuthRemoteDataSource] Clearing stale Google session before re-authentication...',
+        colorLog: ColorLog.yellow,
+      );
+      await GoogleSignIn.instance.signOut();
+    }
+
+    final googleUser = await GoogleSignIn.instance.authenticate();
+    final idToken = _readIdToken(googleUser);
+
+    if (!GoogleIdTokenUtils.isExpiredOrNearExpiry(idToken)) {
+      return googleUser;
+    }
+
+    AppLogger.call(
+      '[Auth] [AuthRemoteDataSource] Google returned expired ID token, retrying with a clean session...',
+      colorLog: ColorLog.yellow,
+    );
+    await GoogleSignIn.instance.signOut();
+
+    final refreshedGoogleUser = await GoogleSignIn.instance.authenticate();
+    _readValidIdToken(refreshedGoogleUser);
+
+    return refreshedGoogleUser;
+  }
+
+  Future<GoogleSignInAccount?> _attemptLightweightAuthentication() async {
+    final attempt = GoogleSignIn.instance.attemptLightweightAuthentication();
+    if (attempt == null) {
+      return null;
+    }
+
+    return attempt;
+  }
+
+  Future<AuthResponse> _signInToSupabase({required String idToken}) async {
+    try {
+      return await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+      );
+    } on AuthException catch (error) {
+      if (error.message != 'Bad ID token') {
+        rethrow;
+      }
+
+      AppLogger.call(
+        '[Auth] [AuthRemoteDataSource] Supabase rejected Google ID token, forcing fresh Google sign-in...',
+        colorLog: ColorLog.yellow,
+      );
+
+      await GoogleSignIn.instance.signOut();
+      final refreshedGoogleUser = await GoogleSignIn.instance.authenticate();
+      final refreshedIdToken = _readValidIdToken(refreshedGoogleUser);
+
+      return _client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: refreshedIdToken,
+      );
+    }
+  }
+
+  String _readValidIdToken(GoogleSignInAccount googleUser) {
+    final idToken = _readIdToken(googleUser);
+
+    if (GoogleIdTokenUtils.isExpiredOrNearExpiry(idToken)) {
+      throw Exception(
+        'Google memberikan ID Token yang sudah kedaluwarsa. '
+        'Silakan login ulang untuk mengambil token baru.',
+      );
+    }
+
+    return idToken;
+  }
+
+  String _readIdToken(GoogleSignInAccount googleUser) {
+    final idToken = googleUser.authentication.idToken;
+
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception('Gagal mendapatkan ID Token dari Google');
+    }
+
+    return idToken;
   }
 }

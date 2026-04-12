@@ -44,6 +44,11 @@ class TransactionRemoteDataSource {
           '$_tag getTransactions: $startDate - $endDate, wallet=$walletId',
         );
 
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: startDate,
+          endDate: endDate,
+        );
+
         var query = _client
             .from(_table)
             .select('''
@@ -56,8 +61,8 @@ class TransactionRemoteDataSource {
               )
             ''')
             .eq('user_id', _userId)
-            .gte('date', SakuDateUtils.formatDate(startDate))
-            .lte('date', SakuDateUtils.formatDate(endDate));
+            .gte('date', range.startUtc)
+            .lt('date', range.endUtcExclusive);
 
         if (walletId != null) {
           query = query.eq('wallet_id', walletId);
@@ -133,7 +138,7 @@ class TransactionRemoteDataSource {
             'p_destination_wallet_id': destinationWalletId,
             'p_type': type,
             'p_total_amount': totalAmount,
-            'p_date': SakuDateUtils.formatDate(date),
+            'p_date': SakuDateUtils.formatTimestamp(date),
             'p_merchant_name': merchantName,
             'p_note': note,
             'p_attachment_url': attachmentUrl,
@@ -187,7 +192,7 @@ class TransactionRemoteDataSource {
             'p_destination_wallet_id': destinationWalletId,
             'p_type': type,
             'p_total_amount': totalAmount,
-            'p_date': SakuDateUtils.formatDate(date),
+            'p_date': SakuDateUtils.formatTimestamp(date),
             'p_merchant_name': merchantName,
             'p_note': note,
             'p_attachment_url': attachmentUrl,
@@ -247,9 +252,7 @@ class TransactionRemoteDataSource {
           params: {
             'p_wallet_id': walletId,
             'p_target_balance': targetBalance,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
           },
         );
@@ -289,9 +292,7 @@ class TransactionRemoteDataSource {
             'p_settlement_kind': settlementKind,
             'p_amount': amount,
             'p_wallet_id': walletId,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
           },
         );

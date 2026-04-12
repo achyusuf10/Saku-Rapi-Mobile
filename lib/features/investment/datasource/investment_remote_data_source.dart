@@ -81,9 +81,7 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,
@@ -115,9 +113,7 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,
@@ -147,9 +143,7 @@ class InvestmentRemoteDataSource {
             'p_asset_id': assetId,
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
             'p_credit_wallet': creditWallet,
             'p_wallet_id': walletId,
@@ -181,9 +175,7 @@ class InvestmentRemoteDataSource {
             'p_units': units,
             'p_price_per_unit': pricePerUnit,
             'p_fee': fee,
-            'p_date': SakuDateUtils.formatDate(
-              date ?? SakuDateUtils.todayLocal(),
-            ),
+            'p_date': SakuDateUtils.formatTimestamp(date ?? DateTime.now()),
             'p_note': note,
             'p_deduct_wallet': deductWallet,
             'p_wallet_id': walletId,

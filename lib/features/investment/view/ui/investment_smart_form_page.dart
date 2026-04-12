@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_form_controller.dart';
@@ -693,7 +694,7 @@ class _DatePickerSection extends ConsumerWidget {
       label: l10n.investmentFormDate,
       readOnly: true,
       controller: TextEditingController(
-        text: '${date.day}/${date.month}/${date.year}',
+        text: date.extToFormattedString(outputDateFormat: 'dd/MM/yyyy HH:mm'),
       ),
       onTap: () async {
         final picked = await showDatePicker(
@@ -702,7 +703,24 @@ class _DatePickerSection extends ConsumerWidget {
           firstDate: DateTime(2020),
           lastDate: DateTime.now().add(const Duration(days: 1)),
         );
-        if (picked != null) ctrl.setDate(picked);
+        if (picked == null || !context.mounted) return;
+
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(date),
+        );
+        if (!context.mounted) return;
+
+        final resolvedTime = pickedTime ?? TimeOfDay.fromDateTime(date);
+        ctrl.setDate(
+          DateTime(
+            picked.year,
+            picked.month,
+            picked.day,
+            resolvedTime.hour,
+            resolvedTime.minute,
+          ),
+        );
       },
     );
   }

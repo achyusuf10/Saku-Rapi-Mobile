@@ -135,7 +135,7 @@ function buildTextSystemPrompt(today: string): string {
   return `You are a financial transaction parser for an Indonesian personal finance app. Parse user input text (Indonesian/English) into structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"amount":<number|null>,"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>"}
+{"isTransaction":<bool>,"amount":<number|null>,"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-dd|yyyy-MM-ddTHH:mm:ss|null>"}
 
 CORE RULES:
 1. "isTransaction": true ONLY if input describes a financial event. Random words, greetings, nonsense → false, all other fields null/default.
@@ -156,7 +156,7 @@ CORE RULES:
 7. "suggestedWallet": wallet/payment method if mentioned (e.g. "pakai GoPay"→"GoPay", "dari BCA"→"BCA").
 8. "destinationWallet": ONLY for transfer (e.g. "transfer dari BCA ke GoPay"→"GoPay").
 9. "withPerson": person name for debt/loan and settlements (e.g. "hutang ke Budi"→"Budi", "bayar hutang Ani"→"Ani"). null if none.
-10. "date": today is ${today}. Convert: "kemarin"→yesterday, "tadi"/"barusan"→today, "2 hari lalu"→2 days ago, "minggu lalu"→7 days ago. No reference → null.
+10. "date": today is ${today}. Convert: "kemarin"→yesterday, "tadi"/"barusan"→today, "2 hari lalu"→2 days ago, "minggu lalu"→7 days ago. If explicit clock time is mentioned (e.g. 13:30, jam 7 malam), return local datetime as yyyy-MM-ddTHH:mm:ss without timezone suffix. If only the date/day is known, return yyyy-MM-dd. No reference → null.
 11. "note": Descriptive name of the item or service being transacted. MUST contain the item/service description (e.g. "Beli Degan", "Makan siang di Warteg", "Bayar listrik"). MUST NOT contain: amount/angka, date/tanggal, wallet name, person name — these belong in their own fields. If the input is just a category keyword with amount (e.g. "makan 25rb"), note should be null.
 
 FEW-SHOT EXAMPLES:
@@ -169,6 +169,9 @@ Output: {"isTransaction":true,"amount":10000,"categoryId":"e1","categoryKeyword"
 
 Input: "Beli nasi goreng di warteg kemarin 15rb"
 Output: {"isTransaction":true,"amount":15000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli nasi goreng di warteg","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${yesterday}"}
+
+Input: "makan siang jam 13:30 tadi 25rb"
+Output: {"isTransaction":true,"amount":25000,"categoryId":"e1","categoryKeyword":"makan","note":"makan siang","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${today}T13:30:00"}
 
 Input: "gaji masuk 5.5jt kemarin di BCA"
 Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","debtLoanKind":null,"suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${yesterday}"}
@@ -201,7 +204,7 @@ function buildOcrSystemPrompt(today: string): string {
   return `You are a financial document parser for an Indonesian personal finance app. Analyze receipt/invoice/document images and extract structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-dd|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","note":"<string|null>"}
+{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-dd|yyyy-MM-ddTHH:mm:ss|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWallet":"<string|null>","destinationWallet":"<string|null>","withPerson":"<string|null>","note":"<string|null>"}
 
 CORE RULES:
 1. "isTransaction": true ONLY if image shows a financial document (receipt, invoice, transfer proof, salary slip, etc). Random photos, memes, selfies → false.
@@ -221,7 +224,7 @@ CORE RULES:
 8. "suggestedWallet": payment method if visible (BCA, GoPay, OVO, DANA, Cash, Tunai).
 9. "destinationWallet": ONLY for transfer type.
 10. "withPerson": person name for debt/loan/debt_payment/loan_collection.
-11. "date": extract as yyyy-MM-dd. Today is ${today}. If not visible → null.
+11. "date": extract the visible transaction date. Today is ${today}. If the document also shows an explicit clock time, return local datetime as yyyy-MM-ddTHH:mm:ss without timezone suffix. If only the date is visible, return yyyy-MM-dd. If not visible → null.
 12. "note": Descriptive name of the overall purchase or transaction. MUST NOT contain amounts, dates, wallet names, or person names. Example: "Belanja bulanan Indomaret". If no additional context beyond merchant + items, note should be null.
 
 FEW-SHOT EXAMPLE (expense receipt):

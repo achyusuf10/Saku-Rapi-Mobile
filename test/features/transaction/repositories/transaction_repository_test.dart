@@ -294,6 +294,7 @@ void main() {
       expect(txn.id, 'txn-abc');
       expect(txn.type, TransactionTypeEnum.expense);
       expect(txn.totalAmount, 75000.0);
+      expect(txn.date.toUtc(), DateTime.utc(2025, 3, 15, 10));
       expect(txn.merchantName, 'Indomaret');
       expect(txn.isMultiItem, false);
       expect(txn.items, isEmpty);
@@ -373,6 +374,17 @@ void main() {
     test('isSettlement returns false when settlementKind is null', () {
       final txn = _txn();
       expect(txn.isSettlement, false);
+    });
+
+    test('toFullMap serializes date as UTC ISO 8601 timestamp', () {
+      final txn = _txn().copyWith(
+        date: DateTime.utc(2025, 1, 1, 14, 30).toLocal(),
+      );
+
+      expect(
+        txn.toFullMap()['date'],
+        DateTime.utc(2025, 1, 1, 14, 30).toIso8601String(),
+      );
     });
 
     test('isReportable for income', () {

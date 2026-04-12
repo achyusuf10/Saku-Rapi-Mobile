@@ -58,8 +58,16 @@ class SakuDateUtils {
     Object? value, {
     String fieldName = 'datetime',
   }) {
-    if (value == null) {
+    final parsed = parseOptionalFlexibleLocalDateTime(value);
+    if (parsed == null) {
       throw FormatException('Invalid $fieldName: $value');
+    }
+    return parsed;
+  }
+
+  static DateTime? parseOptionalFlexibleLocalDateTime(Object? value) {
+    if (value == null) {
+      return null;
     }
 
     if (value is DateTime) {
@@ -68,7 +76,7 @@ class SakuDateUtils {
 
     final raw = value.toString();
     if (raw.isEmpty) {
-      throw FormatException('Invalid $fieldName: $value');
+      return null;
     }
 
     if (_dateOnlyPattern.hasMatch(raw)) {
@@ -111,5 +119,20 @@ class SakuDateUtils {
 
   static DateTime todayLocal() {
     return normalizeLocalDate(DateTime.now());
+  }
+
+  static ({String startUtc, String endUtcExclusive}) localDayRangeUtc({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final localStart = normalizeLocalDate(startDate);
+    final localEndExclusive = normalizeLocalDate(
+      endDate,
+    ).add(const Duration(days: 1));
+
+    return (
+      startUtc: formatTimestamp(localStart),
+      endUtcExclusive: formatTimestamp(localEndExclusive),
+    );
   }
 }

@@ -344,8 +344,10 @@ class BudgetRemoteDataSource {
           '$startDate - $endDate, wallet=$walletId',
         );
 
-        final startStr = SakuDateUtils.formatDate(startDate);
-        final endStr = SakuDateUtils.formatDate(endDate);
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: startDate,
+          endDate: endDate,
+        );
 
         var query = _client
             .from('transactions')
@@ -361,8 +363,8 @@ class BudgetRemoteDataSource {
             .eq('user_id', _userId)
             .eq('type', 'expense')
             .isFilter('settlement_kind', null)
-            .gte('date', startStr)
-            .lte('date', endStr)
+            .gte('date', range.startUtc)
+            .lt('date', range.endUtcExclusive)
             .inFilter('transaction_items.category_id', categoryIds);
 
         if (walletId != null) {

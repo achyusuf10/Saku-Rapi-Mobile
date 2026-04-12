@@ -71,12 +71,17 @@ class DashboardRemoteDataSource {
       function: () async {
         AppLogger.call('$_tag getPeriodSummary: $startDate - $endDate');
 
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: startDate,
+          endDate: endDate,
+        );
+
         final response = await _client
             .from('transactions')
             .select('type, total_amount, settlement_kind')
             .eq('user_id', _userId)
-            .gte('date', SakuDateUtils.formatDate(startDate))
-            .lte('date', SakuDateUtils.formatDate(endDate))
+            .gte('date', range.startUtc)
+            .lt('date', range.endUtcExclusive)
             .inFilter('type', ['income', 'expense'])
             .isFilter('settlement_kind', null);
 
@@ -109,12 +114,17 @@ class DashboardRemoteDataSource {
       function: () async {
         AppLogger.call('$_tag getDailyAggregation: $startDate - $endDate');
 
+        final range = SakuDateUtils.localDayRangeUtc(
+          startDate: startDate,
+          endDate: endDate,
+        );
+
         final response = await _client
             .from('transactions')
             .select('type, total_amount, date, settlement_kind')
             .eq('user_id', _userId)
-            .gte('date', SakuDateUtils.formatDate(startDate))
-            .lte('date', SakuDateUtils.formatDate(endDate))
+            .gte('date', range.startUtc)
+            .lt('date', range.endUtcExclusive)
             .inFilter('type', ['income', 'expense'])
             .isFilter('settlement_kind', null)
             .order('date', ascending: true);
@@ -124,7 +134,10 @@ class DashboardRemoteDataSource {
 
         for (final row in response) {
           final dateStr = SakuDateUtils.formatDate(
-            SakuDateUtils.parseRequiredDate(row['date'], fieldName: 'date'),
+            SakuDateUtils.parseRequiredTimestamp(
+              row['date'],
+              fieldName: 'date',
+            ),
           );
           dailyMap.putIfAbsent(dateStr, () => {'income': 0.0, 'expense': 0.0});
           final amount = _toDouble(row['total_amount']);

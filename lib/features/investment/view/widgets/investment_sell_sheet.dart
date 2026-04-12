@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/investment/controllers/investment_controller.dart';
@@ -52,16 +53,20 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
   @override
   void initState() {
     super.initState();
-    _dateController = TextEditingController(
-      text:
-          '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-    );
+    _dateController = TextEditingController();
+    _syncDateText();
     // Pre-fill sell price with effective price from prices controller
     final pricesState = ref.read(investmentPricesProvider);
     final effectivePrice = pricesState.getEffectivePrice(_asset);
     if (effectivePrice > 0) {
       _priceController.setDoubleValue(effectivePrice);
     }
+  }
+
+  void _syncDateText() {
+    _dateController.text = _selectedDate.extToFormattedString(
+      outputDateFormat: 'dd/MM/yyyy HH:mm',
+    );
   }
 
   @override
@@ -161,13 +166,27 @@ class _InvestmentSellSheetState extends ConsumerState<InvestmentSellSheet> {
                   firstDate: DateTime(2020),
                   lastDate: DateTime.now().add(const Duration(days: 1)),
                 );
-                if (picked != null) {
-                  setState(() {
-                    _selectedDate = picked;
-                    _dateController.text =
-                        '${picked.day}/${picked.month}/${picked.year}';
-                  });
-                }
+                if (picked == null || !context.mounted) return;
+
+                final pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                );
+                if (!context.mounted) return;
+
+                final resolvedTime =
+                    pickedTime ?? TimeOfDay.fromDateTime(_selectedDate);
+
+                setState(() {
+                  _selectedDate = DateTime(
+                    picked.year,
+                    picked.month,
+                    picked.day,
+                    resolvedTime.hour,
+                    resolvedTime.minute,
+                  );
+                  _syncDateText();
+                });
               },
             ),
             SizedBox(height: 16.h),

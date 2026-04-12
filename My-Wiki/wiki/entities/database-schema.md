@@ -106,7 +106,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | destination_wallet_id | uuid nullable FK | wallet tujuan untuk transfer |
 | type | text not null | `income`, `expense`, `transfer`, `debt`, `loan`, `adjustment`, `transfer_to_asset` |
 | total_amount | numeric not null | grand total |
-| date | date not null | tanggal kalender transaksi |
+| date | timestamptz not null default now() | waktu transaksi UTC |
 | merchant_name | text nullable | |
 | note | text nullable | catatan header |
 | attachment_url | text nullable | |
@@ -120,7 +120,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-**Catatan:** `date` dan `due_date` adalah field kalender murni (`YYYY-MM-DD`). Timestamp audit tetap ada di `created_at` dan `updated_at` sebagai `timestamptz`.
+**Catatan:** `date` adalah point-in-time transaksi yang disimpan sebagai `timestamptz` (UTC) lalu dirender lokal di client. `due_date` tetap field kalender murni (`YYYY-MM-DD`).
 
 **Constraint:**
 - `total_amount > 0`
@@ -261,7 +261,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | wallet_id | uuid nullable FK → wallets | wallet terkait |
 | deduct_wallet | boolean not null default false | apakah memotong/menambah saldo wallet |
 | linked_wallet_transaction_id | uuid nullable FK → transactions | transaksi wallet terkait |
-| date | date not null default current_date | tanggal transaksi kalender |
+| date | timestamptz not null default now() | waktu transaksi investasi UTC |
 | note | text nullable | |
 | created_at | timestamptz | default now() |
 
