@@ -1208,7 +1208,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Gagal menganalisis, data dari suara diisi manual';
 
   @override
-  String get voiceAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+  String get voiceAiBusy => 'AI sedang sibuk, coba lagi nanti';
 
   @override
   String get voiceTapToSpeak => 'Tekan & tahan untuk bicara';
@@ -1255,7 +1255,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.';
 
   @override
-  String get ocrAiBusy => 'AI sedang sibuk, menggunakan parser lokal';
+  String get ocrAiBusy => 'AI sedang sibuk, coba lagi nanti';
 
   @override
   String get ocrPartialResult => 'Sebagian data berhasil dibaca';
@@ -2321,4 +2321,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get investmentWalletRequired => 'Silakan pilih dompet terlebih dahulu';
+
+  @override
+  String aiQuotaRemaining(int remaining, int limit) {
+    return 'Sisa $remaining dari $limit kali hari ini';
+  }
+
+  @override
+  String get aiQuotaExhausted => 'Batas harian tercapai. Coba lagi besok.';
+
+  @override
+  String get aiQuotaText => 'Input Teks';
+
+  @override
+  String get aiQuotaVoice => 'Input Suara';
+
+  @override
+  String get aiQuotaOcr => 'Scan Struk';
+
+  @override
+  String get aiQuotaLabel => 'Kuota AI';
 }

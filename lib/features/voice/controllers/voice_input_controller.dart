@@ -258,6 +258,7 @@ class VoiceInputController extends StateNotifier<VoiceInputState> {
 
     final result = await _repository.parseVoiceText(
       transcript,
+      mode: 'voice',
       categories: categoryMaps,
     );
 

@@ -1,33 +1,30 @@
 /// Supabase Edge Function: ai-parse
 ///
 /// Menerima teks atau gambar dan mengembalikan hasil parsing
-/// terstruktur dari AI (Gemini → Groq → OpenRouter failover).
+/// terstruktur dari AI (Gemini only).
 ///
 /// Mode:
-/// - `text`: Parse teks (dari voice STT / input manual) → Gemini → Groq failover
-/// - `ocr`: Parse gambar struk (Vision AI) → Gemini → Groq → OpenRouter failover
+/// - `text`: Parse teks (input manual) → Gemini 1.5 Flash
+/// - `voice`: Parse teks (dari voice STT) → Gemini 1.5 Flash (same pipeline as text, separate quota)
+/// - `ocr`: Parse gambar struk (Vision AI) → Gemini 2.5 Flash
 ///
-/// Optimizations:
+/// Features:
 /// - Backend ID mapping: UUID → short ID (e1, i1) di prompt, reverse map di response
 /// - System/User prompt split + few-shot examples
-/// - Separate timeout: text (8s) vs vision (15s)
+/// - Daily quota check (via RPC) before AI call, log after success
+/// - Specific error codes: AI_TIMEOUT, AI_RATE_LIMIT, AI_AUTH_ERROR, AI_ERROR, DAILY_QUOTA_EXCEEDED
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
-const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
-const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
 // Timeout: text models (voice STT / text input)
-const GEMINI_TEXT_TIMEOUT_MS = 8000;
-const GROQ_TEXT_TIMEOUT_MS = 6000;
+const GEMINI_TEXT_TIMEOUT_MS = 10000;
 
 // Timeout: vision models (OCR) — proses gambar lebih berat
-const GEMINI_VISION_TIMEOUT_MS = 15000;
-const GROQ_VISION_TIMEOUT_MS = 15000;
-const OPENROUTER_VISION_TIMEOUT_MS = 15000;
+const GEMINI_VISION_TIMEOUT_MS = 20000;
 
 // ─────────────────────────────────────────────────────
 // Category ID mapping: UUID ↔ short ID
@@ -148,12 +145,18 @@ CORE RULES:
 8. "destinationWallet": ONLY for transfer (e.g. "transfer dari BCA ke GoPay"→"GoPay").
 9. "withPerson": person name for debt/loan and settlements (e.g. "hutang ke Budi"→"Budi", "bayar hutang Ani"→"Ani"). null if none.
 10. "date": today is ${today}. Convert: "kemarin"→yesterday, "tadi"/"barusan"→today, "2 hari lalu"→2 days ago, "minggu lalu"→7 days ago. No reference → null.
-11. "note": remaining descriptive text not captured by other fields.
+11. "note": Descriptive name of the item or service being transacted. MUST contain the item/service description (e.g. "Beli Degan", "Makan siang di Warteg", "Bayar listrik"). MUST NOT contain: amount/angka, date/tanggal, wallet name, person name — these belong in their own fields. If the input is just a category keyword with amount (e.g. "makan 25rb"), note should be null.
 
 FEW-SHOT EXAMPLES:
 
 Input: "beli makan 25rb pakai gopay"
 Output: {"isTransaction":true,"amount":25000,"categoryId":"e1","categoryKeyword":"makan","note":null,"type":"expense","debtLoanKind":null,"suggestedWallet":"GoPay","destinationWallet":null,"withPerson":null,"merchantName":null,"date":null}
+
+Input: "Beli Degan 10K"
+Output: {"isTransaction":true,"amount":10000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli Degan","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":null}
+
+Input: "Beli nasi goreng di warteg kemarin 15rb"
+Output: {"isTransaction":true,"amount":15000,"categoryId":"e1","categoryKeyword":"makan","note":"Beli nasi goreng di warteg","type":"expense","debtLoanKind":null,"suggestedWallet":null,"destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
 
 Input: "gaji masuk 5.5jt kemarin di BCA"
 Output: {"isTransaction":true,"amount":5500000,"categoryId":"i1","categoryKeyword":"gaji","note":null,"type":"income","debtLoanKind":null,"suggestedWallet":"BCA","destinationWallet":null,"withPerson":null,"merchantName":null,"date":"${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0]; })()}"}
@@ -208,7 +211,7 @@ CORE RULES:
 9. "destinationWallet": ONLY for transfer type.
 10. "withPerson": person name for debt/loan/debt_payment/loan_collection.
 11. "date": extract as yyyy-MM-dd. Today is ${today}. If not visible → null.
-12. "note": additional context not captured by other fields.
+12. "note": Descriptive name of the overall purchase or transaction. MUST NOT contain amounts, dates, wallet names, or person names. Example: "Belanja bulanan Indomaret". If no additional context beyond merchant + items, note should be null.
 
 FEW-SHOT EXAMPLE (expense receipt):
 Image shows: "INDOMARET - Coca Cola 2x @8.500 = 17.000, Roti Tawar 1x @12.000 = 12.000, TOTAL: 29.000, TUNAI"
@@ -251,7 +254,7 @@ async function callGemini(
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -279,44 +282,6 @@ async function callGemini(
   }
 }
 
-async function callGroq(
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{ data: unknown; provider: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GROQ_TEXT_TIMEOUT_MS);
-
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.1,
-        response_format: { type: 'json_object' },
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Groq HTTP ${res.status}: ${await res.text()}`);
-    }
-
-    const json = await res.json();
-    const rawText = json?.choices?.[0]?.message?.content ?? '';
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: 'groq' };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 // ─────────────────────────────────────────────────────
 // AI Provider calls — Vision (OCR)
 // ─────────────────────────────────────────────────────
@@ -332,7 +297,7 @@ async function callGeminiVision(
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -367,101 +332,23 @@ async function callGeminiVision(
   }
 }
 
-async function callGroqVision(
-  base64Image: string,
-  mimeType: string,
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{ data: unknown; provider: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GROQ_VISION_TIMEOUT_MS);
+// ─────────────────────────────────────────────────────
+// Error classification — specific error codes
+// ─────────────────────────────────────────────────────
 
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64Image}` },
-              },
-              { type: 'text', text: userPrompt },
-            ],
-          },
-        ],
-        temperature: 0.1,
-        response_format: { type: 'json_object' },
-      }),
-    });
+function classifyError(err: unknown): { code: string; message: string; status: number } {
+  const errMsg = err instanceof Error ? err.message : String(err);
 
-    if (!res.ok) {
-      throw new Error(`Groq Vision HTTP ${res.status}: ${await res.text()}`);
-    }
-
-    const json = await res.json();
-    const rawText = json?.choices?.[0]?.message?.content ?? '';
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: 'groq' };
-  } finally {
-    clearTimeout(timeout);
+  if (errMsg.includes('aborted') || errMsg.includes('AbortError') || errMsg.includes('timeout')) {
+    return { code: 'AI_TIMEOUT', message: 'AI request timed out. Please try again.', status: 504 };
   }
-}
-
-async function callOpenRouterVision(
-  base64Image: string,
-  mimeType: string,
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{ data: unknown; provider: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OPENROUTER_VISION_TIMEOUT_MS);
-
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: 'google/gemma-3-27b-it:free',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64Image}` },
-              },
-              { type: 'text', text: userPrompt },
-            ],
-          },
-        ],
-        temperature: 0.1,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`OpenRouter Vision HTTP ${res.status}: ${await res.text()}`);
-    }
-
-    const json = await res.json();
-    const rawText = json?.choices?.[0]?.message?.content ?? '';
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: 'openrouter' };
-  } finally {
-    clearTimeout(timeout);
+  if (errMsg.includes('429') || errMsg.includes('rate limit') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+    return { code: 'AI_RATE_LIMIT', message: 'AI service is rate limited. Please wait a moment.', status: 429 };
   }
+  if (errMsg.includes('401') || errMsg.includes('403') || errMsg.includes('PERMISSION_DENIED')) {
+    return { code: 'AI_AUTH_ERROR', message: 'AI service authentication error.', status: 502 };
+  }
+  return { code: 'AI_ERROR', message: `AI processing failed: ${errMsg}`, status: 503 };
 }
 
 // ─────────────────────────────────────────────────────
@@ -510,7 +397,7 @@ Deno.serve(async (req) => {
 
     // ── Parse request body ──
     const body = await req.json();
-    const mode: string = body.mode; // 'text' | 'ocr'
+    const mode: string = body.mode; // 'text' | 'voice' | 'ocr'
 
     if (!mode) {
       return new Response(
@@ -519,10 +406,41 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (mode !== 'text' && mode !== 'ocr') {
+    if (mode !== 'text' && mode !== 'voice' && mode !== 'ocr') {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid mode. Use "text" or "ocr".' }),
+        JSON.stringify({ success: false, error: 'Invalid mode. Use "text", "voice", or "ocr".' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ── Quota check (before AI call) ──
+    const { data: quotaData, error: quotaError } = await supabase.rpc('check_ai_quota', {
+      p_mode: mode,
+    });
+
+    if (quotaError) {
+      console.error('[ai-parse] Quota check error:', quotaError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to check quota' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (!quotaData?.allowed) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          mode,
+          error: 'DAILY_QUOTA_EXCEEDED',
+          message: 'Batas harian tercapai. Coba lagi besok.',
+          quota: {
+            used: quotaData?.used ?? 0,
+            limit: quotaData?.limit ?? 0,
+            remaining: 0,
+            tier: quotaData?.tier ?? 'free',
+          },
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -530,14 +448,15 @@ Deno.serve(async (req) => {
     const categories: CategoryInput[] | undefined = body.categories;
     const mapping = buildIdMapping(categories);
 
-    // ── Try AI providers based on mode ──
+    // ── Call AI based on mode ──
     let result: { data: unknown; provider: string };
 
-    if (mode === 'text') {
+    if (mode === 'text' || mode === 'voice') {
+      // text and voice use the same text pipeline
       const text: string = body.text;
       if (!text) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Missing text for text mode' }),
+          JSON.stringify({ success: false, error: 'Missing text for text/voice mode' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
@@ -547,19 +466,16 @@ Deno.serve(async (req) => {
 
       try {
         result = await callGemini(systemPrompt, userPrompt);
-      } catch (geminiErr) {
-        console.error('[ai-parse] Gemini failed:', geminiErr);
-        try {
-          result = await callGroq(systemPrompt, userPrompt);
-        } catch (groqErr) {
-          console.error('[ai-parse] Groq failed:', groqErr);
-          return new Response(
-            JSON.stringify({ success: false, mode, error: 'AI_BUSY' }),
-            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-          );
-        }
+      } catch (err) {
+        console.error('[ai-parse] Gemini failed:', err);
+        const classified = classifyError(err);
+        return new Response(
+          JSON.stringify({ success: false, mode, error: classified.code, message: classified.message }),
+          { status: classified.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
       }
     } else {
+      // ocr mode
       const image: string = body.image;
       const mimeType: string = body.mimeType || 'image/jpeg';
 
@@ -575,23 +491,24 @@ Deno.serve(async (req) => {
 
       try {
         result = await callGeminiVision(image, mimeType, systemPrompt, userPrompt);
-      } catch (geminiErr) {
-        console.error('[ai-parse] Gemini Vision failed:', geminiErr);
-        try {
-          result = await callGroqVision(image, mimeType, systemPrompt, userPrompt);
-        } catch (groqErr) {
-          console.error('[ai-parse] Groq Vision failed:', groqErr);
-          try {
-            result = await callOpenRouterVision(image, mimeType, systemPrompt, userPrompt);
-          } catch (openrouterErr) {
-            console.error('[ai-parse] OpenRouter Vision failed:', openrouterErr);
-            return new Response(
-              JSON.stringify({ success: false, mode, error: 'AI_BUSY' }),
-              { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-            );
-          }
-        }
+      } catch (err) {
+        console.error('[ai-parse] Gemini Vision failed:', err);
+        const classified = classifyError(err);
+        return new Response(
+          JSON.stringify({ success: false, mode, error: classified.code, message: classified.message }),
+          { status: classified.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
       }
+    }
+
+    // ── Log usage (after AI success) ──
+    const { data: usageData, error: usageError } = await supabase.rpc('log_ai_usage', {
+      p_mode: mode,
+      p_provider: result.provider,
+    });
+
+    if (usageError) {
+      console.error('[ai-parse] Log usage error (non-blocking):', usageError);
     }
 
     // ── Reverse-map short IDs → UUID sebelum kirim ke client ──
@@ -600,13 +517,18 @@ Deno.serve(async (req) => {
       mapping,
     );
 
-    // ── Success response (contract client tetap sama) ──
+    // ── Success response ──
     return new Response(
       JSON.stringify({
         success: true,
         mode,
         provider: result.provider,
         data: mappedData,
+        quota: {
+          used: usageData?.used ?? null,
+          limit: usageData?.limit ?? null,
+          remaining: usageData?.remaining ?? null,
+        },
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

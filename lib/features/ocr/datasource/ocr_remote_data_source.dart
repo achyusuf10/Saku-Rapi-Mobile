@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk panggilan Edge Function OCR.
 ///
-/// Mengirim gambar (base64) langsung ke Vision AI untuk hasil yang lebih akurat.
+/// Mengirim gambar (base64) langsung ke Vision AI (Gemini) untuk parsing struk.
 /// Semua panggilan dibungkus [SupabaseHandler.call] untuk error handling.
 class OcrRemoteDataSource {
   OcrRemoteDataSource({SupabaseClient? client})
@@ -17,9 +17,9 @@ class OcrRemoteDataSource {
   final SupabaseClient _client;
   static const _tag = '[OcrRemoteDataSource]';
 
-  /// Kirim gambar struk ke Edge Function `ai-parse` mode `ocr` (Vision AI).
+  /// Kirim gambar struk ke Edge Function `ai-parse` mode `ocr` (Gemini Vision).
   ///
-  /// Gambar diencode sebagai base64 dan dikirim ke Gemini Vision / Groq Vision.
+  /// Gambar diencode sebagai base64 dan dikirim ke Gemini Vision.
   /// [categories] berisi daftar kategori expense user untuk auto-assign oleh AI.
   /// Return [DataState] berisi response map dari AI.
   Future<DataState<Map<String, dynamic>>> callAiParseImage(

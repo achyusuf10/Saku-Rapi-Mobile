@@ -6,8 +6,10 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
+import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart';
 import 'package:app_saku_rapi/features/voice/controllers/voice_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -79,6 +81,15 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
     final colors = context.colors;
     final l10n = context.l10n;
 
+    // Refresh quota setelah AI parse selesai (success atau error quota)
+    ref.listen<VoiceInputState>(voiceInputControllerProvider, (prev, next) {
+      if (prev?.status == VoiceInputStatus.processing &&
+          (next.status == VoiceInputStatus.done ||
+              next.status == VoiceInputStatus.error)) {
+        ref.invalidate(aiQuotaProvider);
+      }
+    });
+
     // Control pulse animation based on state
     if (state.status == VoiceInputStatus.listening) {
       if (!_pulseController.isAnimating) _pulseController.repeat(reverse: true);
@@ -128,6 +139,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
           ),
 
           SizedBox(height: 24.h),
+
+          // ── Quota info ──
+          const AiQuotaInfoRow(mode: 'voice'),
 
           // ── Status text ──
           _VoiceStatusText(state: state),
@@ -384,6 +398,8 @@ class _VoiceErrorDisplay extends StatelessWidget {
         ? l10n.voiceNoSpeech
         : state.errorMessage == 'not_transaction'
         ? l10n.voiceNotTransaction
+        : state.errorMessage == 'DAILY_QUOTA_EXCEEDED'
+        ? l10n.aiQuotaExhausted
         : l10n.voiceError;
 
     return Container(

@@ -9,6 +9,8 @@ import 'package:app_saku_rapi/features/category/controllers/category_controller.
 import 'package:app_saku_rapi/features/ocr/controllers/ocr_scan_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
+import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -48,6 +50,15 @@ class OcrResultSheet extends ConsumerWidget {
     final l10n = context.l10n;
     final state = ref.watch(ocrScanControllerProvider);
     final ctrl = ref.read(ocrScanControllerProvider.notifier);
+
+    // Refresh quota setelah AI parse selesai
+    ref.listen<OcrScanState>(ocrScanControllerProvider, (prev, next) {
+      if (prev?.status == OcrScanStatus.analyzingAi &&
+          (next.status == OcrScanStatus.done ||
+              next.status == OcrScanStatus.error)) {
+        ref.invalidate(aiQuotaProvider);
+      }
+    });
 
     final isAnalyzing = state.status == OcrScanStatus.analyzingAi;
 
@@ -102,6 +113,12 @@ class OcrResultSheet extends ConsumerWidget {
             ),
 
             Divider(height: 1, color: colors.border.withValues(alpha: 0.2)),
+
+            // Quota info
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+              child: const AiQuotaInfoRow(mode: 'ocr'),
+            ),
 
             // Content
             Flexible(child: _buildContent(context, ref, state, ctrl)),
@@ -259,6 +276,9 @@ class OcrResultSheet extends ConsumerWidget {
     } else if (state.errorMessage == 'PARSE_FAILED') {
       message = l10n.ocrImageBlurry;
       icon = FontAwesomeIcons.triangleExclamation;
+    } else if (state.errorMessage == 'DAILY_QUOTA_EXCEEDED') {
+      message = l10n.aiQuotaExhausted;
+      icon = FontAwesomeIcons.circleExclamation;
     } else {
       message = l10n.ocrErrorGeneric;
       icon = FontAwesomeIcons.triangleExclamation;

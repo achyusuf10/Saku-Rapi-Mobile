@@ -1210,7 +1210,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Analysis failed, data filled manually from voice';
 
   @override
-  String get voiceAiBusy => 'AI is busy, using local parser';
+  String get voiceAiBusy => 'AI is busy, please try again later';
 
   @override
   String get voiceTapToSpeak => 'Press & hold to speak';
@@ -1257,7 +1257,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Camera permission is required for receipt scanning. Please enable it in settings.';
 
   @override
-  String get ocrAiBusy => 'AI is busy, using local parser';
+  String get ocrAiBusy => 'AI is busy, please try again later';
 
   @override
   String get ocrPartialResult => 'Partial data extracted';
@@ -2320,4 +2320,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get investmentWalletRequired => 'Please select a wallet first';
+
+  @override
+  String aiQuotaRemaining(int remaining, int limit) {
+    return '$remaining of $limit remaining today';
+  }
+
+  @override
+  String get aiQuotaExhausted => 'Daily limit reached. Try again tomorrow.';
+
+  @override
+  String get aiQuotaText => 'Text Input';
+
+  @override
+  String get aiQuotaVoice => 'Voice Input';
+
+  @override
+  String get aiQuotaOcr => 'Receipt Scan';
+
+  @override
+  String get aiQuotaLabel => 'AI Quota';
 }

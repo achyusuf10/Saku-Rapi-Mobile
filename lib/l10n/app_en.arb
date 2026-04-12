@@ -554,7 +554,7 @@
   "voiceOpenSettings": "Open Settings",
   "voicePermissionExplainer": "Microphone permission is required for voice input. Please enable it in settings.",
   "voiceParseFailed": "Analysis failed, data filled manually from voice",
-  "voiceAiBusy": "AI is busy, using local parser",
+  "voiceAiBusy": "AI is busy, please try again later",
   "voiceTapToSpeak": "Press & hold to speak",
   "voiceTranscript": "Heard text",
   "voiceNotTransaction": "Input not detected as a transaction. Try again by mentioning the amount or transaction type.",
@@ -570,7 +570,7 @@
   "ocrErrorGeneric": "Failed to process image",
   "ocrPermissionDenied": "Camera permission denied",
   "ocrPermissionExplainer": "Camera permission is required for receipt scanning. Please enable it in settings.",
-  "ocrAiBusy": "AI is busy, using local parser",
+  "ocrAiBusy": "AI is busy, please try again later",
   "ocrPartialResult": "Partial data extracted",
   "ocrTotalMismatch": "Items total ({itemsTotal}) does not match receipt total ({receiptTotal})",
   "@ocrTotalMismatch": {
@@ -1126,5 +1126,18 @@
   "investmentWalletRequired": "Please select a wallet first",
   "aiParseCancelTitle": "Cancel Analysis?",
   "aiParseCancelMessage": "AI is currently analyzing data. Are you sure you want to cancel?",
-  "aiParseCancelConfirm": "Yes, Cancel"
+  "aiParseCancelConfirm": "Yes, Cancel",
+
+  "aiQuotaRemaining": "{remaining} of {limit} remaining today",
+  "@aiQuotaRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "limit": {"type": "int"}
+    }
+  },
+  "aiQuotaExhausted": "Daily limit reached. Try again tomorrow.",
+  "aiQuotaText": "Text Input",
+  "aiQuotaVoice": "Voice Input",
+  "aiQuotaOcr": "Receipt Scan",
+  "aiQuotaLabel": "AI Quota"
 }

@@ -3,10 +3,10 @@ import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/voice/datasource/voice_remote_data_source.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 
-/// Repository orkestrator untuk voice parsing.
+/// Repository orkestrator untuk voice/text parsing.
 ///
-/// Pipeline (PRD §7.5):
-/// 1. Kirim teks ke Edge Function AI (Gemini → Groq failover)
+/// Pipeline:
+/// 1. Kirim teks ke Edge Function AI (Gemini only)
 /// 2. Jika AI gagal → return DataState.error (tampilkan error + retry ke user)
 class VoiceRepository {
   VoiceRepository({VoiceRemoteDataSource? remoteDataSource})
@@ -16,17 +16,23 @@ class VoiceRepository {
 
   static const _tag = '[Voice] [VoiceRepository]';
 
-  /// Parse teks voice melalui AI pipeline.
+  /// Parse teks melalui AI pipeline.
   ///
+  /// [mode] menentukan kuota: `'text'` (keyboard input) atau `'voice'` (STT).
   /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
   /// Return DataState.error jika AI gagal — caller harus tampilkan error + retry.
   Future<DataState<VoiceParseResultModel>> parseVoiceText(
     String text, {
+    String mode = 'text',
     List<Map<String, String>> categories = const [],
   }) async {
-    AppLogger.call('$_tag parseVoiceText: "$text"');
+    AppLogger.call('$_tag parseVoiceText (mode: $mode): "$text"');
 
-    final aiResult = await _remote.callAiParse(text, categories: categories);
+    final aiResult = await _remote.callAiParse(
+      text,
+      mode: mode,
+      categories: categories,
+    );
 
     if (aiResult.isSuccess()) {
       try {

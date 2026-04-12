@@ -554,7 +554,7 @@
   "voiceOpenSettings": "Buka Pengaturan",
   "voicePermissionExplainer": "Izin mikrofon diperlukan untuk fitur input suara. Silakan aktifkan di pengaturan.",
   "voiceParseFailed": "Gagal menganalisis, data dari suara diisi manual",
-  "voiceAiBusy": "AI sedang sibuk, menggunakan parser lokal",
+  "voiceAiBusy": "AI sedang sibuk, coba lagi nanti",
   "voiceTapToSpeak": "Tekan & tahan untuk bicara",
   "voiceTranscript": "Teks terdengar",
   "voiceNotTransaction": "Input tidak terdeteksi sebagai transaksi. Coba ucapkan ulang dengan menyebutkan nominal atau jenis transaksi.",
@@ -570,7 +570,7 @@
   "ocrErrorGeneric": "Gagal memproses gambar",
   "ocrPermissionDenied": "Izin kamera ditolak",
   "ocrPermissionExplainer": "Izin kamera diperlukan untuk scan struk. Silakan aktifkan di pengaturan.",
-  "ocrAiBusy": "AI sedang sibuk, menggunakan parser lokal",
+  "ocrAiBusy": "AI sedang sibuk, coba lagi nanti",
   "ocrPartialResult": "Sebagian data berhasil dibaca",
   "ocrTotalMismatch": "Total item ({itemsTotal}) tidak cocok dengan total struk ({receiptTotal})",
   "@ocrTotalMismatch": {
@@ -1126,5 +1126,18 @@
   "investmentEditCurrentPriceHint": "Masukkan harga pasar saat ini",
   "investmentSettingsGoldType": "Jenis Emas",
   "investmentSettingsPriceSource": "Sumber Harga",
-  "investmentWalletRequired": "Silakan pilih dompet terlebih dahulu"
+  "investmentWalletRequired": "Silakan pilih dompet terlebih dahulu",
+
+  "aiQuotaRemaining": "Sisa {remaining} dari {limit} kali hari ini",
+  "@aiQuotaRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "limit": {"type": "int"}
+    }
+  },
+  "aiQuotaExhausted": "Batas harian tercapai. Coba lagi besok.",
+  "aiQuotaText": "Input Teks",
+  "aiQuotaVoice": "Input Suara",
+  "aiQuotaOcr": "Scan Struk",
+  "aiQuotaLabel": "Kuota AI"
 }

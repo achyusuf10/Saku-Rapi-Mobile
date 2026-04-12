@@ -9,7 +9,7 @@ import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 /// Repository untuk fitur OCR Receipt.
 ///
 /// Pipeline:
-/// 1. Kirim gambar ke Vision AI (Gemini → Groq failover)
+/// 1. Kirim gambar ke Vision AI (Gemini)
 /// 2. Jika AI gagal → lempar exception ke controller (tampilkan error)
 /// 3. Balancing items vs grand total
 class OcrRepository {

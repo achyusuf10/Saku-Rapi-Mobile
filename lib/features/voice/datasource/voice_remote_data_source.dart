@@ -5,7 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk voice/text feature.
 ///
-/// Menangani panggilan Edge Function `ai-parse` (mode text).
+/// Menangani panggilan Edge Function `ai-parse`.
+/// - Voice input → mode `voice`
+/// - Text input → mode `text`
 class VoiceRemoteDataSource {
   VoiceRemoteDataSource({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
@@ -13,13 +15,15 @@ class VoiceRemoteDataSource {
   final SupabaseClient _client;
   static const _tag = '[Voice] [VoiceRemoteDataSource]';
 
-  /// Kirim teks ke Edge Function `ai-parse` mode text.
+  /// Kirim teks ke Edge Function `ai-parse`.
   ///
+  /// [mode] menentukan kuota yang digunakan: `'text'` atau `'voice'`.
   /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
-  /// Returns raw response map: `{ success, mode, provider, data }`.
+  /// Returns raw response map: `{ success, mode, provider, data, quota }`.
   /// Caller bertanggung jawab parse `data` ke [VoiceParseResultModel].
   Future<DataState<Map<String, dynamic>>> callAiParse(
     String text, {
+    String mode = 'text',
     List<Map<String, String>> categories = const [],
   }) {
     return SupabaseHandler.call<Map<String, dynamic>>(
@@ -31,7 +35,7 @@ class VoiceRemoteDataSource {
 
         // Pastikan session masih valid sebelum invoke Edge Function
 
-        final body = <String, dynamic>{'mode': 'text', 'text': text};
+        final body = <String, dynamic>{'mode': mode, 'text': text};
         if (categories.isNotEmpty) {
           body['categories'] = categories;
         }

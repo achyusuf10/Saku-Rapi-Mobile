@@ -2381,7 +2381,7 @@ abstract class AppLocalizations {
   /// No description provided for @voiceAiBusy.
   ///
   /// In id, this message translates to:
-  /// **'AI sedang sibuk, menggunakan parser lokal'**
+  /// **'AI sedang sibuk, coba lagi nanti'**
   String get voiceAiBusy;
 
   /// No description provided for @voiceTapToSpeak.
@@ -2471,7 +2471,7 @@ abstract class AppLocalizations {
   /// No description provided for @ocrAiBusy.
   ///
   /// In id, this message translates to:
-  /// **'AI sedang sibuk, menggunakan parser lokal'**
+  /// **'AI sedang sibuk, coba lagi nanti'**
   String get ocrAiBusy;
 
   /// No description provided for @ocrPartialResult.
@@ -4407,6 +4407,42 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Silakan pilih dompet terlebih dahulu'**
   String get investmentWalletRequired;
+
+  /// No description provided for @aiQuotaRemaining.
+  ///
+  /// In id, this message translates to:
+  /// **'Sisa {remaining} dari {limit} kali hari ini'**
+  String aiQuotaRemaining(int remaining, int limit);
+
+  /// No description provided for @aiQuotaExhausted.
+  ///
+  /// In id, this message translates to:
+  /// **'Batas harian tercapai. Coba lagi besok.'**
+  String get aiQuotaExhausted;
+
+  /// No description provided for @aiQuotaText.
+  ///
+  /// In id, this message translates to:
+  /// **'Input Teks'**
+  String get aiQuotaText;
+
+  /// No description provided for @aiQuotaVoice.
+  ///
+  /// In id, this message translates to:
+  /// **'Input Suara'**
+  String get aiQuotaVoice;
+
+  /// No description provided for @aiQuotaOcr.
+  ///
+  /// In id, this message translates to:
+  /// **'Scan Struk'**
+  String get aiQuotaOcr;
+
+  /// No description provided for @aiQuotaLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Kuota AI'**
+  String get aiQuotaLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -6,8 +6,10 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
+import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart';
 import 'package:app_saku_rapi/features/voice/controllers/text_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,6 +63,15 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
     final state = ref.watch(textInputControllerProvider);
     final colors = context.colors;
     final l10n = context.l10n;
+
+    // Refresh quota setelah AI parse selesai (success atau error quota)
+    ref.listen<TextInputState>(textInputControllerProvider, (prev, next) {
+      if (prev?.status == TextInputStatus.processing &&
+          (next.status == TextInputStatus.done ||
+              next.status == TextInputStatus.error)) {
+        ref.invalidate(aiQuotaProvider);
+      }
+    });
 
     final isProcessing = state.status == TextInputStatus.processing;
 
@@ -117,7 +128,12 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
               textAlign: TextAlign.center,
             ),
 
-            SizedBox(height: 16.h),
+            SizedBox(height: 8.h),
+
+            // ── Quota info ──
+            const AiQuotaInfoRow(mode: 'text'),
+
+            SizedBox(height: 8.h),
 
             // ── Text field ──
             if (state.status != TextInputStatus.done) ...[
@@ -213,6 +229,8 @@ class _TextErrorDisplay extends StatelessWidget {
 
     final message = errorMessage == 'not_transaction'
         ? l10n.voiceNotTransaction
+        : errorMessage == 'DAILY_QUOTA_EXCEEDED'
+        ? l10n.aiQuotaExhausted
         : l10n.textInputError;
 
     return Container(
