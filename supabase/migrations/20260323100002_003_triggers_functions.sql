@@ -4,7 +4,7 @@
 -- Sesuai 02_DATABASE.md §3.1:
 --   1. handle_new_user()        – after insert on auth.users
 --   2. seed_default_categories()– after insert on public.users
---   3. seed_notification_settings() – after insert on public.users
+--   3. seed_notification_settings() – [dihapus di migration 015]
 --   4. update_wallet_balance()  – after insert/update/delete on transactions
 --   5. update_budget_usage()    – after insert/update/delete on transaction_items
 --   6. set_updated_at()         – before update on all mutable tables
