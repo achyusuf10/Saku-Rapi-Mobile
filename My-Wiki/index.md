@@ -11,11 +11,11 @@ updated: 2026-04-12
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 33 |
+| Total halaman | 34 |
 | Sumber diproses | 6 |
 | Entitas | 18 |
 | Konsep | 7 |
-| Analisis | 2 |
+| Analisis | 3 |
 
 ---
 
@@ -71,3 +71,4 @@ updated: 2026-04-12
 
 - [[wiki/analysis/remove-notification|Penghapusan Fitur Notifikasi]] — Analisis keputusan, scope perubahan, dan catatan implementasi penghapusan fitur notifikasi lokal
 - [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] — Analisis keputusan menghapus budget alert, daily reminder, dan debt reminder dari app layer
+- [[wiki/analysis/remove-manual-parsing|Penghapusan Manual Parsing Fallback]] — Refactor OCR + Voice + Text Input: fallback lokal (regex + parsing_dictionaries) dihapus, AI fail → error + retry

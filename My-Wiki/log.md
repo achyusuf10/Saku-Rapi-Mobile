@@ -148,3 +148,14 @@ updated: 2026-04-10
   - TABLE `notification_settings` (CASCADE: trigger updated_at + 2 RLS policies)
   - COLUMNS `notification_sent_50/80/100` dari tabel `budgets`
 - **Wiki diperbarui**: `wiki/analysis/remove-notification.md` (section Supabase Changes ditambahkan)
+
+## [2026-04-12] refactor | Remove manual parsing fallback (OCR + Voice + Text)
+
+- **Tujuan**: Hapus semua jalur fallback parsing lokal (regex + `parsing_dictionaries`) dari ketiga fitur AI input
+- **File dihapus**: `ocr_local_parser.dart`, `voice_local_parser.dart`, `parsing_dictionary_model.dart`, `voice_local_data_source.dart`, dan test-test terkait
+- **Packages dihapus**: `google_mlkit_text_recognition`, `sqflite`
+- **Flutter diubah**: `OcrImageService` (hapus ML Kit), `OcrRepository` (hapus `parseTextLocally`), `OcrScanController` (hapus status `extractingText`), `VoiceRepository` (disederhanakan, hapus `_localFallback()`), `AppConstants` (hapus `cacheTtlDictionary`), ARB (hapus `ocrExtractingText`)
+- **Supabase Migration 016**: Drop tabel `parsing_dictionaries` (CASCADE)
+- **Error handling baru**: AI fail → `DataState.error` → UI error state + retry button (tidak ada silent fallback)
+- **Test**: 505 passed, 7 pre-existing failures
+- **Wiki baru**: `wiki/analysis/remove-manual-parsing.md`
