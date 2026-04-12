@@ -23,7 +23,7 @@ Edge function `ai-parse` punya beberapa isu:
 
 | Mode | Sebelum | Sesudah |
 |------|---------|---------|
-| Text (voice/text input) | `gemini-2.5-flash` → `groq (llama-3.3-70b)` | **`gemini-1.5-flash`** only |
+| Text (voice/text input) | `gemini-2.5-flash` → `groq (llama-3.3-70b)` | **`gemini-2.5-flash-lite`** only |
 | OCR (scan struk) | `gemini-2.5-flash-lite` → `groq (llama-4-scout)` → `openrouter (gemma-3-27b)` | **`gemini-2.5-flash`** only |
 
 Yang dihapus:
@@ -50,11 +50,12 @@ If the input is just a category keyword with amount (e.g. "makan 25rb"), note ca
 
 ### C. Error Messages Lebih Spesifik
 
-| HTTP Status dari Gemini | Error code ke client |
+| HTTP Status dari AI backend | Error code ke client |
 |-------------------------|---------------------|
 | Timeout (AbortController) | `AI_TIMEOUT` |
 | 429 (rate limit) | `AI_RATE_LIMIT` |
 | 401/403 (auth) | `AI_AUTH_ERROR` |
+| 404 / config invalid | `AI_CONFIG_ERROR` |
 | Other errors | `AI_ERROR` + detail message |
 | Quota exceeded (daily limit) | `DAILY_QUOTA_EXCEEDED` + remaining info |
 
@@ -345,7 +346,7 @@ aiQuotaOcr: "Scan Struk"
 
 ### Phase 2: Edge Function Refactor
 3. `ap-remove-fallbacks` — Hapus Groq + OpenRouter functions, constants, dan fallback chains
-4. `ap-update-models` — Ganti model: text=`gemini-1.5-flash`, OCR=`gemini-2.5-flash`
+4. `ap-update-models` — Ganti model: text=`gemini-2.5-flash-lite`, OCR=`gemini-2.5-flash`
 5. `ap-fix-note-prompt` — Perbaiki rule `note` di system prompt text + OCR, tambah few-shot examples
 6. `ap-improve-errors` — Error messages spesifik (AI_TIMEOUT, AI_RATE_LIMIT, AI_ERROR)
 7. `ap-add-quota-check` — Tambah quota check (before AI) + log usage (after AI success) + accept mode text/voice/ocr
@@ -370,8 +371,9 @@ aiQuotaOcr: "Scan Struk"
 | Keputusan | Pilihan | Alasan |
 |-----------|---------|--------|
 | Provider | Gemini only | User request, simplifikasi |
-| Text model | `gemini-1.5-flash` | User request |
+| Text model | `gemini-2.5-flash-lite` | Bugfix setelah model lama retired |
 | Vision model | `gemini-2.5-flash` | User request |
+| AI auth | Vertex AI service auth | Tidak lagi pakai `GEMINI_API_KEY` |
 | Quota check | SEBELUM call AI | Hemat cost, UX lebih cepat |
 | Log usage | SETELAH AI berhasil | AI gagal = quota tidak berkurang |
 | Tier storage | `tier` + `tier_expires_at` di `users` | Simple, auto-downgrade tanpa cron |

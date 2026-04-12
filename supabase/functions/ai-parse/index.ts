@@ -1,12 +1,12 @@
 /// Supabase Edge Function: ai-parse
 ///
 /// Menerima teks atau gambar dan mengembalikan hasil parsing
-/// terstruktur dari AI (Gemini only).
+/// terstruktur dari AI (Vertex AI Gemini only).
 ///
 /// Mode:
-/// - `text`: Parse teks (input manual) → Gemini 1.5 Flash
-/// - `voice`: Parse teks (dari voice STT) → Gemini 1.5 Flash (same pipeline as text, separate quota)
-/// - `ocr`: Parse gambar struk (Vision AI) → Gemini 2.5 Flash
+/// - `text`: Parse teks (input manual) → Gemini 2.5 Flash Lite via Vertex AI
+/// - `voice`: Parse teks (dari voice STT) → Gemini 2.5 Flash Lite via Vertex AI
+/// - `ocr`: Parse gambar struk (Vision AI) → Gemini 2.5 Flash via Vertex AI
 ///
 /// Features:
 /// - Backend ID mapping: UUID → short ID (e1, i1) di prompt, reverse map di response
@@ -16,15 +16,27 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
+const GCP_LOCATION = Deno.env.get('GCP_LOCATION') ?? 'global';
+const GCP_SERVICE_ACCOUNT_JSON = Deno.env.get('GCP_SERVICE_ACCOUNT_JSON') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const TEXT_MODEL = 'gemini-2.5-flash-lite';
+const VISION_MODEL = 'gemini-2.5-flash';
+const GOOGLE_OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const VERTEX_AI_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 
 // Timeout: text models (voice STT / text input)
 const GEMINI_TEXT_TIMEOUT_MS = 10000;
 
 // Timeout: vision models (OCR) — proses gambar lebih berat
 const GEMINI_VISION_TIMEOUT_MS = 20000;
+
+let vertexAccessTokenCache:
+  | {
+      accessToken: string;
+      expiresAtMs: number;
+    }
+  | null = null;
 
 // ─────────────────────────────────────────────────────
 // Category ID mapping: UUID ↔ short ID
@@ -241,95 +253,245 @@ function sanitizeJson(raw: string): string {
   return cleaned.trim();
 }
 
-// ─────────────────────────────────────────────────────
-// AI Provider calls — Text
-// ─────────────────────────────────────────────────────
+function encodeBase64Url(input: Uint8Array | string): string {
+  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
 
-async function callGemini(
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<{ data: unknown; provider: string }> {
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const cleanPem = pem
+    .replace('-----BEGIN PRIVATE KEY-----', '')
+    .replace('-----END PRIVATE KEY-----', '')
+    .replace(/\s+/g, '');
+  const binary = atob(cleanPem);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes.buffer;
+}
+
+function getServiceAccountCredentials(): {
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
+} {
+  if (!GCP_SERVICE_ACCOUNT_JSON) {
+    throw new Error('Vertex AI credentials are not configured. Set GCP_SERVICE_ACCOUNT_JSON.');
+  }
+
+  const parsed = JSON.parse(GCP_SERVICE_ACCOUNT_JSON) as {
+    project_id?: string;
+    client_email?: string;
+    private_key?: string;
+  };
+
+  if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
+    throw new Error(
+      'GCP_SERVICE_ACCOUNT_JSON is invalid. Required fields: project_id, client_email, private_key.',
+    );
+  }
+
+  return {
+    projectId: parsed.project_id,
+    clientEmail: parsed.client_email,
+    privateKey: parsed.private_key.replace(/\\n/g, '\n'),
+  };
+}
+
+async function signServiceAccountJwt(
+  clientEmail: string,
+  privateKey: string,
+): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: clientEmail,
+    scope: VERTEX_AI_SCOPE,
+    aud: GOOGLE_OAUTH_TOKEN_URL,
+    exp: now + 3600,
+    iat: now,
+  };
+  const unsignedToken = `${encodeBase64Url(JSON.stringify(header))}.${encodeBase64Url(
+    JSON.stringify(payload),
+  )}`;
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    pemToArrayBuffer(privateKey),
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: 'SHA-256',
+    },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    new TextEncoder().encode(unsignedToken),
+  );
+
+  return `${unsignedToken}.${encodeBase64Url(new Uint8Array(signature))}`;
+}
+
+async function getVertexAccessToken(): Promise<string> {
+  if (vertexAccessTokenCache && vertexAccessTokenCache.expiresAtMs > Date.now() + 60_000) {
+    return vertexAccessTokenCache.accessToken;
+  }
+
+  const { clientEmail, privateKey } = getServiceAccountCredentials();
+  const assertion = await signServiceAccountJwt(clientEmail, privateKey);
+  const tokenResponse = await fetch(GOOGLE_OAUTH_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion,
+    }),
+  });
+
+  if (!tokenResponse.ok) {
+    throw new Error(`Vertex auth HTTP ${tokenResponse.status}: ${await tokenResponse.text()}`);
+  }
+
+  const tokenJson = (await tokenResponse.json()) as {
+    access_token?: string;
+    expires_in?: number;
+  };
+
+  if (!tokenJson.access_token || !tokenJson.expires_in) {
+    throw new Error('Vertex auth response is missing access_token or expires_in.');
+  }
+
+  vertexAccessTokenCache = {
+    accessToken: tokenJson.access_token,
+    expiresAtMs: Date.now() + tokenJson.expires_in * 1000,
+  };
+
+  return tokenJson.access_token;
+}
+
+function buildVertexGenerateContentUrl(model: string): string {
+  const { projectId } = getServiceAccountCredentials();
+  return `https://aiplatform.googleapis.com/v1/projects/${projectId}/locations/${GCP_LOCATION}/publishers/google/models/${model}:generateContent`;
+}
+
+function extractResponseText(json: Record<string, unknown>): string {
+  const candidates = json.candidates as Array<Record<string, unknown>> | undefined;
+  const parts =
+    (candidates?.[0]?.content as Record<string, unknown> | undefined)?.parts as
+      | Array<Record<string, unknown>>
+      | undefined;
+
+  return (
+    parts
+      ?.map((part) => (typeof part.text === 'string' ? part.text : ''))
+      .join('')
+      .trim() ?? ''
+  );
+}
+
+async function callVertexGenerateContent({
+  model,
+  timeoutMs,
+  systemPrompt,
+  parts,
+}: {
+  model: string;
+  timeoutMs: number;
+  systemPrompt: string;
+  parts: Array<Record<string, unknown>>;
+}): Promise<{ data: unknown; provider: string }> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEMINI_TEXT_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: userPrompt }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.1,
-          },
-        }),
+    const accessToken = await getVertexAccessToken();
+    const res = await fetch(buildVertexGenerateContentUrl(model), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-    );
+      signal: controller.signal,
+      body: JSON.stringify({
+        systemInstruction: {
+          role: 'system',
+          parts: [{ text: systemPrompt }],
+        },
+        contents: [
+          {
+            role: 'user',
+            parts,
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+        },
+      }),
+    });
 
     if (!res.ok) {
-      throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
+      throw new Error(`Vertex AI HTTP ${res.status}: ${await res.text()}`);
     }
 
-    const json = await res.json();
-    const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: 'gemini' };
+    const json = (await res.json()) as Record<string, unknown>;
+    const rawText = extractResponseText(json);
+    return { data: JSON.parse(sanitizeJson(rawText)), provider: model };
   } finally {
     clearTimeout(timeout);
   }
 }
 
 // ─────────────────────────────────────────────────────
+// AI Provider calls — Text
+// ─────────────────────────────────────────────────────
+
+async function callVertexText(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ data: unknown; provider: string }> {
+  return callVertexGenerateContent({
+    model: TEXT_MODEL,
+    timeoutMs: GEMINI_TEXT_TIMEOUT_MS,
+    systemPrompt,
+    parts: [{ text: userPrompt }],
+  });
+}
+
+// ─────────────────────────────────────────────────────
 // AI Provider calls — Vision (OCR)
 // ─────────────────────────────────────────────────────
 
-async function callGeminiVision(
+async function callVertexVision(
   base64Image: string,
   mimeType: string,
   systemPrompt: string,
   userPrompt: string,
 ): Promise<{ data: unknown; provider: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEMINI_VISION_TIMEOUT_MS);
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  return callVertexGenerateContent({
+    model: VISION_MODEL,
+    timeoutMs: GEMINI_VISION_TIMEOUT_MS,
+    systemPrompt,
+    parts: [
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [
-            {
-              parts: [
-                { inline_data: { mime_type: mimeType, data: base64Image } },
-                { text: userPrompt },
-              ],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.1,
-          },
-        }),
+        inlineData: {
+          mimeType,
+          data: base64Image,
+        },
       },
-    );
-
-    if (!res.ok) {
-      throw new Error(`Gemini Vision HTTP ${res.status}: ${await res.text()}`);
-    }
-
-    const json = await res.json();
-    const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: 'gemini' };
-  } finally {
-    clearTimeout(timeout);
-  }
+      { text: userPrompt },
+    ],
+  });
 }
 
 // ─────────────────────────────────────────────────────
@@ -341,6 +503,18 @@ function classifyError(err: unknown): { code: string; message: string; status: n
 
   if (errMsg.includes('aborted') || errMsg.includes('AbortError') || errMsg.includes('timeout')) {
     return { code: 'AI_TIMEOUT', message: 'AI request timed out. Please try again.', status: 504 };
+  }
+  if (
+    errMsg.includes('404') ||
+    errMsg.includes('not found') ||
+    errMsg.includes('Vertex AI credentials are not configured') ||
+    errMsg.includes('GCP_SERVICE_ACCOUNT_JSON is invalid')
+  ) {
+    return {
+      code: 'AI_CONFIG_ERROR',
+      message: 'AI service configuration error. Please contact support.',
+      status: 502,
+    };
   }
   if (errMsg.includes('429') || errMsg.includes('rate limit') || errMsg.includes('RESOURCE_EXHAUSTED')) {
     return { code: 'AI_RATE_LIMIT', message: 'AI service is rate limited. Please wait a moment.', status: 429 };
@@ -465,9 +639,9 @@ Deno.serve(async (req) => {
       const userPrompt = buildTextUserPrompt(text, mapping);
 
       try {
-        result = await callGemini(systemPrompt, userPrompt);
+        result = await callVertexText(systemPrompt, userPrompt);
       } catch (err) {
-        console.error('[ai-parse] Gemini failed:', err);
+        console.error('[ai-parse] Vertex text failed:', err);
         const classified = classifyError(err);
         return new Response(
           JSON.stringify({ success: false, mode, error: classified.code, message: classified.message }),
@@ -490,9 +664,9 @@ Deno.serve(async (req) => {
       const userPrompt = buildOcrUserPrompt(mapping);
 
       try {
-        result = await callGeminiVision(image, mimeType, systemPrompt, userPrompt);
+        result = await callVertexVision(image, mimeType, systemPrompt, userPrompt);
       } catch (err) {
-        console.error('[ai-parse] Gemini Vision failed:', err);
+        console.error('[ai-parse] Vertex vision failed:', err);
         const classified = classifyError(err);
         return new Response(
           JSON.stringify({ success: false, mode, error: classified.code, message: classified.message }),

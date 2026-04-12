@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/voice/models/ai_quota_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source untuk voice/text feature.
@@ -58,4 +59,27 @@ class VoiceRemoteDataSource {
       },
     );
   }
+
+  /// Ambil semua kuota AI user saat ini dari RPC `get_all_ai_quotas`.
+  ///
+  /// Termasuk auto-downgrade tier jika expired.
+  /// Returns [AllAiQuotasModel] berisi kuota text/voice/ocr dan tier aktif.
+  Future<DataState<AllAiQuotasModel>> getAllAiQuotas() {
+    return SupabaseHandler.call<AllAiQuotasModel>(
+      function: () async {
+        AppLogger.call('$_tag getAllAiQuotas', colorLog: ColorLog.blue);
+
+        final response = await _client.rpc('get_all_ai_quotas');
+
+        if (response == null) {
+          throw Exception('get_all_ai_quotas returned null');
+        }
+
+        return AllAiQuotasModel.fromRpcResponse(
+          response as Map<String, dynamic>,
+        );
+      },
+    );
+  }
 }
+

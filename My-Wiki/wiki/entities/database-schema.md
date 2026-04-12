@@ -374,7 +374,7 @@ Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
 | id | uuid PK | default gen_random_uuid() |
 | user_id | uuid FK | references users(id) on delete cascade |
 | mode | text not null | 'text', 'voice', atau 'ocr' |
-| provider | text not null | e.g. 'gemini-1.5-flash' |
+| provider | text not null | e.g. 'gemini-2.5-flash-lite', 'gemini-2.5-flash' |
 | created_at | timestamptz | default now() |
 
 **Index:** (user_id, mode, created_at) untuk query kuota harian

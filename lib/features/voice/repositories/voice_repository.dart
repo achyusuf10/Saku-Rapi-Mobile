@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/voice/datasource/voice_remote_data_source.dart';
+import 'package:app_saku_rapi/features/voice/models/ai_quota_model.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 
 /// Repository orkestrator untuk voice/text parsing.
@@ -55,4 +56,23 @@ class VoiceRepository {
     AppLogger.call('$_tag AI failed: $msg');
     return DataState.error(message: msg);
   }
+
+  /// Ambil semua kuota AI user saat ini.
+  ///
+  /// Digunakan oleh [aiQuotaProvider] untuk ditampilkan di bottom sheet.
+  /// Delegates ke [VoiceRemoteDataSource.getAllAiQuotas].
+  Future<AllAiQuotasModel> getAllAiQuotas() async {
+    final result = await _remote.getAllAiQuotas();
+    return result.map(
+      success: (s) => s.data,
+      error: (err) {
+        AppLogger.logError(
+          '$_tag getAllAiQuotas error: ${err.message}',
+          runtimeType: VoiceRepository,
+        );
+        throw Exception(err.message);
+      },
+    );
+  }
 }
+
