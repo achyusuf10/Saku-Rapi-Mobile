@@ -166,9 +166,9 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | start_date | date not null | |
 | end_date | date not null | |
 | is_recurring | boolean not null default false | auto clone |
-| notification_sent_50 | boolean not null default false | |
-| notification_sent_80 | boolean not null default false | |
-| notification_sent_100 | boolean not null default false | |
+| notification_sent_50 | boolean not null default false | **Dihapus di Migration 015** |
+| notification_sent_80 | boolean not null default false | **Dihapus di Migration 015** |
+| notification_sent_100 | boolean not null default false | **Dihapus di Migration 015** |
 | carry_forward | boolean not null default false | rollover sisa positif ke periode baru |
 | period_type | text not null default 'monthly' | `weekly`, `monthly`, `quarterly`, `yearly`, `custom` |
 | created_at | timestamptz | |
@@ -308,7 +308,9 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 14. `notification_settings`
+### 14. `notification_settings` ⚠️ DIHAPUS
+
+> **Dihapus di Migration 015** (`20260412100000_015_remove_notification.sql`). Tabel ini tidak ada lagi di database. `DROP TABLE notification_settings CASCADE` juga menghapus trigger `trg_notification_settings_updated_at` dan RLS policies `notification_settings_select_own` / `notification_settings_update_own`.
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -351,10 +353,10 @@ Lihat detail di: [[wiki/entities/contacts|Contacts]]
 |---|---|---|
 | `handle_new_user()` | after insert on `auth.users` | upsert `public.users` |
 | `seed_default_categories()` | after insert on `public.users` | insert kategori default |
-| `seed_notification_settings()` | after insert on `public.users` | insert default notification settings |
+| `seed_notification_settings()` | after insert on `public.users` | insert default notification settings — **Dihapus di Migration 015** |
 | `update_wallet_balance()` | after insert/update/delete on `transactions` | update saldo wallet |
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
-| `set_updated_at()` | before update | applied to: wallets, categories, transactions, budgets, notification_settings, contacts, investment_assets, custom_gold_types, custom_asset_categories (10 tabel) |
+| `set_updated_at()` | before update | applied to: wallets, categories, transactions, budgets, contacts, investment_assets, custom_gold_types, custom_asset_categories (9 tabel; `notification_settings` dihapus di Migration 015) |
 | `auto_renew_budgets()` | pg_cron daily | clone recurring budgets; period-aware date calculation; carry_forward support; reset notification flags |
 | `check_max_custom_gold_types()` | before insert on `custom_gold_types` | max 2 jenis emas custom per user |
 | `check_max_custom_asset_categories()` | before insert on `custom_asset_categories` | max 3 kategori custom per user |
@@ -410,9 +412,11 @@ Lihat detail di: [[wiki/entities/contacts|Contacts]]
 
 ## RLS (Row Level Security)
 
-### Tabel yang dilindungi RLS (15 tabel)
+### Tabel yang dilindungi RLS (14 tabel)
 
-users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, notification_settings, contacts.
+users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts.
+
+> `notification_settings` dihapus di Migration 015 — tidak lagi ada di daftar ini.
 
 ### Prinsip RLS
 

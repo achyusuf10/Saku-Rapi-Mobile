@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-10
+updated: 2026-04-12
 ---
 
 # 📚 Indeks Wiki SakuRapi

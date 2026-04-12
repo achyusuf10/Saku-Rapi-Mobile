@@ -139,3 +139,12 @@ updated: 2026-04-10
   - `wiki/entities/settings.md` — referensi Notification Settings diupdate
   - `index.md` — 33 halaman (18 entitas, 7 konsep, 6 sumber, 2 analisis)
 - **Konteks**: Fitur notifikasi dihapus karena inkonsistensi trigger, debt reminder setengah jadi, dan overhead dependencies besar vs nilai yang dihasilkan
+
+## [2026-04-12] refactor | Remove Notification dari Supabase (Migration 015)
+
+- **Migration**: `20260412100000_015_remove_notification.sql`
+- **Dihapus**:
+  - TRIGGER `trg_seed_notification_settings` + FUNCTION `seed_notification_settings()`
+  - TABLE `notification_settings` (CASCADE: trigger updated_at + 2 RLS policies)
+  - COLUMNS `notification_sent_50/80/100` dari tabel `budgets`
+- **Wiki diperbarui**: `wiki/analysis/remove-notification.md` (section Supabase Changes ditambahkan)

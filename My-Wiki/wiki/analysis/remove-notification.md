@@ -73,6 +73,27 @@ Debt reminder: toggle dan settings-nya ada di UI dan DB, tapi **logika pengirima
 
 ---
 
+## Supabase Changes (Migration 015)
+
+File: `supabase/migrations/20260412100000_015_remove_notification.sql`
+
+### Dihapus dari Database
+
+| Object | Type | Detail |
+|--------|------|--------|
+| `trg_seed_notification_settings` | TRIGGER | Trigger on `users` yang auto-seed notification settings saat user baru |
+| `seed_notification_settings()` | FUNCTION | Function yang di-trigger di atas |
+| `notification_settings` | TABLE | Tabel preferensi notifikasi per-user — CASCADE hapus trigger `trg_notification_settings_updated_at` dan semua RLS policies |
+| `budgets.notification_sent_50` | COLUMN | Flag 50% budget terpakai |
+| `budgets.notification_sent_80` | COLUMN | Flag 80% budget terpakai |
+| `budgets.notification_sent_100` | COLUMN | Flag 100% budget terpakai |
+
+### Catatan
+- `DROP TABLE notification_settings CASCADE` otomatis menghapus: trigger `trg_notification_settings_updated_at`, policy `notification_settings_select_own`, policy `notification_settings_update_own`
+- Migration dapat dijalankan via `supabase db push` atau langsung di Supabase dashboard SQL editor
+
+---
+
 ## Halaman Terkait
 - [[wiki/entities/budgeting|Budgeting]]
 - [[wiki/entities/notifikasi|Notifikasi]]
