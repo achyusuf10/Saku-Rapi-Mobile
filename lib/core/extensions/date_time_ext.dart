@@ -19,7 +19,7 @@ extension DateTimeNullExtension on DateTime? {
     return DateFormat(
       outputDateFormat,
       outputLocale ?? appContext?.locale.languageCode,
-    ).format(this ?? DateTime(1900, 1, 1, 1, 1));
+    ).format((this ?? DateTime(1900, 1, 1, 1, 1)).toLocal());
   }
 
   /// Converts a [DateTime] object to a formatted time string.
@@ -34,7 +34,7 @@ extension DateTimeNullExtension on DateTime? {
     return DateFormat(
       formatToTime,
       appContext?.locale.languageCode,
-    ).format(this ?? DateTime.now());
+    ).format((this ?? DateTime.now()).toLocal());
   }
 
   /// Converts the [DateTime] object to a formatted string in the format "dd MMMM yyyy".
@@ -45,13 +45,13 @@ extension DateTimeNullExtension on DateTime? {
     return DateFormat(
       'dd MMMM yyyy',
       appContext?.locale.languageCode,
-    ).format(this ?? DateTime.now());
+    ).format((this ?? DateTime.now()).toLocal());
   }
 
   /// * Start From Sunday to Saturday
   List<DateTime> extGetDaysInWeek() {
     if (this == null) return [];
-    final now = this;
+    final now = this?.toLocal();
     final startFrom = now!.subtract(Duration(days: now.weekday));
     final list = List.generate(8, (i) => startFrom.add(Duration(days: i)));
     list.removeLast();
@@ -62,9 +62,9 @@ extension DateTimeNullExtension on DateTime? {
   /// Returns `true` if they are the same, `false` otherwise.
   bool extIsSameDayMonthYear(DateTime date) {
     if (this == null) return false;
-    return date.year == this?.year &&
-        date.month == this?.month &&
-        date.day == this?.day;
+    return date.year == (this?.toLocal())?.year &&
+        date.month == (this?.toLocal())?.month &&
+        date.day == (this?.toLocal())?.day;
   }
 
   bool extIsSameDayMonthYearHoursMinute(DateTime date) {
@@ -77,14 +77,15 @@ extension DateTimeNullExtension on DateTime? {
   /// Returns true if they are in the same year, false otherwise.
   bool extIsSameYear(DateTime date) {
     if (this == null) return false;
-    return this?.year == date.year;
+    return (this?.toLocal())?.year == date.year;
   }
 
   /// Checks if the current DateTime object is in the same month and year as the given [date].
   /// Returns true if the month and year are the same, otherwise returns false.
   bool extIsSameMonthYear(DateTime date) {
     if (this == null) return false;
-    return this?.month == date.month && this?.year == date.year;
+    return (this?.toLocal())?.month == date.month &&
+        (this?.toLocal())?.year == date.year;
   }
 
   /// Returns a string representation of the time difference between the current DateTime object and the DateTime object it is called on.

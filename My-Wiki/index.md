@@ -11,11 +11,11 @@ updated: 2026-04-12
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 35 |
+| Total halaman | 36 |
 | Sumber diproses | 6 |
 | Entitas | 18 |
 | Konsep | 7 |
-| Analisis | 4 |
+| Analisis | 5 |
 
 ---
 
@@ -73,3 +73,4 @@ updated: 2026-04-12
 - [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] — Analisis keputusan menghapus budget alert, daily reminder, dan debt reminder dari app layer
 - [[wiki/analysis/remove-manual-parsing|Penghapusan Manual Parsing Fallback]] — Refactor OCR + Voice + Text Input: fallback lokal (regex + parsing_dictionaries) dihapus, AI fail → error + retry
 - [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse: Gemini-Only + Quota]] — Simplifikasi ke Gemini saja, perbaikan note quality, daily quota system (free/premium tier), auto-downgrade
+- [[wiki/analysis/refactor-gold-price-gemini-only|Refactor Gold Price: Vertex Gemini-Only]] — Penyederhanaan gold-price ke Vertex AI Gemini 2.5 Flash saja, scrape-first tetap dipertahankan, Groq/OpenRouter dihapus

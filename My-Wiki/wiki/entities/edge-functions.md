@@ -16,7 +16,7 @@ Edge Functions SakuRapi adalah server-side functions yang berjalan di atas **Den
 | Nama | Tujuan | External API |
 |------|--------|-------------|
 | `ai-parse` | Parsing voice/text/OCR ke struktur transaksi + quota check | Vertex AI Gemini (2.5 Flash Lite text/voice, 2.5 Flash OCR) |
-| `gold-price` | Harga emas Antam terkini | harga-emas.org → Gemini (parsing) |
+| `gold-price` | Harga emas Antam terkini | harga-emas.org / antaremas.com → Vertex AI Gemini 2.5 Flash |
 | `bitcoin-price` | Harga Bitcoin/IDR terkini | Indodax API → CoinGecko |
 
 Lokasi: `supabase/functions/`
@@ -89,8 +89,10 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 ## Detail: `gold-price`
 
 - Dipanggil oleh Flutter saat refresh harga emas
-- Mengambil harga emas Antam dari harga-emas.org
-- Mem-parse HTML/data menggunakan Gemini
+- Mengambil harga emas Antam dari `antaremas.com` dan `harga-emas.org`
+- Prioritas utama: scrape / parse source langsung
+- Fallback AI: **Vertex AI Gemini 2.5 Flash** saja
+- Groq dan OpenRouter sudah dihapus dari fallback chain
 - Cache hasil 1 hari di `gold_prices` table
 - Juga dipicu oleh **cron job** (pg_cron) — berjalan terjadwal di server
 
@@ -109,7 +111,7 @@ Flutter App
   ├── CoinGecko (langsung, cache Hive 12j)
   └── Supabase Client
         ├── Edge Function: ai-parse → Vertex AI Gemini (+ quota RPC)
-        ├── Edge Function: gold-price → harga-emas.org
+        ├── Edge Function: gold-price → antaremas.com / harga-emas.org → Vertex AI Gemini
         └── Edge Function: bitcoin-price → Indodax/CoinGecko
 ```
 
