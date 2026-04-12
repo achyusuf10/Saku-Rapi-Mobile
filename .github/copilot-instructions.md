@@ -5,14 +5,21 @@ Backend is Supabase (Postgres + Edge Functions). Full PRD is split across 27 fil
 
 ## Source-of-Truth Documents
 
-Read these before implementing any feature:
+### 🗂️ Wiki (Prioritas Utama)
 
-| Priority | Document | Covers |
-|----------|----------|--------|
-| 1 | `docs/02_DATABASE.md` | Schema, constraints, triggers, RPC functions |
-| 2 | `docs/prd/00_INDEX.md` | Product requirements (navigates to 27 PRD files) |
-| 3 | `docs/03_COPILOT_RULES.md` | Full implementation guardrails & conventions |
-| 4 | `docs/00_SakuRapi_Coding_Rules.md` | Coding rules (takes priority over `03_COPILOT_RULES.md` on conflicts) |
+**`My-Wiki/`** adalah knowledge base yang sudah dikompilasi dari semua dokumen di bawah. Baca wiki **sebelum** membaca raw docs — lebih cepat dan sudah ter-sintesis.
+
+**Cara pakai wiki:**
+1. Baca `My-Wiki/index.md` untuk melihat semua halaman yang tersedia
+2. Buka halaman yang relevan di `My-Wiki/wiki/` sesuai fitur yang dikerjakan
+3. Halaman wiki paling penting:
+   - `My-Wiki/wiki/entities/database-schema.md` — skema DB lengkap (15 tabel, triggers, RPC)
+   - `My-Wiki/wiki/concepts/aturan-keuangan.md` — financial guardrails non-negotiable
+   - `My-Wiki/wiki/concepts/arsitektur-app.md` — tech stack, 3-file pattern, conventions
+   - `My-Wiki/wiki/concepts/coding-rules.md` — aturan coding, forbidden actions
+   - `My-Wiki/wiki/concepts/design-system.md` — "Financial Trust" design system (colors, typography)
+   - `My-Wiki/wiki/entities/{feature}.md` — detail per fitur (wallet, transaksi, budgeting, dll)
+   - `My-Wiki/wiki/concepts/coding-rules.md` — coding rules, forbidden actions, best practices
 
 ## Build & Run
 

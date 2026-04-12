@@ -95,8 +95,8 @@ updated: YYYY-MM-DD
 
 ## Halaman Terkait
 
-- [[wiki/entities/xxx|XXX]]
-- [[wiki/concepts/yyy|YYY]]
+- `[[wiki/entities/xxx|XXX]]`
+- `[[wiki/concepts/yyy|YYY]]`
 ```
 
 ## Operasi

@@ -67,3 +67,4 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 - [[wiki/concepts/aturan-keuangan|Aturan Keuangan]]
 - [[wiki/concepts/matrix-transaksi|Matrix Transaksi]]
 - [[wiki/concepts/design-system|Design System — Financial Trust]]
+- [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]

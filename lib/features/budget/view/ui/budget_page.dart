@@ -10,8 +10,6 @@ import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_group_card.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_shimmer.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_summary_card.dart';
-import 'package:app_saku_rapi/features/notification/controllers/budget_alert_checker.dart';
-import 'package:app_saku_rapi/features/notification/controllers/notification_controller.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
@@ -48,13 +46,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
         ref.read(budgetControllerProvider.notifier).loadBudgets();
       }
 
-      // Listen budget state → check budget alerts after load.
-      ref.listenManual(budgetControllerProvider, (prev, next) {
-        if (prev?.status != BudgetStatus.loaded &&
-            next.status == BudgetStatus.loaded) {
-          _checkBudgetAlerts(next);
-        }
-      });
+
     });
   }
 
@@ -62,21 +54,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
   void dispose() {
     _tabController?.dispose();
     super.dispose();
-  }
-
-  /// Cek budget alerts setelah budget list berhasil di-load.
-  void _checkBudgetAlerts(BudgetState budgetState) {
-    final checker = ref.read(budgetAlertCheckerProvider);
-    final budgetAlertEnabled = ref.read(isBudgetAlertEnabledProvider);
-    final budgetAlert50Enabled = ref.read(isBudgetAlert50EnabledProvider);
-    final l10n = context.l10n;
-
-    checker.checkBudgets(
-      budgetState: budgetState,
-      budgetAlertEnabled: budgetAlertEnabled,
-      budgetAlert50Enabled: budgetAlert50Enabled,
-      l10n: l10n,
-    );
   }
 
   void _syncTabController(List<String> types) {

@@ -19,7 +19,7 @@ import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page
 import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
-import 'package:app_saku_rapi/features/notification/view/ui/notification_settings_page.dart';
+
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_category_transactions_page.dart';
@@ -88,7 +88,7 @@ class AppRouter {
   static const String reports = '/reports';
   static const String reportCategoryTransactions =
       '/reports/category-transactions';
-  static const String notificationSettings = '/notification-settings';
+
 
   static const String debtLoan = '/debt-loan';
   static const String debtLoanPerson = '/debt-loan/person';
@@ -272,12 +272,6 @@ class AppRouter {
             return ReportCategoryTransactionsPage(argument: extra);
           },
         ),
-        GoRoute(
-          path: notificationSettings,
-          parentNavigatorKey: navigatorKey,
-          builder: (context, state) => const NotificationSettingsPage(),
-        ),
-
         GoRoute(
           path: debtLoan,
           parentNavigatorKey: navigatorKey,

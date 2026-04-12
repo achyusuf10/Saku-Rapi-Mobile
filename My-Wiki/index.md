@@ -11,11 +11,11 @@ updated: 2026-04-10
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 28 |
+| Total halaman | 31 |
 | Sumber diproses | 5 |
-| Entitas | 16 |
+| Entitas | 18 |
 | Konsep | 7 |
-| Analisis | 0 |
+| Analisis | 1 |
 
 ---
 
@@ -39,6 +39,8 @@ updated: 2026-04-10
 - [[wiki/entities/categories|Categories]] — Sistem kategori (expense, income, system) dengan hierarki 2-level
 - [[wiki/entities/contacts|Contacts]] — Manajemen kontak untuk hutang/piutang
 - [[wiki/entities/reports|Reports]] — Laporan keuangan (summary, pie chart, trend chart, per kategori)
+- [[wiki/entities/edge-functions|Edge Functions]] — Supabase Edge Functions (ai-parse, gold-price, bitcoin-price) berbasis Deno + TypeScript
+- [[wiki/entities/notifikasi|Notifikasi]] — Sistem notifikasi lokal (daily reminder, budget alert, pengingat piutang)
 
 ## 💡 Konsep
 
@@ -66,4 +68,4 @@ updated: 2026-04-10
 
 <!-- Perbandingan, evaluasi, sintesis -->
 
-_Belum ada analisis._
+- [[wiki/analysis/remove-notification|Penghapusan Fitur Notifikasi]] — Analisis keputusan, scope perubahan, dan catatan implementasi penghapusan fitur notifikasi lokal

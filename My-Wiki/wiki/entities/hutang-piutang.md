@@ -115,3 +115,4 @@ Hutang/Piutang menggunakan **7 RPC functions** terkait:
 - [[wiki/entities/contacts|Contacts]]
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]]
 - [[wiki/concepts/design-system|Design System]]
+- [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]

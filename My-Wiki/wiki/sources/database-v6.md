@@ -156,7 +156,7 @@ Dokumen ini adalah **otoritas tertinggi** untuk schema database. Jika ada konfli
 
 ## Halaman Terkait
 
-- [[wiki/concepts/database-schema|Database Schema]]
+- [[wiki/entities/database-schema|Database Schema]]
 - [[wiki/entities/wallet|Wallet]]
 - [[wiki/entities/transaksi|Transaksi]]
 - [[wiki/entities/budgeting|Budgeting]]

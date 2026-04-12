@@ -18,7 +18,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 ///
 /// Sections:
 /// 1. Profil header (avatar, nama, email)
-/// 2. Akun — Kategori, Notifikasi
+/// 2. Akun — Kategori
 /// 3. Preferensi — Tema, Bahasa
 /// 4. Data — Export/Import (coming soon)
 /// 5. Lainnya — App version, Logout
@@ -78,11 +78,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 label: l10n.profileDebtLoan,
                 onTap: () => context.push(AppRouter.debtLoan),
               ),
-              SettingsTile(
-                icon: FontAwesomeIcons.bell,
-                label: l10n.profileNotifications,
-                onTap: () => context.push(AppRouter.notificationSettings),
-              ),
+
             ],
           ),
 

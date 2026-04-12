@@ -213,5 +213,5 @@ Dokumen ini adalah panduan implementasi yang paling komprehensif untuk Copilot/A
 - [[wiki/concepts/arsitektur-app|Arsitektur App]]
 - [[wiki/concepts/aturan-keuangan|Aturan Keuangan]]
 - [[wiki/sources/coding-rules|Coding Rules (source)]]
-- [[wiki/concepts/database-schema|Database Schema]]
+- [[wiki/entities/database-schema|Database Schema]]
 - [[wiki/concepts/roadmap-status|Roadmap & Status]]

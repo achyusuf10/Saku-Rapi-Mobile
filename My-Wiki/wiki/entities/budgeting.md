@@ -179,3 +179,4 @@ Sistem alert yang memeriksa penggunaan budget dan memberikan notifikasi bertingk
 - [[wiki/entities/categories|Categories]]
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]]
 - [[wiki/concepts/design-system|Design System]]
+- [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]

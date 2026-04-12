@@ -38,14 +38,12 @@ class BudgetModel {
     this.periodType = BudgetPeriodType.monthly,
     this.isRecurring = false,
     this.carryForward = false,
-    this.notificationSent50 = false,
-    this.notificationSent80 = false,
-    this.notificationSent100 = false,
     this.createdAt,
     this.updatedAt,
     this.category,
     this.wallet,
   });
+
 
   /// UUID primary key.
   final String id;
@@ -79,15 +77,6 @@ class BudgetModel {
 
   /// Sisa positif diteruskan ke budget berikutnya saat renew.
   final bool carryForward;
-
-  /// Flag notifikasi 50% sudah dikirim.
-  final bool notificationSent50;
-
-  /// Flag notifikasi 80% sudah dikirim.
-  final bool notificationSent80;
-
-  /// Flag notifikasi 100% sudah dikirim.
-  final bool notificationSent100;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -174,9 +163,6 @@ class BudgetModel {
       ),
       isRecurring: (map['is_recurring'] as bool?) ?? false,
       carryForward: (map['carry_forward'] as bool?) ?? false,
-      notificationSent50: (map['notification_sent_50'] as bool?) ?? false,
-      notificationSent80: (map['notification_sent_80'] as bool?) ?? false,
-      notificationSent100: (map['notification_sent_100'] as bool?) ?? false,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
           : null,
@@ -235,9 +221,6 @@ class BudgetModel {
       'period_type': periodType.value,
       'is_recurring': isRecurring,
       'carry_forward': carryForward,
-      'notification_sent_50': notificationSent50,
-      'notification_sent_80': notificationSent80,
-      'notification_sent_100': notificationSent100,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       if (category != null) 'categories': category!.toFullMap(),
@@ -257,9 +240,6 @@ class BudgetModel {
     BudgetPeriodType? periodType,
     bool? isRecurring,
     bool? carryForward,
-    bool? notificationSent50,
-    bool? notificationSent80,
-    bool? notificationSent100,
     DateTime? createdAt,
     DateTime? updatedAt,
     CategoryModel? category,
@@ -277,9 +257,6 @@ class BudgetModel {
       periodType: periodType ?? this.periodType,
       isRecurring: isRecurring ?? this.isRecurring,
       carryForward: carryForward ?? this.carryForward,
-      notificationSent50: notificationSent50 ?? this.notificationSent50,
-      notificationSent80: notificationSent80 ?? this.notificationSent80,
-      notificationSent100: notificationSent100 ?? this.notificationSent100,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       category: category ?? this.category,

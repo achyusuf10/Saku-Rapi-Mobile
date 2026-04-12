@@ -201,6 +201,8 @@
   },
   "active": "268b96cf52a59215",
   "lastOpenFiles": [
+    "wiki/entities/notifikasi.md",
+    "wiki/entities/edge-functions.md",
     "wiki/sources/redesign-ui-ux.md",
     "wiki/entities/reports.md",
     "wiki/concepts/design-system.md",
@@ -226,8 +228,6 @@
     "raw/docs/redesign-ui-ux/S10_INVESTMENT.md",
     "raw/docs/redesign-ui-ux/00_REDESIGN_OVERVIEW.md",
     "raw/docs/redesign-ui-ux",
-    "wiki/entities/budgeting.md",
-    "wiki/concepts/roadmap-status.md",
     "raw/docs/prd"
   ]
 }

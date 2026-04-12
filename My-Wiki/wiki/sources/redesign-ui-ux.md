@@ -2,6 +2,7 @@
 title: "UI/UX Redesign — Financial Trust"
 type: source
 tags: [redesign, ui-ux, design-system, theme, financial-trust]
+updated: 2026-04-10
 sources:
   - raw/docs/redesign-ui-ux/00_REDESIGN_OVERVIEW.md
   - raw/docs/redesign-ui-ux/S1_DESIGN_TOKENS.md

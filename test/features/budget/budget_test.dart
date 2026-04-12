@@ -14,9 +14,6 @@ BudgetModel _budget({
   DateTime? endDate,
   BudgetPeriodType periodType = BudgetPeriodType.monthly,
   bool isRecurring = false,
-  bool notificationSent50 = false,
-  bool notificationSent80 = false,
-  bool notificationSent100 = false,
   bool carryForward = false,
 }) {
   return BudgetModel(
@@ -29,9 +26,6 @@ BudgetModel _budget({
     endDate: endDate ?? DateTime(2025, 1, 31),
     periodType: periodType,
     isRecurring: isRecurring,
-    notificationSent50: notificationSent50,
-    notificationSent80: notificationSent80,
-    notificationSent100: notificationSent100,
     carryForward: carryForward,
   );
 }
@@ -167,8 +161,6 @@ void main() {
       expect(budget.endDate, DateTime(2025, 1, 31));
       expect(budget.periodType, BudgetPeriodType.monthly);
       expect(budget.isRecurring, isTrue);
-      expect(budget.notificationSent80, isFalse);
-      expect(budget.notificationSent100, isFalse);
       expect(budget.createdAt, isNotNull);
       expect(budget.updatedAt, isNotNull);
     });
@@ -602,31 +594,6 @@ void main() {
       final viaCopyWith = existing.copyWith(walletId: null);
       // copyWith with null value keeps old value — this is the limitation
       expect(viaCopyWith.walletId, 'w1'); // NOT null
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────
-  // BudgetModel — notification flags
-  // ─────────────────────────────────────────────────────────────
-  group('BudgetModel — notification flags', () {
-    test('defaults all notification flags to false', () {
-      final budget = _budget();
-      expect(budget.notificationSent50, isFalse);
-      expect(budget.notificationSent80, isFalse);
-      expect(budget.notificationSent100, isFalse);
-    });
-
-    test('notification flags preserved in toFullMap roundtrip', () {
-      final budget = _budget(
-        notificationSent50: true,
-        notificationSent80: true,
-        notificationSent100: false,
-      );
-      final map = budget.toFullMap();
-      final restored = BudgetModel.fromMap(map);
-      expect(restored.notificationSent50, isTrue);
-      expect(restored.notificationSent80, isTrue);
-      expect(restored.notificationSent100, isFalse);
     });
   });
 

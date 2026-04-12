@@ -134,3 +134,4 @@ Form investasi mendukung tiga mode operasi:
 - [[wiki/entities/database-schema|Database Schema]]
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]]
 - [[wiki/concepts/design-system|Design System]]
+- [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]

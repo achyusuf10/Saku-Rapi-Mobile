@@ -99,3 +99,30 @@ updated: 2026-04-10
   - `wiki/concepts/design-system.md` — "Financial Trust" design system (colors, typography, widget rules)
   - `wiki/entities/reports.md` — Fitur laporan keuangan (summary, charts, trend)
 - **Total halaman wiki**: 28 (16 entitas, 7 konsep, 5 sumber, 0 analisis)
+
+## [2026-04-10] lint | Wiki health check — 3 fixes, 4 suggestions implemented
+
+- **Issues diperbaiki (dari lint scan):**
+  - Broken link `wiki/concepts/database-schema` → `wiki/entities/database-schema` di 2 file (copilot-rules, database-v6)
+  - Missing `updated:` frontmatter di `sources/redesign-ui-ux.md`
+- **Saran diimplementasi:**
+  - **Halaman baru**: `wiki/entities/edge-functions.md` (Deno, ai-parse, gold-price, bitcoin-price)
+  - **Halaman baru**: `wiki/entities/notifikasi.md` (local notifications, budget alert, daily reminder)
+  - **Konektivitas sumber**: `redesign-ui-ux` source link ditambah ke 9 entity pages
+  - **SCHEMA.md**: Placeholder wikilinks `xxx`/`yyy` dibungkus backtick agar tidak muncul di Obsidian graph
+- **Total halaman wiki**: 30 (18 entitas, 7 konsep, 5 sumber, 0 analisis)
+
+## [2026-04-12] refactor | Penghapusan Fitur Notifikasi & Budget Alert
+
+- **Alasan**: Inkonsistensi behavior (alert di-trigger saat page load, bukan transaksi masuk), debt reminder belum terimplementasi, 4 deps besar untuk fitur yang belum matang
+- **Flutter — dihapus**:
+  - `lib/features/notification/` (seluruh folder, 7 file)
+  - `BudgetModel`: field `notificationSent50/80/100` + fromMap/toFullMap/copyWith
+  - `budget_page.dart`: `_checkBudgetAlerts()` + listener
+  - `settings_page.dart`: menu item Notifications
+  - `app_router.dart`: route `/notification-settings`
+  - `main.dart`: WorkManager, NotificationService.init(), timezone init
+  - `pubspec.yaml`: `flutter_local_notifications`, `workmanager`, `timezone`
+  - `AndroidManifest.xml`: `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `POST_NOTIFICATIONS`
+- **Tetap ada**: `permission_handler` (OCR/Voice/Contacts), DB table `notification_settings`, kolom `notification_sent_*` di `budgets`
+- **Wiki baru**: `wiki/analysis/remove-notification.md`

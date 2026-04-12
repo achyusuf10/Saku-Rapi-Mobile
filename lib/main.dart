@@ -4,7 +4,6 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
-import 'package:app_saku_rapi/features/notification/services/notification_service.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
@@ -19,33 +18,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tzLocal;
-import 'package:workmanager/workmanager.dart';
-
-/// Callback WorkManager untuk background tasks.
-///
-/// Harus berupa fungsi top-level (tidak boleh di dalam kelas).
-/// Digunakan untuk menjadwalkan ulang notifikasi setelah perangkat restart.
-@pragma('vm:entry-point')
-void _workmanagerCallbackDispatcher() {
-  Workmanager().executeTask((taskName, inputData) async {
-    AppLogger.call(
-      '[WorkManager] Background task: $taskName',
-      colorLog: ColorLog.blue,
-    );
-    // Re-inisialisasi timezone di isolate WorkManager.
-    tz.initializeTimeZones();
-    tzLocal.setLocalLocation(tzLocal.getLocation('Asia/Jakarta'));
-
-    // Re-inisialisasi Hive dan notification untuk re-sync jadwal.
-    await HiveService.instance();
-    await NotificationService.instance.init();
-
-    return Future.value(true);
-  });
-}
+import 'package:talker_riverpod_logger/talker_riverpod_logger_observer.dart';
+import 'package:talker_riverpod_logger/talker_riverpod_logger_settings.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,15 +34,8 @@ Future<void> bootstrap() async {
     ),
   );
 
-  // Inisialisasi timezone untuk scheduled notifications.
-  tz.initializeTimeZones();
-  tzLocal.setLocalLocation(tzLocal.getLocation('Asia/Jakarta'));
-
   // Inisialisasi Hive (encrypted box).
   await HiveService.instance();
-
-  // Inisialisasi notification service.
-  await NotificationService.instance.init();
 
   AppLogger.call(
     'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
