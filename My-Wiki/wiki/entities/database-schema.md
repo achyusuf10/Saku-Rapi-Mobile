@@ -29,7 +29,7 @@ updated: 2026-04-10
 
 ---
 
-## Schema (15 Tabel)
+## Schema (17 Tabel)
 
 ### 1. `public.users`
 
@@ -39,6 +39,8 @@ updated: 2026-04-10
 | email | text not null | email user |
 | full_name | text | nama tampilan |
 | avatar_url | text nullable | URL storage |
+| tier | text not null | default 'free', tier langganan (free/premium) |
+| tier_expires_at | timestamptz nullable | kapan tier expired, null = permanen |
 | created_at | timestamptz | default now() |
 | updated_at | timestamptz | auto update |
 
@@ -347,6 +349,41 @@ Lihat detail di: [[wiki/entities/contacts|Contacts]]
 
 ---
 
+### 16. `ai_usage_quotas`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| tier | text not null | 'free' atau 'premium' |
+| mode | text not null | 'text', 'voice', atau 'ocr' |
+| daily_limit | int not null | batas per hari |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | auto update |
+
+**Constraint:** UNIQUE(tier, mode)
+**RLS:** select untuk semua authenticated users
+
+Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
+
+---
+
+### 17. `ai_usage_logs`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| user_id | uuid FK | references users(id) on delete cascade |
+| mode | text not null | 'text', 'voice', atau 'ocr' |
+| provider | text not null | e.g. 'gemini-1.5-flash' |
+| created_at | timestamptz | default now() |
+
+**Index:** (user_id, mode, created_at) untuk query kuota harian
+**RLS:** select hanya row milik sendiri (user_id = auth.uid())
+
+Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse]]
+
+---
+
 ## Triggers & Functions
 
 | Nama | Event | Tujuan |
@@ -408,13 +445,21 @@ Lihat detail di: [[wiki/entities/contacts|Contacts]]
 
 > **Catatan:** Semua Investment RPC menggunakan `auth.uid()` secara internal, **BUKAN** menerima `p_user_id` sebagai parameter. Flutter boleh memanggil RPC melalui RemoteDataSource. Jangan membangun multi-step write yang rentan race condition langsung dari client.
 
+### AI Quota RPCs
+
+- **`check_ai_quota(p_mode)`** — Cek apakah user masih punya kuota AI. Auto-downgrade jika tier expired.
+- **`log_ai_usage(p_mode, p_provider)`** — Catat penggunaan AI setelah parse berhasil. Return `{used, limit, remaining}`.
+- **`get_all_ai_quotas()`** — Ambil semua kuota user (text/voice/ocr) untuk UI. Auto-downgrade jika expired.
+
+> **Catatan:** Semua AI Quota RPC menggunakan `SECURITY DEFINER` dan `auth.uid()` internal. Batas hari menggunakan timezone `Asia/Jakarta`.
+
 ---
 
 ## RLS (Row Level Security)
 
-### Tabel yang dilindungi RLS (14 tabel)
+### Tabel yang dilindungi RLS (16 tabel)
 
-users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts.
+users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts, ai_usage_quotas, ai_usage_logs.
 
 > `notification_settings` dihapus di Migration 015 — tidak lagi ada di daftar ini.
 

@@ -11,11 +11,11 @@ updated: 2026-04-12
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 34 |
+| Total halaman | 35 |
 | Sumber diproses | 6 |
 | Entitas | 18 |
 | Konsep | 7 |
-| Analisis | 3 |
+| Analisis | 4 |
 
 ---
 
@@ -35,7 +35,7 @@ updated: 2026-04-12
 - [[wiki/entities/ocr-receipt|OCR Receipt]] — Scan struk belanja dengan OCR dan AI parsing
 - [[wiki/entities/history|History]] — Riwayat transaksi dengan filter, period, dan pagination
 - [[wiki/entities/settings|Settings]] — Pengaturan aplikasi, notifikasi, dan preferensi
-- [[wiki/entities/database-schema|Database Schema]] — 15 tabel Supabase/Postgres, triggers, RPC, indexes, RLS
+- [[wiki/entities/database-schema|Database Schema]] — 17 tabel Supabase/Postgres, triggers, RPC, indexes, RLS
 - [[wiki/entities/categories|Categories]] — Sistem kategori (expense, income, system) dengan hierarki 2-level
 - [[wiki/entities/contacts|Contacts]] — Manajemen kontak untuk hutang/piutang
 - [[wiki/entities/reports|Reports]] — Laporan keuangan (summary, pie chart, trend chart, per kategori)
@@ -72,3 +72,4 @@ updated: 2026-04-12
 - [[wiki/analysis/remove-notification|Penghapusan Fitur Notifikasi]] — Analisis keputusan, scope perubahan, dan catatan implementasi penghapusan fitur notifikasi lokal
 - [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] — Analisis keputusan menghapus budget alert, daily reminder, dan debt reminder dari app layer
 - [[wiki/analysis/remove-manual-parsing|Penghapusan Manual Parsing Fallback]] — Refactor OCR + Voice + Text Input: fallback lokal (regex + parsing_dictionaries) dihapus, AI fail → error + retry
+- [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse: Gemini-Only + Quota]] — Simplifikasi ke Gemini saja, perbaikan note quality, daily quota system (free/premium tier), auto-downgrade
