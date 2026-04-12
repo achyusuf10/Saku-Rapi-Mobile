@@ -86,20 +86,19 @@ Budgeting adalah fitur anggaran di SakuRapi yang memungkinkan user menetapkan ba
 | **Projected** | Berdasarkan spending rate saat ini, proyeksi total pengeluaran akhir periode |
 | **Actual Daily** | Rata-rata pengeluaran aktual per hari dalam periode ini |
 
-## Budget Alert
+## Budget Alert (Dihapus)
 
-### BudgetAlertChecker
+> ⚠️ Sistem Budget Alert (notifikasi lokal saat threshold 50%/80%/100%) **telah dihapus** dari app layer pada April 2026. Lihat [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] untuk detail.
 
-Sistem alert yang memeriksa penggunaan budget dan memberikan notifikasi bertingkat:
+Progress bar masih menampilkan warna berdasarkan threshold:
+| Persentase | Warna | Arti |
+|-----------|-------|------|
+| < 60% | 🟢 Hijau | Aman |
+| 60–79% | 🟡 Kuning | Perlu perhatian |
+| 80–99% | 🟠 Oranye | Hampir habis |
+| ≥ 100% | 🔴 Merah | Melebihi budget |
 
-| Threshold | Pesan |
-|-----------|-------|
-| **50%** | Sudah menggunakan setengah anggaran |
-| **80%** | Anggaran hampir habis |
-| **100%** | Anggaran sudah terlampaui |
-
-- Alert di-trigger **saat halaman load** (bukan push notification).
-- Setiap threshold hanya muncul sekali per periode budget.
+Field `notification_sent_50/80/100` masih ada di tabel `budgets` di DB (tidak dihapus).
 
 ## Database Schema (`budgets`)
 
@@ -151,13 +150,6 @@ Sistem alert yang memeriksa penggunaan budget dan memberikan notifikasi bertingk
 │  pg_cron: auto_renew_budgets           │
 │  → Carry-forward sisa positif          │
 │  → Budget baru otomatis                │
-└──────────────┬─────────────────────────┘
-               │
-               ▼
-┌────────────────────────────────────────┐
-│  Alert (saat page load)                │
-│  BudgetAlertChecker                    │
-│  → 50% / 80% / 100% threshold         │
 └────────────────────────────────────────┘
 ```
 
@@ -165,7 +157,7 @@ Sistem alert yang memeriksa penggunaan budget dan memberikan notifikasi bertingk
 2. Setiap transaksi expense yang sesuai kategori & scope otomatis terhitung.
 3. UI menampilkan progress (gauge, bar, stats) secara real-time.
 4. Saat periode berakhir, pg_cron membuat budget baru (dengan carry-forward jika ada sisa).
-5. BudgetAlertChecker memeriksa threshold saat user membuka halaman budget.
+5. ~~BudgetAlertChecker memeriksa threshold saat user membuka halaman budget.~~ *(Fitur notifikasi dihapus — lihat [Keputusan: Hapus Notifikasi](wiki/analysis/keputusan-hapus-notifikasi))*
 
 ## Halaman Terkait
 
@@ -180,3 +172,4 @@ Sistem alert yang memeriksa penggunaan budget dan memberikan notifikasi bertingk
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]]
 - [[wiki/concepts/design-system|Design System]]
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]
+- [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]]

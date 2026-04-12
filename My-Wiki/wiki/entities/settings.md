@@ -24,7 +24,7 @@ Halaman settings adalah pusat pengaturan aplikasi SakuRapi. Mencakup informasi p
 | **Profile** | Info profil | Read-only, ditampilkan dari data Supabase Auth |
 | **Akun** | Categories | Kelola kategori transaksi |
 | | Debt/Loan | Kelola hutang & piutang |
-| | Notifications | Pengaturan notifikasi |
+| | ~~Notifications~~ | *(Dihapus April 2026 — lihat [[wiki/analysis/keputusan-hapus-notifikasi\|Keputusan: Hapus Notifikasi]])* |
 | **Preferensi** | Theme | Light / Dark / System |
 | | Language | Bahasa aplikasi |
 | | Entry Point | Titik masuk default pencatatan transaksi |
@@ -34,7 +34,11 @@ Halaman settings adalah pusat pengaturan aplikasi SakuRapi. Mencakup informasi p
 
 ### Notification Settings
 
-| Notifikasi | Detail | Status |
+> ⚠️ **Dihapus April 2026** — Menu Notifications dan halaman `/notification-settings` telah dihapus dari Settings. Lihat [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] untuk detail.
+
+Sebelum dihapus, settings notifikasi mencakup:
+
+| Notifikasi | Detail | Status (lama) |
 |------------|--------|--------|
 | **Daily Reminder** | Menggunakan `zonedSchedule` dengan timezone `Asia/Jakarta` | ✅ Implementasi |
 | **Budget Alert** | Trigger pada **50%**, **80%**, dan **100%** penggunaan budget | ✅ Implementasi |
@@ -42,10 +46,12 @@ Halaman settings adalah pusat pengaturan aplikasi SakuRapi. Mencakup informasi p
 
 ### Notification Channels
 
-Aplikasi menggunakan **2 notification channels**:
+> ⚠️ Channels berikut sudah tidak digunakan setelah penghapusan fitur notifikasi (April 2026):
 
-1. **`saku_rapi_reminder`** — Untuk daily reminder
-2. **`saku_rapi_budget`** — Untuk budget alert
+~~Aplikasi menggunakan **2 notification channels**:~~
+
+1. ~~**`saku_rapi_reminder`** — Untuk daily reminder~~
+2. ~~**`saku_rapi_budget`** — Untuk budget alert~~
 
 ### Preferences (Hive-Persisted)
 

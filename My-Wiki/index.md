@@ -11,11 +11,11 @@ updated: 2026-04-10
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 31 |
-| Sumber diproses | 5 |
+| Total halaman | 33 |
+| Sumber diproses | 6 |
 | Entitas | 18 |
 | Konsep | 7 |
-| Analisis | 1 |
+| Analisis | 2 |
 
 ---
 
@@ -63,9 +63,11 @@ updated: 2026-04-10
 - [[wiki/sources/database-v6|Database v6.4 (Sumber)]] — Ringkasan 02_DATABASE.md (15 tabel, triggers, RPC, indexes)
 - [[wiki/sources/copilot-rules|Copilot Rules (Sumber)]] — Ringkasan 03_COPILOT_RULES.md (guardrails, conventions, testing)
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]] — Ringkasan 13 file redesign (S1-S12, design tokens, widget overhaul, per-module specs)
+- [[wiki/sources/plan-remove-notification|Plan: Hapus Fitur Notifikasi]] — Rencana dan dokumentasi penghapusan fitur notifikasi lokal (April 2026)
 
 ## 🔬 Analisis
 
 <!-- Perbandingan, evaluasi, sintesis -->
 
 - [[wiki/analysis/remove-notification|Penghapusan Fitur Notifikasi]] — Analisis keputusan, scope perubahan, dan catatan implementasi penghapusan fitur notifikasi lokal
+- [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]] — Analisis keputusan menghapus budget alert, daily reminder, dan debt reminder dari app layer

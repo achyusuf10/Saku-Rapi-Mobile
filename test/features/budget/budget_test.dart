@@ -143,8 +143,6 @@ void main() {
         'end_date': '2025-01-31',
         'period_type': 'monthly',
         'is_recurring': true,
-        'notification_sent_80': false,
-        'notification_sent_100': false,
         'created_at': '2025-01-01T00:00:00.000Z',
         'updated_at': '2025-01-15T12:00:00.000Z',
       };
@@ -229,14 +227,12 @@ void main() {
   });
 
   group('BudgetModel — toInsertMap', () {
-    test('excludes id, used_amount, notification flags, timestamps', () {
+    test('excludes id, used_amount, timestamps', () {
       final budget = _budget();
       final map = budget.toInsertMap();
 
       expect(map.containsKey('id'), isFalse);
       expect(map.containsKey('used_amount'), isFalse);
-      expect(map.containsKey('notification_sent_80'), isFalse);
-      expect(map.containsKey('notification_sent_100'), isFalse);
       expect(map.containsKey('created_at'), isFalse);
       expect(map.containsKey('updated_at'), isFalse);
       expect(map['user_id'], 'u1');
@@ -269,8 +265,6 @@ void main() {
       expect(map['user_id'], 'u1');
       expect(map['amount'], 500000);
       expect(map['used_amount'], 200000);
-      expect(map['notification_sent_80'], isFalse);
-      expect(map['notification_sent_100'], isFalse);
     });
   });
 

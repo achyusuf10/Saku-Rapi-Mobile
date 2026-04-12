@@ -126,3 +126,16 @@ updated: 2026-04-10
   - `AndroidManifest.xml`: `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `POST_NOTIFICATIONS`
 - **Tetap ada**: `permission_handler` (OCR/Voice/Contacts), DB table `notification_settings`, kolom `notification_sent_*` di `budgets`
 - **Wiki baru**: `wiki/analysis/remove-notification.md`
+
+## [2026-04-12] ingest | Plan: Hapus Fitur Notifikasi
+
+- **Sumber diproses**: `raw/docs/plan-remove-notification.md`
+- **Halaman dibuat**: 
+  - `wiki/sources/plan-remove-notification.md` — ringkasan plan penghapusan
+  - `wiki/analysis/keputusan-hapus-notifikasi.md` — analisis keputusan teknis
+- **Halaman diupdate**:
+  - `wiki/entities/budgeting.md` — section Budget Alert diubah menjadi "Dihapus"
+  - `wiki/entities/notifikasi.md` — ditambah warning banner status "Dihapus"
+  - `wiki/entities/settings.md` — referensi Notification Settings diupdate
+  - `index.md` — 33 halaman (18 entitas, 7 konsep, 6 sumber, 2 analisis)
+- **Konteks**: Fitur notifikasi dihapus karena inkonsistensi trigger, debt reminder setengah jadi, dan overhead dependencies besar vs nilai yang dihasilkan

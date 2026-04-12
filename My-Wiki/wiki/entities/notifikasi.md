@@ -7,6 +7,8 @@ created: 2026-04-10
 updated: 2026-04-10
 ---
 
+> ⚠️ **Status: Dihapus** — Fitur notifikasi lokal telah dihapus dari codebase Flutter pada April 2026. Halaman ini disimpan sebagai referensi desain untuk re-implementasi di masa depan. Lihat [[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]].
+
 ## Deskripsi
 
 Sistem notifikasi lokal SakuRapi. Menggunakan `flutter_local_notifications` dengan `timezone` package untuk penjadwalan. Semua notifikasi adalah **lokal** (bukan push/FCM). Settings disimpan di server (`notification_settings` table) dan dibackup di Hive.
@@ -89,3 +91,4 @@ Device restart:
 - `[[wiki/entities/hutang-piutang|Hutang/Piutang]]`
 - `[[wiki/entities/database-schema|Database Schema]]`
 - `[[wiki/concepts/aturan-keuangan|Aturan Keuangan Fundamental]]`
+- `[[wiki/analysis/keputusan-hapus-notifikasi|Keputusan: Hapus Notifikasi]]`
