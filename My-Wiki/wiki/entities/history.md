@@ -1,10 +1,10 @@
 ---
 title: "History"
 type: entity
-tags: [history, transaksi, filter, pagination, hive-cache]
-sources: [raw/docs/prd/12_HISTORY.md]
+tags: [history, transaksi, filter, pagination, hive-cache, search, rpc]
+sources: [raw/docs/prd/12_HISTORY.md, raw/docs/plan-history-search-filter-and-category-loadmore.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-13
 ---
 
 # History
@@ -12,6 +12,8 @@ updated: 2026-04-10
 ## Deskripsi
 
 Halaman history menampilkan riwayat transaksi pengguna dengan berbagai opsi period, filter, dan pengelompokan. Mendukung infinite scroll dengan pagination dan caching halaman pertama ke Hive untuk performa offline.
+
+Data fetching menggunakan RPC `get_history_transactions` (sejak April 2026) untuk mendukung server-side search dan category-level pagination.
 
 ---
 
@@ -45,17 +47,39 @@ Halaman history menampilkan riwayat transaksi pengguna dengan berbagai opsi peri
 
 | Filter | Tipe | Keterangan |
 |--------|------|------------|
+| **Search** | Server refetch | Cari berdasarkan `note` OR `category name` — ILIKE server-side via RPC |
 | **Wallet** | Server refetch | Memfilter berdasarkan wallet — trigger request ulang ke server |
-| **Type** | Lokal | Filter tipe transaksi (income/expense/transfer) — difilter di client |
-| **Grouping** | Lokal | Pengelompokan tampilan: **By Date** atau **By Category** — diproses di client |
+| **Type** | Lokal | Filter tipe transaksi (income/expense/transfer) — difilter di client, per PRD §7.8 |
+| **Grouping** | Server refetch | Pengelompokan: **By Date** atau **By Category** — mengubah mode RPC, trigger refetch |
 
-Perubahan filter **Wallet** memicu fetch ulang dari server karena data di-paginate di sisi server. Filter **Type** dan **Grouping** hanya mengubah tampilan data yang sudah ada di memori.
+> Filter badge di pojok kanan muncul jika `typeFilter != null || searchKeyword != null`.
+
+#### Search UX
+
+- `SakuTextField` dengan prefix icon search dan suffix clear button (reaktif via `ValueListenableBuilder`)
+- Suffix clear button hanya muncul saat ada teks
+- Hasil pencarian mencakup transaksi yang `note` OR kategori manapun dari `transaction_items`-nya mengandung keyword
 
 ### Pagination
 
-- **Page size**: 30 transaksi per halaman
-- **Infinite scroll**: Menggunakan `VisibilityDetector` — ketika item terakhir terlihat, otomatis fetch halaman berikutnya
-- **Cache**: Halaman pertama (page 1) di-cache ke **Hive** untuk ditampilkan saat offline atau saat loading awal
+#### Mode byDate (default)
+
+- **Page size**: 30 transaksi per page
+- `state.offset` = jumlah transaksi yang sudah diambil
+- `has_more` dari RPC (jumlah transaksi tersisa > 0)
+
+#### Mode byCategory
+
+- **Page size**: 5 kategori per page
+- `state.offset` = jumlah kategori yang sudah diambil
+- Setiap "page" mengembalikan SEMUA transaksi dari 5 kategori tersebut
+- Urutan kategori: berdasarkan `MAX(transaction.date) DESC` — kategori dengan transaksi terbaru duluan
+- Transfer/Debt/Loan tanpa kategori explicit: dikelompokkan sebagai `"transfer"` / `"debt"` / `"loan"`
+
+> Mode switch selalu reset offset ke 0 — semantik `state.offset` berbeda per mode tapi aman karena reset.
+
+- **Infinite scroll**: `VisibilityDetector` — ketika item terakhir terlihat, otomatis fetch berikutnya
+- **Cache**: Halaman pertama di-cache ke **Hive** untuk performa offline
 
 ---
 

@@ -9,7 +9,7 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
-import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_grouped_list.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
@@ -384,19 +384,9 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
             ),
           )
         else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: detailState.transactions.length,
-            separatorBuilder: (_, _) => SizedBox(height: 4.h),
-            itemBuilder: (_, i) {
-              final tx = detailState.transactions[i];
-              return HistoryTransactionTile(
-                transaction: tx,
-                onTap: () =>
-                    context.push(AppRouter.transactionDetail, extra: tx),
-              );
-            },
+          TransactionDateGroupedList(
+            transactions: detailState.transactions,
+            onTap: (tx) => context.push(AppRouter.transactionDetail, extra: tx),
           ),
       ],
     );

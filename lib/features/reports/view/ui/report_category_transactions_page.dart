@@ -3,7 +3,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_remote_data_source.dart';
-import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_grouped_list.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
@@ -141,18 +141,12 @@ class _ReportCategoryTransactionsPageState
     return RefreshIndicator(
       onRefresh: _loadTransactions,
       color: context.colors.primary,
-      child: ListView.separated(
+      child: TransactionDateGroupedList(
+        transactions: _transactions,
+        onTap: (tx) => context.push(AppRouter.transactionDetail, extra: tx),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        itemCount: _transactions.length,
-        separatorBuilder: (_, _) => SizedBox(height: 4.h),
-        itemBuilder: (context, index) {
-          final tx = _transactions[index];
-          return HistoryTransactionTile(
-            transaction: tx,
-            showDate: true,
-            onTap: () => context.push(AppRouter.transactionDetail, extra: tx),
-          );
-        },
+        shrinkWrap: false,
+        physics: const AlwaysScrollableScrollPhysics(),
       ),
     );
   }

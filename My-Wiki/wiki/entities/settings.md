@@ -4,7 +4,7 @@ type: entity
 tags: [settings, notification, preferences, theme, logout, hive]
 sources: [raw/docs/prd/16_SETTINGS.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-13
 ---
 
 # Settings
@@ -29,7 +29,8 @@ Halaman settings adalah pusat pengaturan aplikasi SakuRapi. Mencakup informasi p
 | | Language | Bahasa aplikasi |
 | | Entry Point | Titik masuk default pencatatan transaksi |
 | **Data** | Export / Import | *Coming soon* — belum diimplementasi |
-| **Lainnya** | App Version | Versi aplikasi saat ini |
+| **Lainnya** | **Kirim Laporan** | Navigasi ke halaman laporan/feedback — lihat [[wiki/entities/user-report\|User Report]] |
+| | App Version | Versi aplikasi saat ini |
 | | Logout | Keluar dari akun |
 
 ### Notification Settings

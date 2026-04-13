@@ -29,9 +29,7 @@ updated: 2026-04-12
 
 ---
 
-## Schema (17 Tabel)
-
-### 1. `public.users`
+## Schema (18 Tabel)
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -386,6 +384,23 @@ Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
 
 Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse]]
 
+### 18. `user_reports`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid PK | default gen_random_uuid() |
+| user_id | uuid FK | references auth.users(id) ON DELETE CASCADE |
+| category | text not null | `bug_report`, `feature_request`, `account_issue`, `payment_issue`, `other` |
+| title | text not null | judul laporan |
+| description | text not null | deskripsi detail |
+| attachment_url | text nullable | URL foto lampiran (Supabase Storage `attachments/{userId}/reports/`) |
+| status | text not null default 'pending' | status admin |
+| created_at | timestamptz | default now() |
+
+**RLS:** INSERT-only — user hanya bisa insert laporan miliknya sendiri (`auth.uid() = user_id`). Tidak ada SELECT / UPDATE / DELETE policy untuk user.
+
+Lihat detail di: [[wiki/entities/user-report|User Report]]
+
 ---
 
 ## Triggers & Functions
@@ -407,6 +422,12 @@ Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Pars
 ---
 
 ## RPC (Remote Procedure Calls)
+
+### History RPC
+
+- **`get_history_transactions`** — Query riwayat transaksi dengan dual-mode pagination dan server-side search. Parameter: `p_start_date`, `p_end_date`, `p_wallet_id`, `p_type`, `p_search`, `p_group_mode` (`'byDate'`|`'byCategory'`), `p_limit`, `p_offset`. Returns `jsonb {transactions: [...], has_more: bool}`. SECURITY DEFINER, `auth.uid()` internal.
+  - Mode `byDate`: pagination per transaksi (default 30), search via `note ILIKE` OR `category.name ILIKE`
+  - Mode `byCategory`: pagination per kategori (default 5), kembalikan semua transaksi dari kategori yang di-page, diurutkan by `MAX(date) DESC`
 
 ### Transaction RPCs
 
@@ -463,7 +484,7 @@ Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Pars
 
 ### Tabel yang dilindungi RLS (16 tabel)
 
-users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts, ai_usage_quotas, ai_usage_logs.
+users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts, ai_usage_quotas, ai_usage_logs, **user_reports**.
 
 > `notification_settings` dihapus di Migration 015 — tidak lagi ada di daftar ini.
 

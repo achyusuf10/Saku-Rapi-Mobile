@@ -101,9 +101,9 @@ class HistoryRemoteDataSource {
             .from('transactions')
             .select('''
               *,
-              wallet:wallets(*),
+              wallets:wallets!transactions_wallet_id_fkey(*),
               destination_wallet:wallets!transactions_destination_wallet_id_fkey(*),
-              transaction_items(*, category:categories(*))
+              transaction_items(*, categories(*))
             ''')
             .gte('date', range.startUtc)
             .lt('date', range.endUtcExclusive);
@@ -115,12 +115,9 @@ class HistoryRemoteDataSource {
           query = query.eq('type', type);
         }
 
-        final res = await query
-            .order('date', ascending: false)
-            .limit(limit);
+        final res = await query.order('date', ascending: false).limit(limit);
 
-        final allTx =
-            res.map((e) => TransactionModel.fromMap(e)).toList();
+        final allTx = res.map((e) => TransactionModel.fromMap(e)).toList();
 
         // Filter client-side by categoryId in transaction_items
         return allTx

@@ -11,9 +11,9 @@ updated: 2026-04-12
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 36 |
-| Sumber diproses | 6 |
-| Entitas | 18 |
+| Total halaman | 40 |
+| Sumber diproses | 8 |
+| Entitas | 19 |
 | Konsep | 7 |
 | Analisis | 5 |
 
@@ -35,6 +35,7 @@ updated: 2026-04-12
 - [[wiki/entities/ocr-receipt|OCR Receipt]] — Scan struk belanja dengan OCR dan AI parsing
 - [[wiki/entities/history|History]] — Riwayat transaksi dengan filter, period, dan pagination
 - [[wiki/entities/settings|Settings]] — Pengaturan aplikasi, notifikasi, dan preferensi
+- [[wiki/entities/user-report|User Report]] — Kirim laporan/feedback dari dalam app (fire-and-forget write ke Supabase)
 - [[wiki/entities/database-schema|Database Schema]] — 17 tabel Supabase/Postgres, triggers, RPC, indexes, RLS
 - [[wiki/entities/categories|Categories]] — Sistem kategori (expense, income, system) dengan hierarki 2-level
 - [[wiki/entities/contacts|Contacts]] — Manajemen kontak untuk hutang/piutang
@@ -64,6 +65,8 @@ updated: 2026-04-12
 - [[wiki/sources/copilot-rules|Copilot Rules (Sumber)]] — Ringkasan 03_COPILOT_RULES.md (guardrails, conventions, testing)
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]] — Ringkasan 13 file redesign (S1-S12, design tokens, widget overhaul, per-module specs)
 - [[wiki/sources/plan-remove-notification|Plan: Hapus Fitur Notifikasi]] — Rencana dan dokumentasi penghapusan fitur notifikasi lokal (April 2026)
+- [[wiki/sources/plan-fitur-kirim-laporan|Plan: Fitur Kirim Laporan]] — Rencana dan implementasi fitur user report/feedback (April 2026)
+- [[wiki/sources/plan-history-search-category-pagination|Plan: History Search + Category Pagination]] — Rencana dan implementasi search server-side + category-level pagination di History (April 2026)
 
 ## 🔬 Analisis
 

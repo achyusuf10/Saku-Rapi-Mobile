@@ -20,6 +20,7 @@ import 'package:app_saku_rapi/features/transaction/models/transaction_item_model
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -97,94 +98,158 @@ class TransactionDetailPage extends ConsumerWidget {
 
           SizedBox(height: 16.h),
 
-          // ─── Detail fields ───
-          _DetailSection(
-            label: l10n.transactionWallet,
-            value: transaction.walletName ?? '-',
-            icon: FontAwesomeIcons.wallet,
+          // ─── Detail fields card ───
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: colors.border),
+            ),
+            child: Column(
+              children: [
+                _DetailSection(
+                  label: l10n.transactionWallet,
+                  value: transaction.walletName ?? '-',
+                  icon: FontAwesomeIcons.wallet,
+                ),
+
+                if (transaction.type == TransactionTypeEnum.transfer) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionDestWallet,
+                    value: transaction.destinationWalletName ?? '-',
+                    icon: FontAwesomeIcons.arrowRightArrowLeft,
+                  ),
+                ],
+
+                Divider(height: 1, color: colors.border.withValues(alpha: 0.5)),
+                _DetailSection(
+                  label: l10n.transactionDate,
+                  value: transaction.date.extToFormattedString(
+                    outputDateFormat: 'dd MMMM yyyy HH:mm',
+                  ),
+                  icon: FontAwesomeIcons.calendarDay,
+                ),
+
+                if (transaction.withPerson != null) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionWithPerson,
+                    value: transaction.withPerson!,
+                    icon: FontAwesomeIcons.userTie,
+                  ),
+                ],
+
+                if (transaction.merchantName != null) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionMerchant,
+                    value: transaction.merchantName!,
+                    icon: FontAwesomeIcons.store,
+                  ),
+                ],
+
+                if (transaction.note != null) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionNote,
+                    value: transaction.note!,
+                    icon: FontAwesomeIcons.noteSticky,
+                  ),
+                ],
+
+                if (transaction.dueDate != null) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionDueDate,
+                    value: transaction.dueDate!.extToDateStringDDMMMMYYYY(),
+                    icon: FontAwesomeIcons.clockRotateLeft,
+                  ),
+                ],
+
+                // ─── Single item: show category inline ───
+                if (transaction.items.length == 1) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionCategory,
+                    value: transaction.items.first.categoryName ?? '-',
+                    icon: FontAwesomeIcons.layerGroup,
+                    leading: transaction.items.first.categoryIcon != null
+                        ? SakuCategoryIcon(
+                            iconName: transaction.items.first.categoryIcon!,
+                            color: parseHexColor(
+                              transaction.items.first.categoryColor ??
+                                  '#6B7280',
+                            ),
+                            size: 14,
+                            showBackground: false,
+                          )
+                        : null,
+                  ),
+                  if (transaction.items.first.itemName != null) ...[
+                    Divider(
+                      height: 1,
+                      color: colors.border.withValues(alpha: 0.5),
+                    ),
+                    _DetailSection(
+                      label: l10n.transactionItemName,
+                      value: transaction.items.first.itemName!,
+                      icon: FontAwesomeIcons.tag,
+                    ),
+                  ],
+                ],
+              ],
+            ),
           ),
-
-          if (transaction.type == TransactionTypeEnum.transfer)
-            _DetailSection(
-              label: l10n.transactionDestWallet,
-              value: transaction.destinationWalletName ?? '-',
-              icon: FontAwesomeIcons.arrowRightArrowLeft,
-            ),
-
-          _DetailSection(
-            label: l10n.transactionDate,
-            value: transaction.date.extToFormattedString(
-              outputDateFormat: 'dd MMMM yyyy HH:mm',
-            ),
-            icon: FontAwesomeIcons.calendarDay,
-          ),
-
-          if (transaction.withPerson != null)
-            _DetailSection(
-              label: l10n.transactionWithPerson,
-              value: transaction.withPerson!,
-              icon: FontAwesomeIcons.userTie,
-            ),
-
-          if (transaction.merchantName != null)
-            _DetailSection(
-              label: l10n.transactionMerchant,
-              value: transaction.merchantName!,
-              icon: FontAwesomeIcons.store,
-            ),
-
-          if (transaction.note != null)
-            _DetailSection(
-              label: l10n.transactionNote,
-              value: transaction.note!,
-              icon: FontAwesomeIcons.noteSticky,
-            ),
-
-          if (transaction.dueDate != null)
-            _DetailSection(
-              label: l10n.transactionDueDate,
-              value: transaction.dueDate!.extToDateStringDDMMMMYYYY(),
-              icon: FontAwesomeIcons.clockRotateLeft,
-            ),
-
-          // ─── Single item: show category inline ───
-          if (transaction.items.length == 1) ...[
-            _DetailSection(
-              label: l10n.transactionCategory,
-              value: transaction.items.first.categoryName ?? '-',
-              icon: FontAwesomeIcons.layerGroup,
-              leading: transaction.items.first.categoryIcon != null
-                  ? SakuCategoryIcon(
-                      iconName: transaction.items.first.categoryIcon!,
-                      color: parseHexColor(
-                        transaction.items.first.categoryColor ?? '#6B7280',
-                      ),
-                      size: 14,
-                      showBackground: false,
-                    )
-                  : null,
-            ),
-            if (transaction.items.first.itemName != null)
-              _DetailSection(
-                label: l10n.transactionItemName,
-                value: transaction.items.first.itemName!,
-                icon: FontAwesomeIcons.tag,
-              ),
-          ],
 
           // ─── Multi-item list ───
           if (transaction.items.length > 1) ...[
-            SizedBox(height: 20.h),
-            _ItemsSection(
-              items: transaction.items,
-              totalAmount: transaction.totalAmount,
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: colors.border),
+              ),
+              child: _ItemsSection(
+                items: transaction.items,
+                totalAmount: transaction.totalAmount,
+              ),
             ),
+          ],
+
+          // ─── Attachment ───
+          if (transaction.attachmentUrl != null) ...[
+            SizedBox(height: 16.h),
+            _AttachmentSection(url: transaction.attachmentUrl!),
           ],
 
           // ─── Debt/Loan contact + settlement section ───
           if (transaction.type == TransactionTypeEnum.debt ||
-              transaction.type == TransactionTypeEnum.loan)
+              transaction.type == TransactionTypeEnum.loan) ...[
+            SizedBox(height: 16.h),
             _DebtLoanSection(transaction: transaction),
+          ],
 
           // ─── Excluded from report label ───
           if (transaction.type == TransactionTypeEnum.debt ||
@@ -199,6 +264,8 @@ class TransactionDetailPage extends ConsumerWidget {
               ),
             ),
           ],
+
+          SizedBox(height: 24.h),
         ],
       ),
     );
@@ -873,6 +940,157 @@ class _DebtLoanSectionState extends ConsumerState<_DebtLoanSection> {
               .read(settlementHistoryControllerProvider(tx.id).notifier)
               .loadHistory();
         },
+      ),
+    );
+  }
+}
+
+// ───────────────────────────────────────────────
+// Attachment Section
+// ───────────────────────────────────────────────
+
+/// Menampilkan foto lampiran transaksi.
+///
+/// Hanya ditampilkan jika `transaction.attachmentUrl != null`.
+/// Foto dapat di-tap untuk melihat ukuran penuh.
+class _AttachmentSection extends StatelessWidget {
+  const _AttachmentSection({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            FaIcon(
+              FontAwesomeIcons.paperclip,
+              size: 14.w,
+              color: colors.textSecondary,
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              context.l10n.transactionAttachment,
+              style: TextStyleConstants.label1.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        GestureDetector(
+          onTap: () => _openFullScreen(context),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: CachedNetworkImage(
+                imageUrl: url,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => Container(
+                  height: 200.h,
+                  color: colors.surfaceVariant,
+                  child: Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.image,
+                      size: 32.w,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ),
+                errorWidget: (_, _, _) => Container(
+                  height: 120.h,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.triangleExclamation,
+                          size: 24.w,
+                          color: colors.textSecondary,
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'Gagal memuat lampiran',
+                          style: TextStyleConstants.label2.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openFullScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _AttachmentFullScreenPage(url: url),
+      ),
+    );
+  }
+}
+
+/// Halaman fullscreen untuk melihat lampiran foto.
+class _AttachmentFullScreenPage extends StatelessWidget {
+  const _AttachmentFullScreenPage({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          context.l10n.transactionAttachment,
+          style: TextStyleConstants.h7.copyWith(color: Colors.white),
+        ),
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          child: CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.contain,
+            placeholder: (_, _) =>
+                Center(child: CircularProgressIndicator(color: colors.primary)),
+            errorWidget: (_, _, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.triangleExclamation,
+                  size: 40.w,
+                  color: Colors.white54,
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  'Gagal memuat lampiran',
+                  style: TextStyleConstants.b2.copyWith(color: Colors.white54),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
