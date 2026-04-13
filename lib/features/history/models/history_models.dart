@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+
 // ───────────────── Enums ─────────────────
 
 /// Periode filter yang digunakan bersama di fitur history & report.
@@ -23,4 +25,14 @@ class SubPeriodTab {
 
   /// Date range (start, end) UTC untuk sub-period ini.
   final (DateTime, DateTime) dateRange;
+}
+
+/// Container untuk hasil RPC [get_history_transactions].
+///
+/// Menyimpan list transaksi dan flag apakah masih ada data berikutnya.
+class HistoryResult {
+  const HistoryResult({required this.transactions, required this.hasMore});
+
+  final List<TransactionModel> transactions;
+  final bool hasMore;
 }

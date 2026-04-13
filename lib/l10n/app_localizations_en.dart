@@ -577,6 +577,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyFilterEmpty => 'No transactions matching this filter';
 
   @override
+  String get historySearchHint => 'Search notes or category...';
+
+  @override
   String get historyViewReport => 'View Report';
 
   @override

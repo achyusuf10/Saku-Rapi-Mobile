@@ -56,6 +56,7 @@ class HistoryLocalDataSource {
     required HistoryGroupMode groupMode,
     String? walletId,
     TransactionTypeEnum? typeFilter,
+    String? searchKeyword,
     int? subPeriodIndex,
     DateTime? customStart,
     DateTime? customEnd,
@@ -66,6 +67,7 @@ class HistoryLocalDataSource {
         'groupMode': groupMode.name,
         'walletId': ?walletId,
         if (typeFilter != null) 'typeFilter': typeFilter.name,
+        'searchKeyword': ?searchKeyword,
         'subPeriodIndex': ?subPeriodIndex,
         if (customStart != null)
           'customStart': SakuDateUtils.formatDate(customStart),

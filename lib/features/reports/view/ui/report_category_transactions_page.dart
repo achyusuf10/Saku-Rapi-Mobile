@@ -52,7 +52,7 @@ class _ReportCategoryTransactionsPageState
       _errorMessage = null;
     });
 
-    final result = await _dataSource.getTransactions(
+    final result = await _dataSource.getTransactionsByCategory(
       startDate: widget.argument.startDate,
       endDate: widget.argument.endDate,
       walletId: widget.argument.walletId,

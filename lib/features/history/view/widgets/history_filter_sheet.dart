@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,6 +13,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Bottom sheet filter untuk history.
 ///
 /// Filter:
+/// - Search keyword (notes / category name — server-side)
 /// - Type (semua / income / expense / transfer / debt / loan)
 /// - Grouping mode (by date / by category)
 class HistoryFilterSheet extends ConsumerStatefulWidget {
@@ -19,10 +21,12 @@ class HistoryFilterSheet extends ConsumerStatefulWidget {
     super.key,
     required this.currentType,
     required this.currentGroupMode,
+    this.currentSearchKeyword,
   });
 
   final TransactionTypeEnum? currentType;
   final HistoryGroupMode currentGroupMode;
+  final String? currentSearchKeyword;
 
   @override
   ConsumerState<HistoryFilterSheet> createState() => _HistoryFilterSheetState();
@@ -31,12 +35,22 @@ class HistoryFilterSheet extends ConsumerStatefulWidget {
 class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
   late TransactionTypeEnum? _typeFilter;
   late HistoryGroupMode _groupMode;
+  late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
     _typeFilter = widget.currentType;
     _groupMode = widget.currentGroupMode;
+    _searchController = TextEditingController(
+      text: widget.currentSearchKeyword ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,6 +89,33 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
               fontWeight: FontWeight.w600,
               color: colors.textPrimary,
             ),
+          ),
+          SizedBox(height: 20.h),
+
+          // ─── Search ───
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
+            builder: (context, value, child) {
+              return SakuTextField(
+                controller: _searchController,
+                hint: l10n.historySearchHint,
+                prefixIcon: FaIcon(
+                  FontAwesomeIcons.magnifyingGlass,
+                  size: 16.w,
+                  color: colors.textSecondary,
+                ),
+                suffixIcon: value.text.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () => _searchController.clear(),
+                        child: FaIcon(
+                          FontAwesomeIcons.xmark,
+                          size: 14.w,
+                          color: colors.textSecondary,
+                        ),
+                      )
+                    : null,
+              );
+            },
           ),
           SizedBox(height: 20.h),
 
@@ -150,6 +191,9 @@ class _HistoryFilterSheetState extends ConsumerState<HistoryFilterSheet> {
                       _FilterResult(
                         typeFilter: _typeFilter,
                         groupMode: _groupMode,
+                        searchKeyword: _searchController.text.trim().isEmpty
+                            ? null
+                            : _searchController.text.trim(),
                       ),
                     );
                   },
@@ -169,15 +213,18 @@ class _FilterResult {
   const _FilterResult({
     this.typeFilter,
     this.groupMode = HistoryGroupMode.byDate,
+    this.searchKeyword,
   }) : isReset = false;
 
   const _FilterResult.reset()
     : typeFilter = null,
       groupMode = HistoryGroupMode.byDate,
+      searchKeyword = null,
       isReset = true;
 
   final TransactionTypeEnum? typeFilter;
   final HistoryGroupMode groupMode;
+  final String? searchKeyword;
   final bool isReset;
 }
 
@@ -333,6 +380,7 @@ Future<void> showHistoryFilterSheet(BuildContext context, WidgetRef ref) async {
     builder: (_) => HistoryFilterSheet(
       currentType: historyState.typeFilter,
       currentGroupMode: historyState.groupMode,
+      currentSearchKeyword: historyState.searchKeyword,
     ),
   );
 
@@ -343,7 +391,12 @@ Future<void> showHistoryFilterSheet(BuildContext context, WidgetRef ref) async {
     return;
   }
 
-  // Apply type & grouping locally (no refetch)
+  // Apply type locally (no refetch)
   controller.setTypeFilter(result.typeFilter);
-  controller.setGroupMode(result.groupMode);
+
+  // Apply search keyword (server-side, triggers refetch if changed)
+  await controller.setSearchKeyword(result.searchKeyword);
+
+  // Apply grouping mode (triggers refetch if changed)
+  await controller.setGroupMode(result.groupMode);
 }

@@ -575,6 +575,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyFilterEmpty => 'Tidak ada transaksi dengan filter ini';
 
   @override
+  String get historySearchHint => 'Cari catatan atau kategori...';
+
+  @override
   String get historyViewReport => 'Lihat Laporan';
 
   @override

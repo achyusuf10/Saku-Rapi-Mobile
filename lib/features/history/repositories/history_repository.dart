@@ -2,12 +2,12 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_local_data_source.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_remote_data_source.dart';
-import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/history/models/history_models.dart';
 
 /// Repository untuk fitur history transaksi.
 ///
 /// Mengorkestrasikan [HistoryRemoteDataSource] dan [HistoryLocalDataSource].
-/// - Read: fetch dari Supabase dengan fallback ke cache lokal.
+/// - Read: fetch via RPC dengan fallback ke cache lokal.
 /// - Write (delete/update): delegasi ke [TransactionRepository].
 class HistoryRepository {
   HistoryRepository({
@@ -21,12 +21,14 @@ class HistoryRepository {
 
   static const _tag = '[History] [HistoryRepository]';
 
-  /// Ambil transaksi dengan filter period dan wallet.
-  /// Fallback ke cache jika remote gagal.
-  Future<DataState<List<TransactionModel>>> getTransactions({
+  /// Ambil transaksi via RPC dengan dual-mode pagination dan search.
+  /// Fallback ke cache jika remote gagal (hanya halaman pertama).
+  Future<DataState<HistoryResult>> getTransactions({
     required DateTime startDate,
     required DateTime endDate,
     String? walletId,
+    String? search,
+    String groupMode = 'byDate',
     int limit = 30,
     int offset = 0,
   }) async {
@@ -34,6 +36,8 @@ class HistoryRepository {
       startDate: startDate,
       endDate: endDate,
       walletId: walletId,
+      search: search,
+      groupMode: groupMode,
       limit: limit,
       offset: offset,
     );
@@ -41,7 +45,7 @@ class HistoryRepository {
     if (result.isSuccess()) {
       // Cache halaman pertama saja untuk fallback offline
       if (offset == 0) {
-        _local.cacheTransactions(result.dataSuccess()!);
+        _local.cacheTransactions(result.dataSuccess()!.transactions);
       }
       return result;
     }
@@ -51,7 +55,9 @@ class HistoryRepository {
       final cached = _local.getCachedTransactions();
       if (cached != null) {
         AppLogger.call('$_tag getTransactions: serving from cache');
-        return DataState.success(data: cached);
+        return DataState.success(
+          data: HistoryResult(transactions: cached, hasMore: false),
+        );
       }
     }
 

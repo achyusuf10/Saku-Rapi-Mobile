@@ -157,7 +157,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           // Filter button
           IconButton(
             icon: Badge(
-              isLabelVisible: historyState.typeFilter != null,
+              isLabelVisible: historyState.typeFilter != null ||
+                  historyState.searchKeyword != null,
               smallSize: 8.w,
               child: FaIcon(FontAwesomeIcons.filter, size: 16.w),
             ),

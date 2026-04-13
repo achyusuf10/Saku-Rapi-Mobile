@@ -1190,6 +1190,12 @@ abstract class AppLocalizations {
   /// **'Tidak ada transaksi dengan filter ini'**
   String get historyFilterEmpty;
 
+  /// No description provided for @historySearchHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari catatan atau kategori...'**
+  String get historySearchHint;
+
   /// No description provided for @historyViewReport.
   ///
   /// In id, this message translates to:

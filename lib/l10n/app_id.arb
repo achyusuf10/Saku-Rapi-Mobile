@@ -238,6 +238,7 @@
     }
   },
   "historyFilterEmpty": "Tidak ada transaksi dengan filter ini",
+  "historySearchHint": "Cari catatan atau kategori...",
   "historyViewReport": "Lihat Laporan",
   "historyDeleteSuccess": "Transaksi berhasil dihapus",
   "historyDeleteConfirm": "Hapus Transaksi",

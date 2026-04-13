@@ -43,6 +43,7 @@ class HistoryState {
     this.groupMode = HistoryGroupMode.byDate,
     this.walletId,
     this.typeFilter,
+    this.searchKeyword,
     this.customStart,
     this.customEnd,
     this.errorMessage,
@@ -58,6 +59,7 @@ class HistoryState {
   final HistoryGroupMode groupMode;
   final String? walletId;
   final TransactionTypeEnum? typeFilter;
+  final String? searchKeyword;
   final DateTime? customStart;
   final DateTime? customEnd;
   final String? errorMessage;
@@ -76,6 +78,7 @@ class HistoryState {
     HistoryGroupMode? groupMode,
     String? walletId,
     TransactionTypeEnum? typeFilter,
+    String? searchKeyword,
     DateTime? customStart,
     DateTime? customEnd,
     String? errorMessage,
@@ -84,6 +87,7 @@ class HistoryState {
     bool? isLoadingMore,
     bool clearWallet = false,
     bool clearType = false,
+    bool clearSearch = false,
     bool clearError = false,
     int? subPeriodIndex,
     bool clearSubPeriod = false,
@@ -95,6 +99,7 @@ class HistoryState {
       groupMode: groupMode ?? this.groupMode,
       walletId: clearWallet ? null : (walletId ?? this.walletId),
       typeFilter: clearType ? null : (typeFilter ?? this.typeFilter),
+      searchKeyword: clearSearch ? null : (searchKeyword ?? this.searchKeyword),
       customStart: customStart ?? this.customStart,
       customEnd: customEnd ?? this.customEnd,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -399,6 +404,7 @@ class HistoryState {
   }
 
   /// Grup transaksi berdasarkan kategori (lokal).
+  /// Diurutkan berdasarkan tanggal transaksi terbaru per kategori (DESC).
   Map<String, List<TransactionModel>> get groupedByCategory {
     final list = filteredTransactions;
     final map = <String, List<TransactionModel>>{};
@@ -406,7 +412,17 @@ class HistoryState {
       final key = tx.categoryName ?? tx.type.toLocalizedLabel();
       (map[key] ??= []).add(tx);
     }
-    return map;
+    final sorted = map.entries.toList()
+      ..sort((a, b) {
+        final latestA = a.value
+            .map((t) => t.date)
+            .reduce((x, y) => x.isAfter(y) ? x : y);
+        final latestB = b.value
+            .map((t) => t.date)
+            .reduce((x, y) => x.isAfter(y) ? x : y);
+        return latestB.compareTo(latestA);
+      });
+    return Map.fromEntries(sorted);
   }
 
   /// Total pemasukan dari transaksi terffilter.
@@ -442,6 +458,16 @@ class HistoryController extends StateNotifier<HistoryState> {
   final HistoryRepository _repository;
   final HistoryLocalDataSource _local;
   static const _pageSize = 30;
+  static const _categoriesPerPage = 5;
+
+  /// Page size sesuai mode aktif.
+  int get _currentPageSize => state.groupMode == HistoryGroupMode.byCategory
+      ? _categoriesPerPage
+      : _pageSize;
+
+  /// String group mode untuk RPC param.
+  String get _groupModeParam =>
+      state.groupMode == HistoryGroupMode.byCategory ? 'byCategory' : 'byDate';
 
   // ───────────────── RESTORE ─────────────────
 
@@ -492,6 +518,9 @@ class HistoryController extends StateNotifier<HistoryState> {
         }
       }
 
+      // ── searchKeyword ──
+      final searchKeyword = prefs['searchKeyword'] as String?;
+
       // ── customStart / customEnd ──
       DateTime? customStart, customEnd;
       final customStartRaw = prefs['customStart'] as String?;
@@ -522,6 +551,7 @@ class HistoryController extends StateNotifier<HistoryState> {
         groupMode: groupMode,
         walletId: walletId,
         typeFilter: typeFilter,
+        searchKeyword: searchKeyword,
         customStart: customStart,
         customEnd: customEnd,
         subPeriodIndex: subPeriodIndex,
@@ -540,6 +570,7 @@ class HistoryController extends StateNotifier<HistoryState> {
       groupMode: state.groupMode,
       walletId: state.walletId,
       typeFilter: state.typeFilter,
+      searchKeyword: state.searchKeyword,
       subPeriodIndex: state.subPeriodIndex,
       customStart: state.customStart,
       customEnd: state.customEnd,
@@ -562,7 +593,9 @@ class HistoryController extends StateNotifier<HistoryState> {
       startDate: start,
       endDate: end,
       walletId: state.walletId,
-      limit: _pageSize,
+      search: state.searchKeyword,
+      groupMode: _groupModeParam,
+      limit: _currentPageSize,
       offset: 0,
     );
 
@@ -570,9 +603,9 @@ class HistoryController extends StateNotifier<HistoryState> {
       final data = result.dataSuccess()!;
       state = state.copyWith(
         status: HistoryStatus.loaded,
-        transactions: data,
-        offset: data.length,
-        hasMore: data.length >= _pageSize,
+        transactions: data.transactions,
+        offset: _currentPageSize,
+        hasMore: data.hasMore,
       );
     } else {
       final (message, _, _, _) = result.dataError()!;
@@ -594,16 +627,18 @@ class HistoryController extends StateNotifier<HistoryState> {
       startDate: start,
       endDate: end,
       walletId: state.walletId,
-      limit: _pageSize,
+      search: state.searchKeyword,
+      groupMode: _groupModeParam,
+      limit: _currentPageSize,
       offset: state.offset,
     );
 
     if (result.isSuccess()) {
       final data = result.dataSuccess()!;
       state = state.copyWith(
-        transactions: [...state.transactions, ...data],
-        offset: state.offset + data.length,
-        hasMore: data.length >= _pageSize,
+        transactions: [...state.transactions, ...data.transactions],
+        offset: state.offset + _currentPageSize,
+        hasMore: data.hasMore,
         isLoadingMore: false,
       );
     } else {
@@ -674,11 +709,28 @@ class HistoryController extends StateNotifier<HistoryState> {
     _persist();
   }
 
-  /// Ganti grouping mode — lokal saja, tanpa refetch (PRD §7.8).
-  void setGroupMode(HistoryGroupMode mode) {
+  /// Ganti grouping mode — async + refetch karena page size dan
+  /// ordering berbeda per mode.
+  Future<void> setGroupMode(HistoryGroupMode mode) async {
     if (mode == state.groupMode) return;
     state = state.copyWith(groupMode: mode);
     _persist();
+    await loadTransactions();
+  }
+
+  /// Set search keyword — server-side, triggers refetch.
+  Future<void> setSearchKeyword(String? keyword) async {
+    final normalized = (keyword?.trim().isEmpty ?? true)
+        ? null
+        : keyword?.trim();
+    if (normalized == state.searchKeyword) return;
+    if (normalized == null) {
+      state = state.copyWith(clearSearch: true);
+    } else {
+      state = state.copyWith(searchKeyword: normalized);
+    }
+    _persist();
+    await loadTransactions();
   }
 
   /// Reset semua filter ke default.

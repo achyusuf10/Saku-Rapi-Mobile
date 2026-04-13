@@ -163,6 +163,7 @@ class SakuTextField extends StatelessWidget {
                       10.horizontalSpace,
                     ],
                   ),
+            suffixIconConstraints: BoxConstraints.tight(Size(42.w, 40.h)),
             filled: true,
             fillColor: colors.surfaceVariant,
             contentPadding: EdgeInsets.symmetric(

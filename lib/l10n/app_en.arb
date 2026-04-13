@@ -238,6 +238,7 @@
     }
   },
   "historyFilterEmpty": "No transactions matching this filter",
+  "historySearchHint": "Search notes or category...",
   "historyViewReport": "View Report",
   "historyDeleteSuccess": "Transaction deleted successfully",
   "historyDeleteConfirm": "Delete Transaction",
