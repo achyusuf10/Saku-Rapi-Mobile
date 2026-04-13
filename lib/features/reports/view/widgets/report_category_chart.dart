@@ -9,8 +9,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Category breakdown list dengan icon, progress bar, dan persentase.
-///
-/// Menggantikan donut chart — lebih informatif dan readable.
 class ReportCategoryChart extends StatelessWidget {
   const ReportCategoryChart({
     super.key,
@@ -36,7 +34,6 @@ class ReportCategoryChart extends StatelessWidget {
           _CategoryRow(
             category: categories[i],
             total: total,
-            rank: i + 1,
             isExpanded: categories[i].categoryId == '__others__'
                 ? isOthersExpanded
                 : false,
@@ -54,14 +51,12 @@ class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.category,
     required this.total,
-    required this.rank,
     this.onTap,
     this.isExpanded = false,
   });
 
   final ReportCategoryBreakdownModel category;
   final double total;
-  final int rank;
   final VoidCallback? onTap;
   final bool isExpanded;
 

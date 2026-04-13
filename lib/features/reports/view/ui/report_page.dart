@@ -19,7 +19,6 @@ import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:app_saku_rapi/global/widgets/saku_period_selector.dart';
 import 'package:app_saku_rapi/global/widgets/saku_sub_period_tabs.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
-import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,7 +32,7 @@ import 'package:go_router/go_router.dart';
 /// - Sub-period tabs (navigasi bulan ini / bulan lalu, dsb.)
 /// - Wallet filter chip
 /// - Income vs Expense summary card
-/// - Category breakdown list dengan icon & progress bar
+/// - Category breakdown pie chart + list per kategori
 /// - Daily income/expense trend bar chart + fullscreen
 /// - Smart insight
 ///
@@ -289,12 +288,6 @@ class _ReportSummarySection extends ConsumerWidget {
 
 // ───────────────── Category Section (granular) ─────────────────
 
-/// Hive key untuk menyimpan preferensi tampilan breakdown kategori.
-const _kCategoryViewModeKey = 'report_category_view_mode';
-
-/// Mode tampilan breakdown kategori.
-enum _CategoryViewMode { pieChart, progressBar }
-
 class _ReportCategorySection extends ConsumerStatefulWidget {
   const _ReportCategorySection();
 
@@ -306,25 +299,6 @@ class _ReportCategorySection extends ConsumerStatefulWidget {
 class _ReportCategorySectionState
     extends ConsumerState<_ReportCategorySection> {
   bool _isOthersExpanded = false;
-  late _CategoryViewMode _viewMode;
-
-  @override
-  void initState() {
-    super.initState();
-    // Load preferensi dari Hive, default pie chart.
-    final saved = HiveService.get<String>(key: _kCategoryViewModeKey);
-    _viewMode = saved == 'progressBar'
-        ? _CategoryViewMode.progressBar
-        : _CategoryViewMode.pieChart;
-  }
-
-  void _setViewMode(_CategoryViewMode mode) {
-    setState(() => _viewMode = mode);
-    HiveService.set<String>(
-      key: _kCategoryViewModeKey,
-      data: mode == _CategoryViewMode.progressBar ? 'progressBar' : 'pieChart',
-    );
-  }
 
   void _navigateToCategory(
     ReportCategoryBreakdownModel cat,
@@ -358,28 +332,20 @@ class _ReportCategorySectionState
       reportControllerProvider.select((s) => s.isCategoryLoading),
     );
     final categories = ref.watch(reportTopCategoriesProvider);
-    final allCategories = ref.watch(
-      reportControllerProvider.select((s) => s.categoryBreakdown),
-    );
     final total = ref.watch(reportCategoryTotalProvider);
 
     final type = breakdownType == ReportBreakdownType.expense
         ? 'expense'
         : 'income';
-
-    // Cari bucket "Lainnya" untuk ditampilkan saat expanded (progress bar view).
     final othersEntry = categories
         .where((c) => c.categoryId == '__others__')
         .firstOrNull;
-
-    final isPieChart = _viewMode == _CategoryViewMode.pieChart;
 
     return SakuCard(
       padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header + view toggle + breakdown toggle
           Row(
             children: [
               FaIcon(
@@ -397,22 +363,14 @@ class _ReportCategorySectionState
                   ),
                 ),
               ),
-              // View mode toggle (pie ↔ bar)
-              _ViewModeToggle(
-                isPieChart: isPieChart,
-                onToggle: () => _setViewMode(
-                  isPieChart
-                      ? _CategoryViewMode.progressBar
-                      : _CategoryViewMode.pieChart,
-                ),
-                colors: colors,
-              ),
-              SizedBox(width: 6.w),
               _BreakdownToggle(
                 current: breakdownType,
-                onChanged: (type) => ref
-                    .read(reportControllerProvider.notifier)
-                    .setBreakdownType(type),
+                onChanged: (type) {
+                  setState(() => _isOthersExpanded = false);
+                  ref
+                      .read(reportControllerProvider.notifier)
+                      .setBreakdownType(type);
+                },
                 colors: colors,
               ),
             ],
@@ -425,7 +383,7 @@ class _ReportCategorySectionState
                 child: const SakuLoadingIndicator(),
               ),
             )
-          else if (allCategories.isEmpty)
+          else if (categories.isEmpty)
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 32.h),
@@ -437,19 +395,9 @@ class _ReportCategorySectionState
                 ),
               ),
             )
-          else if (isPieChart) ...[
-            // ─── Pie Chart View (semua kategori) ───
-            ReportCategoryPieChart(
-              categories: allCategories,
-              total: total,
-              onCategoryTap: (cat) => _navigateToCategory(
-                cat,
-                type,
-                ref.read(reportControllerProvider),
-              ),
-            ),
-          ] else ...[
-            // ─── Progress Bar View (top 5 + Lainnya) ───
+          else ...[
+            ReportCategoryPieChart(categories: categories, total: total),
+            SizedBox(height: 12.h),
             ReportCategoryChart(
               categories: categories,
               total: total,
@@ -466,7 +414,6 @@ class _ReportCategorySectionState
                 );
               },
             ),
-            // ─── Expanded "Lainnya" sub-list ───
             if (othersEntry != null)
               AnimatedSize(
                 duration: const Duration(milliseconds: 250),
@@ -481,7 +428,7 @@ class _ReportCategorySectionState
                             SizedBox(height: 12.h),
                             ReportCategoryChart(
                               categories: othersEntry.otherItems,
-                              total: othersEntry.amount,
+                              total: total,
                               onCategoryTap: (cat) => _navigateToCategory(
                                 cat,
                                 type,
@@ -650,42 +597,6 @@ class _ReportInsightSection extends ConsumerWidget {
 }
 
 // ───────────────── Private Widgets ─────────────────
-
-/// Toggle icon untuk switch antara pie chart dan progress bar view.
-class _ViewModeToggle extends StatelessWidget {
-  const _ViewModeToggle({
-    required this.isPieChart,
-    required this.onToggle,
-    required this.colors,
-  });
-
-  final bool isPieChart;
-  final VoidCallback onToggle;
-  final dynamic colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggle,
-      child: Container(
-        width: 32.w,
-        height: 32.w,
-        decoration: BoxDecoration(
-          color: colors.surfaceVariant,
-          border: Border.all(color: colors.border),
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        child: Center(
-          child: FaIcon(
-            isPieChart ? FontAwesomeIcons.listUl : FontAwesomeIcons.chartPie,
-            size: 14.w,
-            color: colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _BreakdownToggle extends StatelessWidget {
   const _BreakdownToggle({

@@ -185,9 +185,17 @@ void main() {
       expect(result.length, 6); // 5 + Lainnya
       expect(result.last.categoryId, '__others__');
       expect(result.last.categoryName, 'Lainnya');
+      expect(result.take(5).map((e) => e.categoryId), [
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+      ]);
       // "Lainnya" should sum Cat5(300k) + Cat6(200k) + Cat7(100k) = 600k
       expect(result.last.amount, 600000);
       expect(result.last.transactionCount, 3);
+      expect(result.last.otherItems.map((e) => e.categoryId), ['5', '6', '7']);
     });
   });
 

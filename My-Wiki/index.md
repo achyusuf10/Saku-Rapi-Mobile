@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-12
+updated: 2026-04-13
 ---
 
 # 📚 Indeks Wiki SakuRapi
@@ -11,8 +11,8 @@ updated: 2026-04-12
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 40 |
-| Sumber diproses | 8 |
+| Total halaman | 41 |
+| Sumber diproses | 9 |
 | Entitas | 19 |
 | Konsep | 7 |
 | Analisis | 5 |
@@ -67,6 +67,7 @@ updated: 2026-04-12
 - [[wiki/sources/plan-remove-notification|Plan: Hapus Fitur Notifikasi]] — Rencana dan dokumentasi penghapusan fitur notifikasi lokal (April 2026)
 - [[wiki/sources/plan-fitur-kirim-laporan|Plan: Fitur Kirim Laporan]] — Rencana dan implementasi fitur user report/feedback (April 2026)
 - [[wiki/sources/plan-history-search-category-pagination|Plan: History Search + Category Pagination]] — Rencana dan implementasi search server-side + category-level pagination di History (April 2026)
+- [[wiki/sources/plan-refactor-report-category-breakdown|Plan: Refactor Breakdown Kategori Reports]] — Refactor breakdown kategori Reports: pie chart + linear list digabung, top 5 + Lainnya, mode toggle dihapus (April 2026)
 
 ## 🔬 Analisis
 

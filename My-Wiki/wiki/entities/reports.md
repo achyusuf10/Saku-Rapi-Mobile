@@ -4,8 +4,9 @@ type: entity
 tags: [reports, laporan, chart, keuangan, fitur]
 sources:
   - raw/docs/redesign-ui-ux/S8_REPORTS.md
+  - raw/docs/plan-refactor-report-category-breakdown-combined-chart.md
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-13
 ---
 
 # Reports
@@ -28,8 +29,7 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 | Komponen | Deskripsi |
 |----------|-----------|
 | **Report Summary Card** | Ringkasan total income, expense, dan net (saldo bersih) per periode |
-| **Category Pie Chart** | Chart pie per kategori pengeluaran/pemasukan |
-| **Category Bar Chart** | Chart bar per kategori — perbandingan visual antar kategori |
+| **Category Breakdown** | Pie chart + list linear progress dalam satu section, memakai **top 5 kategori + `Lainnya`** |
 | **Trend Chart** | Chart garis tren pengeluaran/pemasukan antar periode |
 | **Period Tabs** | Tab pemilih periode (`SakuSubPeriodTabs`) — mingguan, bulanan, tahunan |
 
@@ -42,6 +42,8 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 - **`transfer_to_asset` (investasi) tidak masuk laporan** sebagai expense — ini adalah perpindahan aset
 - Warna chart menggunakan **semantic colors** (category-based colors)
 - Net positif → **income color** (`#059669`), net negatif → **expense color** (`#DC2626`)
+- Breakdown kategori utama memakai **top 5 + bucket `Lainnya`**
+- Item **`Lainnya`** di list kategori bersifat **expand/collapse**, bukan navigasi
 
 ---
 
@@ -55,6 +57,7 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 | Axis labels | `textSecondary` color |
 | Grid lines | `border` color dengan 30% alpha |
 | Tooltip | Clean `surface` background + border |
+| Category breakdown | Pie chart di atas, linear progress list di bawah, tanpa mode selector |
 
 ---
 
@@ -68,3 +71,4 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 - [[wiki/concepts/matrix-transaksi|Matrix Transaksi]]
 - [[wiki/concepts/design-system|Design System — Financial Trust]]
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]
+- [[wiki/sources/plan-refactor-report-category-breakdown|Plan: Refactor Breakdown Kategori Reports]]
