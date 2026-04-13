@@ -1,17 +1,16 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
-import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_filter_sheet.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_shimmer.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
+import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_grouped_list.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
@@ -157,7 +156,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           // Filter button
           IconButton(
             icon: Badge(
-              isLabelVisible: historyState.typeFilter != null ||
+              isLabelVisible:
+                  historyState.typeFilter != null ||
                   historyState.searchKeyword != null,
               smallSize: 8.w,
               child: FaIcon(FontAwesomeIcons.filter, size: 16.w),
@@ -270,12 +270,27 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   Widget _buildGroupedList(HistoryState historyState) {
     final colors = context.colors;
 
-    final grouped = historyState.groupMode == HistoryGroupMode.byDate
-        ? historyState.groupedByDate
-        : historyState.groupedByCategory;
+    if (historyState.groupMode == HistoryGroupMode.byDate) {
+      return RefreshIndicator(
+        color: colors.primary,
+        onRefresh: () => ref.read(historyControllerProvider.notifier).refresh(),
+        child: TransactionDateGroupedList(
+          transactions: historyState.filteredTransactions,
+          onTap: _navigateToDetail,
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 80.h),
+          physics: const AlwaysScrollableScrollPhysics(),
+          shrinkWrap: false,
+          onLoadMore: () =>
+              ref.read(historyControllerProvider.notifier).loadMore(),
+          hasMore: historyState.hasMore,
+          isLoadingMore: historyState.isLoadingMore,
+          loadMoreKey: const Key('history_load_more_trigger'),
+        ),
+      );
+    }
 
-    // Build section-based list: each group = header + card with tiles
-    final sections = grouped.entries.toList();
+    // ─── byCategory mode: existing implementation ───
+    final sections = historyState.groupedByCategory.entries.toList();
 
     return RefreshIndicator(
       color: colors.primary,
@@ -321,16 +336,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ─── Group Header ───
                 _GroupHeader(
-                  label: _formatGroupLabel(entry.key, historyState.groupMode),
+                  label: entry.key,
                   total: _groupTotal(txList),
                   transactionCount: txList.length,
                   groupMode: historyState.groupMode,
                   firstTransaction: txList.first,
                 ),
                 SizedBox(height: 6.h),
-                // ─── Transaction Card ───
                 Container(
                   decoration: BoxDecoration(
                     color: colors.surface,
@@ -348,11 +361,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                         if (i < txList.length - 1)
                           Divider(
                             height: 1,
-                            indent:
-                                historyState.groupMode ==
-                                    HistoryGroupMode.byCategory
-                                ? 16.w
-                                : 70.w,
+                            indent: 16.w,
                             color: colors.border,
                           ),
                       ],
@@ -365,18 +374,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         },
       ),
     );
-  }
-
-  String _formatGroupLabel(String key, HistoryGroupMode mode) {
-    if (mode == HistoryGroupMode.byCategory) return key;
-
-    // key is 'YYYY-MM-DD'
-    try {
-      final date = SakuDateUtils.parseRequiredDate(key, fieldName: 'group_key');
-      return date.extToDateStringDDMMMMYYYY();
-    } catch (_) {
-      return key;
-    }
   }
 
   double _groupTotal(List<TransactionModel> txs) {
