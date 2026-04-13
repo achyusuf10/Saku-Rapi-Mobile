@@ -130,7 +130,7 @@ class TransactionDetailPage extends ConsumerWidget {
                 _DetailSection(
                   label: l10n.transactionDate,
                   value: transaction.date.extToFormattedString(
-                    outputDateFormat: 'dd MMMM yyyy HH:mm',
+                    outputDateFormat: 'EEEE, dd MMMM yyyy HH:mm',
                   ),
                   icon: FontAwesomeIcons.calendarDay,
                 ),

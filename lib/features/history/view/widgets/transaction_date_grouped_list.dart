@@ -161,7 +161,7 @@ class TransactionDateGroupedList extends StatelessWidget {
   String _formatDateKey(String key) {
     try {
       final date = SakuDateUtils.parseRequiredDate(key, fieldName: 'date_key');
-      return date.extToDateStringDDMMMMYYYY();
+      return date.extToFormattedString(outputDateFormat: 'EEEE, dd MMM yyyy');
     } catch (_) {
       return key;
     }

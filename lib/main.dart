@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_saku_rapi/core/config/app_flavor.dart';
 import 'package:app_saku_rapi/core/localization/locale_controller.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
@@ -102,7 +104,13 @@ class SakuRapiApp extends ConsumerWidget {
           builder: (context, child) {
             return KeyboardWrapper(
               keyboards: [SakuCalculatorKeyboard()],
-              child: child ?? SizedBox(),
+              child: (Platform.isAndroid)
+                  ? SafeArea(
+                      top: false,
+                      bottom: true,
+                      child: child ?? SizedBox(),
+                    )
+                  : child ?? SizedBox(),
             );
           },
           theme: AppThemes.lightTheme(context),
