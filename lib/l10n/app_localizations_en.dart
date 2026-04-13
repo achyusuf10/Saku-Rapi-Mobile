@@ -2482,4 +2482,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendReportCategoryOther => 'Other';
+
+  @override
+  String reportInsightRatioHealthy(String percent) {
+    return 'Kamu membelanjakan $percent% dari pemasukanmu. Sisanya bisa ditabung atau diinvestasikan. Lanjutkan! 👏';
+  }
+
+  @override
+  String reportInsightRatioWarning(String percent) {
+    return 'Kamu membelanjakan $percent% dari pemasukanmu. Idealnya di bawah 50% supaya ada ruang menabung.';
+  }
+
+  @override
+  String reportInsightRatioDanger(String percent) {
+    return 'Kamu membelanjakan $percent% dari pemasukanmu — hampir tidak ada sisa. Coba kurangi pengeluaran yang tidak mendesak.';
+  }
+
+  @override
+  String reportInsightRatioCritical(String amount) {
+    return 'Pengeluaranmu melebihi pemasukan sebesar $amount. Kamu sedang memakai tabungan. Perlu segera dievaluasi.';
+  }
+
+  @override
+  String get reportInsightRatioNoIncome =>
+      'Belum ada pemasukan tercatat. Catat pemasukan agar bisa menganalisis kesehatan keuanganmu.';
+
+  @override
+  String reportInsightTrendDownBig(String amount, String percent) {
+    return 'Pengeluaranmu turun $amount ($percent%) dari periode lalu. Kerja bagus — pertahankan pola ini! 👍';
+  }
+
+  @override
+  String reportInsightTrendDownSmall(String percent) {
+    return 'Pengeluaranmu turun sedikit ($percent%). Sudah di jalur yang baik!';
+  }
+
+  @override
+  String reportInsightTrendStable(String amount) {
+    return 'Pengeluaranmu stabil — total $amount periode ini.';
+  }
+
+  @override
+  String reportInsightTrendUpSmall(String percent) {
+    return 'Pengeluaranmu naik sedikit ($percent%). Cek apakah ada kebutuhan dadakan atau bisa dikurangi.';
+  }
+
+  @override
+  String reportInsightTrendUpBig(
+    String amount,
+    String percent,
+    String category,
+  ) {
+    return 'Pengeluaranmu naik $amount ($percent%). Penyebab terbesar: $category. Coba batasi di kategori ini.';
+  }
+
+  @override
+  String reportInsightTrendUpBigNoCategory(String amount, String percent) {
+    return 'Pengeluaranmu naik $amount ($percent%) dari periode lalu. Coba evaluasi pengeluaran yang bisa dikurangi.';
+  }
+
+  @override
+  String reportInsightCategoryDominant(
+    String category,
+    String percent,
+    String amount,
+  ) {
+    return 'Kategori $category mendominasi $percent% pengeluaranmu ($amount). Cek apakah bisa dikurangi.';
+  }
+
+  @override
+  String reportInsightPeakDay(String date, String amount, String percent) {
+    return 'Pengeluaran terbesar di tanggal $date ($amount), yaitu $percent% dari total pengeluaran.';
+  }
 }

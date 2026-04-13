@@ -5,8 +5,9 @@ tags: [reports, laporan, chart, keuangan, fitur]
 sources:
   - raw/docs/redesign-ui-ux/S8_REPORTS.md
   - raw/docs/plan-refactor-report-category-breakdown-combined-chart.md
+  - raw/audit-report-page.md
 created: 2026-04-10
-updated: 2026-04-13
+updated: 2026-04-14
 ---
 
 # Reports
@@ -58,6 +59,53 @@ Fitur laporan keuangan di SakuRapi — menampilkan ringkasan pemasukan, pengelua
 | Grid lines | `border` color dengan 30% alpha |
 | Tooltip | Clean `surface` background + border |
 | Category breakdown | Pie chart di atas, linear progress list di bawah, tanpa mode selector |
+
+---
+
+## Smart Insight System
+
+`_ReportInsightSection` menampilkan **2–4 insight cards** yang dihitung otomatis dari data periode saat ini. Setiap card punya ikon, warna sesuai severity, dan pesan yang actionable.
+
+### 4 Layer Insight
+
+| # | Insight | Data Source | Threshold |
+|---|---------|-------------|-----------|
+| 1 | **Rasio Pengeluaran/Pemasukan** | `summary.expenseToIncomeRatio` | ≤50% 🟢, 50-75% 🟡, 75-100% 🟠, >100% 🔴 |
+| 2 | **Tren Perubahan** | `expenseChange` provider + `previousSummary` | 5 tier: turun besar/kecil, stabil, naik kecil/besar |
+| 3 | **Kategori Dominan** | `categoryBreakdown[0]` | Muncul jika 1 kategori > 40% total expense |
+| 4 | **Hari Terboros** | `dailyTrend` (max expense) | Muncul jika peak day > 25% total expense |
+
+### Visual Design
+
+- Setiap card: left border berwarna sesuai severity + `FaIcon`
+- Warna: `colors.income` (🟢), `colors.warning` (🟡🟠), `colors.expense` (🔴), `colors.textSecondary` (netral)
+- Ikon: `FontAwesomeIcons` — shieldHalved, triangleExclamation, arrowTrendUp/Down, chartPie, calendarDay
+- Semua teks dilokalisasi via `.arb` keys (`reportInsightRatio*`, `reportInsightTrend*`, `reportInsightCategory*`, `reportInsightPeakDay`)
+
+### Teori Keuangan
+
+Berdasarkan **Aturan 50/30/20** (Elizabeth Warren):
+- 50% untuk kebutuhan dasar
+- 30% untuk keinginan
+- 20% untuk tabungan/investasi
+
+Jika rasio expense/income > 80%, financial health rendah. Sistem insight memberi peringatan bertingkat agar user aware sebelum terlambat.
+
+---
+
+## Trend Chart (Tren Harian)
+
+`ReportTrendChart` — bar chart ganda (Syncfusion `SfCartesianChart`) untuk visualisasi income vs expense per hari.
+
+### Tooltip
+
+Tooltip menampilkan **kedua series** (Pemasukan + Pengeluaran) dengan dot warna, bukan hanya series yang di-tap. String dilokalisasi via parameter `incomeLabel` / `expenseLabel` pada `buildChart()`.
+
+### Static Builder
+
+`buildChart()` adalah method **static** — dipakai baik inline maupun untuk fullscreen dialog. Parameter:
+- `data`, `colors`, `isDark` — wajib
+- `incomeLabel`, `expenseLabel` — opsional, default "Pemasukan"/"Pengeluaran"
 
 ---
 

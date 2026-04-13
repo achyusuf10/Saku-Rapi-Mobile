@@ -4678,6 +4678,92 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Lainnya'**
   String get sendReportCategoryOther;
+
+  /// No description provided for @reportInsightRatioHealthy.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu membelanjakan {percent}% dari pemasukanmu. Sisanya bisa ditabung atau diinvestasikan. Lanjutkan! 👏'**
+  String reportInsightRatioHealthy(String percent);
+
+  /// No description provided for @reportInsightRatioWarning.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu membelanjakan {percent}% dari pemasukanmu. Idealnya di bawah 50% supaya ada ruang menabung.'**
+  String reportInsightRatioWarning(String percent);
+
+  /// No description provided for @reportInsightRatioDanger.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu membelanjakan {percent}% dari pemasukanmu — hampir tidak ada sisa. Coba kurangi pengeluaran yang tidak mendesak.'**
+  String reportInsightRatioDanger(String percent);
+
+  /// No description provided for @reportInsightRatioCritical.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu melebihi pemasukan sebesar {amount}. Kamu sedang memakai tabungan. Perlu segera dievaluasi.'**
+  String reportInsightRatioCritical(String amount);
+
+  /// No description provided for @reportInsightRatioNoIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada pemasukan tercatat. Catat pemasukan agar bisa menganalisis kesehatan keuanganmu.'**
+  String get reportInsightRatioNoIncome;
+
+  /// No description provided for @reportInsightTrendDownBig.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu turun {amount} ({percent}%) dari periode lalu. Kerja bagus — pertahankan pola ini! 👍'**
+  String reportInsightTrendDownBig(String amount, String percent);
+
+  /// No description provided for @reportInsightTrendDownSmall.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu turun sedikit ({percent}%). Sudah di jalur yang baik!'**
+  String reportInsightTrendDownSmall(String percent);
+
+  /// No description provided for @reportInsightTrendStable.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu stabil — total {amount} periode ini.'**
+  String reportInsightTrendStable(String amount);
+
+  /// No description provided for @reportInsightTrendUpSmall.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu naik sedikit ({percent}%). Cek apakah ada kebutuhan dadakan atau bisa dikurangi.'**
+  String reportInsightTrendUpSmall(String percent);
+
+  /// No description provided for @reportInsightTrendUpBig.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu naik {amount} ({percent}%). Penyebab terbesar: {category}. Coba batasi di kategori ini.'**
+  String reportInsightTrendUpBig(
+    String amount,
+    String percent,
+    String category,
+  );
+
+  /// No description provided for @reportInsightTrendUpBigNoCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu naik {amount} ({percent}%) dari periode lalu. Coba evaluasi pengeluaran yang bisa dikurangi.'**
+  String reportInsightTrendUpBigNoCategory(String amount, String percent);
+
+  /// No description provided for @reportInsightCategoryDominant.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori {category} mendominasi {percent}% pengeluaranmu ({amount}). Cek apakah bisa dikurangi.'**
+  String reportInsightCategoryDominant(
+    String category,
+    String percent,
+    String amount,
+  );
+
+  /// No description provided for @reportInsightPeakDay.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran terbesar di tanggal {date} ({amount}), yaitu {percent}% dari total pengeluaran.'**
+  String reportInsightPeakDay(String date, String amount, String percent);
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,7 +27,13 @@ class ReportTrendChart extends StatelessWidget {
 
     return SizedBox(
       height: 220.h,
-      child: buildChart(data: data, colors: colors, isDark: isDark),
+      child: buildChart(
+        data: data,
+        colors: colors,
+        isDark: isDark,
+        incomeLabel: context.l10n.reportIncome,
+        expenseLabel: context.l10n.reportExpense,
+      ),
     );
   }
 
@@ -35,6 +42,8 @@ class ReportTrendChart extends StatelessWidget {
     required List<ReportDailyTrendModel> data,
     required dynamic colors,
     required bool isDark,
+    String incomeLabel = 'Pemasukan',
+    String expenseLabel = 'Pengeluaran',
   }) {
     final textColor = colors.textSecondary as Color;
     final gridColor = colors.border as Color;
@@ -74,10 +83,8 @@ class ReportTrendChart extends StatelessWidget {
         canShowMarker: true,
         builder: (data, point, series, pointIdx, seriesIdx) {
           final d = data as ReportDailyTrendModel;
-          final isIncome = seriesIdx == 0;
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,16 +94,20 @@ class ReportTrendChart extends StatelessWidget {
                   style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: 10.sp,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  '${isIncome ? "Income" : "Expense"}: ${isIncome ? d.income.toCompactCurrency() : d.expense.toCompactCurrency()}',
-                  style: TextStyle(
-                    color: isIncome ? colors.income : colors.expense,
-                    fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+                SizedBox(height: 4.h),
+                _TooltipRow(
+                  label: incomeLabel,
+                  value: d.income.toCompactCurrency(),
+                  color: colors.income,
+                ),
+                SizedBox(height: 2.h),
+                _TooltipRow(
+                  label: expenseLabel,
+                  value: d.expense.toCompactCurrency(),
+                  color: colors.expense,
                 ),
               ],
             ),
@@ -145,5 +156,40 @@ class ReportTrendChart extends StatelessWidget {
     if (v.abs() >= 1000000) return '${(v / 1000000).toStringAsFixed(1)} jt';
     if (v.abs() >= 1000) return '${(v / 1000).toStringAsFixed(0)} rb';
     return v.toStringAsFixed(0);
+  }
+}
+
+class _TooltipRow extends StatelessWidget {
+  const _TooltipRow({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8.r,
+          height: 8.r,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          '$label: $value',
+          style: TextStyle(
+            color: color,
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }

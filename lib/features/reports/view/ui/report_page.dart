@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
@@ -490,6 +491,8 @@ class _ReportTrendSection extends ConsumerWidget {
                       data: dailyTrend,
                       colors: colors,
                       isDark: isDark,
+                      incomeLabel: l10n.reportIncome,
+                      expenseLabel: l10n.reportExpense,
                     );
 
                     ChartFullscreenDialog.show(
@@ -545,48 +548,301 @@ class _ReportInsightSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final l10n = context.l10n;
+    final state = ref.watch(reportControllerProvider);
+    final summary = state.summary;
+    final previousSummary = state.previousSummary;
+    final categories = state.categoryBreakdown;
+    final dailyTrend = state.dailyTrend;
     final expenseChange = ref.watch(reportExpenseChangeProvider);
-    final total = ref.watch(
-      reportControllerProvider.select((s) => s.summary.total),
+
+    final insights = _buildInsights(
+      l10n: l10n,
+      colors: colors,
+      summary: summary,
+      previousSummary: previousSummary,
+      categories: categories,
+      dailyTrend: dailyTrend,
+      expenseChange: expenseChange,
     );
 
-    final String text;
-    if (expenseChange < -2) {
-      text = l10n.reportInsightExpenseDown(
-        expenseChange.abs().toStringAsFixed(0),
+    if (insights.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: insights
+          .map(
+            (insight) => Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: _InsightCard(
+                icon: insight.icon,
+                iconColor: insight.color,
+                borderColor: insight.color,
+                message: insight.message,
+                colors: colors,
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  List<_InsightData> _buildInsights({
+    required dynamic l10n,
+    required dynamic colors,
+    required ReportPeriodSummaryModel summary,
+    required ReportPeriodSummaryModel previousSummary,
+    required List<ReportCategoryBreakdownModel> categories,
+    required List<ReportDailyTrendModel> dailyTrend,
+    required double expenseChange,
+  }) {
+    final insights = <_InsightData>[];
+
+    // 1. Expense/Income Ratio
+    final ratioInsight = _ratioInsight(l10n, colors, summary);
+    if (ratioInsight != null) insights.add(ratioInsight);
+
+    // 2. Trend Change (enriched)
+    final trendInsight = _trendInsight(
+      l10n,
+      colors,
+      summary,
+      previousSummary,
+      categories,
+      expenseChange,
+    );
+    if (trendInsight != null) insights.add(trendInsight);
+
+    // 3. Dominant Category
+    final categoryInsight = _categoryInsight(l10n, colors, categories, summary);
+    if (categoryInsight != null) insights.add(categoryInsight);
+
+    // 4. Peak Spending Day
+    final peakInsight = _peakDayInsight(l10n, colors, dailyTrend, summary);
+    if (peakInsight != null) insights.add(peakInsight);
+
+    return insights;
+  }
+
+  _InsightData? _ratioInsight(
+    dynamic l10n,
+    dynamic colors,
+    ReportPeriodSummaryModel summary,
+  ) {
+    if (summary.totalIncome <= 0 && summary.totalExpense <= 0) return null;
+
+    if (summary.totalIncome <= 0) {
+      return _InsightData(
+        icon: FontAwesomeIcons.circleInfo,
+        color: colors.textSecondary as Color,
+        message: l10n.reportInsightRatioNoIncome,
       );
-    } else if (expenseChange > 2) {
-      text = l10n.reportInsightExpenseUp(
-        expenseChange.abs().toStringAsFixed(0),
-      );
-    } else if (total > 0) {
-      text = l10n.reportInsightStable;
-    } else {
-      text = l10n.reportInsightNoData;
     }
 
+    final ratio = summary.expenseToIncomeRatio * 100;
+    final percentStr = ratio.toStringAsFixed(0);
+
+    if (ratio <= 50) {
+      return _InsightData(
+        icon: FontAwesomeIcons.shieldHalved,
+        color: colors.income as Color,
+        message: l10n.reportInsightRatioHealthy(percentStr),
+      );
+    } else if (ratio <= 75) {
+      return _InsightData(
+        icon: FontAwesomeIcons.triangleExclamation,
+        color: colors.warning as Color,
+        message: l10n.reportInsightRatioWarning(percentStr),
+      );
+    } else if (ratio <= 100) {
+      return _InsightData(
+        icon: FontAwesomeIcons.triangleExclamation,
+        color: colors.expense as Color,
+        message: l10n.reportInsightRatioDanger(percentStr),
+      );
+    } else {
+      final overspend = (summary.totalExpense - summary.totalIncome)
+          .toCompactCurrency();
+      return _InsightData(
+        icon: FontAwesomeIcons.circleExclamation,
+        color: colors.expense as Color,
+        message: l10n.reportInsightRatioCritical(overspend),
+      );
+    }
+  }
+
+  _InsightData? _trendInsight(
+    dynamic l10n,
+    dynamic colors,
+    ReportPeriodSummaryModel summary,
+    ReportPeriodSummaryModel previousSummary,
+    List<ReportCategoryBreakdownModel> categories,
+    double expenseChange,
+  ) {
+    if (summary.totalExpense <= 0 && previousSummary.totalExpense <= 0) {
+      return null;
+    }
+
+    final diff = summary.totalExpense - previousSummary.totalExpense;
+    final absDiff = diff.abs().toCompactCurrency();
+    final absPercent = expenseChange.abs().toStringAsFixed(0);
+
+    if (expenseChange < -10) {
+      return _InsightData(
+        icon: FontAwesomeIcons.arrowTrendDown,
+        color: colors.income as Color,
+        message: l10n.reportInsightTrendDownBig(absDiff, absPercent),
+      );
+    } else if (expenseChange < -2) {
+      return _InsightData(
+        icon: FontAwesomeIcons.arrowTrendDown,
+        color: colors.income as Color,
+        message: l10n.reportInsightTrendDownSmall(absPercent),
+      );
+    } else if (expenseChange <= 2) {
+      return _InsightData(
+        icon: FontAwesomeIcons.minus,
+        color: colors.textSecondary as Color,
+        message: l10n.reportInsightTrendStable(
+          summary.totalExpense.toCompactCurrency(),
+        ),
+      );
+    } else if (expenseChange <= 10) {
+      return _InsightData(
+        icon: FontAwesomeIcons.arrowTrendUp,
+        color: colors.warning as Color,
+        message: l10n.reportInsightTrendUpSmall(absPercent),
+      );
+    } else {
+      // Big increase — reference top category if available
+      if (categories.isNotEmpty) {
+        return _InsightData(
+          icon: FontAwesomeIcons.arrowTrendUp,
+          color: colors.expense as Color,
+          message: l10n.reportInsightTrendUpBig(
+            absDiff,
+            absPercent,
+            categories.first.categoryName,
+          ),
+        );
+      }
+      return _InsightData(
+        icon: FontAwesomeIcons.arrowTrendUp,
+        color: colors.expense as Color,
+        message: l10n.reportInsightTrendUpBigNoCategory(absDiff, absPercent),
+      );
+    }
+  }
+
+  _InsightData? _categoryInsight(
+    dynamic l10n,
+    dynamic colors,
+    List<ReportCategoryBreakdownModel> categories,
+    ReportPeriodSummaryModel summary,
+  ) {
+    if (categories.isEmpty || summary.totalExpense <= 0) return null;
+
+    final top = categories.first;
+    final topRatio = top.amount / summary.totalExpense;
+
+    if (topRatio < 0.4) return null;
+
+    final percentStr = (topRatio * 100).toStringAsFixed(0);
+    final amountStr = top.amount.toCompactCurrency();
+
+    return _InsightData(
+      icon: FontAwesomeIcons.chartPie,
+      color: colors.warning as Color,
+      message: l10n.reportInsightCategoryDominant(
+        top.categoryName,
+        percentStr,
+        amountStr,
+      ),
+    );
+  }
+
+  _InsightData? _peakDayInsight(
+    dynamic l10n,
+    dynamic colors,
+    List<ReportDailyTrendModel> dailyTrend,
+    ReportPeriodSummaryModel summary,
+  ) {
+    if (dailyTrend.isEmpty || summary.totalExpense <= 0) return null;
+
+    ReportDailyTrendModel peak = dailyTrend.first;
+    for (final day in dailyTrend) {
+      if (day.expense > peak.expense) peak = day;
+    }
+
+    if (peak.expense <= 0) return null;
+
+    final peakRatio = peak.expense / summary.totalExpense;
+    if (peakRatio < 0.25) return null;
+
+    // Parse date string "yyyy-MM-dd" → readable "dd/MM"
+    final dateParts = peak.date.split('-');
+    final dateStr = dateParts.length >= 3
+        ? '${dateParts[2]}/${dateParts[1]}'
+        : peak.date;
+    final percentStr = (peakRatio * 100).toStringAsFixed(0);
+    final amountStr = peak.expense.toCompactCurrency();
+
+    return _InsightData(
+      icon: FontAwesomeIcons.calendarDay,
+      color: colors.warning as Color,
+      message: l10n.reportInsightPeakDay(dateStr, amountStr, percentStr),
+    );
+  }
+}
+
+class _InsightData {
+  const _InsightData({
+    required this.icon,
+    required this.color,
+    required this.message,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String message;
+}
+
+class _InsightCard extends StatelessWidget {
+  const _InsightCard({
+    required this.icon,
+    required this.iconColor,
+    required this.borderColor,
+    required this.message,
+    required this.colors,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color borderColor;
+  final String message;
+  final dynamic colors;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: colors.surfaceVariant,
+        color: colors.surfaceVariant as Color,
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: colors.border),
+        border: Border(
+          left: BorderSide(color: borderColor, width: 3.w),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.lightbulb_outline_rounded,
-            size: 16.w,
-            color: colors.warning,
-          ),
+          FaIcon(icon, size: 14.w, color: iconColor),
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              text,
+              message,
               style: TextStyleConstants.label2.copyWith(
-                color: colors.textPrimary,
+                color: colors.textPrimary as Color,
               ),
             ),
           ),
