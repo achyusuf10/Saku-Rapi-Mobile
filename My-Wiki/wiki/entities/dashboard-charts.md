@@ -635,6 +635,18 @@ Mode terakhir yang dipilih user disimpan dan dipakai saat app dibuka kembali.
 - `ValueKey` pada chart widget memastikan rebuild hanya saat data berubah
 - Chart height fixed → tidak ada layout reflow saat data loading
 
+### Loading State (post-audit fix)
+
+- `selectChartMode()` sekarang set `status: loading` sebelum fetch → shimmer muncul
+- `DashboardChartCarousel` menampilkan `ShimmerWidget.box()` menggantikan `PageView` saat loading
+- `DashboardPeriodSummary` menampilkan shimmer menggantikan body content saat loading
+- Error handling mirror `loadChartData()`: jika kedua fetch gagal → `status: error` + `errorMessage`
+
+### Tooltip Enhancements (post-audit fix)
+
+- **Comparison chart**: Tooltip sekarang menampilkan **kedua** series (Income + Expense) dan **rentang tanggal** periode (e.g., "7 Apr — 13 Apr")
+- **Trend chart**: `seriesIdx` di-clamp ke `0..2` untuk menghindari `RangeError`
+
 ### Keputusan Desain yang Pernah Dibuat
 
 1. **Daily mode = 7 hari rolling** (bukan single day) → alasan: 1 data point tidak bisa bikin chart

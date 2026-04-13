@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_con
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_comparison_chart.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_trend_report_chart.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
+import 'package:app_saku_rapi/global/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -112,14 +113,21 @@ class _DashboardChartCarouselState
             SizedBox(
               // Fixed height to avoid layout jumps
               height: 400.w,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (page) => setState(() => _currentPage = page),
-                children: const [
-                  DashboardComparisonChart(),
-                  DashboardTrendReportChart(),
-                ],
-              ),
+              child: chartState.status == DashboardChartStatus.loading
+                  ? ShimmerWidget.box(
+                      height: 400.w,
+                      width: double.infinity,
+                      radius: 12.r,
+                    )
+                  : PageView(
+                      controller: _pageController,
+                      onPageChanged: (page) =>
+                          setState(() => _currentPage = page),
+                      children: const [
+                        DashboardComparisonChart(),
+                        DashboardTrendReportChart(),
+                      ],
+                    ),
             ),
             SizedBox(height: 8.h),
 

@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
+import 'package:app_saku_rapi/global/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -63,101 +64,109 @@ class DashboardPeriodSummary extends ConsumerWidget {
             ),
             SizedBox(height: 14.h),
 
-            // ─── Income / Expense / Net Row ───
-            Row(
-              children: [
-                Expanded(
-                  child: _SummaryItem(
-                    label: l10n.dashboardIncomeLabel,
-                    value: currentIncome.toCurrency(withPrefix: false),
-                    color: colors.income,
-                  ),
-                ),
-                Expanded(
-                  child: _SummaryItem(
-                    label: l10n.dashboardExpenseLabel,
-                    value: currentExpense.toCurrency(withPrefix: false),
-                    color: colors.expense,
-                  ),
-                ),
-                Expanded(
-                  child: _SummaryItem(
-                    label: l10n.dashboardNetFlow,
-                    value: net.toCurrency(withPrefix: false),
-                    color: net >= 0 ? colors.income : colors.expense,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-
-            // ─── vs Previous Period ───
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.r),
-                color: colors.surfaceVariant,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            if (chartState.status == DashboardChartStatus.loading)
+              ShimmerWidget.box(
+                height: 80.h,
+                width: double.infinity,
+                radius: 8.r,
+              )
+            else ...[
+              // ─── Income / Expense / Net Row ───
+              Row(
                 children: [
-                  FaIcon(
-                    expenseChange > 0
-                        ? FontAwesomeIcons.arrowUp
-                        : expenseChange < 0
-                        ? FontAwesomeIcons.arrowDown
-                        : FontAwesomeIcons.minus,
-                    size: 10.w,
-                    color: expenseChange > 0
-                        ? colors.expense
-                        : expenseChange < 0
-                        ? colors.income
-                        : colors.textSecondary,
+                  Expanded(
+                    child: _SummaryItem(
+                      label: l10n.dashboardIncomeLabel,
+                      value: currentIncome.toCurrency(withPrefix: false),
+                      color: colors.income,
+                    ),
                   ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    expenseChange == 0
-                        ? l10n.dashboardNoChange
-                        : '${expenseChange.abs().toPercentage(decimalDigits: 1)} ${l10n.dashboardVsPrevious(periodLabel)}',
-                    style: TextStyleConstants.label2.copyWith(
+                  Expanded(
+                    child: _SummaryItem(
+                      label: l10n.dashboardExpenseLabel,
+                      value: currentExpense.toCurrency(withPrefix: false),
+                      color: colors.expense,
+                    ),
+                  ),
+                  Expanded(
+                    child: _SummaryItem(
+                      label: l10n.dashboardNetFlow,
+                      value: net.toCurrency(withPrefix: false),
+                      color: net >= 0 ? colors.income : colors.expense,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+
+              // ─── vs Previous Period ───
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.r),
+                  color: colors.surfaceVariant,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FaIcon(
+                      expenseChange > 0
+                          ? FontAwesomeIcons.arrowUp
+                          : expenseChange < 0
+                          ? FontAwesomeIcons.arrowDown
+                          : FontAwesomeIcons.minus,
+                      size: 10.w,
                       color: expenseChange > 0
                           ? colors.expense
                           : expenseChange < 0
                           ? colors.income
                           : colors.textSecondary,
-                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 12.h),
-
-            // ─── See Full Report ───
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: () => context.push(AppRouter.reports),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+                    SizedBox(width: 6.w),
                     Text(
-                      l10n.reportSeeFullReport,
+                      expenseChange == 0
+                          ? l10n.dashboardNoChange
+                          : '${expenseChange.abs().toPercentage(decimalDigits: 1)} ${l10n.dashboardVsPrevious(periodLabel)}',
                       style: TextStyleConstants.label2.copyWith(
-                        color: colors.primary,
+                        color: expenseChange > 0
+                            ? colors.expense
+                            : expenseChange < 0
+                            ? colors.income
+                            : colors.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
-                    ),
-                    SizedBox(width: 4.w),
-                    FaIcon(
-                      FontAwesomeIcons.arrowRight,
-                      size: 11.w,
-                      color: colors.primary,
                     ),
                   ],
                 ),
               ),
-            ),
+              SizedBox(height: 12.h),
+
+              // ─── See Full Report ───
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () => context.push(AppRouter.reports),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.reportSeeFullReport,
+                        style: TextStyleConstants.label2.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      FaIcon(
+                        FontAwesomeIcons.arrowRight,
+                        size: 11.w,
+                        color: colors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -214,37 +214,27 @@ Query: date >= 12 Apr 17:00 UTC AND date < 19 Apr 17:00 UTC
 
 ---
 
-## Rencana Implementasi
+## Rencana Implementasi — ✅ Semua Selesai
 
-### Todo 1: Fix Loading State di Chart Widgets
-**Scope**: `dashboard_chart_carousel.dart`, `dashboard_comparison_chart.dart`, `dashboard_trend_report_chart.dart`
-**Detail**: Cek `chartState.status == DashboardChartStatus.loading` → tampilkan `ShimmerWidget` sesuai bentuk chart (bar skeleton / line skeleton)
+### ✅ Todo 1: Fix Loading State di Chart Widgets
+**File**: `dashboard_chart_carousel.dart`, `dashboard_period_summary.dart`
+**Detail**: Ditambahkan `ShimmerWidget.box()` saat `status == DashboardChartStatus.loading` di carousel (mengganti PageView) dan period summary (mengganti body content)
 
-### Todo 2: Fix `selectChartMode()` di Controller
-**Scope**: `dashboard_chart_controller.dart`
-**Detail**:
-- Set `status: DashboardChartStatus.loading` + `chartMode: mode` di awal
-- Tambahkan error handling (mirror `loadChartData()`)
-- Set `status: DashboardChartStatus.loaded` di akhir
+### ✅ Todo 2: Fix `selectChartMode()` di Controller
+**File**: `dashboard_chart_controller.dart`
+**Detail**: Set `status: loading` di awal, tambah error handling (mirror `loadChartData()`), set `status: loaded` di akhir
 
-### Todo 3: Fix PeriodSummary Label Daily Mode
-**Scope**: `dashboard_period_summary.dart`
+### ✅ Todo 3: Fix PeriodSummary Label Daily Mode
+**File**: `dashboard_period_summary.dart`
 **Detail**: Ganti `l10n.dashboardYesterday` → `l10n.dashboardPrev7Days` untuk daily mode
 
-### Todo 4: Enhance Comparison Chart Tooltip
-**Scope**: `dashboard_comparison_chart.dart`
-**Detail**:
-- Tambah date range ke `_ComparisonData` model
-- Tampilkan date range di tooltip header (e.g., "7 Hari Ini (8 Apr — 14 Apr)")
-- Tampilkan kedua series (Income + Expense) di body tooltip
+### ✅ Todo 4: Enhance Comparison Chart Tooltip
+**File**: `dashboard_comparison_chart.dart`
+**Detail**: Tambah `dateRange` ke `_ComparisonData`, tampilkan date range + kedua series (Income + Expense) di tooltip
 
-### Todo 5: Bounds-Check Tooltip Trend Chart
-**Scope**: `dashboard_trend_report_chart.dart`
-**Detail**: Clamp `seriesIdx` ke `0..2` untuk menghindari `RangeError`
+### ✅ Todo 5: Bounds-Check Tooltip Trend Chart
+**File**: `dashboard_trend_report_chart.dart`
+**Detail**: Clamp `seriesIdx` ke `0..names.length-1` untuk menghindari `RangeError`
 
-### Todo 6: Tambah Loading State di PeriodSummary
-**Scope**: `dashboard_period_summary.dart`
-**Detail**: Cek `chartState.status` → tampilkan shimmer jika loading
-
-### Todo 7: Audit & Test
-**Detail**: Run `fvm flutter analyze`, verifikasi visual semua 3 mode (bulanan/mingguan/harian)
+### ✅ Todo 6: Audit & Test
+**Detail**: `fvm flutter analyze` → No issues found

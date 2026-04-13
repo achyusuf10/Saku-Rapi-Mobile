@@ -1,5 +1,6 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_chart_controller.dart';
@@ -45,16 +46,25 @@ class DashboardComparisonChart extends ConsumerWidget {
     final textColor = colors.textSecondary;
     final gridColor = colors.border.withValues(alpha: 0.75);
 
+    // Calculate date ranges for tooltip
+    final now = DateTime.now();
+    final (currentStart, currentEnd, prevStart, prevEnd) =
+        DashboardChartController.periodRanges(now, chartState.chartMode);
+    String formatRange(DateTime start, DateTime end) =>
+        '${start.extToFormattedString(outputDateFormat: 'd MMM')} - ${end.extToFormattedString(outputDateFormat: 'd MMM')}';
+
     final chartData = <_ComparisonData>[
       _ComparisonData(
         label: currentLabel,
         income: curIncome,
         expense: curExpense,
+        dateRange: formatRange(currentStart, currentEnd),
       ),
       _ComparisonData(
         label: previousLabel,
         income: prevIncome,
         expense: prevExpense,
+        dateRange: formatRange(prevStart, prevEnd),
       ),
     ];
 
@@ -149,8 +159,6 @@ class DashboardComparisonChart extends ConsumerWidget {
               header: '',
               builder: (data, point, series, pointIdx, seriesIdx) {
                 final d = data as _ComparisonData;
-                final isIncome = seriesIdx == 0;
-                final value = isIncome ? d.income : d.expense;
                 return Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 10.w,
@@ -174,13 +182,34 @@ class DashboardComparisonChart extends ConsumerWidget {
                     children: [
                       Text(
                         d.label,
-                        style: TextStyle(color: textColor, fontSize: 10.sp),
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (d.dateRange.isNotEmpty)
+                        Text(
+                          d.dateRange,
+                          style: TextStyle(
+                            color: textColor.withValues(alpha: 0.7),
+                            fontSize: 9.sp,
+                          ),
+                        ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '${l10n.dashboardIncomeLabel}: ${d.income.toCompactCurrency()}',
+                        style: TextStyle(
+                          color: colors.income,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        '${isIncome ? l10n.dashboardIncomeLabel : l10n.dashboardExpenseLabel}: ${value.toCompactCurrency()}',
+                        '${l10n.dashboardExpenseLabel}: ${d.expense.toCompactCurrency()}',
                         style: TextStyle(
-                          color: isIncome ? colors.income : colors.expense,
+                          color: colors.expense,
                           fontSize: 11.sp,
                           fontWeight: FontWeight.w600,
                         ),
@@ -326,11 +355,13 @@ class _ComparisonData {
     required this.label,
     required this.income,
     required this.expense,
+    this.dateRange = '',
   });
 
   final String label;
   final double income;
   final double expense;
+  final String dateRange;
 }
 
 class _SummaryItem extends StatelessWidget {
