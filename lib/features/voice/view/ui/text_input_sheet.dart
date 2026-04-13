@@ -10,6 +10,7 @@ import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart'
 import 'package:app_saku_rapi/features/voice/controllers/text_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -283,25 +284,12 @@ class _TextActionButtons extends StatelessWidget {
 
     return Row(
       children: [
-        // Left: "Batalkan" (always, secondary)
+        // Left: "Batalkan" (negative, outlined)
         Expanded(
-          child: OutlinedButton(
+          child: SakuButton(
+            text: l10n.confirmCancel,
             onPressed: onCancel,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-              side: BorderSide(
-                color: colors.textSecondary.withValues(alpha: 0.3),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-            ),
-            child: Text(
-              l10n.confirmCancel,
-              style: TextStyleConstants.b2.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
+            isOutlined: true,
           ),
         ),
 
@@ -314,86 +302,41 @@ class _TextActionButtons extends StatelessWidget {
   }
 
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
-    // Processing → disabled loading
+    // Processing → loading spinner
     if (state.status == TextInputStatus.processing) {
-      return ElevatedButton(
+      return SakuButton(
+        text: '',
         onPressed: null,
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: SizedBox(
-          width: 18.w,
-          height: 18.w,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.w,
-            valueColor: AlwaysStoppedAnimation(colors.textSecondary as Color),
-          ),
-        ),
+        isLoading: true,
       );
     }
 
     // Error → "Coba Lagi"
     if (state.status == TextInputStatus.error) {
       final buttonColor = colors.info as Color;
-      return ElevatedButton(
+      return SakuButton(
+        text: l10n.retryButton,
         onPressed: onRetry,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: Text(
-          l10n.retryButton,
-          style: TextStyleConstants.b2.copyWith(
-            color: _foregroundForBackground(buttonColor),
-          ),
-        ),
+        backgroundColor: buttonColor,
+        textColor: _foregroundForBackground(buttonColor),
       );
     }
 
     // Done → "Lanjutkan"
     if (state.status == TextInputStatus.done) {
       final buttonColor = colors.success as Color;
-      return ElevatedButton(
+      return SakuButton(
+        text: l10n.voiceContinueButton,
         onPressed: onDone,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: Text(
-          l10n.voiceContinueButton,
-          style: TextStyleConstants.b2.copyWith(
-            color: _foregroundForBackground(buttonColor),
-          ),
-        ),
+        backgroundColor: buttonColor,
+        textColor: _foregroundForBackground(buttonColor),
       );
     }
 
     // Idle → "Analisis"
-    final buttonColor = colors.primary as Color;
-    return ElevatedButton(
+    return SakuButton(
+      text: l10n.textInputSubmit,
       onPressed: onSubmit,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: buttonColor,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-      ),
-      child: Text(
-        l10n.textInputSubmit,
-        style: TextStyleConstants.b2.copyWith(
-          color: _foregroundForBackground(buttonColor),
-        ),
-      ),
     );
   }
 

@@ -11,6 +11,7 @@ import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provi
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -83,52 +84,52 @@ class OcrResultSheet extends ConsumerWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
         ),
         child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            _buildHandleBar(colors),
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              _buildHandleBar(colors),
 
-            // Title
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              child: Row(
-                children: [
-                  FaIcon(
-                    FontAwesomeIcons.receipt,
-                    size: 18.w,
-                    color: colors.accent,
-                  ),
-                  SizedBox(width: 10.w),
-                  Text(
-                    l10n.ocrResultTitle,
-                    style: TextStyleConstants.h6.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
+              // Title
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                child: Row(
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.receipt,
+                      size: 18.w,
+                      color: colors.accent,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 10.w),
+                    Text(
+                      l10n.ocrResultTitle,
+                      style: TextStyleConstants.h6.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            Divider(height: 1, color: colors.border.withValues(alpha: 0.2)),
+              Divider(height: 1, color: colors.border.withValues(alpha: 0.2)),
 
-            // Quota info
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
-              child: const AiQuotaInfoRow(mode: 'ocr'),
-            ),
+              // Quota info
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 4.h),
+                child: const AiQuotaInfoRow(mode: 'ocr'),
+              ),
 
-            // Content
-            Flexible(child: _buildContent(context, ref, state, ctrl)),
+              // Content
+              Flexible(child: _buildContent(context, ref, state, ctrl)),
 
-            // Bottom action buttons
-            _buildActions(context, ref, state, ctrl),
-          ],
+              // Bottom action buttons
+              _buildActions(context, ref, state, ctrl),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -241,19 +242,10 @@ class OcrResultSheet extends ConsumerWidget {
           ),
           if (isPermanent) ...[
             SizedBox(height: 20.h),
-            TextButton.icon(
+            SakuButton(
+              text: l10n.voiceOpenSettings,
               onPressed: ctrl.openSettings,
-              icon: FaIcon(
-                FontAwesomeIcons.gear,
-                size: 14.w,
-                color: colors.primary,
-              ),
-              label: Text(
-                l10n.voiceOpenSettings,
-                style: TextStyleConstants.label1.copyWith(
-                  color: colors.primary,
-                ),
-              ),
+              icon: FaIcon(FontAwesomeIcons.gear, size: 14.w),
             ),
           ],
         ],
@@ -643,9 +635,14 @@ class OcrResultSheet extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Cancel / Rescan button
+          // Cancel / Rescan button (negative, outlined)
           Expanded(
-            child: OutlinedButton.icon(
+            child: SakuButton(
+              text:
+                  state.status == OcrScanStatus.done ||
+                      state.status == OcrScanStatus.error
+                  ? l10n.ocrRescan
+                  : l10n.confirmCancel,
               onPressed: () {
                 if (state.status == OcrScanStatus.done ||
                     state.status == OcrScanStatus.error) {
@@ -654,6 +651,7 @@ class OcrResultSheet extends ConsumerWidget {
                   nav.pop();
                 }
               },
+              isOutlined: true,
               icon: FaIcon(
                 state.status == OcrScanStatus.done ||
                         state.status == OcrScanStatus.error
@@ -661,34 +659,19 @@ class OcrResultSheet extends ConsumerWidget {
                     : FontAwesomeIcons.xmark,
                 size: 14.w,
               ),
-              label: Text(
-                state.status == OcrScanStatus.done ||
-                        state.status == OcrScanStatus.error
-                    ? l10n.ocrRescan
-                    : l10n.confirmCancel,
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colors.textSecondary,
-                side: BorderSide(color: colors.border.withValues(alpha: 0.3)),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
             ),
           ),
 
           SizedBox(width: 12.w),
 
-          // Continue / Use result button
+          // Continue / Use result button (positive, filled)
           Expanded(
-            child: ElevatedButton.icon(
+            child: SakuButton(
+              text: l10n.ocrUseResult,
               onPressed:
                   state.status == OcrScanStatus.done &&
                       state.parseResult != null
                   ? () {
-                      // Simpan image file ke provider sebelum pop
-                      // agar transaction form bisa auto-fill lampiran
                       if (state.imageFile != null) {
                         ref.read(pendingOcrImageFileProvider.notifier).state =
                             state.imageFile;
@@ -696,20 +679,9 @@ class OcrResultSheet extends ConsumerWidget {
                       nav.pop(state.parseResult);
                     }
                   : null,
+              backgroundColor: accentColor,
+              textColor: accentForeground,
               icon: FaIcon(FontAwesomeIcons.check, size: 14.w),
-              label: Text(l10n.ocrUseResult),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-                foregroundColor: accentForeground,
-                disabledBackgroundColor: accentColor.withValues(alpha: 0.3),
-                disabledForegroundColor: accentForeground.withValues(
-                  alpha: 0.65,
-                ),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
             ),
           ),
         ],

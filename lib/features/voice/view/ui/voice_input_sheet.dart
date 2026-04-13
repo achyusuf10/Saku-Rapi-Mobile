@@ -10,6 +10,7 @@ import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart'
 import 'package:app_saku_rapi/features/voice/controllers/voice_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -452,29 +453,16 @@ class _VoiceActionButtons extends StatelessWidget {
 
     return Row(
       children: [
-        // Cancel / Ulangi button
+        // Cancel / Ulangi button (negative, outlined)
         Expanded(
-          child: OutlinedButton(
+          child: SakuButton(
+            text: state.status == VoiceInputStatus.done
+                ? l10n.voiceRetryButton
+                : l10n.confirmCancel,
             onPressed: state.status == VoiceInputStatus.done
                 ? onRetry
                 : onCancel,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-              side: BorderSide(
-                color: colors.textSecondary.withValues(alpha: 0.3),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-            ),
-            child: Text(
-              state.status == VoiceInputStatus.done
-                  ? l10n.voiceRetryButton
-                  : l10n.confirmCancel,
-              style: TextStyleConstants.b2.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
+            isOutlined: true,
           ),
         ),
 
@@ -489,80 +477,38 @@ class _VoiceActionButtons extends StatelessWidget {
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
     // Permission denied → "Buka Pengaturan"
     if (state.status == VoiceInputStatus.permissionDenied) {
-      final buttonColor = colors.primary as Color;
-      return ElevatedButton(
+      return SakuButton(
+        text: l10n.voiceOpenSettings,
         onPressed: onOpenSettings,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: Text(
-          l10n.voiceOpenSettings,
-          style: TextStyleConstants.b2.copyWith(
-            color: _foregroundForBackground(buttonColor),
-          ),
-        ),
       );
     }
 
     // Error → "Coba Lagi"
     if (state.status == VoiceInputStatus.error) {
       final buttonColor = colors.info as Color;
-      return ElevatedButton(
+      return SakuButton(
+        text: l10n.retryButton,
         onPressed: onRetry,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: Text(
-          l10n.retryButton,
-          style: TextStyleConstants.b2.copyWith(
-            color: _foregroundForBackground(buttonColor),
-          ),
-        ),
+        backgroundColor: buttonColor,
+        textColor: _foregroundForBackground(buttonColor),
       );
     }
 
     // Done → "Lanjutkan"
     if (state.status == VoiceInputStatus.done) {
       final buttonColor = colors.success as Color;
-      return ElevatedButton(
+      return SakuButton(
+        text: l10n.voiceContinueButton,
         onPressed: onDone,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        child: Text(
-          l10n.voiceContinueButton,
-          style: TextStyleConstants.b2.copyWith(
-            color: _foregroundForBackground(buttonColor),
-          ),
-        ),
+        backgroundColor: buttonColor,
+        textColor: _foregroundForBackground(buttonColor),
       );
     }
 
     // Processing/listening → disabled "Mohon tunggu..."
-    return ElevatedButton(
+    return SakuButton(
+      text: l10n.voicePleaseWait,
       onPressed: null,
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-      ),
-      child: Text(
-        l10n.voicePleaseWait,
-        style: TextStyleConstants.b2.copyWith(color: colors.textSecondary),
-      ),
     );
   }
 

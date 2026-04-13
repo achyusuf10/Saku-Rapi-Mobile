@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/global/widgets/saku_image_preview_dialog.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -297,16 +298,14 @@ class TransactionAttachmentField extends StatelessWidget {
 
   /// Tampilkan dialog preview foto full-screen dengan zoom.
   void _showPreviewDialog(BuildContext context) {
-    final isLocal = localAttachmentPath != null;
-    final heroTag = isLocal ? localAttachmentPath! : attachmentUrl!;
+    final heroTag =
+        localAttachmentPath != null ? localAttachmentPath! : attachmentUrl!;
 
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => _AttachmentPreviewDialog(
-        localPath: localAttachmentPath,
-        networkUrl: attachmentUrl,
-        heroTag: heroTag,
-      ),
+    showSakuImagePreview(
+      context,
+      localPath: localAttachmentPath,
+      networkUrl: attachmentUrl,
+      heroTag: heroTag,
     );
   }
 }
@@ -334,64 +333,3 @@ class _ErrorPlaceholder extends StatelessWidget {
   }
 }
 
-/// Dialog full-screen preview lampiran dengan InteractiveViewer (pinch-to-zoom).
-class _AttachmentPreviewDialog extends StatelessWidget {
-  const _AttachmentPreviewDialog({
-    this.localPath,
-    this.networkUrl,
-    required this.heroTag,
-  });
-
-  final String? localPath;
-  final String? networkUrl;
-  final String heroTag;
-
-  @override
-  Widget build(BuildContext context) {
-    final imageProvider = localPath != null
-        ? FileImage(File(localPath!)) as ImageProvider
-        : NetworkImage(networkUrl!);
-
-    return Dialog.fullscreen(
-      backgroundColor: Colors.black,
-      child: Stack(
-        children: [
-          // Zoomable image
-          Center(
-            child: InteractiveViewer(
-              panEnabled: true,
-              minScale: 1.0,
-              maxScale: 5.0,
-              child: Hero(
-                tag: heroTag,
-                child: Image(
-                  image: imageProvider,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white54),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Close button
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 8,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 22),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

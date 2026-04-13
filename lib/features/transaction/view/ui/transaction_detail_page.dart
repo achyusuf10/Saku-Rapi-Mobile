@@ -20,6 +20,7 @@ import 'package:app_saku_rapi/features/transaction/models/transaction_item_model
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/saku_image_preview_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1039,59 +1040,7 @@ class _AttachmentSection extends StatelessWidget {
   }
 
   void _openFullScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => _AttachmentFullScreenPage(url: url),
-      ),
-    );
+    showSakuImagePreview(context, networkUrl: url, heroTag: url);
   }
 }
 
-/// Halaman fullscreen untuk melihat lampiran foto.
-class _AttachmentFullScreenPage extends StatelessWidget {
-  const _AttachmentFullScreenPage({required this.url});
-
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          context.l10n.transactionAttachment,
-          style: TextStyleConstants.h7.copyWith(color: Colors.white),
-        ),
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          child: CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.contain,
-            placeholder: (_, _) =>
-                Center(child: CircularProgressIndicator(color: colors.primary)),
-            errorWidget: (_, _, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.triangleExclamation,
-                  size: 40.w,
-                  color: Colors.white54,
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'Gagal memuat lampiran',
-                  style: TextStyleConstants.b2.copyWith(color: Colors.white54),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

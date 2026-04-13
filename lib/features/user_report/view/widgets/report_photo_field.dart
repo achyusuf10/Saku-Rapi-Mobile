@@ -7,6 +7,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/user_report/controllers/send_report_controller.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
+import 'package:app_saku_rapi/global/widgets/saku_image_preview_dialog.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -166,13 +167,20 @@ class _PhotoPreview extends StatelessWidget {
       borderRadius: BorderRadius.circular(12.r),
       child: Stack(
         children: [
-          // Thumbnail
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Image.file(
-              file,
-              fit: BoxFit.cover,
-              width: double.infinity,
+          // Thumbnail — tap to preview full-screen
+          GestureDetector(
+            onTap: () => showSakuImagePreview(
+              context,
+              localPath: file.path,
+              heroTag: file.path,
+            ),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.file(
+                file,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              ),
             ),
           ),
 
