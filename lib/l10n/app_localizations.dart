@@ -2830,6 +2830,79 @@ abstract class AppLocalizations {
   /// **'Mulai catat transaksi untuk melihat insight.'**
   String get dashboardInsightNoData;
 
+  /// No description provided for @dashboardLast7Days.
+  ///
+  /// In id, this message translates to:
+  /// **'7 Hari Ini'**
+  String get dashboardLast7Days;
+
+  /// No description provided for @dashboardPrev7Days.
+  ///
+  /// In id, this message translates to:
+  /// **'7 Hari Lalu'**
+  String get dashboardPrev7Days;
+
+  /// No description provided for @dashboardAvg3x7DaysLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata 3 minggu lalu'**
+  String get dashboardAvg3x7DaysLabel;
+
+  /// No description provided for @dashboardInsightTrendProjHigh.
+  ///
+  /// In id, this message translates to:
+  /// **'⚠️ Pengeluaranmu diprediksi mencapai {projected} sampai akhir periode — lebih boros {excess} dari biasanya ({avg}). Coba batasi pengeluaranmu jadi sekitar {dailyCap}/hari agar tetap aman.'**
+  String dashboardInsightTrendProjHigh(
+    String projected,
+    String excess,
+    String avg,
+    String dailyCap,
+  );
+
+  /// No description provided for @dashboardInsightTrendProjMid.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu sedikit lebih tinggi dari biasanya. Diperkirakan {projected}, sedangkan biasanya {avg}. Tetap pantau agar tidak melonjak!'**
+  String dashboardInsightTrendProjMid(String projected, String avg);
+
+  /// No description provided for @dashboardInsightTrendProjLow.
+  ///
+  /// In id, this message translates to:
+  /// **'🎉 Pengeluaranmu terkendali! Diperkirakan hanya {projected}, lebih hemat {saving} dari biasanya ({avg}). Selisihnya bisa kamu tabung!'**
+  String dashboardInsightTrendProjLow(
+    String projected,
+    String saving,
+    String avg,
+  );
+
+  /// No description provided for @dashboardInsightTrendDailyHigh.
+  ///
+  /// In id, this message translates to:
+  /// **'⚠️ Rata-rata pengeluaranmu {burnRate}/hari, lebih tinggi {excess}/hari dari kebiasaanmu ({avg}/hari). Coba perhatikan pengeluaran yang bisa dikurangi.'**
+  String dashboardInsightTrendDailyHigh(
+    String burnRate,
+    String excess,
+    String avg,
+  );
+
+  /// No description provided for @dashboardInsightTrendDailyMid.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran harianmu sedikit lebih tinggi dari kebiasaanmu ({burnRate}/hari vs {avg}/hari). Tetap pantau ya!'**
+  String dashboardInsightTrendDailyMid(String burnRate, String avg);
+
+  /// No description provided for @dashboardInsightTrendDailyLow.
+  ///
+  /// In id, this message translates to:
+  /// **'🎉 Pengeluaranmu lebih hemat dari kebiasaan! Rata-rata {burnRate}/hari, di bawah kebiasaanmu {avg}/hari. Terus pertahankan!'**
+  String dashboardInsightTrendDailyLow(String burnRate, String avg);
+
+  /// No description provided for @dashboardInsightTrendNoHistory.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu periode ini: {total}. Terus catat transaksi agar kamu bisa melihat tren dan perbandingan pengeluaranmu.'**
+  String dashboardInsightTrendNoHistory(String total);
+
   /// No description provided for @reportTitle.
   ///
   /// In id, this message translates to:

@@ -39,7 +39,7 @@ class DashboardPeriodSummary extends ConsumerWidget {
     if (isMonthly) {
       periodLabel = l10n.dashboardLastMonth;
     } else if (isDaily) {
-      periodLabel = l10n.dashboardYesterday;
+      periodLabel = l10n.dashboardPrev7Days;
     } else {
       periodLabel = l10n.dashboardLastWeek;
     }

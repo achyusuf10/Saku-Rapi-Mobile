@@ -61,10 +61,14 @@ class DashboardTrendReportChart extends ConsumerWidget {
 
     // X-axis labels adapted per mode
     final List<String> xLabels;
-    if (isDaily) {
-      // For daily mode, show hour labels (00:00 - 23:00)
-      xLabels = List.generate(24, (i) => '${i.toString().padLeft(2, '0')}:00');
-    } else if (isMonthly) {
+    if (isMonthly) {
+      final dateFormat = DateFormat('dd/MM');
+      xLabels = currentFilled.map((e) {
+        final d = SakuDateUtils.parseOptionalDate(e['date']);
+        return d != null ? dateFormat.format(d) : '';
+      }).toList();
+    } else if (isDaily) {
+      // Daily (7-day rolling): show dd/MM so actual dates are visible
       final dateFormat = DateFormat('dd/MM');
       xLabels = currentFilled.map((e) {
         final d = SakuDateUtils.parseOptionalDate(e['date']);
@@ -120,13 +124,28 @@ class DashboardTrendReportChart extends ConsumerWidget {
       previousLegend = l10n.dashboardPrevMonthLabel;
       avgLegend = l10n.dashboardAvg3MonthLabel;
     } else if (isDaily) {
-      currentLegend = l10n.dashboardToday;
-      previousLegend = l10n.dashboardYesterday;
-      avgLegend = l10n.dashboardAvg3DayLabel;
+      currentLegend = l10n.dashboardLast7Days;
+      previousLegend = l10n.dashboardPrev7Days;
+      avgLegend = l10n.dashboardAvg3x7DaysLabel;
     } else {
       currentLegend = l10n.dashboardThisWeek;
       previousLegend = l10n.dashboardLastWeek;
       avgLegend = l10n.dashboardAvg3WeekLabel;
+    }
+
+    // Days elapsed & total for burn rate insight
+    final int daysTotal;
+    final int daysElapsed;
+    if (isDaily) {
+      daysTotal = 7;
+      daysElapsed = 7;
+    } else if (isMonthly) {
+      daysTotal = DateUtils.getDaysInMonth(now.year, now.month);
+      daysElapsed = now.day;
+    } else {
+      // Weekly: Mon=1, Sun=7
+      daysTotal = 7;
+      daysElapsed = now.weekday;
     }
 
     return Column(
@@ -202,6 +221,7 @@ class DashboardTrendReportChart extends ConsumerWidget {
                   colors.expense.withValues(alpha: 0.5),
                   colors.textSecondary.withValues(alpha: 0.5),
                 ];
+                final idx = seriesIdx.clamp(0, names.length - 1);
                 return Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 10.w,
@@ -229,9 +249,9 @@ class DashboardTrendReportChart extends ConsumerWidget {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        '${names[seriesIdx]}: ${(values[seriesIdx] ?? 0).toCompactCurrency()}',
+                        '${names[idx]}: ${(values[idx] ?? 0).toCompactCurrency()}',
                         style: TextStyle(
-                          color: seriesColors[seriesIdx],
+                          color: seriesColors[idx],
                           fontSize: 11.sp,
                           fontWeight: FontWeight.w600,
                         ),
@@ -299,6 +319,9 @@ class DashboardTrendReportChart extends ConsumerWidget {
           currentTotal: currentTotal,
           avg3Total: avg3Total,
           hasData: hasData,
+          chartMode: chartState.chartMode,
+          daysElapsed: daysElapsed,
+          daysTotal: daysTotal,
         ),
       ],
     );
@@ -380,19 +403,88 @@ class DashboardTrendReportChart extends ConsumerWidget {
     required double currentTotal,
     required double avg3Total,
     required bool hasData,
+    required DashboardChartMode chartMode,
+    required int daysElapsed,
+    required int daysTotal,
   }) {
     final l10n = context.l10n;
     final colors = context.colors;
 
     final String text;
-    if (!hasData) {
+    Color iconColor;
+
+    if (!hasData || daysElapsed <= 0) {
       text = l10n.dashboardInsightNoData;
-    } else if (avg3Total > 0 && currentTotal > avg3Total) {
-      // Current spending exceeds average → warning
-      text = l10n.dashboardInsightTrendAboveAvg;
+      iconColor = colors.warning;
+    } else if (avg3Total <= 0) {
+      // No historical data yet — just show total
+      text = l10n.dashboardInsightTrendNoHistory(
+        currentTotal.toCompactCurrency(),
+      );
+      iconColor = colors.warning;
+    } else if (chartMode == DashboardChartMode.daily) {
+      // 7-day rolling: compare daily burn rate vs historical daily rate
+      final burnRate = currentTotal / daysElapsed;
+      final avg3DailyRate = avg3Total / 7.0;
+      final excess = burnRate - avg3DailyRate;
+
+      if (excess > avg3DailyRate * 0.10) {
+        text = l10n.dashboardInsightTrendDailyHigh(
+          burnRate.toCompactCurrency(),
+          excess.toCompactCurrency(),
+          avg3DailyRate.toCompactCurrency(),
+        );
+        iconColor = colors.error;
+      } else if (excess > 0) {
+        text = l10n.dashboardInsightTrendDailyMid(
+          burnRate.toCompactCurrency(),
+          avg3DailyRate.toCompactCurrency(),
+        );
+        iconColor = colors.warning;
+      } else {
+        text = l10n.dashboardInsightTrendDailyLow(
+          burnRate.toCompactCurrency(),
+          avg3DailyRate.toCompactCurrency(),
+        );
+        iconColor = colors.success;
+      }
     } else {
-      // Current spending is below or equal to average → praise
-      text = l10n.dashboardInsightTrendBelowAvg;
+      // Monthly / Weekly: project burn rate to end of period
+      final burnRate = currentTotal / daysElapsed;
+      final projectedTotal = burnRate * daysTotal;
+      final daysRemaining = daysTotal - daysElapsed;
+      final excess = projectedTotal - avg3Total;
+
+      if (excess > avg3Total * 0.10) {
+        // Projected significantly over avg → red warning
+        final rawCap = daysRemaining > 0
+            ? (avg3Total - currentTotal) / daysRemaining
+            : 0.0;
+        final dailyCap = rawCap.clamp(0.0, double.infinity);
+        text = l10n.dashboardInsightTrendProjHigh(
+          projectedTotal.toCompactCurrency(),
+          excess.toCompactCurrency(),
+          avg3Total.toCompactCurrency(),
+          dailyCap.toCompactCurrency(),
+        );
+        iconColor = colors.error;
+      } else if (excess > 0) {
+        // Slightly over → yellow
+        text = l10n.dashboardInsightTrendProjMid(
+          projectedTotal.toCompactCurrency(),
+          avg3Total.toCompactCurrency(),
+        );
+        iconColor = colors.warning;
+      } else {
+        // On track or under → green
+        final saving = avg3Total - projectedTotal;
+        text = l10n.dashboardInsightTrendProjLow(
+          projectedTotal.toCompactCurrency(),
+          saving.toCompactCurrency(),
+          avg3Total.toCompactCurrency(),
+        );
+        iconColor = colors.success;
+      }
     }
 
     return Container(
@@ -408,7 +500,7 @@ class DashboardTrendReportChart extends ConsumerWidget {
           Icon(
             Icons.lightbulb_outline_rounded,
             size: 16.w,
-            color: colors.warning,
+            color: iconColor,
           ),
           SizedBox(width: 8.w),
           Expanded(

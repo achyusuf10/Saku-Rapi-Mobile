@@ -11,9 +11,9 @@ updated: 2026-04-13
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 41 |
+| Total halaman | 42 |
 | Sumber diproses | 9 |
-| Entitas | 19 |
+| Entitas | 20 |
 | Konsep | 7 |
 | Analisis | 5 |
 
@@ -27,6 +27,7 @@ updated: 2026-04-13
 - [[wiki/entities/wallet|Wallet]] — Multi-wallet CRUD, saldo read-only via DB trigger
 - [[wiki/entities/transaksi|Transaksi]] — Form 4-tab: Expense, Income, Transfer, Hutang/Piutang
 - [[wiki/entities/dashboard|Dashboard]] — Ringkasan keuangan dan visualisasi chart
+- [[wiki/entities/dashboard-charts|Dashboard Charts]] — Breakdown lengkap: Carousel, Comparison Chart, Trend Chart, Period Summary, Burn Rate insight
 - [[wiki/entities/hutang-piutang|Hutang/Piutang]] — Manajemen pinjaman dan pelunasan per kontak
 - [[wiki/entities/budgeting|Budgeting]] — Anggaran per kategori dengan auto-renew dan alert
 - [[wiki/entities/investasi|Investasi]] — Portfolio investasi (gold, bitcoin, custom asset)

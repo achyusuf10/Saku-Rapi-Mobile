@@ -672,6 +672,61 @@
   "dashboardInsightTrendBelowAvg": "Pengeluaranmu di bawah rata-rata 3 bulan. Kamu di jalur yang benar!",
   "dashboardInsightTrendAboveAvg": "Pengeluaranmu di atas rata-rata 3 bulan. Perhatikan pengeluaranmu.",
   "dashboardInsightNoData": "Mulai catat transaksi untuk melihat insight.",
+  "dashboardLast7Days": "7 Hari Ini",
+  "dashboardPrev7Days": "7 Hari Lalu",
+  "dashboardAvg3x7DaysLabel": "Rata-rata 3 minggu lalu",
+  "dashboardInsightTrendProjHigh": "⚠️ Pengeluaranmu diprediksi mencapai {projected} sampai akhir periode — lebih boros {excess} dari biasanya ({avg}). Coba batasi pengeluaranmu jadi sekitar {dailyCap}/hari agar tetap aman.",
+  "@dashboardInsightTrendProjHigh": {
+    "placeholders": {
+      "projected": { "type": "String" },
+      "excess": { "type": "String" },
+      "avg": { "type": "String" },
+      "dailyCap": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendProjMid": "Pengeluaranmu sedikit lebih tinggi dari biasanya. Diperkirakan {projected}, sedangkan biasanya {avg}. Tetap pantau agar tidak melonjak!",
+  "@dashboardInsightTrendProjMid": {
+    "placeholders": {
+      "projected": { "type": "String" },
+      "avg": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendProjLow": "🎉 Pengeluaranmu terkendali! Diperkirakan hanya {projected}, lebih hemat {saving} dari biasanya ({avg}). Selisihnya bisa kamu tabung!",
+  "@dashboardInsightTrendProjLow": {
+    "placeholders": {
+      "projected": { "type": "String" },
+      "saving": { "type": "String" },
+      "avg": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendDailyHigh": "⚠️ Rata-rata pengeluaranmu {burnRate}/hari, lebih tinggi {excess}/hari dari kebiasaanmu ({avg}/hari). Coba perhatikan pengeluaran yang bisa dikurangi.",
+  "@dashboardInsightTrendDailyHigh": {
+    "placeholders": {
+      "burnRate": { "type": "String" },
+      "excess": { "type": "String" },
+      "avg": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendDailyMid": "Pengeluaran harianmu sedikit lebih tinggi dari kebiasaanmu ({burnRate}/hari vs {avg}/hari). Tetap pantau ya!",
+  "@dashboardInsightTrendDailyMid": {
+    "placeholders": {
+      "burnRate": { "type": "String" },
+      "avg": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendDailyLow": "🎉 Pengeluaranmu lebih hemat dari kebiasaan! Rata-rata {burnRate}/hari, di bawah kebiasaanmu {avg}/hari. Terus pertahankan!",
+  "@dashboardInsightTrendDailyLow": {
+    "placeholders": {
+      "burnRate": { "type": "String" },
+      "avg": { "type": "String" }
+    }
+  },
+  "dashboardInsightTrendNoHistory": "Pengeluaranmu periode ini: {total}. Terus catat transaksi agar kamu bisa melihat tren dan perbandingan pengeluaranmu.",
+  "@dashboardInsightTrendNoHistory": {
+    "placeholders": {
+      "total": { "type": "String" }
+    }
+  },
   "reportTitle": "Laporan",
   "reportNet": "Selisih Bersih",
   "reportIncome": "Pemasukan",

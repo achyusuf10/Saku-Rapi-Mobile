@@ -29,8 +29,8 @@ class DashboardComparisonChart extends ConsumerWidget {
       currentLabel = l10n.dashboardThisMonth;
       previousLabel = l10n.dashboardLastMonth;
     } else if (isDaily) {
-      currentLabel = l10n.dashboardToday;
-      previousLabel = l10n.dashboardYesterday;
+      currentLabel = l10n.dashboardLast7Days;
+      previousLabel = l10n.dashboardPrev7Days;
     } else {
       currentLabel = l10n.dashboardThisWeek;
       previousLabel = l10n.dashboardLastWeek;
@@ -69,8 +69,8 @@ class DashboardComparisonChart extends ConsumerWidget {
       periodLabel = l10n.dashboardThisMonth.toLowerCase();
       prevPeriodLabel = l10n.dashboardLastMonth.toLowerCase();
     } else if (isDaily) {
-      periodLabel = l10n.dashboardToday.toLowerCase();
-      prevPeriodLabel = l10n.dashboardYesterday.toLowerCase();
+      periodLabel = l10n.dashboardLast7Days.toLowerCase();
+      prevPeriodLabel = l10n.dashboardPrev7Days.toLowerCase();
     } else {
       periodLabel = l10n.dashboardThisWeek.toLowerCase();
       prevPeriodLabel = l10n.dashboardLastWeek.toLowerCase();

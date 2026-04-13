@@ -39,6 +39,8 @@ Carousel dengan 2 halaman:
 1. **Expense Comparison Bar Chart** — Perbandingan pengeluaran antar periode.
 2. **Trend Line Chart** — Tren keuangan dari waktu ke waktu.
 
+> **Detail lengkap**: Lihat [[wiki/entities/dashboard-charts|Dashboard Charts]] untuk breakdown menyeluruh semua chart widget, logika burn rate, perhitungan periode, dan alur data.
+
 ### PeriodSummary
 
 - Menampilkan total income dan expense untuk periode berjalan.

@@ -1455,6 +1455,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start recording transactions to see insights.';
 
   @override
+  String get dashboardLast7Days => '7 Hari Ini';
+
+  @override
+  String get dashboardPrev7Days => '7 Hari Lalu';
+
+  @override
+  String get dashboardAvg3x7DaysLabel => 'Rata-rata 3 minggu lalu';
+
+  @override
+  String dashboardInsightTrendProjHigh(
+    String projected,
+    String excess,
+    String avg,
+    String dailyCap,
+  ) {
+    return '⚠️ Pengeluaranmu diprediksi mencapai $projected sampai akhir periode — lebih boros $excess dari biasanya ($avg). Coba batasi pengeluaranmu jadi sekitar $dailyCap/hari agar tetap aman.';
+  }
+
+  @override
+  String dashboardInsightTrendProjMid(String projected, String avg) {
+    return 'Pengeluaranmu sedikit lebih tinggi dari biasanya. Diperkirakan $projected, sedangkan biasanya $avg. Tetap pantau agar tidak melonjak!';
+  }
+
+  @override
+  String dashboardInsightTrendProjLow(
+    String projected,
+    String saving,
+    String avg,
+  ) {
+    return '🎉 Pengeluaranmu terkendali! Diperkirakan hanya $projected, lebih hemat $saving dari biasanya ($avg). Selisihnya bisa kamu tabung!';
+  }
+
+  @override
+  String dashboardInsightTrendDailyHigh(
+    String burnRate,
+    String excess,
+    String avg,
+  ) {
+    return '⚠️ Rata-rata pengeluaranmu $burnRate/hari, lebih tinggi $excess/hari dari kebiasaanmu ($avg/hari). Coba perhatikan pengeluaran yang bisa dikurangi.';
+  }
+
+  @override
+  String dashboardInsightTrendDailyMid(String burnRate, String avg) {
+    return 'Pengeluaran harianmu sedikit lebih tinggi dari kebiasaanmu ($burnRate/hari vs $avg/hari). Tetap pantau ya!';
+  }
+
+  @override
+  String dashboardInsightTrendDailyLow(String burnRate, String avg) {
+    return '🎉 Pengeluaranmu lebih hemat dari kebiasaan! Rata-rata $burnRate/hari, di bawah kebiasaanmu $avg/hari. Terus pertahankan!';
+  }
+
+  @override
+  String dashboardInsightTrendNoHistory(String total) {
+    return 'Pengeluaranmu periode ini: $total. Terus catat transaksi agar kamu bisa melihat tren dan perbandingan pengeluaranmu.';
+  }
+
+  @override
   String get reportTitle => 'Reports';
 
   @override

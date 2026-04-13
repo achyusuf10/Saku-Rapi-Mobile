@@ -232,7 +232,10 @@ class DashboardChartController extends StateNotifier<DashboardChartState> {
     if (state.chartMode == mode) return; // Tidak ada perubahan
 
     HiveService.set<String>(key: _kChartModeKey, data: mode.name);
-    state = state.copyWith(chartMode: mode);
+    state = state.copyWith(
+      chartMode: mode,
+      status: DashboardChartStatus.loading,
+    );
 
     final now = DateTime.now();
     final (currentStart, currentEnd, prevStart, prevEnd) = periodRanges(
@@ -263,7 +266,18 @@ class DashboardChartController extends StateNotifier<DashboardChartState> {
     final m2Daily = results[4] as DataState<List<Map<String, dynamic>>>;
     final m3Daily = results[5] as DataState<List<Map<String, dynamic>>>;
 
+    // Error handling: mirror loadChartData()
+    if (currentSummary.isError() && currentDaily.isError()) {
+      final (message, _, _, _) = currentSummary.dataError()!;
+      state = state.copyWith(
+        status: DashboardChartStatus.error,
+        errorMessage: message,
+      );
+      return;
+    }
+
     state = state.copyWith(
+      status: DashboardChartStatus.loaded,
       currentPeriodIncome: currentSummary.dataSuccess()?['income'] ?? 0,
       currentPeriodExpense: currentSummary.dataSuccess()?['expense'] ?? 0,
       previousPeriodIncome: previousSummary.dataSuccess()?['income'] ?? 0,
@@ -307,12 +321,13 @@ class DashboardChartController extends StateNotifier<DashboardChartState> {
       final prevEnd = currentStart.subtract(const Duration(milliseconds: 1));
       return (currentStart, currentEnd, prevStart, prevEnd);
     } else {
-      // Daily: today vs yesterday
-      final currentStart = DateTime(now.year, now.month, now.day);
-      final currentEnd = currentStart
+      // Daily: rolling last 7 days vs previous 7 days
+      final today = DateTime(now.year, now.month, now.day);
+      final currentStart = today.subtract(const Duration(days: 6));
+      final currentEnd = today
           .add(const Duration(days: 1))
           .subtract(const Duration(milliseconds: 1));
-      final prevStart = currentStart.subtract(const Duration(days: 1));
+      final prevStart = today.subtract(const Duration(days: 13));
       final prevEnd = currentStart.subtract(const Duration(milliseconds: 1));
       return (currentStart, currentEnd, prevStart, prevEnd);
     }
@@ -354,17 +369,17 @@ class DashboardChartController extends StateNotifier<DashboardChartState> {
           .subtract(const Duration(milliseconds: 1));
       return (w2Start, w2End, w3Start, w3End);
     } else {
-      // Daily: extra ranges are 2 and 3 days ago
+      // Daily: 7-day rolling extra windows (m2: 14-20 days ago, m3: 21-27 days ago)
       final today = DateTime(now.year, now.month, now.day);
-      final d2Start = today.subtract(const Duration(days: 2));
-      final d2End = today
-          .subtract(const Duration(days: 1))
+      final m2Start = today.subtract(const Duration(days: 20));
+      final m2End = today
+          .subtract(const Duration(days: 13))
           .subtract(const Duration(milliseconds: 1));
-      final d3Start = today.subtract(const Duration(days: 3));
-      final d3End = today
-          .subtract(const Duration(days: 2))
+      final m3Start = today.subtract(const Duration(days: 27));
+      final m3End = today
+          .subtract(const Duration(days: 20))
           .subtract(const Duration(milliseconds: 1));
-      return (d2Start, d2End, d3Start, d3End);
+      return (m2Start, m2End, m3Start, m3End);
     }
   }
 }
