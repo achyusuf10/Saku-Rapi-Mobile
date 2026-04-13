@@ -219,12 +219,15 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       );
     } catch (aiError) {
       AppLogger.call('$_tag Vision AI failed: $aiError');
+      if (!mounted) return;
       state = state.copyWith(
         status: OcrScanStatus.error,
         errorMessage: 'AI_FAILED',
       );
       return;
     }
+
+    if (!mounted) return;
 
     // Handle gambar bukan transaksi
     if (!result.isTransaction) {

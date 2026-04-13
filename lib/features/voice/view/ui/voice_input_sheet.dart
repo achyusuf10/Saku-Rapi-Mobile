@@ -99,20 +99,33 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
     }
 
     final isProcessing = state.status == VoiceInputStatus.processing;
+    final isDone = state.status == VoiceInputStatus.done;
 
     return PopScope(
-      canPop: !isProcessing,
+      canPop: !isProcessing && !isDone,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        final confirmed = await context.showConfirmDialog(
-          title: l10n.aiParseCancelTitle,
-          message: l10n.aiParseCancelMessage,
-          confirmLabel: l10n.aiParseCancelConfirm,
-          cancelLabel: l10n.confirmCancel,
-        );
-        if (confirmed == true && context.mounted) {
-          ref.read(voiceInputControllerProvider.notifier).cancel();
-          Navigator.of(context).pop();
+        if (isProcessing) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiParseCancelTitle,
+            message: l10n.aiParseCancelMessage,
+            confirmLabel: l10n.aiParseCancelConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            ref.read(voiceInputControllerProvider.notifier).cancel();
+            Navigator.of(context).pop();
+          }
+        } else if (isDone) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiPreviewDiscardTitle,
+            message: l10n.aiPreviewDiscardMessage,
+            confirmLabel: l10n.aiPreviewDiscardConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Container(
@@ -127,92 +140,99 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
           right: 24.w,
         ),
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Drag handle ──
-          Container(
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-              color: colors.textSecondary.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2.r),
-            ),
-          ),
-
-          SizedBox(height: 24.h),
-
-          // ── Quota info ──
-          const AiQuotaInfoRow(mode: 'voice'),
-
-          // ── Status text ──
-          _VoiceStatusText(state: state),
-
-          SizedBox(height: 24.h),
-
-          // ── Mic button with pulse ──
-          _VoiceMicButton(
-            state: state,
-            pulseAnimation: _pulseAnimation,
-            onStop: () => ref
-                .read(voiceInputControllerProvider.notifier)
-                .stopAndProcess(),
-          ),
-
-          SizedBox(height: 16.h),
-
-          // ── Countdown ──
-          if (state.status == VoiceInputStatus.listening)
-            Text(
-              l10n.voiceCountdown(state.remainingSeconds),
-              style: TextStyleConstants.caption.copyWith(
-                color: colors.textSecondary,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Drag handle ──
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: colors.textSecondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
 
-          // ── Transcript display ──
-          if (state.transcript.isNotEmpty &&
-              state.status != VoiceInputStatus.done) ...[
+            SizedBox(height: 24.h),
+
+            // ── Quota info ──
+            const AiQuotaInfoRow(mode: 'voice'),
+
+            // ── Status text ──
+            _VoiceStatusText(state: state),
+
+            SizedBox(height: 24.h),
+
+            // ── Mic button with pulse ──
+            _VoiceMicButton(
+              state: state,
+              pulseAnimation: _pulseAnimation,
+              onStop: () => ref
+                  .read(voiceInputControllerProvider.notifier)
+                  .stopAndProcess(),
+            ),
+
             SizedBox(height: 16.h),
-            _VoiceTranscriptDisplay(
-              transcript: state.transcript,
-              isProcessing: state.status == VoiceInputStatus.processing,
+
+            // ── Countdown ──
+            if (state.status == VoiceInputStatus.listening)
+              Text(
+                l10n.voiceCountdown(state.remainingSeconds),
+                style: TextStyleConstants.caption.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+
+            // ── Transcript display ──
+            if (state.transcript.isNotEmpty &&
+                state.status != VoiceInputStatus.done) ...[
+              SizedBox(height: 16.h),
+              _VoiceTranscriptDisplay(
+                transcript: state.transcript,
+                isProcessing: state.status == VoiceInputStatus.processing,
+              ),
+            ],
+
+            // ── Preview hasil parsing ──
+            if (state.status == VoiceInputStatus.done &&
+                state.parseResult != null) ...[
+              SizedBox(height: 16.h),
+              _VoicePreviewCard(result: state.parseResult!),
+            ],
+
+            // ── Error / Permission denied ──
+            if (state.status == VoiceInputStatus.error ||
+                state.status == VoiceInputStatus.permissionDenied) ...[
+              SizedBox(height: 16.h),
+              _VoiceErrorDisplay(state: state),
+            ],
+
+            SizedBox(height: 24.h),
+
+            // ── Action buttons ──
+            _VoiceActionButtons(
+              state: state,
+              onCancel: () => Navigator.maybePop(context),
+              onRetry: () async {
+                final confirmed = await context.showConfirmDialog(
+                  title: l10n.aiPreviewDiscardTitle,
+                  message: l10n.aiPreviewDiscardMessage,
+                  confirmLabel: l10n.aiPreviewDiscardConfirm,
+                  cancelLabel: l10n.confirmCancel,
+                );
+                if (confirmed == true && context.mounted) {
+                  ref
+                      .read(voiceInputControllerProvider.notifier)
+                      .startVoiceInput();
+                }
+              },
+              onDone: () {
+                Navigator.of(context).pop(state.parseResult);
+              },
+              onOpenSettings: () {
+                ref.read(voiceInputControllerProvider.notifier).openSettings();
+              },
             ),
           ],
-
-          // ── Preview hasil parsing ──
-          if (state.status == VoiceInputStatus.done &&
-              state.parseResult != null) ...[
-            SizedBox(height: 16.h),
-            _VoicePreviewCard(result: state.parseResult!),
-          ],
-
-          // ── Error / Permission denied ──
-          if (state.status == VoiceInputStatus.error ||
-              state.status == VoiceInputStatus.permissionDenied) ...[
-            SizedBox(height: 16.h),
-            _VoiceErrorDisplay(state: state),
-          ],
-
-          SizedBox(height: 24.h),
-
-          // ── Action buttons ──
-          _VoiceActionButtons(
-            state: state,
-            onCancel: () {
-              ref.read(voiceInputControllerProvider.notifier).cancel();
-              Navigator.of(context).pop();
-            },
-            onRetry: () {
-              ref.read(voiceInputControllerProvider.notifier).startVoiceInput();
-            },
-            onDone: () {
-              Navigator.of(context).pop(state.parseResult);
-            },
-            onOpenSettings: () {
-              ref.read(voiceInputControllerProvider.notifier).openSettings();
-            },
-          ),
-        ],
         ),
       ),
     );
@@ -506,10 +526,7 @@ class _VoiceActionButtons extends StatelessWidget {
     }
 
     // Processing/listening → disabled "Mohon tunggu..."
-    return SakuButton(
-      text: l10n.voicePleaseWait,
-      onPressed: null,
-    );
+    return SakuButton(text: l10n.voicePleaseWait, onPressed: null);
   }
 
   Color _foregroundForBackground(Color backgroundColor) {

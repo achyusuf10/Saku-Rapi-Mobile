@@ -62,19 +62,32 @@ class OcrResultSheet extends ConsumerWidget {
     });
 
     final isAnalyzing = state.status == OcrScanStatus.analyzingAi;
+    final isDone = state.status == OcrScanStatus.done;
 
     return PopScope(
-      canPop: !isAnalyzing,
+      canPop: !isAnalyzing && !isDone,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        final confirmed = await context.showConfirmDialog(
-          title: l10n.aiParseCancelTitle,
-          message: l10n.aiParseCancelMessage,
-          confirmLabel: l10n.aiParseCancelConfirm,
-          cancelLabel: l10n.confirmCancel,
-        );
-        if (confirmed == true && context.mounted) {
-          Navigator.of(context).pop();
+        if (isAnalyzing) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiParseCancelTitle,
+            message: l10n.aiParseCancelMessage,
+            confirmLabel: l10n.aiParseCancelConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        } else if (isDone) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiPreviewDiscardTitle,
+            message: l10n.aiPreviewDiscardMessage,
+            confirmLabel: l10n.aiPreviewDiscardConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Container(
@@ -643,12 +656,22 @@ class OcrResultSheet extends ConsumerWidget {
                       state.status == OcrScanStatus.error
                   ? l10n.ocrRescan
                   : l10n.confirmCancel,
-              onPressed: () {
+              onPressed: () async {
                 if (state.status == OcrScanStatus.done ||
                     state.status == OcrScanStatus.error) {
-                  ctrl.reset();
+                  if (state.status == OcrScanStatus.done) {
+                    final confirmed = await context.showConfirmDialog(
+                      title: l10n.aiPreviewDiscardTitle,
+                      message: l10n.aiPreviewDiscardMessage,
+                      confirmLabel: l10n.aiPreviewDiscardConfirm,
+                      cancelLabel: l10n.confirmCancel,
+                    );
+                    if (confirmed == true && context.mounted) ctrl.reset();
+                  } else {
+                    ctrl.reset();
+                  }
                 } else {
-                  nav.pop();
+                  nav.maybePop();
                 }
               },
               isOutlined: true,

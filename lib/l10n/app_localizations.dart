@@ -3478,6 +3478,24 @@ abstract class AppLocalizations {
   /// **'Ya, Batalkan'**
   String get aiParseCancelConfirm;
 
+  /// No description provided for @aiPreviewDiscardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buang Hasil?'**
+  String get aiPreviewDiscardTitle;
+
+  /// No description provided for @aiPreviewDiscardMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Hasil analisa AI akan dibuang. Kamu harus memulai ulang untuk mendapatkan hasil baru.'**
+  String get aiPreviewDiscardMessage;
+
+  /// No description provided for @aiPreviewDiscardConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Ya, Buang'**
+  String get aiPreviewDiscardConfirm;
+
   /// No description provided for @navInvestment.
   ///
   /// In id, this message translates to:

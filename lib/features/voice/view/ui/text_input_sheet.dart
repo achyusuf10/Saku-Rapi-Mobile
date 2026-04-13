@@ -75,19 +75,32 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
     });
 
     final isProcessing = state.status == TextInputStatus.processing;
+    final isDone = state.status == TextInputStatus.done;
 
     return PopScope(
-      canPop: !isProcessing,
+      canPop: !isProcessing && !isDone,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        final confirmed = await context.showConfirmDialog(
-          title: l10n.aiParseCancelTitle,
-          message: l10n.aiParseCancelMessage,
-          confirmLabel: l10n.aiParseCancelConfirm,
-          cancelLabel: l10n.confirmCancel,
-        );
-        if (confirmed == true && context.mounted) {
-          Navigator.of(context).pop();
+        if (isProcessing) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiParseCancelTitle,
+            message: l10n.aiParseCancelMessage,
+            confirmLabel: l10n.aiParseCancelConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        } else if (isDone) {
+          final confirmed = await context.showConfirmDialog(
+            title: l10n.aiPreviewDiscardTitle,
+            message: l10n.aiPreviewDiscardMessage,
+            confirmLabel: l10n.aiPreviewDiscardConfirm,
+            cancelLabel: l10n.confirmCancel,
+          );
+          if (confirmed == true && context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Container(
@@ -193,7 +206,7 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
             // ── Action buttons ──
             _TextActionButtons(
               state: state,
-              onCancel: () => Navigator.of(context).pop(),
+              onCancel: () => Navigator.maybePop(context),
               onSubmit: _submit,
               onRetry: () {
                 ref.read(textInputControllerProvider.notifier).reset();

@@ -79,7 +79,7 @@ class DashboardQuickActions extends ConsumerWidget {
 
   /// Buka voice input sheet → jika berhasil, set pending prefill → navigate ke form.
   Future<void> _handleVoiceInput(BuildContext context, WidgetRef ref) async {
-    final result = await VoiceInputSheet.show(context: context);
+    final result = await VoiceInputSheet.show(context: appContext ?? context);
     if (result != null && context.mounted) {
       ref.read(pendingVoicePrefillProvider.notifier).state = result;
       final navResult = await context.push<bool>(AppRouter.transactionForm);
@@ -92,7 +92,7 @@ class DashboardQuickActions extends ConsumerWidget {
 
   /// Buka OCR scan sheet → jika berhasil, set pending prefill → navigate ke form.
   Future<void> _handleOcrScan(BuildContext context, WidgetRef ref) async {
-    final result = await OcrResultSheet.show(context: context);
+    final result = await OcrResultSheet.show(context: appContext ?? context);
     if (result != null && context.mounted) {
       ref.read(pendingOcrPrefillProvider.notifier).state = result;
       final navResult = await context.push<bool>(AppRouter.transactionForm);
@@ -105,7 +105,7 @@ class DashboardQuickActions extends ConsumerWidget {
 
   /// Buka text input sheet → jika berhasil, set pending prefill → navigate ke form.
   Future<void> _handleTextInput(BuildContext context, WidgetRef ref) async {
-    final result = await TextInputSheet.show(context: context);
+    final result = await TextInputSheet.show(context: appContext ?? context);
     if (result != null && context.mounted) {
       ref.read(pendingVoicePrefillProvider.notifier).state = result;
       final navResult = await context.push<bool>(AppRouter.transactionForm);

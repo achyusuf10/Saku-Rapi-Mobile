@@ -1825,6 +1825,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiParseCancelConfirm => 'Yes, Cancel';
 
   @override
+  String get aiPreviewDiscardTitle => 'Buang Hasil?';
+
+  @override
+  String get aiPreviewDiscardMessage =>
+      'Hasil analisa AI akan dibuang. Kamu harus memulai ulang untuk mendapatkan hasil baru.';
+
+  @override
+  String get aiPreviewDiscardConfirm => 'Ya, Buang';
+
+  @override
   String get navInvestment => 'Investment';
 
   @override
