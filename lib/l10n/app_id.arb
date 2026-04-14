@@ -272,6 +272,9 @@
   "categoryHidden": "Tersembunyi",
   "categoryIconPicker": "Pilih Icon",
   "categoryColorPicker": "Pilih Warna",
+  "colorPickerPresetTab": "Preset",
+  "colorPickerWheelTab": "Kustom",
+  "colorPickerSelectButton": "Pilih Warna Ini",
   "categoryName": "Nama Kategori",
   "categoryNameRequired": "Nama kategori tidak boleh kosong",
   "categoryParent": "Kategori Induk",
@@ -1275,5 +1278,22 @@
   "reportInsightPeakDay": "Pengeluaran terbesar di tanggal {date} ({amount}), yaitu {percent}% dari total pengeluaran.",
   "@reportInsightPeakDay": {
     "placeholders": { "date": { "type": "String" }, "amount": { "type": "String" }, "percent": { "type": "String" } }
-  }
+  },
+
+  "iconPickerTitle": "Pilih Ikon",
+  "iconPickerSearch": "Cari ikon...",
+  "iconSearchEmpty": "Ikon tidak ditemukan",
+  "iconSectionFinance": "Keuangan",
+  "iconSectionShopping": "Belanja & Gaya Hidup",
+  "iconSectionFoodDrink": "Makanan & Minuman",
+  "iconSectionHousehold": "Rumah Tangga",
+  "iconSectionTransport": "Transportasi",
+  "iconSectionHealth": "Kesehatan & Kebugaran",
+  "iconSectionBills": "Tagihan & Utilitas",
+  "iconSectionTech": "Teknologi",
+  "iconSectionEducation": "Pendidikan & Karier",
+  "iconSectionEntertainment": "Hiburan",
+  "iconSectionNature": "Alam & Hewan",
+  "iconSectionSocial": "Sosial & Keluarga",
+  "iconSectionOther": "Lainnya"
 }

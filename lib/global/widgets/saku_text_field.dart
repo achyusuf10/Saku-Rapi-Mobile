@@ -32,6 +32,7 @@ class SakuTextField extends StatelessWidget {
     this.focusNode,
     this.textInputAction,
     this.validator,
+    this.showCounter = true,
   });
 
   /// Controller untuk text field.
@@ -100,6 +101,8 @@ class SakuTextField extends StatelessWidget {
   /// Validator untuk Form widget.
   final String? Function(String?)? validator;
 
+  final bool showCounter;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -129,6 +132,7 @@ class SakuTextField extends StatelessWidget {
           maxLines: maxLines,
           minLines: minLines,
           maxLength: maxLength,
+
           obscureText: obscureText,
           readOnly: readOnly,
           enabled: enabled,
@@ -138,6 +142,7 @@ class SakuTextField extends StatelessWidget {
           validator: validator,
           style: TextStyleConstants.b2.copyWith(color: colors.textPrimary),
           decoration: InputDecoration(
+            counterText: showCounter ? null : '',
             hintText: hint,
             hintStyle: TextStyleConstants.b2.copyWith(
               color: colors.textSecondary,

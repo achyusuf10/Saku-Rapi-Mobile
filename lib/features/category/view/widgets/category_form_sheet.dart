@@ -2,15 +2,16 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
-import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
-import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/saku_color_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_dropdown.dart';
+import 'package:app_saku_rapi/global/widgets/saku_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -257,7 +258,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   }
 
   Future<void> _pickIcon(BuildContext context) async {
-    final icon = await CategoryIconPickerSheet.show(
+    final icon = await SakuIconPickerSheet.show(
       context: context,
       selectedIcon: _selectedIcon,
     );
@@ -267,8 +268,8 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   }
 
   Future<void> _pickColor(BuildContext context) async {
-    final color = await CategoryColorPickerSheet.show(
-      context: context,
+    final color = await SakuColorPickerSheet.show(
+      context: appContext ?? context,
       selectedColor: _selectedColor,
     );
     if (color != null) {

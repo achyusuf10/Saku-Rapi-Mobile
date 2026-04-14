@@ -661,6 +661,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryColorPicker => 'Choose Color';
 
   @override
+  String get colorPickerPresetTab => 'Preset';
+
+  @override
+  String get colorPickerWheelTab => 'Custom';
+
+  @override
+  String get colorPickerSelectButton => 'Select This Color';
+
+  @override
   String get categoryName => 'Category Name';
 
   @override
@@ -1455,13 +1464,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start recording transactions to see insights.';
 
   @override
-  String get dashboardLast7Days => '7 Hari Ini';
+  String get dashboardLast7Days => 'Last 7 Days';
 
   @override
-  String get dashboardPrev7Days => '7 Hari Lalu';
+  String get dashboardPrev7Days => 'Previous 7 Days';
 
   @override
-  String get dashboardAvg3x7DaysLabel => 'Rata-rata 3 minggu lalu';
+  String get dashboardAvg3x7DaysLabel => 'Avg. of last 3 weeks';
 
   @override
   String dashboardInsightTrendProjHigh(
@@ -1470,12 +1479,12 @@ class AppLocalizationsEn extends AppLocalizations {
     String avg,
     String dailyCap,
   ) {
-    return '⚠️ Pengeluaranmu diprediksi mencapai $projected sampai akhir periode — lebih boros $excess dari biasanya ($avg). Coba batasi pengeluaranmu jadi sekitar $dailyCap/hari agar tetap aman.';
+    return '⚠️ Your spending is projected to reach $projected by end of period — $excess more than usual ($avg). Try to limit spending to around $dailyCap/day to stay on track.';
   }
 
   @override
   String dashboardInsightTrendProjMid(String projected, String avg) {
-    return 'Pengeluaranmu sedikit lebih tinggi dari biasanya. Diperkirakan $projected, sedangkan biasanya $avg. Tetap pantau agar tidak melonjak!';
+    return 'Your spending is slightly above usual. Projected at $projected, while normally $avg. Keep monitoring so it doesn\'t spike!';
   }
 
   @override
@@ -1484,7 +1493,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String saving,
     String avg,
   ) {
-    return '🎉 Pengeluaranmu terkendali! Diperkirakan hanya $projected, lebih hemat $saving dari biasanya ($avg). Selisihnya bisa kamu tabung!';
+    return '🎉 Your spending is on track! Projected at only $projected, $saving less than usual ($avg). The difference could go to savings!';
   }
 
   @override
@@ -1493,22 +1502,22 @@ class AppLocalizationsEn extends AppLocalizations {
     String excess,
     String avg,
   ) {
-    return '⚠️ Rata-rata pengeluaranmu $burnRate/hari, lebih tinggi $excess/hari dari kebiasaanmu ($avg/hari). Coba perhatikan pengeluaran yang bisa dikurangi.';
+    return '⚠️ Your avg. spending is $burnRate/day, $excess/day higher than your usual ($avg/day). Try to cut back on non-essential expenses.';
   }
 
   @override
   String dashboardInsightTrendDailyMid(String burnRate, String avg) {
-    return 'Pengeluaran harianmu sedikit lebih tinggi dari kebiasaanmu ($burnRate/hari vs $avg/hari). Tetap pantau ya!';
+    return 'Your daily spending is slightly above your usual ($burnRate/day vs $avg/day). Keep monitoring!';
   }
 
   @override
   String dashboardInsightTrendDailyLow(String burnRate, String avg) {
-    return '🎉 Pengeluaranmu lebih hemat dari kebiasaan! Rata-rata $burnRate/hari, di bawah kebiasaanmu $avg/hari. Terus pertahankan!';
+    return '🎉 You\'re spending less than usual! Avg. $burnRate/day, below your usual $avg/day. Keep it up!';
   }
 
   @override
   String dashboardInsightTrendNoHistory(String total) {
-    return 'Pengeluaranmu periode ini: $total. Terus catat transaksi agar kamu bisa melihat tren dan perbandingan pengeluaranmu.';
+    return 'Your spending this period: $total. Keep recording transactions so you can see trends and comparisons.';
   }
 
   @override
@@ -1882,14 +1891,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiParseCancelConfirm => 'Yes, Cancel';
 
   @override
-  String get aiPreviewDiscardTitle => 'Buang Hasil?';
+  String get aiPreviewDiscardTitle => 'Discard Result?';
 
   @override
   String get aiPreviewDiscardMessage =>
-      'Hasil analisa AI akan dibuang. Kamu harus memulai ulang untuk mendapatkan hasil baru.';
+      'The AI analysis result will be discarded. You will need to restart to get new results.';
 
   @override
-  String get aiPreviewDiscardConfirm => 'Ya, Buang';
+  String get aiPreviewDiscardConfirm => 'Yes, Discard';
 
   @override
   String get navInvestment => 'Investment';
@@ -2485,46 +2494,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String reportInsightRatioHealthy(String percent) {
-    return 'Kamu membelanjakan $percent% dari pemasukanmu. Sisanya bisa ditabung atau diinvestasikan. Lanjutkan! 👏';
+    return 'You\'re spending $percent% of your income. The rest can be saved or invested. Keep going! 👏';
   }
 
   @override
   String reportInsightRatioWarning(String percent) {
-    return 'Kamu membelanjakan $percent% dari pemasukanmu. Idealnya di bawah 50% supaya ada ruang menabung.';
+    return 'You\'re spending $percent% of your income. Ideally keep it below 50% to leave room for savings.';
   }
 
   @override
   String reportInsightRatioDanger(String percent) {
-    return 'Kamu membelanjakan $percent% dari pemasukanmu — hampir tidak ada sisa. Coba kurangi pengeluaran yang tidak mendesak.';
+    return 'You\'re spending $percent% of your income — barely anything left. Try cutting non-urgent expenses.';
   }
 
   @override
   String reportInsightRatioCritical(String amount) {
-    return 'Pengeluaranmu melebihi pemasukan sebesar $amount. Kamu sedang memakai tabungan. Perlu segera dievaluasi.';
+    return 'Your spending exceeds your income by $amount. You\'re dipping into savings. This needs immediate attention.';
   }
 
   @override
   String get reportInsightRatioNoIncome =>
-      'Belum ada pemasukan tercatat. Catat pemasukan agar bisa menganalisis kesehatan keuanganmu.';
+      'No income recorded yet. Record your income to analyze your financial health.';
 
   @override
   String reportInsightTrendDownBig(String amount, String percent) {
-    return 'Pengeluaranmu turun $amount ($percent%) dari periode lalu. Kerja bagus — pertahankan pola ini! 👍';
+    return 'Your spending dropped $amount ($percent%) from last period. Great job — keep this pattern! 👍';
   }
 
   @override
   String reportInsightTrendDownSmall(String percent) {
-    return 'Pengeluaranmu turun sedikit ($percent%). Sudah di jalur yang baik!';
+    return 'Your spending dropped slightly ($percent%). You\'re on the right track!';
   }
 
   @override
   String reportInsightTrendStable(String amount) {
-    return 'Pengeluaranmu stabil — total $amount periode ini.';
+    return 'Your spending is stable — total $amount this period.';
   }
 
   @override
   String reportInsightTrendUpSmall(String percent) {
-    return 'Pengeluaranmu naik sedikit ($percent%). Cek apakah ada kebutuhan dadakan atau bisa dikurangi.';
+    return 'Your spending increased slightly ($percent%). Check if there were any unexpected expenses.';
   }
 
   @override
@@ -2533,12 +2542,12 @@ class AppLocalizationsEn extends AppLocalizations {
     String percent,
     String category,
   ) {
-    return 'Pengeluaranmu naik $amount ($percent%). Penyebab terbesar: $category. Coba batasi di kategori ini.';
+    return 'Your spending increased $amount ($percent%). Biggest contributor: $category. Try to limit spending in this category.';
   }
 
   @override
   String reportInsightTrendUpBigNoCategory(String amount, String percent) {
-    return 'Pengeluaranmu naik $amount ($percent%) dari periode lalu. Coba evaluasi pengeluaran yang bisa dikurangi.';
+    return 'Your spending increased $amount ($percent%) from last period. Review which expenses can be reduced.';
   }
 
   @override
@@ -2547,11 +2556,59 @@ class AppLocalizationsEn extends AppLocalizations {
     String percent,
     String amount,
   ) {
-    return 'Kategori $category mendominasi $percent% pengeluaranmu ($amount). Cek apakah bisa dikurangi.';
+    return 'Category $category dominates $percent% of your spending ($amount). Check if it can be reduced.';
   }
 
   @override
   String reportInsightPeakDay(String date, String amount, String percent) {
-    return 'Pengeluaran terbesar di tanggal $date ($amount), yaitu $percent% dari total pengeluaran.';
+    return 'Highest spending on $date ($amount), which is $percent% of total spending.';
   }
+
+  @override
+  String get iconPickerTitle => 'Choose Icon';
+
+  @override
+  String get iconPickerSearch => 'Search icon...';
+
+  @override
+  String get iconSearchEmpty => 'No icons found';
+
+  @override
+  String get iconSectionFinance => 'Finance';
+
+  @override
+  String get iconSectionShopping => 'Shopping & Lifestyle';
+
+  @override
+  String get iconSectionFoodDrink => 'Food & Drinks';
+
+  @override
+  String get iconSectionHousehold => 'Household';
+
+  @override
+  String get iconSectionTransport => 'Transportation';
+
+  @override
+  String get iconSectionHealth => 'Health & Fitness';
+
+  @override
+  String get iconSectionBills => 'Bills & Utilities';
+
+  @override
+  String get iconSectionTech => 'Technology';
+
+  @override
+  String get iconSectionEducation => 'Education & Career';
+
+  @override
+  String get iconSectionEntertainment => 'Entertainment';
+
+  @override
+  String get iconSectionNature => 'Nature & Animals';
+
+  @override
+  String get iconSectionSocial => 'Social & Family';
+
+  @override
+  String get iconSectionOther => 'Others';
 }

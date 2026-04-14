@@ -1352,6 +1352,24 @@ abstract class AppLocalizations {
   /// **'Pilih Warna'**
   String get categoryColorPicker;
 
+  /// No description provided for @colorPickerPresetTab.
+  ///
+  /// In id, this message translates to:
+  /// **'Preset'**
+  String get colorPickerPresetTab;
+
+  /// No description provided for @colorPickerWheelTab.
+  ///
+  /// In id, this message translates to:
+  /// **'Kustom'**
+  String get colorPickerWheelTab;
+
+  /// No description provided for @colorPickerSelectButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Warna Ini'**
+  String get colorPickerSelectButton;
+
   /// No description provided for @categoryName.
   ///
   /// In id, this message translates to:
@@ -4764,6 +4782,102 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Pengeluaran terbesar di tanggal {date} ({amount}), yaitu {percent}% dari total pengeluaran.'**
   String reportInsightPeakDay(String date, String amount, String percent);
+
+  /// No description provided for @iconPickerTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Ikon'**
+  String get iconPickerTitle;
+
+  /// No description provided for @iconPickerSearch.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari ikon...'**
+  String get iconPickerSearch;
+
+  /// No description provided for @iconSearchEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Ikon tidak ditemukan'**
+  String get iconSearchEmpty;
+
+  /// No description provided for @iconSectionFinance.
+  ///
+  /// In id, this message translates to:
+  /// **'Keuangan'**
+  String get iconSectionFinance;
+
+  /// No description provided for @iconSectionShopping.
+  ///
+  /// In id, this message translates to:
+  /// **'Belanja & Gaya Hidup'**
+  String get iconSectionShopping;
+
+  /// No description provided for @iconSectionFoodDrink.
+  ///
+  /// In id, this message translates to:
+  /// **'Makanan & Minuman'**
+  String get iconSectionFoodDrink;
+
+  /// No description provided for @iconSectionHousehold.
+  ///
+  /// In id, this message translates to:
+  /// **'Rumah Tangga'**
+  String get iconSectionHousehold;
+
+  /// No description provided for @iconSectionTransport.
+  ///
+  /// In id, this message translates to:
+  /// **'Transportasi'**
+  String get iconSectionTransport;
+
+  /// No description provided for @iconSectionHealth.
+  ///
+  /// In id, this message translates to:
+  /// **'Kesehatan & Kebugaran'**
+  String get iconSectionHealth;
+
+  /// No description provided for @iconSectionBills.
+  ///
+  /// In id, this message translates to:
+  /// **'Tagihan & Utilitas'**
+  String get iconSectionBills;
+
+  /// No description provided for @iconSectionTech.
+  ///
+  /// In id, this message translates to:
+  /// **'Teknologi'**
+  String get iconSectionTech;
+
+  /// No description provided for @iconSectionEducation.
+  ///
+  /// In id, this message translates to:
+  /// **'Pendidikan & Karier'**
+  String get iconSectionEducation;
+
+  /// No description provided for @iconSectionEntertainment.
+  ///
+  /// In id, this message translates to:
+  /// **'Hiburan'**
+  String get iconSectionEntertainment;
+
+  /// No description provided for @iconSectionNature.
+  ///
+  /// In id, this message translates to:
+  /// **'Alam & Hewan'**
+  String get iconSectionNature;
+
+  /// No description provided for @iconSectionSocial.
+  ///
+  /// In id, this message translates to:
+  /// **'Sosial & Keluarga'**
+  String get iconSectionSocial;
+
+  /// No description provided for @iconSectionOther.
+  ///
+  /// In id, this message translates to:
+  /// **'Lainnya'**
+  String get iconSectionOther;
 }
 
 class _AppLocalizationsDelegate

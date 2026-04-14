@@ -1,4 +1,4 @@
-import 'package:app_saku_rapi/core/utils/category_icon_mapper.dart';
+import 'package:app_saku_rapi/core/utils/saku_icon_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -84,7 +84,7 @@ class SakuCategoryIcon extends StatelessWidget {
 
     // TODO: Jika iconName mengandung '.svg', render sebagai SvgPicture.
     final iconWidget = FaIcon(
-      CategoryIconMapper.getIcon(iconName),
+      SakuIconMapper.getIcon(iconName),
       size: effectiveIconSize.w,
       color: color,
     );

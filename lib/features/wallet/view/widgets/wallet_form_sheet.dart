@@ -2,14 +2,15 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
-import 'package:app_saku_rapi/features/category/view/widgets/category_color_picker_sheet.dart';
-import 'package:app_saku_rapi/features/category/view/widgets/category_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/saku_icon_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/global/widgets/saku_color_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
       initialValue: w?.initialBalance,
     );
     _selectedIcon = w?.icon ?? 'wallet';
-    _selectedColor = w?.color ?? CategoryColorPickerSheet.availableColors.first;
+    _selectedColor = w?.color ?? SakuColorPickerSheet.availableColors.first;
     _excludeFromTotal = w?.excludeFromTotal ?? false;
     _initialBalance = w?.initialBalance ?? 0;
   }
@@ -251,7 +252,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
   // ───────────────── Actions ─────────────────
 
   Future<void> _pickIcon(BuildContext context) async {
-    final result = await CategoryIconPickerSheet.show(
+    final result = await SakuIconPickerSheet.show(
       context: context,
       selectedIcon: _selectedIcon,
     );
@@ -261,8 +262,8 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
   }
 
   Future<void> _pickColor(BuildContext context) async {
-    final result = await CategoryColorPickerSheet.show(
-      context: context,
+    final result = await SakuColorPickerSheet.show(
+      context: appContext ?? context,
       selectedColor: _selectedColor,
     );
     if (result != null && mounted) {

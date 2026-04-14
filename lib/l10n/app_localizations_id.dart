@@ -659,6 +659,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get categoryColorPicker => 'Pilih Warna';
 
   @override
+  String get colorPickerPresetTab => 'Preset';
+
+  @override
+  String get colorPickerWheelTab => 'Kustom';
+
+  @override
+  String get colorPickerSelectButton => 'Pilih Warna Ini';
+
+  @override
   String get categoryName => 'Nama Kategori';
 
   @override
@@ -2554,4 +2563,52 @@ class AppLocalizationsId extends AppLocalizations {
   String reportInsightPeakDay(String date, String amount, String percent) {
     return 'Pengeluaran terbesar di tanggal $date ($amount), yaitu $percent% dari total pengeluaran.';
   }
+
+  @override
+  String get iconPickerTitle => 'Pilih Ikon';
+
+  @override
+  String get iconPickerSearch => 'Cari ikon...';
+
+  @override
+  String get iconSearchEmpty => 'Ikon tidak ditemukan';
+
+  @override
+  String get iconSectionFinance => 'Keuangan';
+
+  @override
+  String get iconSectionShopping => 'Belanja & Gaya Hidup';
+
+  @override
+  String get iconSectionFoodDrink => 'Makanan & Minuman';
+
+  @override
+  String get iconSectionHousehold => 'Rumah Tangga';
+
+  @override
+  String get iconSectionTransport => 'Transportasi';
+
+  @override
+  String get iconSectionHealth => 'Kesehatan & Kebugaran';
+
+  @override
+  String get iconSectionBills => 'Tagihan & Utilitas';
+
+  @override
+  String get iconSectionTech => 'Teknologi';
+
+  @override
+  String get iconSectionEducation => 'Pendidikan & Karier';
+
+  @override
+  String get iconSectionEntertainment => 'Hiburan';
+
+  @override
+  String get iconSectionNature => 'Alam & Hewan';
+
+  @override
+  String get iconSectionSocial => 'Sosial & Keluarga';
+
+  @override
+  String get iconSectionOther => 'Lainnya';
 }
