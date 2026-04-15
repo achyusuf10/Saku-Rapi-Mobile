@@ -11,7 +11,7 @@ updated: 2026-04-14
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 44 |
+| Total halaman | 45 |
 | Sumber diproses | 10 |
 | Entitas | 20 |
 | Konsep | 8 |
@@ -70,6 +70,7 @@ updated: 2026-04-14
 - [[wiki/sources/plan-fitur-kirim-laporan|Plan: Fitur Kirim Laporan]] — Rencana dan implementasi fitur user report/feedback (April 2026)
 - [[wiki/sources/plan-history-search-category-pagination|Plan: History Search + Category Pagination]] — Rencana dan implementasi search server-side + category-level pagination di History (April 2026)
 - [[wiki/sources/plan-refactor-report-category-breakdown|Plan: Refactor Breakdown Kategori Reports]] — Refactor breakdown kategori Reports: pie chart + linear list digabung, top 5 + Lainnya, mode toggle dihapus (April 2026)
+- [[wiki/sources/plan-sentry-integration|Plan: Sentry Integration]] — Integrasi Sentry error monitoring: flavor-based config, noise filtering, SentryContext per event (April 2026)
 
 ## 🔬 Analisis
 
