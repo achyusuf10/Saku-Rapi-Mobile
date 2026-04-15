@@ -11,6 +11,7 @@ import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
+import 'package:app_saku_rapi/features/home_widget/home_widget_deep_link_handler.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
@@ -112,6 +113,9 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
         // ── OCR prefill (jika ada) ──
         _applyOcrPrefill(ctrl);
         _applyOcrImagePrefill(ctrl);
+
+        // ── Home Widget wallet pre-selection (jika ada) ──
+        _applyWidgetWalletPrefill(ctrl);
       }
 
       // Ensure wallets are loaded
@@ -451,6 +455,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     ref.read(pendingOcrImageFileProvider.notifier).state = null;
     ctrl.setLocalAttachment(imageFile.path);
+  }
+
+  /// Pre-select wallet dari home widget deep link.
+  void _applyWidgetWalletPrefill(TransactionFormController ctrl) {
+    final walletId = ref.read(pendingWidgetWalletIdProvider);
+    if (walletId == null || walletId.isEmpty) return;
+
+    // Clear provider agar tidak ke-apply ulang
+    ref.read(pendingWidgetWalletIdProvider.notifier).state = null;
+
+    final wallets = ref.read(walletListProvider);
+    final matched = wallets.where((w) => w.id == walletId);
+    if (matched.isNotEmpty) {
+      ctrl.setWallet(matched.first);
+    }
   }
 
   /// Resolve wallet, destination wallet, dan category untuk mode edit.

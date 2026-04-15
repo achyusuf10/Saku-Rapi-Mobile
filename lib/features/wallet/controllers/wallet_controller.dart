@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/services/home_widget_service.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/wallet/repositories/wallet_repository.dart';
@@ -82,10 +83,11 @@ class WalletController extends StateNotifier<WalletState> {
 
   final WalletRepository _repository;
 
-  /// Update state dan sinkronkan ke cache lokal.
+  /// Update state dan sinkronkan ke cache lokal + home widget.
   void _applyWallets(List<WalletModel> wallets) {
     state = state.copyWith(status: WalletStatus.loaded, wallets: wallets);
     _repository.cacheWalletList(wallets);
+    HomeWidgetService.syncWalletData(wallets);
   }
 
   // ───────────────── LOAD ─────────────────
@@ -97,10 +99,12 @@ class WalletController extends StateNotifier<WalletState> {
     final result = await _repository.getWallets();
 
     if (result.isSuccess()) {
+      final wallets = result.dataSuccess()!;
       state = state.copyWith(
         status: WalletStatus.loaded,
-        wallets: result.dataSuccess()!,
+        wallets: wallets,
       );
+      HomeWidgetService.syncWalletData(wallets);
     } else {
       final (message, _, _, _) = result.dataError()!;
       state = state.copyWith(status: WalletStatus.error, errorMessage: message);

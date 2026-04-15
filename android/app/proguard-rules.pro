@@ -37,3 +37,7 @@
 -dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions$Builder
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
+
+# ─── SakuRapi Home Widget ─────────────────────────────────────────────────────
+-keep class app.saku_rapi.com.widget.** { *; }
+-keep class es.nickerbocker.home_widget.** { *; }

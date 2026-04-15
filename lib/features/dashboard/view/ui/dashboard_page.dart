@@ -12,6 +12,7 @@ import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_quick_ac
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_recent_transactions.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_shimmer.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_wallet_section.dart';
+import 'package:app_saku_rapi/features/home_widget/home_widget_deep_link_handler.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
@@ -32,6 +33,8 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
+  bool _coldStartHandled = false;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +47,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       final catState = ref.read(categoryControllerProvider);
       if (catState.status == CategoryStatus.initial) {
         ref.read(categoryControllerProvider.notifier).loadCategories();
+      }
+
+      // Cold start: check if there's a pending widget action that was set
+      // BEFORE this widget mounted (ref.listen won't fire for pre-existing state)
+      if (!_coldStartHandled) {
+        _coldStartHandled = true;
+        final pendingUri = ref.read(pendingWidgetActionProvider);
+        if (pendingUri != null) {
+          HomeWidgetDeepLinkHandler.consumeAction(ref, context);
+        }
       }
     });
   }
@@ -63,6 +76,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final user = ref.watch(currentUserProvider);
 
     final adsEligible = ref.watch(adsEligibleProvider);
+
+    // Warm start: listen for widget action changes while Dashboard is mounted
+    ref.listen<Uri?>(pendingWidgetActionProvider, (prev, next) {
+      if (next != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            HomeWidgetDeepLinkHandler.consumeAction(ref, context);
+          }
+        });
+      }
+    });
 
     return Scaffold(
       backgroundColor: colors.background,

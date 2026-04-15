@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/themes/app_themes.dart';
 import 'package:app_saku_rapi/core/themes/theme_controller.dart';
+import 'package:app_saku_rapi/features/home_widget/home_widget_deep_link_handler.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/calculator_keyboard.dart';
 import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
@@ -20,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:logging/logging.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,6 +47,22 @@ Future<void> bootstrap() async {
 
     // Inisialisasi AdMob SDK.
     await AdsService.instance.init();
+
+    // Home Widget: check if launched from widget (cold start)
+    Uri? initialWidgetUri;
+    if (Platform.isAndroid) {
+      try {
+        final widgetUri = await HomeWidget.initiallyLaunchedFromHomeWidget();
+        if (widgetUri != null) {
+          initialWidgetUri = widgetUri;
+          AppLogger.call(
+            '[Online] [HomeWidget] Cold start URI: $widgetUri',
+          );
+        }
+      } catch (e) {
+        AppLogger.call('[Online] [HomeWidget] Failed to check initial URI: $e');
+      }
+    }
 
     AppLogger.call(
       'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
@@ -100,6 +118,12 @@ Future<void> bootstrap() async {
       },
       appRunner: () => runApp(
         ProviderScope(
+          overrides: [
+            if (initialWidgetUri != null)
+              pendingWidgetActionProvider.overrideWith(
+                (ref) => initialWidgetUri,
+              ),
+          ],
           observers: [
             TalkerRiverpodObserver(settings: TalkerRiverpodLoggerSettings()),
           ],
@@ -110,11 +134,35 @@ Future<void> bootstrap() async {
   }, (error, stack) async {});
 }
 
-class SakuRapiApp extends ConsumerWidget {
+class SakuRapiApp extends ConsumerStatefulWidget {
   const SakuRapiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SakuRapiApp> createState() => _SakuRapiAppState();
+}
+
+class _SakuRapiAppState extends ConsumerState<SakuRapiApp> {
+  StreamSubscription? _widgetClickSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Register warm-start listener for widget clicks while app is running
+    if (Platform.isAndroid) {
+      _widgetClickSub = HomeWidget.widgetClicked.listen((uri) {
+        HomeWidgetDeepLinkHandler.receiveUri(ref, uri);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _widgetClickSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeControllerProvider);
     final locale = ref.watch(localeControllerProvider);
     final designSize = getDesignSize(context);

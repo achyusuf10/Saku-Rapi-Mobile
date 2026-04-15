@@ -38,6 +38,36 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Deep link from Home Widget quick actions -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="sakurapi" android:host="action"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Saku Rapi Home Widget Provider -->
+        <receiver
+            android:name="app.saku_rapi.com.widget.SakuRapiWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_saku_rapi_info"/>
+        </receiver>
+
+        <!-- Widget Configuration Activity -->
+        <activity
+            android:name="app.saku_rapi.com.widget.SakuRapiWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/NormalTheme">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
         </activity>
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
