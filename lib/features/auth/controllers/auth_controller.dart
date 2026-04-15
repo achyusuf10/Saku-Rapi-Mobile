@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/services/sentry_service.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:app_saku_rapi/features/auth/repositories/auth_repository.dart';
@@ -152,6 +153,7 @@ class AuthController extends StateNotifier<AppAuthState> {
             status: AuthStatus.authenticated,
             user: success.data,
           );
+          SentryService.setUser(success.data!.id, success.data!.email);
           AppLogger.logSuccess(
             'Session restored: ${success.data!.email}',
             runtimeType: AuthController,
@@ -188,6 +190,7 @@ class AuthController extends StateNotifier<AppAuthState> {
           status: AuthStatus.authenticated,
           user: success.data,
         );
+        SentryService.setUser(success.data.id, success.data.email);
         return true;
       },
       error: (error) {
@@ -211,6 +214,7 @@ class AuthController extends StateNotifier<AppAuthState> {
     return result.map(
       success: (_) {
         state = const AppAuthState(status: AuthStatus.unauthenticated);
+        SentryService.clearUser();
         return true;
       },
       error: (error) {

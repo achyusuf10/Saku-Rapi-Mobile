@@ -19,6 +19,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:logging/logging.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger_observer.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger_settings.dart';
@@ -70,12 +71,34 @@ Future<void> bootstrap() async {
       );
     });
   }
-  runApp(
-    ProviderScope(
-      observers: [
-        TalkerRiverpodObserver(settings: TalkerRiverpodLoggerSettings()),
-      ],
-      child: SakuRapiApp(),
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = const String.fromEnvironment('SENTRY_DSN');
+      options.environment = AppFlavorConfig.name.toLowerCase();
+      // Dev: sampleRate=0.0 → tidak ada event dikirim ke Sentry server
+      // Prod: sampleRate=1.0 → semua error dikirim
+      options.sampleRate = kDebugMode
+          ? 0.0
+          : AppFlavorConfig.isProd
+          ? 1.0
+          : 0.0;
+      options.tracesSampleRate = kDebugMode
+          ? 0
+          : AppFlavorConfig.isProd
+          ? 0.2
+          : 0.0;
+      options.sendDefaultPii = false;
+      options.attachScreenshot = false;
+      // ignore: experimental_member_use
+      options.attachViewHierarchy = false;
+    },
+    appRunner: () => runApp(
+      ProviderScope(
+        observers: [
+          TalkerRiverpodObserver(settings: TalkerRiverpodLoggerSettings()),
+        ],
+        child: SakuRapiApp(),
+      ),
     ),
   );
 }

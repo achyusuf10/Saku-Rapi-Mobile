@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:app_saku_rapi/core/models/sentry_context.dart';
+import 'package:app_saku_rapi/core/services/sentry_service.dart';
 import 'package:flutter/foundation.dart';
 
 class AppLogger {
@@ -63,23 +65,17 @@ Success --> $message
     Type? runtimeType,
     String? nameLog,
     bool sendLogError = false,
-    // bool sendToSentry = false,
+    bool sendToSentry = false,
+    SentryContext? sentryContext,
     StackTrace? stackTrace,
   }) {
-    // if (sendLogError) {
-    //   if (!kDebugMode) {
-    //     FirebaseCrashlytics.instance.recordError(
-    //       message.toString(),
-    //       stackTrace,
-    //     );
-    //   }
-    // }
-    // if (sendToSentry) {
-    //   SentryServices.send(
-    //     payload: message,
-    //     stackTrace: stackTrace,
-    //   );
-    // }
+    if (sendToSentry) {
+      SentryService.captureException(
+        message is Exception ? message : Exception(message.toString()),
+        stackTrace,
+        context: sentryContext,
+      );
+    }
     if (kDebugMode == false) return;
 
     if (runtimeType == null) {

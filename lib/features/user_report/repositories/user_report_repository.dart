@@ -76,10 +76,7 @@ class UserReportRepository {
   Future<String?> _uploadPhoto(File photoFile) async {
     AppLogger.call('$_tag _uploadPhoto: ${photoFile.path}');
 
-    final compressed = await CompressImageFunc.call(
-      filePath: photoFile.path,
-      targetSizeKb: 200,
-    );
+    final compressed = await CompressImageFunc.call(filePath: photoFile.path);
 
     if (compressed == null) {
       AppLogger.logError('$_tag compress photo failed');

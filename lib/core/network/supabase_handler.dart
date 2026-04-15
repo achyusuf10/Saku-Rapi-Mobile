@@ -1,4 +1,6 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
+import 'package:app_saku_rapi/core/models/sentry_context.dart';
+import 'package:app_saku_rapi/core/services/sentry_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../state/data_state.dart';
@@ -7,6 +9,7 @@ class SupabaseHandler {
   /// Fungsi pembungkus untuk menangani error Supabase secara terpusat.
   static Future<DataState<T>> call<T>({
     required Future<T> Function() function,
+    SentryContext? sentryContext,
   }) async {
     try {
       final res = await function();
@@ -17,7 +20,7 @@ class SupabaseHandler {
         stackTrace: stackTrace,
         runtimeType: SupabaseHandler,
       );
-      // Menangkap error autentikasi (misal: token kadaluarsa, login gagal)
+      // AuthException (401/403) adalah auth flow normal — tidak dikirim ke Sentry
       return DataState.error(
         message: e.message,
         stackTrace: stackTrace,
@@ -30,6 +33,7 @@ class SupabaseHandler {
         stackTrace: stackTrace,
         runtimeType: SupabaseHandler,
       );
+      SentryService.captureException(e, stackTrace, context: sentryContext);
       // Menangkap error database (misal: query salah, RLS melanggar)
       return DataState.error(
         message: e.message,
@@ -43,6 +47,7 @@ class SupabaseHandler {
         stackTrace: stackTrace,
         runtimeType: SupabaseHandler,
       );
+      SentryService.captureException(e, stackTrace, context: sentryContext);
       // Menangkap error umum lainnya
       return DataState.error(
         message: e.toString(),
