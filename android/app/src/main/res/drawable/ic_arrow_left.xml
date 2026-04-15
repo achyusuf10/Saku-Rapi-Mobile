@@ -3,9 +3,8 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="@color/widget_icon_tint">
+    android:viewportHeight="24">
     <path
-        android:fillColor="#FF000000"
+        android:fillColor="#FF64748B"
         android:pathData="M15.41,16.59L10.83,12l4.58,-4.59L14,6l-6,6 6,6 1.41,-1.41z" />
 </vector>
