@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
@@ -5,52 +6,46 @@ import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Service untuk upload gambar ke Supabase Storage bucket 'attachments'.
+/// Service untuk upload gambar via Edge Function 'image-upload'.
 ///
-/// File disimpan dalam folder per user: `{userId}/{fileName}`.
-/// Menggunakan [SupabaseHandler] untuk error handling terpusat.
+/// Edge function menangani storage routing otomatis:
+/// - Primary: Supabase Storage bucket 'attachments' (signed URL 1 tahun)
+/// - Fallback: Google Cloud Storage (public URL permanent) jika Supabase penuh
 class ImageUploadService {
   ImageUploadService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
-  static const _bucket = 'attachments';
   static const _tag = '[ImageUploadService]';
 
-  /// Upload image bytes ke Supabase Storage.
+  /// Upload image bytes via edge function.
   ///
-  /// Return [DataState] berisi public URL dari file yang diupload.
-  /// File disimpan di path: `{userId}/{timestamp}_{fileName}`.
+  /// Return [DataState] berisi URL gambar yang diupload.
+  /// URL bisa dari Supabase Storage (signed) atau GCS (public), tergantung kapasitas.
   Future<DataState<String>> uploadImage({
     required Uint8List imageBytes,
     required String fileName,
   }) {
     return SupabaseHandler.call<String>(
       function: () async {
-        final userId = _client.auth.currentUser!.id;
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final path = '$userId/${timestamp}_$fileName';
+        AppLogger.call('$_tag Uploading image via edge function: $fileName');
 
-        AppLogger.call('$_tag Uploading image: $path');
+        final base64Image = base64Encode(imageBytes);
 
-        await _client.storage
-            .from(_bucket)
-            .uploadBinary(
-              path,
-              imageBytes,
-              fileOptions: const FileOptions(
-                contentType: 'image/jpeg',
-                upsert: true,
-              ),
-            );
+        final response = await _client.functions.invoke(
+          'image-upload',
+          body: {
+            'imageBase64': base64Image,
+            'fileName': fileName,
+            'mimeType': 'image/jpeg',
+          },
+        );
 
-        // Gunakan createSignedUrl untuk RLS-protected bucket
-        final signedUrl = await _client.storage
-            .from(_bucket)
-            .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 tahun
+        final url = response.data['url'] as String;
+        final storage = response.data['storage'] as String;
 
-        AppLogger.call('$_tag Upload success: $path');
-        return signedUrl;
+        AppLogger.call('$_tag Upload success via $storage: $fileName');
+        return url;
       },
     );
   }

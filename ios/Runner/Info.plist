@@ -47,5 +47,10 @@
 	<true/>
 	<key>NSContactsUsageDescription</key>
 	<string>SakuRapi needs access to your contacts to quickly fill in the contact name for debt and loan transactions.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
 </dict>
 </plist>

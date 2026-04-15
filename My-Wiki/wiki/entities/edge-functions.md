@@ -2,9 +2,9 @@
 title: "Edge Functions"
 type: entity
 tags: [edge-functions, supabase, backend, deno, typescript, ai, api]
-sources: [raw/docs/prd/20_EXTERNAL_API.md, raw/docs/03_COPILOT_RULES.md, raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/15_INVESTASI.md]
+sources: [raw/docs/prd/20_EXTERNAL_API.md, raw/docs/03_COPILOT_RULES.md, raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/15_INVESTASI.md, raw/security-audit.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-14
 ---
 
 ## Deskripsi
@@ -13,11 +13,12 @@ Edge Functions SakuRapi adalah server-side functions yang berjalan di atas **Den
 
 ## Edge Functions yang Ada
 
-| Nama | Tujuan | External API |
-|------|--------|-------------|
-| `ai-parse` | Parsing voice/text/OCR ke struktur transaksi + quota check | Vertex AI Gemini (2.5 Flash Lite text/voice, 2.5 Flash OCR) |
-| `gold-price` | Harga emas Antam terkini | harga-emas.org / antaremas.com → Vertex AI Gemini 2.5 Flash |
-| `bitcoin-price` | Harga Bitcoin/IDR terkini | Indodax API → CoinGecko |
+| Nama | Tujuan | External API | JWT Verify |
+|------|--------|-------------|-----------|
+| `ai-parse` | Parsing voice/text/OCR ke struktur transaksi + quota check | Vertex AI Gemini (2.5 Flash Lite text/voice, 2.5 Flash OCR) | ❌ false (custom JWT check internal) |
+| `gold-price` | Harga emas Antam terkini | harga-emas.org / antaremas.com → Vertex AI Gemini 2.5 Flash | ✅ true |
+| `bitcoin-price` | Harga Bitcoin/IDR terkini | Indodax API → CoinGecko | ✅ true |
+| `image-upload` | Upload gambar dengan auto-fallback Supabase → GCS jika storage hampir penuh | Google Cloud Storage (fallback) | ✅ true |
 
 Lokasi: `supabase/functions/`
 
@@ -39,6 +40,14 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 - Semua AI call melalui Edge Function `ai-parse`
 - Edge Function hanya pakai Vertex AI Gemini (Groq/OpenRouter sudah dihapus)
 - CoinGecko dipanggil langsung dari Flutter (tidak ada API key, di-cache Hive 12 jam)
+
+### Authentication & Error Handling
+
+- `gold-price` dan `bitcoin-price`: `verify_jwt: true` — Supabase otomatis validasi JWT sebelum function dipanggil
+- `ai-parse`: `verify_jwt: false` karena perlu raw JWT untuk custom `supabase.auth.getUser()` check internal
+- Error responses **harus generik**: jangan kembalikan `String(err)` atau internal stack trace ke client
+- `ai-parse` punya input validation: MAX_TEXT=10.000 char, MAX_IMAGE=10MB, MAX_CATEGORIES=200
+- Cron jobs yang memanggil edge function **wajib** menyertakan `Authorization: Bearer <anon_key>` header
 
 ## Detail: `ai-parse`
 
@@ -129,6 +138,7 @@ Flutter App
 
 ## Halaman Terkait
 
+- `[[wiki/concepts/keamanan|Keamanan & Security Posture]]`
 - `[[wiki/entities/voice-input|Voice Input]]`
 - `[[wiki/entities/text-input|Text Input]]`
 - `[[wiki/entities/ocr-receipt|OCR Receipt]]`

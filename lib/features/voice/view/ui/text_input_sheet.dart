@@ -317,11 +317,7 @@ class _TextActionButtons extends StatelessWidget {
   Widget _buildActionButton(dynamic colors, dynamic l10n) {
     // Processing → loading spinner
     if (state.status == TextInputStatus.processing) {
-      return SakuButton(
-        text: '',
-        onPressed: null,
-        isLoading: true,
-      );
+      return SakuButton(text: '', onPressed: null, isLoading: true);
     }
 
     // Error → "Coba Lagi"
@@ -347,10 +343,7 @@ class _TextActionButtons extends StatelessWidget {
     }
 
     // Idle → "Analisis"
-    return SakuButton(
-      text: l10n.textInputSubmit,
-      onPressed: onSubmit,
-    );
+    return SakuButton(text: l10n.textInputSubmit, onPressed: onSubmit);
   }
 
   Color _foregroundForBackground(Color backgroundColor) {
@@ -500,7 +493,9 @@ class _TextPreviewCard extends ConsumerWidget {
               icon: FontAwesomeIcons.calendar,
               iconColor: colors.textSecondary,
               label: l10n.transactionDate,
-              value: result.date!.extToFormattedString(),
+              value: result.date!.extToFormattedString(
+                outputDateFormat: 'dd MMM yyyy, HH:mm',
+              ),
             ),
           ],
 

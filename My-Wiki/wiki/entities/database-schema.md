@@ -2,9 +2,9 @@
 title: "Database Schema"
 type: entity
 tags: [database, schema, supabase, postgres, rls, trigger, rpc, index]
-sources: [raw/docs/02_DATABASE.md]
+sources: [raw/docs/02_DATABASE.md, raw/security-audit.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-14
 ---
 
 # Database Schema
@@ -284,6 +284,8 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 **Catatan:** **TIDAK** ada UNIQUE pada `source` — tabel ini append-only (INSERT) untuk keperluan charting historis. Client query: `SELECT ... WHERE source = ? ORDER BY fetched_at DESC LIMIT 1`.
 
+> ⚠️ **Security:** INSERT ke tabel ini hanya boleh dilakukan service_role (via edge function). Policy publik `gold_prices_insert_all` sudah dihapus (Migration `security_fix_gold_prices_rls`). User biasa tidak bisa inject data harga palsu.
+
 ---
 
 ### 12. `bitcoin_prices`
@@ -494,10 +496,19 @@ users, wallets, categories, transactions, transaction_items, budgets, investment
 - `categories` dengan `user_id IS NULL` boleh dibaca oleh semua user terautentikasi (global/default categories)
 - System categories **tidak boleh** diedit user
 - Akses storage attachment dibatasi ke owner
+- **Semua 44 policy menggunakan pattern `(SELECT auth.uid())`** — bukan `auth.uid()` langsung. Pattern ini mencegah PostgreSQL re-evaluate function per row, sehingga query lebih cepat untuk tabel besar. (Dioptimasi via Migration `security_optimize_rls_subselect`)
+
+```sql
+-- ✅ Pattern yang benar di semua policy SakuRapi
+USING (user_id = (SELECT auth.uid()))
+
+-- ❌ Jangan gunakan — di-evaluate per row
+USING (user_id = auth.uid())
+```
 
 ---
 
-## Indexes (Minimum 20)
+## Indexes (Minimum 27)
 
 | Index | Tujuan |
 |---|---|
@@ -505,21 +516,29 @@ users, wallets, categories, transactions, transaction_items, budgets, investment
 | `transactions(wallet_id, date DESC)` | Query per wallet |
 | `transactions(reference_transaction_id)` | Lookup settlement |
 | `transactions(contact_id)` | Lookup by contact |
+| `transactions(destination_wallet_id)` | Lookup transfer destination *(ditambah security audit)* |
 | `transaction_items(transaction_id, sort_order)` | Items per transaction |
 | `budgets(user_id, start_date, end_date)` | Budget per periode |
+| `budgets(wallet_id)` | Filter budget per wallet *(ditambah security audit)* |
 | `categories(user_id, type, parent_id)` | Filter kategori |
+| `categories(parent_id)` | Self-join parent-child *(ditambah security audit)* |
 | `wallets(user_id, sort_order)` | Urutan wallet |
 | `contacts(user_id, name)` | Lookup kontak |
 | `investment_assets(user_id)` | Basic user filter |
 | `investment_assets(user_id, type)` | Filter by asset type |
 | `investment_assets(user_id) WHERE is_active = true` | Partial index aset aktif |
+| `investment_assets(custom_gold_type_id)` | FK join ke custom_gold_types *(ditambah security audit)* |
+| `investment_assets(custom_category_id)` | FK join ke custom_asset_categories *(ditambah security audit)* |
 | `investment_transactions(asset_id)` | Join to asset |
 | `investment_transactions(asset_id, direction)` | Filter buy/sell |
 | `investment_transactions(user_id)` | User filter |
+| `investment_transactions(wallet_id)` | FK join ke wallets *(ditambah security audit)* |
+| `investment_transactions(linked_wallet_transaction_id)` | FK join ke transactions *(ditambah security audit)* |
 | `gold_prices(source, fetched_at DESC)` | Latest price per source |
 | `bitcoin_prices(source)` | Unique per source (via UNIQUE constraint) |
 | `custom_gold_types(user_id)` | User filter |
 | `custom_asset_categories(user_id)` | User filter |
+| `ai_usage_logs(user_id, mode, usage_date)` | Query kuota harian |
 
 ### Performance Rules
 
@@ -581,6 +600,7 @@ Jika ada konflik implementasi:
 
 ## Halaman Terkait
 
+- [[wiki/concepts/keamanan|Keamanan & Security Posture]]
 - [[wiki/entities/wallet|Wallet]]
 - [[wiki/entities/transaksi|Transaksi]]
 - [[wiki/entities/budgeting|Budgeting]]

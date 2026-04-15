@@ -1,6 +1,6 @@
 ---
 title: "Log Wiki"
-updated: 2026-04-10
+updated: 2026-04-14
 ---
 
 # 📋 Log Wiki SakuRapi
@@ -149,7 +149,20 @@ updated: 2026-04-10
   - COLUMNS `notification_sent_50/80/100` dari tabel `budgets`
 - **Wiki diperbarui**: `wiki/analysis/remove-notification.md` (section Supabase Changes ditambahkan)
 
-## [2026-04-12] refactor | Remove manual parsing fallback (OCR + Voice + Text)
+## [2026-04-14] ingest | Security Audit Report (April 2026)
+
+- **Sumber diproses**: `raw/security-audit.md` (766 baris — laporan audit keamanan menyeluruh)
+- **Cakupan audit**: Flutter client, Supabase DB (16 tabel, 44 RLS policies, 33 functions), 3 Edge Functions, Storage, Cron jobs
+- **Temuan**: 5 CRITICAL, 5 HIGH, 7 MEDIUM, 3 LOW — skor awal 5.5/10
+- **Semua CRITICAL & HIGH sudah di-fix** — skor akhir 8.5/10
+- **Halaman baru dibuat**: 2
+  - `wiki/sources/security-audit.md` — ringkasan laporan audit
+  - `wiki/concepts/keamanan.md` — security posture, RLS patterns, edge function auth, checklist deployment
+- **Halaman diperbarui**: 2
+  - `wiki/entities/edge-functions.md` — tambah kolom JWT verify di tabel, section Authentication & Error Handling, link ke keamanan
+  - `wiki/entities/database-schema.md` — RLS optimization pattern, 7 FK indexes baru, gold_prices security note, link ke keamanan
+- **Total halaman wiki**: 44 (20 entitas, 8 konsep, 10 sumber, 5 analisis)
+- **Action manual tersisa**: Aktifkan Leaked Password Protection di Supabase Dashboard (prod)
 
 - **Tujuan**: Hapus semua jalur fallback parsing lokal (regex + `parsing_dictionaries`) dari ketiga fitur AI input
 - **File dihapus**: `ocr_local_parser.dart`, `voice_local_parser.dart`, `parsing_dictionary_model.dart`, `voice_local_data_source.dart`, dan test-test terkait

@@ -387,7 +387,9 @@ class OcrResultSheet extends ConsumerWidget {
             _InfoRow(
               icon: FontAwesomeIcons.calendar,
               label: l10n.ocrDate,
-              value: result.date!.extToDateStringDDMMMMYYYY(),
+              value: result.date!.extToFormattedString(
+                outputDateFormat: 'dd MMM yyyy, HH:mm',
+              ),
               colors: colors,
             ),
             SizedBox(height: 8.h),

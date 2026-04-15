@@ -680,7 +680,9 @@ class _VoicePreviewCard extends ConsumerWidget {
               icon: FontAwesomeIcons.calendar,
               iconColor: colors.textSecondary,
               label: l10n.transactionDate,
-              value: result.date!.extToFormattedString(),
+              value: result.date!.extToFormattedString(
+                outputDateFormat: 'dd MMM yyyy, HH:mm',
+              ),
             ),
           ],
 

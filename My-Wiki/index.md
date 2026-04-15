@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-13
+updated: 2026-04-14
 ---
 
 # 📚 Indeks Wiki SakuRapi
@@ -11,10 +11,10 @@ updated: 2026-04-13
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 42 |
-| Sumber diproses | 9 |
+| Total halaman | 44 |
+| Sumber diproses | 10 |
 | Entitas | 20 |
-| Konsep | 7 |
+| Konsep | 8 |
 | Analisis | 5 |
 
 ---
@@ -55,6 +55,7 @@ updated: 2026-04-13
 - [[wiki/concepts/roadmap-status|Roadmap & Status]] — 12 fase development, DoD, testing, permission model
 - [[wiki/concepts/coding-rules|Coding Rules]] — Aturan coding, formatting, UI conventions, testing, forbidden actions
 - [[wiki/concepts/design-system|Design System]] — "Financial Trust" design system (Trust Navy, IBM Plex Sans, visual rules)
+- [[wiki/concepts/keamanan|Keamanan & Security Posture]] — Security posture post-audit, RLS patterns, edge function auth, checklist deployment
 
 ## 📄 Sumber
 
