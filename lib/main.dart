@@ -150,6 +150,7 @@ class _SakuRapiAppState extends ConsumerState<SakuRapiApp> {
     // Register warm-start listener for widget clicks while app is running
     if (Platform.isAndroid) {
       _widgetClickSub = HomeWidget.widgetClicked.listen((uri) {
+        AppLogger.call('[Online] [HomeWidget] widgetClicked stream received: $uri');
         HomeWidgetDeepLinkHandler.receiveUri(ref, uri);
       });
     }

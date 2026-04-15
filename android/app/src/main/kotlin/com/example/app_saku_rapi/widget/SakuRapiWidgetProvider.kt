@@ -10,6 +10,8 @@ import android.net.Uri
 import android.util.Log
 import android.widget.RemoteViews
 import app.saku_rapi.com.R
+import app.saku_rapi.com.MainActivity
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import org.json.JSONArray
 import java.text.DecimalFormat
@@ -227,7 +229,10 @@ class SakuRapiWidgetProvider : AppWidgetProvider() {
     }
 
     /**
-     * Buat PendingIntent deep link ke Flutter app via URI scheme.
+     * Buat PendingIntent deep link ke Flutter app via HomeWidgetLaunchIntent.
+     *
+     * Menggunakan HomeWidgetLaunchIntent agar URI diterima oleh
+     * HomeWidget.widgetClicked stream di sisi Dart/Flutter.
      */
     private fun createDeepLinkIntent(
         context: Context,
@@ -235,15 +240,11 @@ class SakuRapiWidgetProvider : AppWidgetProvider() {
         walletId: String
     ): PendingIntent {
         val uri = Uri.parse("$URI_SCHEME://$URI_HOST?type=$type&walletId=$walletId")
-        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-            setPackage(context.packageName)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        }
-        return PendingIntent.getActivity(
+        Log.d(TAG, "Creating deep link: $uri")
+        return HomeWidgetLaunchIntent.getActivity(
             context,
-            type.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            MainActivity::class.java,
+            uri
         )
     }
 
