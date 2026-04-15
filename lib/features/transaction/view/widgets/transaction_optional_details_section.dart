@@ -49,13 +49,51 @@ class _TransactionOptionalDetailsSectionState
   bool _expanded = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.merchantController.addListener(_autoExpandOnContent);
+    widget.noteController.addListener(_autoExpandOnContent);
+    // Edge case: content already present on first mount (unlikely but safe)
+    _expanded = widget.merchantController.text.isNotEmpty ||
+        widget.noteController.text.isNotEmpty ||
+        widget.attachmentUrl != null ||
+        widget.localAttachmentPath != null;
+  }
+
+  @override
+  void dispose() {
+    widget.merchantController.removeListener(_autoExpandOnContent);
+    widget.noteController.removeListener(_autoExpandOnContent);
+    super.dispose();
+  }
+
+  void _autoExpandOnContent() {
+    if (!_expanded &&
+        (widget.merchantController.text.isNotEmpty ||
+            widget.noteController.text.isNotEmpty)) {
+      setState(() => _expanded = true);
+    }
+  }
+
+  @override
   void didUpdateWidget(TransactionOptionalDetailsSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Auto-expand ketika lampiran di-prefill (misal dari OCR)
-    if (!_expanded &&
-        oldWidget.localAttachmentPath == null &&
-        widget.localAttachmentPath != null) {
-      setState(() => _expanded = true);
+    // Re-attach listeners if controller instances ever change
+    if (oldWidget.merchantController != widget.merchantController) {
+      oldWidget.merchantController.removeListener(_autoExpandOnContent);
+      widget.merchantController.addListener(_autoExpandOnContent);
+    }
+    if (oldWidget.noteController != widget.noteController) {
+      oldWidget.noteController.removeListener(_autoExpandOnContent);
+      widget.noteController.addListener(_autoExpandOnContent);
+    }
+    // Auto-expand when an attachment arrives (OCR image, edit, or URL prefill)
+    if (!_expanded) {
+      final hasNewAttachment =
+          (oldWidget.localAttachmentPath == null &&
+              widget.localAttachmentPath != null) ||
+          (oldWidget.attachmentUrl == null && widget.attachmentUrl != null);
+      if (hasNewAttachment) setState(() => _expanded = true);
     }
   }
 
