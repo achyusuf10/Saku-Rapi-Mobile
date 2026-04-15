@@ -34,6 +34,8 @@ import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_p
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
+import 'package:app_saku_rapi/core/ads/ads_service.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
@@ -975,6 +977,10 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
           alertType: AlertTypeEnum.success,
         );
         context.pop(true);
+        // Interstitial ad: tampilkan setiap N simpan, hanya jika eligible
+        if (ref.read(adsEligibleProvider)) {
+          await AdsService.instance.incrementAndMaybeShowInterstitial(context);
+        }
       } else {
         final (message, _, _, _) = result.dataError()!;
         context.showAppAlert(message, alertType: AlertTypeEnum.error);

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_saku_rapi/core/ads/ads_service.dart';
 import 'package:app_saku_rapi/core/config/app_flavor.dart';
 import 'package:app_saku_rapi/core/localization/locale_controller.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
@@ -39,6 +40,9 @@ Future<void> bootstrap() async {
 
   // Inisialisasi Hive (encrypted box).
   await HiveService.instance();
+
+  // Inisialisasi AdMob SDK.
+  await AdsService.instance.init();
 
   AppLogger.call(
     'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',

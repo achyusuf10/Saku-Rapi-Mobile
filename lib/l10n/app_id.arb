@@ -567,7 +567,6 @@
   "voicePreviewTitle": "Preview Transaksi",
   "voicePreviewType": "Tipe",
   "voicePreviewDestWallet": "Wallet Tujuan",
-
   "ocrAnalyzingAi": "Menganalisis dengan AI...",
   "ocrPickerTitle": "Scan Struk Belanja",
   "ocrCropToolbar": "Pilih Area Struk",
@@ -681,53 +680,87 @@
   "dashboardInsightTrendProjHigh": "⚠️ Pengeluaranmu diprediksi mencapai {projected} sampai akhir periode — lebih boros {excess} dari biasanya ({avg}). Coba batasi pengeluaranmu jadi sekitar {dailyCap}/hari agar tetap aman.",
   "@dashboardInsightTrendProjHigh": {
     "placeholders": {
-      "projected": { "type": "String" },
-      "excess": { "type": "String" },
-      "avg": { "type": "String" },
-      "dailyCap": { "type": "String" }
+      "projected": {
+        "type": "String"
+      },
+      "excess": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      },
+      "dailyCap": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendProjMid": "Pengeluaranmu sedikit lebih tinggi dari biasanya. Diperkirakan {projected}, sedangkan biasanya {avg}. Tetap pantau agar tidak melonjak!",
   "@dashboardInsightTrendProjMid": {
     "placeholders": {
-      "projected": { "type": "String" },
-      "avg": { "type": "String" }
+      "projected": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendProjLow": "🎉 Pengeluaranmu terkendali! Diperkirakan hanya {projected}, lebih hemat {saving} dari biasanya ({avg}). Selisihnya bisa kamu tabung!",
   "@dashboardInsightTrendProjLow": {
     "placeholders": {
-      "projected": { "type": "String" },
-      "saving": { "type": "String" },
-      "avg": { "type": "String" }
+      "projected": {
+        "type": "String"
+      },
+      "saving": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendDailyHigh": "⚠️ Rata-rata pengeluaranmu {burnRate}/hari, lebih tinggi {excess}/hari dari kebiasaanmu ({avg}/hari). Coba perhatikan pengeluaran yang bisa dikurangi.",
   "@dashboardInsightTrendDailyHigh": {
     "placeholders": {
-      "burnRate": { "type": "String" },
-      "excess": { "type": "String" },
-      "avg": { "type": "String" }
+      "burnRate": {
+        "type": "String"
+      },
+      "excess": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendDailyMid": "Pengeluaran harianmu sedikit lebih tinggi dari kebiasaanmu ({burnRate}/hari vs {avg}/hari). Tetap pantau ya!",
   "@dashboardInsightTrendDailyMid": {
     "placeholders": {
-      "burnRate": { "type": "String" },
-      "avg": { "type": "String" }
+      "burnRate": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendDailyLow": "🎉 Pengeluaranmu lebih hemat dari kebiasaan! Rata-rata {burnRate}/hari, di bawah kebiasaanmu {avg}/hari. Terus pertahankan!",
   "@dashboardInsightTrendDailyLow": {
     "placeholders": {
-      "burnRate": { "type": "String" },
-      "avg": { "type": "String" }
+      "burnRate": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
     }
   },
   "dashboardInsightTrendNoHistory": "Pengeluaranmu periode ini: {total}. Terus catat transaksi agar kamu bisa melihat tren dan perbandingan pengeluaranmu.",
   "@dashboardInsightTrendNoHistory": {
     "placeholders": {
-      "total": { "type": "String" }
+      "total": {
+        "type": "String"
+      }
     }
   },
   "reportTitle": "Laporan",
@@ -1189,12 +1222,15 @@
   "investmentSettingsGoldType": "Jenis Emas",
   "investmentSettingsPriceSource": "Sumber Harga",
   "investmentWalletRequired": "Silakan pilih dompet terlebih dahulu",
-
   "aiQuotaRemaining": "Sisa {remaining} dari {limit} kali hari ini",
   "@aiQuotaRemaining": {
     "placeholders": {
-      "remaining": {"type": "int"},
-      "limit": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
     }
   },
   "aiQuotaExhausted": "Batas harian tercapai. Coba lagi besok.",
@@ -1202,7 +1238,6 @@
   "aiQuotaVoice": "Input Suara",
   "aiQuotaOcr": "Scan Struk",
   "aiQuotaLabel": "Kuota AI",
-
   "settingsSendReport": "Kirim Laporan",
   "sendReportTitle": "Kirim Laporan",
   "sendReportCategory": "Kategori",
@@ -1226,60 +1261,127 @@
   "sendReportCategoryAccountIssue": "Masalah Akun",
   "sendReportCategoryPaymentIssue": "Masalah Pembayaran",
   "sendReportCategoryOther": "Lainnya",
-
   "reportInsightRatioHealthy": "Kamu membelanjakan {percent}% dari pemasukanmu. Sisanya bisa ditabung atau diinvestasikan. Lanjutkan! 👏",
   "@reportInsightRatioHealthy": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightRatioWarning": "Kamu membelanjakan {percent}% dari pemasukanmu. Idealnya di bawah 50% supaya ada ruang menabung.",
   "@reportInsightRatioWarning": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightRatioDanger": "Kamu membelanjakan {percent}% dari pemasukanmu — hampir tidak ada sisa. Coba kurangi pengeluaran yang tidak mendesak.",
   "@reportInsightRatioDanger": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightRatioCritical": "Pengeluaranmu melebihi pemasukan sebesar {amount}. Kamu sedang memakai tabungan. Perlu segera dievaluasi.",
   "@reportInsightRatioCritical": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightRatioNoIncome": "Belum ada pemasukan tercatat. Catat pemasukan agar bisa menganalisis kesehatan keuanganmu.",
-
   "reportInsightTrendDownBig": "Pengeluaranmu turun {amount} ({percent}%) dari periode lalu. Kerja bagus — pertahankan pola ini! 👍",
   "@reportInsightTrendDownBig": {
-    "placeholders": { "amount": { "type": "String" }, "percent": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightTrendDownSmall": "Pengeluaranmu turun sedikit ({percent}%). Sudah di jalur yang baik!",
   "@reportInsightTrendDownSmall": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightTrendStable": "Pengeluaranmu stabil — total {amount} periode ini.",
   "@reportInsightTrendStable": {
-    "placeholders": { "amount": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightTrendUpSmall": "Pengeluaranmu naik sedikit ({percent}%). Cek apakah ada kebutuhan dadakan atau bisa dikurangi.",
   "@reportInsightTrendUpSmall": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightTrendUpBig": "Pengeluaranmu naik {amount} ({percent}%). Penyebab terbesar: {category}. Coba batasi di kategori ini.",
   "@reportInsightTrendUpBig": {
-    "placeholders": { "amount": { "type": "String" }, "percent": { "type": "String" }, "category": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "reportInsightTrendUpBigNoCategory": "Pengeluaranmu naik {amount} ({percent}%) dari periode lalu. Coba evaluasi pengeluaran yang bisa dikurangi.",
   "@reportInsightTrendUpBigNoCategory": {
-    "placeholders": { "amount": { "type": "String" }, "percent": { "type": "String" } }
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
   },
-
   "reportInsightCategoryDominant": "Kategori {category} mendominasi {percent}% pengeluaranmu ({amount}). Cek apakah bisa dikurangi.",
   "@reportInsightCategoryDominant": {
-    "placeholders": { "category": { "type": "String" }, "percent": { "type": "String" }, "amount": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
   },
-
   "reportInsightPeakDay": "Pengeluaran terbesar di tanggal {date} ({amount}), yaitu {percent}% dari total pengeluaran.",
   "@reportInsightPeakDay": {
-    "placeholders": { "date": { "type": "String" }, "amount": { "type": "String" }, "percent": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
   },
-
   "iconPickerTitle": "Pilih Ikon",
   "iconPickerSearch": "Cari ikon...",
   "iconSearchEmpty": "Ikon tidak ditemukan",
@@ -1295,5 +1397,6 @@
   "iconSectionEntertainment": "Hiburan",
   "iconSectionNature": "Alam & Hewan",
   "iconSectionSocial": "Sosial & Keluarga",
-  "iconSectionOther": "Lainnya"
+  "iconSectionOther": "Lainnya",
+  "noMoreData": "Data kamu cukup sampai sini nih.."
 }

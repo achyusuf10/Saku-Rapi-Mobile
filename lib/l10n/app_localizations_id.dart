@@ -2611,4 +2611,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get iconSectionOther => 'Lainnya';
+
+  @override
+  String get noMoreData => 'Data kamu cukup sampai sini nih..';
 }

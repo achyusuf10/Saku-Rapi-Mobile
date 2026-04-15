@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
@@ -14,6 +15,7 @@ import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_gro
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
@@ -124,7 +126,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     // (e.g. old position 13 from monthly with only 6 tabs in yearly).
     if (_lastPeriod != historyState.period) {
       _lastPeriod = historyState.period;
-      final targetIdx = historyState.subPeriodIndex ??
+      final targetIdx =
+          historyState.subPeriodIndex ??
           (tabs.isNotEmpty ? tabs.length - 1 : 0);
       _pageController.dispose();
       _pageController = PageController(initialPage: targetIdx);
@@ -226,6 +229,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   Widget _buildPage(HistoryState historyState) {
+    final adsEligible = ref.watch(adsEligibleProvider);
+
     return Column(
       children: [
         // ─── Summary Card ───
@@ -247,12 +252,15 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
 
         // ─── Body ───
-        Expanded(child: _buildBody(historyState)),
+        Expanded(child: _buildBody(historyState, adsEligible: adsEligible)),
+
+        // ─── Banner Ad (di bawah list) ───
+        if (adsEligible) const SakuBannerAdWidget(),
       ],
     );
   }
 
-  Widget _buildBody(HistoryState historyState) {
+  Widget _buildBody(HistoryState historyState, {bool adsEligible = false}) {
     final l10n = context.l10n;
 
     return switch (historyState.status) {
@@ -273,11 +281,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   message: l10n.historyFilterEmpty,
                 ),
               )
-            : _buildGroupedList(historyState),
+            : _buildGroupedList(historyState, adsEligible: adsEligible),
     };
   }
 
-  Widget _buildGroupedList(HistoryState historyState) {
+  Widget _buildGroupedList(
+    HistoryState historyState, {
+    bool adsEligible = false,
+  }) {
     final colors = context.colors;
 
     if (historyState.groupMode == HistoryGroupMode.byDate) {
@@ -287,9 +298,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         child: TransactionDateGroupedList(
           transactions: historyState.filteredTransactions,
           onTap: _navigateToDetail,
-          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 80.h),
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
           physics: const AlwaysScrollableScrollPhysics(),
           shrinkWrap: false,
+          showNativeAds: adsEligible,
           onLoadMore: () =>
               ref.read(historyControllerProvider.notifier).loadMore(),
           hasMore: historyState.hasMore,
@@ -320,7 +332,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               );
             }
             if (!historyState.hasMore) {
-              return const SizedBox.shrink();
+              return Text(
+                context.l10n.noMoreData,
+                style: TextStyleConstants.label2.copyWith(
+                  color: colors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              );
             }
             return VisibilityDetector(
               key: const Key('history_load_more_trigger'),
@@ -329,7 +347,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   ref.read(historyControllerProvider.notifier).loadMore();
                 }
               },
-              child: const SizedBox(height: 1),
+              child: const SizedBox(height: 2),
             );
           }
 

@@ -4878,6 +4878,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Lainnya'**
   String get iconSectionOther;
+
+  /// No description provided for @noMoreData.
+  ///
+  /// In id, this message translates to:
+  /// **'Data kamu cukup sampai sini nih..'**
+  String get noMoreData;
 }
 
 class _AppLocalizationsDelegate

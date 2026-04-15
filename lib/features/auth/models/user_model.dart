@@ -13,6 +13,7 @@ class UserModel {
     this.avatarUrl,
     this.createdAt,
     this.updatedAt,
+    this.showAds = true,
   });
 
   /// UUID dari auth.users.id (primary key).
@@ -33,6 +34,12 @@ class UserModel {
   /// Tanggal terakhir profil diupdate.
   final DateTime? updatedAt;
 
+  /// Apakah iklan ditampilkan untuk user ini.
+  ///
+  /// `false` = user sudah beli no-ads (diset dari Supabase oleh admin / after purchase).
+  /// Default `true` untuk semua user baru.
+  final bool showAds;
+
   /// Membuat [UserModel] dari Map (hasil query Supabase).
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
@@ -40,6 +47,7 @@ class UserModel {
       email: map['email'] as String,
       fullName: map['full_name'] as String?,
       avatarUrl: map['avatar_url'] as String?,
+      showAds: map['show_ads'] as bool? ?? true,
       createdAt: map['created_at'] != null
           ? SakuDateUtils.parseRequiredTimestamp(
               map['created_at'],
@@ -75,6 +83,7 @@ class UserModel {
     String? avatarUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? showAds,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -83,6 +92,7 @@ class UserModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      showAds: showAds ?? this.showAds,
     );
   }
 

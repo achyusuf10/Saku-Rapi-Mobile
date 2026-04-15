@@ -1,12 +1,15 @@
+import 'package:app_saku_rapi/core/ads/ads_config.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/core/utils/transaction_group_utils.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/history_transaction_tile.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
+import 'package:app_saku_rapi/global/widgets/saku_native_ad_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -27,6 +30,8 @@ class TransactionDateGroupedList extends StatelessWidget {
     this.padding,
     this.physics = const NeverScrollableScrollPhysics(),
     this.shrinkWrap = true,
+    // ─── Native ads ───
+    this.showNativeAds = false,
     // ─── Load-more ───
     this.onLoadMore,
     this.hasMore = false,
@@ -39,6 +44,10 @@ class TransactionDateGroupedList extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final ScrollPhysics physics;
   final bool shrinkWrap;
+
+  /// Apakah native ad disisipkan setiap [AdsConfig.nativeAdEveryNGroups] kelompok.
+  /// Pemanggil wajib sudah memeriksa [adsEligibleProvider] sebelum set true.
+  final bool showNativeAds;
 
   /// Dipanggil saat load-more trigger terlihat. Jika null, load-more dinonaktifkan.
   final VoidCallback? onLoadMore;
@@ -78,83 +87,117 @@ class TransactionDateGroupedList extends StatelessWidget {
               child: const Center(child: SakuLoadingIndicator()),
             );
           }
-          if (!hasMore) return const SizedBox.shrink();
+          if (!hasMore) {
+            return Text(
+              context.l10n.noMoreData,
+              style: TextStyleConstants.label2.copyWith(
+                color: colors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            );
+          }
           return VisibilityDetector(
             key: loadMoreKey ?? const Key('transaction_date_list_load_more'),
             onVisibilityChanged: (info) {
               if (info.visibleFraction > 0) onLoadMore?.call();
             },
-            child: const SizedBox(height: 1),
+            child: const SizedBox(height: 2),
+          );
+        }
+
+        // ─── Native ad slot (setiap N kelompok, index > 0) ───
+        if (showNativeAds &&
+            index > 0 &&
+            index % AdsConfig.nativeAdEveryNGroups == 0) {
+          // Sisipkan native ad sebelum kelompok ini
+          final sectionIndex = index;
+          final entry = sections[sectionIndex];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SakuNativeAdCard(),
+              SizedBox(height: 12.h),
+              _buildSection(context, entry, colors),
+            ],
           );
         }
 
         final entry = sections[index];
-        final txList = entry.value;
-        final dateLabel = _formatDateKey(entry.key);
-        final netTotal = TransactionGroupUtils.groupNetTotal(txList);
-        final isPositive = netTotal >= 0;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return _buildSection(context, entry, colors);
+      },
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context,
+    MapEntry<String, List<TransactionModel>> entry,
+    dynamic colors,
+  ) {
+    final txList = entry.value;
+    final dateLabel = _formatDateKey(entry.key);
+    final netTotal = TransactionGroupUtils.groupNetTotal(txList);
+    final isPositive = netTotal >= 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ─── Date header ───
+        Row(
           children: [
-            // ─── Date header ───
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        dateLabel,
-                        style: TextStyleConstants.label1.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        '${txList.length} transaksi',
-                        style: TextStyleConstants.label3.copyWith(
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (netTotal != 0)
-                  Text(
-                    '${isPositive ? '+' : ''}${netTotal.toCompactCurrency()}',
-                    style: TextStyleConstants.caption.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isPositive ? colors.income : colors.expense,
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: 6.h),
-            // ─── Transaction card ───
-            Container(
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: colors.border),
-              ),
+            Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (int i = 0; i < txList.length; i++) ...[
-                    HistoryTransactionTile(
-                      transaction: txList[i],
-                      onTap: () => onTap(txList[i]),
+                  Text(
+                    dateLabel,
+                    style: TextStyleConstants.label1.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
                     ),
-                    if (i < txList.length - 1)
-                      Divider(height: 1, indent: 70.w, color: colors.border),
-                  ],
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    '${txList.length} transaksi',
+                    style: TextStyleConstants.label3.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
+            if (netTotal != 0)
+              Text(
+                '${isPositive ? '+' : ''}${netTotal.toCompactCurrency()}',
+                style: TextStyleConstants.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isPositive ? colors.income : colors.expense,
+                ),
+              ),
           ],
-        );
-      },
+        ),
+        SizedBox(height: 6.h),
+        // ─── Transaction card ───
+        Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: colors.border),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < txList.length; i++) ...[
+                HistoryTransactionTile(
+                  transaction: txList[i],
+                  onTap: () => onTap(txList[i]),
+                ),
+                if (i < txList.length - 1)
+                  Divider(height: 1, indent: 70.w, color: colors.border),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 

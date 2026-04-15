@@ -564,7 +564,6 @@
   "voicePreviewTitle": "Transaction Preview",
   "voicePreviewType": "Type",
   "voicePreviewDestWallet": "Destination Wallet",
-
   "ocrAnalyzingAi": "Analyzing with AI...",
   "ocrPickerTitle": "Scan Shopping Receipt",
   "ocrCropToolbar": "Select Receipt Area",
@@ -1128,12 +1127,15 @@
   "aiParseCancelTitle": "Cancel Analysis?",
   "aiParseCancelMessage": "AI is currently analyzing data. Are you sure you want to cancel?",
   "aiParseCancelConfirm": "Yes, Cancel",
-
   "aiQuotaRemaining": "{remaining} of {limit} remaining today",
   "@aiQuotaRemaining": {
     "placeholders": {
-      "remaining": {"type": "int"},
-      "limit": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
     }
   },
   "aiQuotaExhausted": "Daily limit reached. Try again tomorrow.",
@@ -1141,7 +1143,6 @@
   "aiQuotaVoice": "Voice Input",
   "aiQuotaOcr": "Receipt Scan",
   "aiQuotaLabel": "AI Quota",
-
   "settingsSendReport": "Send Report",
   "sendReportTitle": "Send Report",
   "sendReportCategory": "Category",
@@ -1165,15 +1166,12 @@
   "sendReportCategoryAccountIssue": "Account Issue",
   "sendReportCategoryPaymentIssue": "Payment Issue",
   "sendReportCategoryOther": "Other",
-
   "aiPreviewDiscardTitle": "Discard Result?",
   "aiPreviewDiscardMessage": "The AI analysis result will be discarded. You will need to restart to get new results.",
   "aiPreviewDiscardConfirm": "Yes, Discard",
-
   "colorPickerPresetTab": "Preset",
   "colorPickerWheelTab": "Custom",
   "colorPickerSelectButton": "Select This Color",
-
   "dashboardAvg3x7DaysLabel": "Avg. of last 3 weeks",
   "dashboardLast7Days": "Last 7 Days",
   "dashboardPrev7Days": "Previous 7 Days",
@@ -1184,7 +1182,6 @@
   "dashboardInsightTrendProjHigh": "⚠️ Your spending is projected to reach {projected} by end of period — {excess} more than usual ({avg}). Try to limit spending to around {dailyCap}/day to stay on track.",
   "dashboardInsightTrendProjLow": "🎉 Your spending is on track! Projected at only {projected}, {saving} less than usual ({avg}). The difference could go to savings!",
   "dashboardInsightTrendProjMid": "Your spending is slightly above usual. Projected at {projected}, while normally {avg}. Keep monitoring so it doesn't spike!",
-
   "reportInsightRatioHealthy": "You're spending {percent}% of your income. The rest can be saved or invested. Keep going! 👏",
   "reportInsightRatioWarning": "You're spending {percent}% of your income. Ideally keep it below 50% to leave room for savings.",
   "reportInsightRatioDanger": "You're spending {percent}% of your income — barely anything left. Try cutting non-urgent expenses.",
@@ -1198,7 +1195,6 @@
   "reportInsightTrendUpBigNoCategory": "Your spending increased {amount} ({percent}%) from last period. Review which expenses can be reduced.",
   "reportInsightCategoryDominant": "Category {category} dominates {percent}% of your spending ({amount}). Check if it can be reduced.",
   "reportInsightPeakDay": "Highest spending on {date} ({amount}), which is {percent}% of total spending.",
-
   "iconPickerTitle": "Choose Icon",
   "iconPickerSearch": "Search icon...",
   "iconSearchEmpty": "No icons found",
@@ -1214,5 +1210,6 @@
   "iconSectionEntertainment": "Entertainment",
   "iconSectionNature": "Nature & Animals",
   "iconSectionSocial": "Social & Family",
-  "iconSectionOther": "Others"
+  "iconSectionOther": "Others",
+  "noMoreData": "You've reached the end of the list..."
 }

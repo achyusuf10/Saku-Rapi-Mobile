@@ -61,7 +61,13 @@ class CompletedBudgetsPage extends ConsumerWidget {
                     );
                   }
                   if (!state.hasMore) {
-                    return const SizedBox.shrink();
+                    return Text(
+                      context.l10n.noMoreData,
+                      style: TextStyleConstants.label2.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
                   }
                   return VisibilityDetector(
                     key: const Key('completed_budgets_load_more'),
@@ -72,7 +78,7 @@ class CompletedBudgetsPage extends ConsumerWidget {
                             .loadMore();
                       }
                     },
-                    child: const SizedBox(height: 1),
+                    child: const SizedBox(height: 2),
                   );
                 }
 

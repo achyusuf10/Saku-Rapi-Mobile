@@ -2611,4 +2611,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iconSectionOther => 'Others';
+
+  @override
+  String get noMoreData => 'You\'ve reached the end of the list...';
 }

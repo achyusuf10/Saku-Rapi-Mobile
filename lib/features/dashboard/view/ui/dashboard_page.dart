@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
@@ -12,6 +13,7 @@ import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_recent_t
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_shimmer.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/dashboard_wallet_section.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,8 +62,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final dashState = ref.watch(dashboardControllerProvider);
     final user = ref.watch(currentUserProvider);
 
+    final adsEligible = ref.watch(adsEligibleProvider);
+
     return Scaffold(
       backgroundColor: colors.background,
+      bottomNavigationBar: adsEligible ? const SakuBannerAdWidget() : null,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _onRefresh,
@@ -123,7 +128,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
                 // ─── Recent Transactions ───
                 const SliverToBoxAdapter(child: DashboardRecentTransactions()),
-                SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+                SliverToBoxAdapter(child: SizedBox(height: adsEligible ? 8.h : 24.h)),
               ],
             ],
           ),
