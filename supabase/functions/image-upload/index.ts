@@ -11,6 +11,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // --- Env ---
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const STORAGE_LIMIT_BYTES =
   parseInt(Deno.env.get('STORAGE_LIMIT_MB') ?? '950', 10) * 1024 * 1024;
@@ -60,17 +61,14 @@ function errorResponse(code: string, detail: string, status = 500): Response {
 
 // --- Auth helpers ---
 
-function getUserIdFromAuthHeader(authHeader: string): string | null {
-  try {
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    // JWT already verified by Supabase edge runtime (verify_jwt: true)
-    const payload = JSON.parse(atob(parts[1])) as { sub?: string };
-    return payload.sub ?? null;
-  } catch {
-    return null;
-  }
+/** Verifikasi JWT via supabase.auth.getUser() — pola sama dengan ai-parse */
+async function getUserId(authHeader: string): Promise<string | null> {
+  const supabaseUser = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error } = await supabaseUser.auth.getUser();
+  if (error || !user) return null;
+  return user.id;
 }
 
 // --- GCS OAuth2 (pola dari gold-price) ---
@@ -268,9 +266,16 @@ Deno.serve(async (req: Request) => {
     return errorResponse(ErrorCode.INVALID_REQUEST, `Method ${req.method} not allowed`, 405);
   }
 
-  // Verify user identity from JWT (already validated by Supabase edge runtime)
+  // Verify user identity via supabase.auth.getUser() (pola sama dengan ai-parse)
   const authHeader = req.headers.get('Authorization') ?? '';
-  const userId = getUserIdFromAuthHeader(authHeader);
+  if (!authHeader) {
+    return errorResponse(
+      ErrorCode.UNAUTHENTICATED,
+      'Missing Authorization header',
+      401,
+    );
+  }
+  const userId = await getUserId(authHeader);
   if (!userId) {
     return errorResponse(
       ErrorCode.UNAUTHENTICATED,

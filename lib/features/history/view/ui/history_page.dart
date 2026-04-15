@@ -48,6 +48,9 @@ class HistoryPage extends ConsumerStatefulWidget {
 class _HistoryPageState extends ConsumerState<HistoryPage> {
   late PageController _pageController;
 
+  /// Track last period to detect period changes and recreate controller.
+  AppPeriod? _lastPeriod;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +59,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final initialIdx =
         s.subPeriodIndex ?? (tabs.isNotEmpty ? tabs.length - 1 : 0);
     _pageController = PageController(initialPage: initialIdx);
+    _lastPeriod = s.period;
 
     Future.microtask(() {
       final ctrl = ref.read(historyControllerProvider.notifier);
@@ -116,20 +120,26 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final historyState = ref.watch(historyControllerProvider);
     final tabs = historyState.subPeriodTabs;
 
-    // Sync PageController ↔ subPeriodIndex (dari tap tab / period change)
+    // Recreate PageController when period changes to avoid position mismatch
+    // (e.g. old position 13 from monthly with only 6 tabs in yearly).
+    if (_lastPeriod != historyState.period) {
+      _lastPeriod = historyState.period;
+      final targetIdx = historyState.subPeriodIndex ??
+          (tabs.isNotEmpty ? tabs.length - 1 : 0);
+      _pageController.dispose();
+      _pageController = PageController(initialPage: targetIdx);
+    }
+
+    // Sync PageController ↔ subPeriodIndex (same-period sub-period changes)
     ref.listen<HistoryState>(historyControllerProvider, (prev, next) {
       final prevIdx = prev?.subPeriodIndex;
       final newIdx = next.subPeriodIndex;
       if (prevIdx == newIdx || newIdx == null || !_pageController.hasClients) {
         return;
       }
-      if (prev?.period != next.period) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(newIdx);
-          }
-        });
-      } else if (_pageController.page?.round() != newIdx) {
+      // Skip animation for period changes — handled by controller recreation
+      if (prev?.period != next.period) return;
+      if (_pageController.page?.round() != newIdx) {
         _pageController.animateToPage(
           newIdx,
           duration: const Duration(milliseconds: 250),

@@ -15,11 +15,13 @@ class TransactionAmountSection extends StatelessWidget {
     required this.typeColor,
     required this.onChanged,
     this.initialValue,
+    required this.autoFocus,
   });
 
   final Color typeColor;
   final ValueChanged<double> onChanged;
   final double? initialValue;
+  final bool autoFocus;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +49,7 @@ class TransactionAmountSection extends StatelessWidget {
           SakuCurrencyField(
             initialValue: initialValue,
             onChanged: onChanged,
-            autofocus: initialValue == null,
+            autofocus: autoFocus,
           ),
         ],
       ),

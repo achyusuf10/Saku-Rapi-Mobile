@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
@@ -460,6 +462,13 @@ class HistoryController extends StateNotifier<HistoryState> {
   static const _pageSize = 30;
   static const _categoriesPerPage = 5;
 
+  /// Generation counter — incremented on every new load trigger.
+  /// Used to discard stale responses from superseded requests.
+  int _generation = 0;
+
+  /// Debounce timer for rapid period/sub-period switching.
+  Timer? _loadDebounce;
+
   /// Page size sesuai mode aktif.
   int get _currentPageSize => state.groupMode == HistoryGroupMode.byCategory
       ? _categoriesPerPage
@@ -579,8 +588,30 @@ class HistoryController extends StateNotifier<HistoryState> {
 
   // ───────────────── LOAD ─────────────────
 
+  /// Debounced load — shows loading immediately, fires actual request
+  /// after 300ms. Used by [setPeriod] and [setSubPeriod] to coalesce
+  /// rapid switching.
+  void _debouncedLoad() {
+    _loadDebounce?.cancel();
+    _generation++;
+    state = state.copyWith(
+      status: HistoryStatus.loading,
+      offset: 0,
+      hasMore: true,
+      clearError: true,
+    );
+    final gen = _generation;
+    _loadDebounce = Timer(const Duration(milliseconds: 300), () {
+      _executeLoad(gen);
+    });
+  }
+
   /// Fetch transaksi berdasarkan filter saat ini (reset pagination).
   Future<void> loadTransactions() async {
+    _loadDebounce?.cancel();
+    _generation++;
+    final gen = _generation;
+
     state = state.copyWith(
       status: HistoryStatus.loading,
       offset: 0,
@@ -588,6 +619,12 @@ class HistoryController extends StateNotifier<HistoryState> {
       clearError: true,
     );
 
+    await _executeLoad(gen);
+  }
+
+  /// Internal: execute the actual fetch and apply results only if
+  /// [gen] still matches [_generation] (i.e. not superseded).
+  Future<void> _executeLoad(int gen) async {
     final (start, end) = state.dateRange;
     final result = await _repository.getTransactions(
       startDate: start,
@@ -598,6 +635,8 @@ class HistoryController extends StateNotifier<HistoryState> {
       limit: _currentPageSize,
       offset: 0,
     );
+
+    if (_generation != gen) return;
 
     if (result.isSuccess()) {
       final data = result.dataSuccess()!;
@@ -620,6 +659,7 @@ class HistoryController extends StateNotifier<HistoryState> {
   Future<void> loadMore() async {
     if (!state.hasMore || state.isLoadingMore) return;
 
+    final gen = _generation;
     state = state.copyWith(isLoadingMore: true);
 
     final (start, end) = state.dateRange;
@@ -632,6 +672,12 @@ class HistoryController extends StateNotifier<HistoryState> {
       limit: _currentPageSize,
       offset: state.offset,
     );
+
+    if (_generation != gen) {
+      // Stale — discard result but always clean up the loading indicator
+      state = state.copyWith(isLoadingMore: false);
+      return;
+    }
 
     if (result.isSuccess()) {
       final data = result.dataSuccess()!;
@@ -649,7 +695,7 @@ class HistoryController extends StateNotifier<HistoryState> {
   // ───────────────── FILTER ACTIONS ─────────────────
 
   /// Ganti periode dan refetch. Reset sub-period ke tab terakhir.
-  Future<void> setPeriod(HistoryPeriod period) async {
+  void setPeriod(HistoryPeriod period) {
     if (state.period == period) return;
     state = state.copyWith(period: period, clearSubPeriod: true);
     // Set sub-period ke tab terakhir ("saat ini")
@@ -658,7 +704,7 @@ class HistoryController extends StateNotifier<HistoryState> {
       state = state.copyWith(subPeriodIndex: tabs.length - 1);
     }
     _persist();
-    await loadTransactions();
+    _debouncedLoad();
   }
 
   /// Ganti custom range dan refetch.
@@ -679,11 +725,11 @@ class HistoryController extends StateNotifier<HistoryState> {
   }
 
   /// Ganti sub-period tab dan refetch.
-  Future<void> setSubPeriod(int index) async {
+  void setSubPeriod(int index) {
     if (index == state.subPeriodIndex) return;
     state = state.copyWith(subPeriodIndex: index);
     _persist();
-    await loadTransactions();
+    _debouncedLoad();
   }
 
   /// Ganti wallet filter dan refetch.
@@ -756,5 +802,11 @@ class HistoryController extends StateNotifier<HistoryState> {
           .where((t) => t.id != transactionId)
           .toList(),
     );
+  }
+
+  @override
+  void dispose() {
+    _loadDebounce?.cancel();
+    super.dispose();
   }
 }

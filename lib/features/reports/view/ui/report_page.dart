@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/dashboard/view/widgets/chart_fullscreen_dialog.dart';
+import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/reports/controllers/report_controller.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
@@ -55,6 +56,9 @@ class ReportPage extends ConsumerStatefulWidget {
 class _ReportPageState extends ConsumerState<ReportPage> {
   late PageController _pageController;
 
+  /// Track last period to detect period changes and recreate controller.
+  AppPeriod? _lastPeriod;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +66,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     // PageController diinisialisasi dari state default dulu.
     // Nilai sesungguhnya (dari argument) diterapkan di microtask setelah build.
     _pageController = PageController();
+    _lastPeriod = ref.read(reportControllerProvider).period;
 
     Future.microtask(() {
       if (!mounted) return;
@@ -127,20 +132,25 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     final reportState = ref.watch(reportControllerProvider);
     final tabs = reportState.subPeriodTabs;
 
-    // Sync PageController ↔ subPeriodIndex (dari tap tab / period change)
+    // Recreate PageController when period changes to avoid position mismatch
+    if (_lastPeriod != reportState.period) {
+      _lastPeriod = reportState.period;
+      final targetIdx = reportState.subPeriodIndex ??
+          (tabs.isNotEmpty ? tabs.length - 1 : 0);
+      _pageController.dispose();
+      _pageController = PageController(initialPage: targetIdx);
+    }
+
+    // Sync PageController ↔ subPeriodIndex (same-period sub-period changes)
     ref.listen<ReportState>(reportControllerProvider, (prev, next) {
       final prevIdx = prev?.subPeriodIndex;
       final newIdx = next.subPeriodIndex;
       if (prevIdx == newIdx || newIdx == null || !_pageController.hasClients) {
         return;
       }
-      if (prev?.period != next.period) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(newIdx);
-          }
-        });
-      } else if (_pageController.page?.round() != newIdx) {
+      // Skip animation for period changes — handled by controller recreation
+      if (prev?.period != next.period) return;
+      if (_pageController.page?.round() != newIdx) {
         _pageController.animateToPage(
           newIdx,
           duration: const Duration(milliseconds: 250),

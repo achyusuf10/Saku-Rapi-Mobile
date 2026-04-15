@@ -73,9 +73,20 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   final _merchantController = TextEditingController();
   final _noteController = TextEditingController();
 
+  // Auto-focus the amount field only for a brand-new transaction with no
+  // pre-filled data (edit, voice, OCR, and image OCR all skip autofocus).
+  late final bool _autoFocusAmount;
+
   @override
   void initState() {
     super.initState();
+
+    final isNewBlank =
+        widget.existingTransaction == null &&
+        ref.read(pendingVoicePrefillProvider) == null &&
+        ref.read(pendingOcrPrefillProvider) == null &&
+        ref.read(pendingOcrImageFileProvider) == null;
+    _autoFocusAmount = isNewBlank;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ctrl = ref.read(transactionFormControllerProvider.notifier);
@@ -648,6 +659,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                     // ─── Amount ───
                     if (!formState.isMultiItem) ...[
                       TransactionAmountSection(
+                        autoFocus: _autoFocusAmount,
                         typeColor: typeColor,
                         initialValue: formState.totalAmount > 0
                             ? formState.totalAmount

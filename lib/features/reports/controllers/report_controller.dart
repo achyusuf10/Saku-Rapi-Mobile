@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/history/models/history_models.dart';
@@ -392,6 +394,13 @@ class ReportController extends StateNotifier<ReportState> {
 
   final ReportRepository _repository;
 
+  /// Generation counter — incremented on every new load trigger.
+  /// Used to discard stale responses from superseded requests.
+  int _generation = 0;
+
+  /// Debounce timer for rapid period/sub-period switching.
+  Timer? _loadDebounce;
+
   /// Inisialisasi state dari [ReportPageArgument] sebelum load pertama.
   ///
   /// Dipanggil dari [ReportPage.initState] saat halaman dibuka dengan argument
@@ -405,10 +414,32 @@ class ReportController extends StateNotifier<ReportState> {
     );
   }
 
+  /// Debounced load — shows loading immediately, fires actual request
+  /// after 300ms. Used by [setPeriod] and [setSubPeriod] to coalesce
+  /// rapid switching.
+  void _debouncedLoad() {
+    _loadDebounce?.cancel();
+    _generation++;
+    state = state.copyWith(status: ReportStatus.loading, clearError: true);
+    final gen = _generation;
+    _loadDebounce = Timer(const Duration(milliseconds: 300), () {
+      _executeLoadReport(gen);
+    });
+  }
+
   /// Load semua data report secara paralel.
   Future<void> loadReport() async {
-    state = state.copyWith(status: ReportStatus.loading, clearError: true);
+    _loadDebounce?.cancel();
+    _generation++;
+    final gen = _generation;
 
+    state = state.copyWith(status: ReportStatus.loading, clearError: true);
+    await _executeLoadReport(gen);
+  }
+
+  /// Internal: execute the actual report fetch and apply results only if
+  /// [gen] still matches [_generation] (i.e. not superseded).
+  Future<void> _executeLoadReport(int gen) async {
     final (start, end) = state.dateRange;
     final (prevStart, prevEnd) = state.previousDateRange;
     final wallet = state.walletId;
@@ -440,6 +471,8 @@ class ReportController extends StateNotifier<ReportState> {
       ),
     ]);
 
+    if (_generation != gen) return;
+
     final summaryResult = results[0];
     final prevSummaryResult = results[1];
     final breakdownResult = results[2];
@@ -464,6 +497,8 @@ class ReportController extends StateNotifier<ReportState> {
 
   /// Reload hanya category breakdown (untuk toggle expense ↔ income).
   Future<void> _reloadCategoryOnly() async {
+    _generation++;
+    final gen = _generation;
     state = state.copyWith(isCategoryLoading: true);
 
     final (start, end) = state.dateRange;
@@ -478,6 +513,8 @@ class ReportController extends StateNotifier<ReportState> {
       type: type,
     );
 
+    if (_generation != gen) return;
+
     if (result.isSuccess()) {
       state = state.copyWith(
         categoryBreakdown: result.dataSuccess(),
@@ -489,7 +526,7 @@ class ReportController extends StateNotifier<ReportState> {
   }
 
   /// Ganti periode dan reload. Reset sub-period ke tab terakhir.
-  Future<void> setPeriod(AppPeriod period) async {
+  void setPeriod(AppPeriod period) {
     if (state.period == period) return;
     state = state.copyWith(period: period, clearSubPeriod: true);
     // Set sub-period ke tab terakhir ("saat ini")
@@ -497,14 +534,14 @@ class ReportController extends StateNotifier<ReportState> {
     if (tabs.isNotEmpty) {
       state = state.copyWith(subPeriodIndex: tabs.length - 1);
     }
-    await loadReport();
+    _debouncedLoad();
   }
 
   /// Ganti sub-period tab dan reload.
-  Future<void> setSubPeriod(int index) async {
+  void setSubPeriod(int index) {
     if (index == state.subPeriodIndex) return;
     state = state.copyWith(subPeriodIndex: index);
-    await loadReport();
+    _debouncedLoad();
   }
 
   /// Set custom date range dan reload.
@@ -533,5 +570,11 @@ class ReportController extends StateNotifier<ReportState> {
     if (state.breakdownType == type) return;
     state = state.copyWith(breakdownType: type);
     await _reloadCategoryOnly();
+  }
+
+  @override
+  void dispose() {
+    _loadDebounce?.cancel();
+    super.dispose();
   }
 }
