@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:app_saku_rapi/core/ads/ads_service.dart';
@@ -26,85 +27,87 @@ import 'package:talker_riverpod_logger/talker_riverpod_logger_observer.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger_settings.dart';
 
 Future<void> bootstrap() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Aktifkan edge-to-edge sekali saat bootstrap, bukan di setiap build().
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  // Fallback style untuk layar tanpa AppBar.
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-    ),
-  );
-
-  // Inisialisasi Hive (encrypted box).
-  await HiveService.instance();
-
-  // Inisialisasi AdMob SDK.
-  await AdsService.instance.init();
-
-  AppLogger.call(
-    'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
-  );
-  // Inisialisasi Supabase.
-  await Supabase.initialize(
-    debug: AppFlavorConfig.isDev,
-    url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
-  );
-
-  if (kDebugMode) {
-    hierarchicalLoggingEnabled = true;
-    final supabaseLogger = Logger('supabase');
-    supabaseLogger.level = Level.ALL;
-    supabaseLogger.onRecord.listen((record) {
-      // Log ke console
-      AppLogger.call(
-        '[Supabase] ${record.level.name}: ${record.time}: ${record.message}',
-      );
-    });
-    final goRouterLogger = Logger('GoRouter');
-    goRouterLogger.level = Level.ALL;
-    goRouterLogger.onRecord.listen((record) {
-      // Log ke console
-      AppLogger.call(
-        '${record.level.name}: ${record.time}: ${record.message}',
-        name: 'GoRouter',
-        colorLog: ColorLog.yellow,
-      );
-    });
-  }
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN');
-      options.environment = AppFlavorConfig.name.toLowerCase();
-      // Dev: sampleRate=0.0 → tidak ada event dikirim ke Sentry server
-      // Prod: sampleRate=1.0 → semua error dikirim
-      options.sampleRate = kDebugMode
-          ? 0.0
-          : AppFlavorConfig.isProd
-          ? 1.0
-          : 0.0;
-      options.tracesSampleRate = kDebugMode
-          ? 0
-          : AppFlavorConfig.isProd
-          ? 0.2
-          : 0.0;
-      options.sendDefaultPii = false;
-      options.attachScreenshot = false;
-      // ignore: experimental_member_use
-      options.attachViewHierarchy = false;
-    },
-    appRunner: () => runApp(
-      ProviderScope(
-        observers: [
-          TalkerRiverpodObserver(settings: TalkerRiverpodLoggerSettings()),
-        ],
-        child: SakuRapiApp(),
+    // Aktifkan edge-to-edge sekali saat bootstrap, bukan di setiap build().
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // Fallback style untuk layar tanpa AppBar.
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
       ),
-    ),
-  );
+    );
+
+    // Inisialisasi Hive (encrypted box).
+    await HiveService.instance();
+
+    // Inisialisasi AdMob SDK.
+    await AdsService.instance.init();
+
+    AppLogger.call(
+      'Flavor: ${AppFlavorConfig.name} | Url Supabase: ${const String.fromEnvironment('SUPABASE_URL')}',
+    );
+    // Inisialisasi Supabase.
+    await Supabase.initialize(
+      debug: AppFlavorConfig.isDev,
+      url: const String.fromEnvironment('SUPABASE_URL'),
+      anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    );
+
+    if (kDebugMode) {
+      hierarchicalLoggingEnabled = true;
+      final supabaseLogger = Logger('supabase');
+      supabaseLogger.level = Level.ALL;
+      supabaseLogger.onRecord.listen((record) {
+        // Log ke console
+        AppLogger.call(
+          '[Supabase] ${record.level.name}: ${record.time}: ${record.message}',
+        );
+      });
+      final goRouterLogger = Logger('GoRouter');
+      goRouterLogger.level = Level.ALL;
+      goRouterLogger.onRecord.listen((record) {
+        // Log ke console
+        AppLogger.call(
+          '${record.level.name}: ${record.time}: ${record.message}',
+          name: 'GoRouter',
+          colorLog: ColorLog.yellow,
+        );
+      });
+    }
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = const String.fromEnvironment('SENTRY_DSN');
+        options.environment = AppFlavorConfig.name.toLowerCase();
+        // Dev: sampleRate=0.0 → tidak ada event dikirim ke Sentry server
+        // Prod: sampleRate=1.0 → semua error dikirim
+        options.sampleRate = kDebugMode
+            ? 0.0
+            : AppFlavorConfig.isProd
+            ? 1.0
+            : 0.0;
+        options.tracesSampleRate = kDebugMode
+            ? 0
+            : AppFlavorConfig.isProd
+            ? 0.2
+            : 0.0;
+        options.sendDefaultPii = false;
+        options.attachScreenshot = false;
+        // ignore: experimental_member_use
+        options.attachViewHierarchy = false;
+      },
+      appRunner: () => runApp(
+        ProviderScope(
+          observers: [
+            TalkerRiverpodObserver(settings: TalkerRiverpodLoggerSettings()),
+          ],
+          child: SakuRapiApp(),
+        ),
+      ),
+    );
+  }, (error, stack) async {});
 }
 
 class SakuRapiApp extends ConsumerWidget {

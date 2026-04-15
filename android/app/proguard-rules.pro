@@ -6,6 +6,14 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
+# ─── Google Mobile Ads / AdMob ────────────────────────────────────────────────
+# Mencegah R8 menghapus kelas AdMob yang dibutuhkan saat runtime
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.ads.** { *; }
+-keep class com.google.android.gms.ads.identifier.** { *; }
+-dontwarn com.google.android.gms.ads.**
+# ──────────────────────────────────────────────────────────────────────────────
+
 # Flutter Play Store Deferred Components — app tidak menggunakan dynamic feature modules
 -dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
 -dontwarn com.google.android.play.core.splitinstall.SplitInstallException

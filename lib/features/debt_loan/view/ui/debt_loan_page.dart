@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
@@ -7,6 +8,7 @@ import 'package:app_saku_rapi/features/debt_loan/controllers/debt_loan_controlle
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_person_argument.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_summary_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/view/widgets/debt_loan_shimmer.dart';
+import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
 import 'package:flutter/material.dart';
@@ -60,9 +62,10 @@ class _DebtLoanPageState extends ConsumerState<DebtLoanPage>
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
-
+    final adsEligible = ref.watch(adsEligibleProvider);
     return Scaffold(
       backgroundColor: colors.background,
+      bottomNavigationBar: adsEligible ? const SakuBannerAdWidget() : null,
       appBar: AppBar(
         title: Text(l10n.debtLoanTitle),
         centerTitle: false,

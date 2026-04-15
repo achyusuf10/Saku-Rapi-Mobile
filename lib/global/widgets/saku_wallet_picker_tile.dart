@@ -1,7 +1,9 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -73,21 +75,31 @@ class SakuWalletPickerTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: FaIcon(
-                  FontAwesomeIcons.wallet,
-                  size: 16.w,
-                  color: color,
+            if (selected == null)
+              Container(
+                width: 42.w,
+                height: 42.w,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
+                child: Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.wallet,
+                    size: 18.w,
+                    color: color,
+                  ),
+                ),
+              )
+            else
+              SakuCategoryIcon(
+                iconName: selected!.icon,
+                color: parseHexColor(selected!.color),
+                size: 42,
+                iconSize: 18,
+                borderRadius: 12,
               ),
-            ),
+
             SizedBox(width: 12.w),
             Expanded(
               child: Column(

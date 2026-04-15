@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
@@ -7,6 +8,7 @@ import 'package:app_saku_rapi/features/investment/controllers/investment_control
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/investment/view/widgets/investment_shimmer.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
+import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
@@ -48,6 +50,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
     final colors = context.colors;
     final l10n = context.l10n;
     final state = ref.watch(investmentControllerProvider);
+    final adsEligible = ref.watch(adsEligibleProvider);
 
     ref.listen<int>(currentTabIndexProvider, (prev, next) {
       if (next == _investmentTabIndex && prev != _investmentTabIndex) {
@@ -58,6 +61,7 @@ class _InvestmentPageState extends ConsumerState<InvestmentPage> {
 
     return Scaffold(
       backgroundColor: colors.background,
+      bottomNavigationBar: adsEligible ? const SakuBannerAdWidget() : null,
       appBar: AppBar(title: Text(l10n.investmentTitle), centerTitle: false),
       body: _buildBody(state),
       floatingActionButton: state.status == InvestmentStatus.loaded

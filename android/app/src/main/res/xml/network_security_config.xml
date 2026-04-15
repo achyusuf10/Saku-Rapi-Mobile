@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Blok cleartext untuk semua traffic secara default -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+
+    <!--
+        AdMob & Google Ad Networks: izinkan cleartext karena beberapa ad network
+        (mediation, tracking pixels, creative content) masih menggunakan HTTP.
+        Tanpa ini, iklan tidak muncul di release build.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">googlesyndication.com</domain>
+        <domain includeSubdomains="true">doubleclick.net</domain>
+        <domain includeSubdomains="true">googleadservices.com</domain>
+        <domain includeSubdomains="true">googleads.g.doubleclick.net</domain>
+        <domain includeSubdomains="true">adservice.google.com</domain>
+        <domain includeSubdomains="true">googletagservices.com</domain>
+        <domain includeSubdomains="true">gstatic.com</domain>
+        <domain includeSubdomains="true">admob.google.com</domain>
+    </domain-config>
 </network-security-config>

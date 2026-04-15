@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
@@ -12,6 +13,7 @@ import 'package:app_saku_rapi/features/budget/view/widgets/budget_group_card.dar
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_shimmer.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_summary_card.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
+import 'package:app_saku_rapi/global/widgets/saku_banner_ad_widget.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
@@ -33,15 +35,14 @@ class BudgetPage extends ConsumerStatefulWidget {
   ConsumerState<BudgetPage> createState() => _BudgetPageState();
 }
 
-class _BudgetPageState extends ConsumerState<BudgetPage>
-    with TickerProviderStateMixin {
+class _BudgetPageState extends ConsumerState<BudgetPage> {
   static const _budgetTabIndex = 2;
-  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final status = ref.read(budgetControllerProvider).status;
       if (status == BudgetStatus.initial) {
         ref.read(budgetControllerProvider.notifier).loadBudgets();
@@ -50,45 +51,12 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
   }
 
   @override
-  void dispose() {
-    _tabController?.dispose();
-    super.dispose();
-  }
-
-  void _syncTabController(List<String> types) {
-    final currentLength = _tabController?.length ?? 0;
-    if (currentLength != types.length) {
-      _tabController?.dispose();
-      if (types.isNotEmpty) {
-        _tabController = TabController(length: types.length, vsync: this);
-        _tabController!.addListener(() {
-          if (!_tabController!.indexIsChanging) {
-            final key = types[_tabController!.index];
-            ref
-                .read(budgetControllerProvider.notifier)
-                .setSelectedPeriodKey(key);
-          }
-        });
-        // Set initial selected period key to first tab
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref
-              .read(budgetControllerProvider.notifier)
-              .setSelectedPeriodKey(types.first);
-        });
-      } else {
-        _tabController = null;
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
     final budgetState = ref.watch(budgetControllerProvider);
     final periodTypes = ref.watch(budgetAvailablePeriodTypesProvider);
-    // Sync tab controller when period types change
-    _syncTabController(periodTypes);
+    final adsEligible = ref.watch(adsEligibleProvider);
 
     // Auto-refresh saat kembali ke tab Budget
     ref.listen<int>(currentTabIndexProvider, (prev, next) {
@@ -97,8 +65,9 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
       }
     });
 
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: colors.background,
+      bottomNavigationBar: adsEligible ? const SakuBannerAdWidget() : null,
       appBar: AppBar(
         title: Text(l10n.budgetTitle),
         centerTitle: false,
@@ -114,18 +83,40 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
           ),
           SizedBox(width: 8.w),
         ],
-        bottom: periodTypes.length > 1 && _tabController != null
+        bottom: periodTypes.length > 1
             ? PreferredSize(
                 preferredSize: Size.fromHeight(40.h),
                 child: _PeriodTabBar(
-                  controller: _tabController!,
                   types: periodTypes,
+                  onTap: (i) => ref
+                      .read(budgetControllerProvider.notifier)
+                      .setSelectedPeriodKey(periodTypes[i]),
                 ),
               )
             : null,
       ),
       body: _buildBody(budgetState, periodTypes),
     );
+
+    // Wrap in DefaultTabController when multiple period types exist.
+    // This keeps TickerProviderStateMixin out of the ConsumerState — avoiding
+    // _TickerModeState.didChangeDependencies firing mid-Riverpod propagation
+    // (triggered by bottom-nav tab switching), which caused an assertion
+    // failure in Riverpod's subscription-count accounting.
+    if (periodTypes.length > 1) {
+      return DefaultTabController(
+        key: ValueKey(periodTypes.join(',')),
+        length: periodTypes.length,
+        child: _TabPeriodSync(
+          periodTypes: periodTypes,
+          onPeriodSelected: (key) => ref
+              .read(budgetControllerProvider.notifier)
+              .setSelectedPeriodKey(key),
+          child: scaffold,
+        ),
+      );
+    }
+    return scaffold;
   }
 
   Widget _buildBody(BudgetState budgetState, List<String> periodTypes) {
@@ -151,9 +142,8 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
           return _buildEmptyState(l10n);
         }
 
-        if (periodTypes.length > 1 && _tabController != null) {
+        if (periodTypes.length > 1) {
           return TabBarView(
-            controller: _tabController,
             children: periodTypes
                 .map(
                   (key) => _BudgetPeriodList(
@@ -421,17 +411,17 @@ class _BudgetPageState extends ConsumerState<BudgetPage>
 // ═══════════════════════════════════════════════════
 
 class _PeriodTabBar extends StatelessWidget {
-  const _PeriodTabBar({required this.controller, required this.types});
+  const _PeriodTabBar({required this.types, this.onTap});
 
-  final TabController controller;
   final List<String> types;
+  final void Function(int index)? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return TabBar(
-      controller: controller,
+      onTap: onTap,
       isScrollable: true,
       tabAlignment: TabAlignment.start,
       labelColor: colors.primary,
@@ -462,6 +452,47 @@ class _PeriodTabBar extends StatelessWidget {
     }
     return l10n.budgetTabCustom;
   }
+}
+
+// ═══════════════════════════════════════════════════
+// Tab Period Sync
+// ═══════════════════════════════════════════════════
+
+/// Sets the initial [selectedPeriodKey] on [budgetControllerProvider] after
+/// the first frame, matching tab index 0 of the [DefaultTabController].
+///
+/// Implemented as a plain [StatefulWidget] (no Riverpod) so that its
+/// [initState] post-frame callback is isolated from the consumer's rebuild
+/// cycle.
+class _TabPeriodSync extends StatefulWidget {
+  const _TabPeriodSync({
+    required this.periodTypes,
+    required this.onPeriodSelected,
+    required this.child,
+  });
+
+  final List<String> periodTypes;
+  final void Function(String key) onPeriodSelected;
+  final Widget child;
+
+  @override
+  State<_TabPeriodSync> createState() => _TabPeriodSyncState();
+}
+
+class _TabPeriodSyncState extends State<_TabPeriodSync> {
+  @override
+  void initState() {
+    super.initState();
+    // Set initial period key after first frame so the controller is ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.periodTypes.isNotEmpty) {
+        widget.onPeriodSelected(widget.periodTypes.first);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 // ═══════════════════════════════════════════════════

@@ -1,4 +1,6 @@
+import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/int_ext.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/saku_currency_controller.dart';
 import 'package:app_saku_rapi/global/widgets/calculator_keyboard/saku_math_formatter.dart';
 import 'package:customized_keyboard/customized_keyboard.dart';
@@ -43,7 +45,7 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
   /// Tinggi keyboard: 320.h tapi maksimal 1/2 layar.
   @override
   double get height {
-    final preferred = 320.h;
+    final preferred = 380.h;
     final maxHeight = 1.sh / 2;
     return preferred > maxHeight ? maxHeight : preferred;
   }
@@ -51,6 +53,16 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
   @override
   String get name => 'saku_calculator';
 
+  List<int> get recomendedExpressions => [
+    1000,
+    2000,
+    5000,
+    10000,
+    20000,
+    50000,
+    100000,
+  ];
+  static const _validator = CalculatorInputValidator();
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -67,103 +79,188 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
           color: colors.surface,
           child: SafeArea(
             top: false,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
-              child: Row(
-                children: [
-                  // Kolom kiri (3 kolom angka & operator)
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        // Row 1: C, ÷, ×
-                        _buildRow([
-                          _ActionKey(
-                            label: 'C',
-                            labelColor: colors.primary,
-                            backgroundColor: colors.surfaceVariant,
-                            event: const CustomKeyboardEvent.clear(),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 2.w,
+                  decoration: BoxDecoration(
+                    color: colors.textPrimary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(2.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.textPrimary.withValues(alpha: 0.06),
+                        blurRadius: 2,
+                        spreadRadius: 2,
+                        offset: Offset(0, -1.w),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 60.w,
+                  width: double.infinity,
+
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 10.h,
+                    ),
+                    itemBuilder: (_, index) {
+                      final expr = recomendedExpressions[index];
+                      return GestureDetector(
+                        onTap: () {
+                          // Validasi sebelum insert
+                          if (!_validator.canInsert(
+                            expr.toString(),
+                            controller.text,
+                          )) {
+                            return;
+                          }
+
+                          // Insert karakter
+                          final wrapper = KeyboardWrapper.of(context);
+                          wrapper?.onKey(
+                            CustomKeyboardEvent.character(expr.toString()),
+                          );
+                        },
+                        child: Container(
+                          width:
+                              (1.sw / 4) -
+                              (12.w * 2 / 4) -
+                              6.w, // 4 item per row, dengan padding 12.w antar item
+                          padding: EdgeInsets.symmetric(horizontal: 4.w),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: colors.surfaceVariant,
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
-                          _OperatorKey(label: '÷', controller: controller),
-                          _OperatorKey(label: '×', controller: controller),
-                        ]),
-                        SizedBox(height: 8.h),
-                        // Row 2: 7, 8, 9
-                        _buildRow([
-                          _NumericKey(label: '7', controller: controller),
-                          _NumericKey(label: '8', controller: controller),
-                          _NumericKey(label: '9', controller: controller),
-                        ]),
-                        SizedBox(height: 8.h),
-                        // Row 3: 4, 5, 6
-                        _buildRow([
-                          _NumericKey(label: '4', controller: controller),
-                          _NumericKey(label: '5', controller: controller),
-                          _NumericKey(label: '6', controller: controller),
-                        ]),
-                        SizedBox(height: 8.h),
-                        // Row 4: 1, 2, 3
-                        _buildRow([
-                          _NumericKey(label: '1', controller: controller),
-                          _NumericKey(label: '2', controller: controller),
-                          _NumericKey(label: '3', controller: controller),
-                        ]),
-                        SizedBox(height: 8.h),
-                        // Row 5: 0, 000, ,
-                        _buildRow([
-                          _NumericKey(label: '0', controller: controller),
-                          _NumericKey(label: '000', controller: controller),
-                          _NumericKey(label: ',', controller: controller),
-                        ]),
+                          child: Text(
+                            expr.extToRibuan(),
+                            style: TextStyleConstants.b2.copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (_, _) => SizedBox(width: 12.w),
+                    itemCount: recomendedExpressions.length,
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
+                    child: Row(
+                      children: [
+                        // Kolom kiri (3 kolom angka & operator)
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            children: [
+                              // Row 1: C, ÷, ×
+                              _buildRow([
+                                _ActionKey(
+                                  label: 'C',
+                                  labelColor: colors.primary,
+                                  backgroundColor: colors.surfaceVariant,
+                                  event: const CustomKeyboardEvent.clear(),
+                                ),
+                                _OperatorKey(
+                                  label: '÷',
+                                  controller: controller,
+                                ),
+                                _OperatorKey(
+                                  label: '×',
+                                  controller: controller,
+                                ),
+                              ]),
+                              SizedBox(height: 8.h),
+                              // Row 2: 7, 8, 9
+                              _buildRow([
+                                _NumericKey(label: '7', controller: controller),
+                                _NumericKey(label: '8', controller: controller),
+                                _NumericKey(label: '9', controller: controller),
+                              ]),
+                              SizedBox(height: 8.h),
+                              // Row 3: 4, 5, 6
+                              _buildRow([
+                                _NumericKey(label: '4', controller: controller),
+                                _NumericKey(label: '5', controller: controller),
+                                _NumericKey(label: '6', controller: controller),
+                              ]),
+                              SizedBox(height: 8.h),
+                              // Row 4: 1, 2, 3
+                              _buildRow([
+                                _NumericKey(label: '1', controller: controller),
+                                _NumericKey(label: '2', controller: controller),
+                                _NumericKey(label: '3', controller: controller),
+                              ]),
+                              SizedBox(height: 8.h),
+                              // Row 5: 0, 000, ,
+                              _buildRow([
+                                _NumericKey(label: '0', controller: controller),
+                                _NumericKey(
+                                  label: '000',
+                                  controller: controller,
+                                ),
+                                _NumericKey(label: ',', controller: controller),
+                              ]),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        // Kolom kanan (operator & submit)
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              // Row 1: ⌫
+                              Expanded(
+                                child: _ActionKey(
+                                  icon: FontAwesomeIcons.deleteLeft,
+                                  iconColor: colors.primary,
+                                  backgroundColor: colors.surfaceVariant,
+                                  event: const CustomKeyboardEvent.deleteOne(),
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              // Row 2: -
+                              Expanded(
+                                child: _OperatorKey(
+                                  label: '-',
+                                  controller: controller,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              // Row 3: +
+                              Expanded(
+                                child: _OperatorKey(
+                                  label: '+',
+                                  controller: controller,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              // Row 4-5: Submit (spans 2 rows)
+                              Expanded(
+                                flex: 2,
+                                child: _DynamicSubmitButton(
+                                  controller: controller,
+                                  onEvaluate: onEvaluate,
+                                  onSubmit: onSubmit,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
-                  // Kolom kanan (operator & submit)
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        // Row 1: ⌫
-                        Expanded(
-                          child: _ActionKey(
-                            icon: FontAwesomeIcons.deleteLeft,
-                            iconColor: colors.primary,
-                            backgroundColor: colors.surfaceVariant,
-                            event: const CustomKeyboardEvent.deleteOne(),
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        // Row 2: -
-                        Expanded(
-                          child: _OperatorKey(
-                            label: '-',
-                            controller: controller,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        // Row 3: +
-                        Expanded(
-                          child: _OperatorKey(
-                            label: '+',
-                            controller: controller,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        // Row 4-5: Submit (spans 2 rows)
-                        Expanded(
-                          flex: 2,
-                          child: _DynamicSubmitButton(
-                            controller: controller,
-                            onEvaluate: onEvaluate,
-                            onSubmit: onSubmit,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
