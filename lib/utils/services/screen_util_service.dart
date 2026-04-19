@@ -51,7 +51,7 @@ double getScaleTextValue(BuildContext context, Size designSize, num fontSize) {
       break;
   }
 
-  final userAdjustedSize = fontSize * scaleFactor * 1.02;
+  final userAdjustedSize = fontSize * scaleFactor * 1.05;
 
   return userAdjustedSize.toDouble();
 }

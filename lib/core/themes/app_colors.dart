@@ -94,33 +94,46 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   /// Skema warna untuk **Light Mode**.
   static const light = AppColorScheme(
-    primary: Color(0xFF0F172A), // Slate 900 (Trust Navy)
-    primaryLight: Color(0xFFCBD5E1), // Slate 300
-    primaryDark: Color(0xFF020617), // Slate 950
-    accent: Color(0xFFCA8A04), // Yellow 600 (Premium Gold)
+    primary: Color(
+      0xFF047857,
+    ), // Emerald 700 (Hijau utama yang solid & kontras)
+    primaryLight: Color(
+      0xFFD1FAE5,
+    ), // Emerald 100 (Untuk background chip, badge)
+    primaryDark: Color(0xFF064E3B), // Emerald 900 (Untuk pressed state)
+    accent: Color(
+      0xFFCA8A04,
+    ), // Yellow 600 (Premium Gold - tetap cocok dengan hijau)
     background: Color(0xFFF1F5F9), // Slate 100
     surface: Color(0xFFFFFFFF), // White
     surfaceVariant: Color(0xFFE2E8F0), // Slate 200
     border: Color(0xFFCBD5E1), // Slate 300
     textPrimary: Color(0xFF0F172A), // Slate 900
     textSecondary: Color(0xFF64748B), // Slate 500
-    income: Color(0xFF059669), // Emerald 600
-    expense: Color(0xFFDC2626), // Red 600
-    transfer: Color(0xFF2563EB), // Blue 600
-    debt: Color(0xFFEA580C), // Orange 600
-    loan: Color(0xFF9333EA), // Purple 600
-    warning: Color(0xFFCA8A04), // Yellow 600
-    error: Color(0xFFDC2626), // Red 600
-    success: Color(0xFF059669), // Emerald 600
-    info: Color(0xFF2563EB), // Blue 600
-    onPrimary: Color(0xFFFFFFFF), // White
+    // Semantic Colors (Biarkan tetap sama)
+    income: Color(
+      0xFF10B981,
+    ), // Emerald 500 (Sedikit dibedakan dari primary agar tetap stand-out)
+    expense: Color(0xFFDC2626),
+    transfer: Color(0xFF2563EB),
+    debt: Color(0xFFEA580C),
+    loan: Color(0xFF9333EA),
+    warning: Color(0xFFCA8A04),
+    error: Color(0xFFDC2626),
+    success: Color(0xFF10B981),
+    info: Color(0xFF2563EB),
+    onPrimary: Color(
+      0xFFFFFFFF,
+    ), // Teks putih sangat kontras di atas Emerald 700
   );
 
   /// Skema warna untuk **Dark Mode**.
   static const dark = AppColorScheme(
-    primary: Color(0xFFE2E8F0), // Slate 200
-    primaryLight: Color(0xFF1E293B), // Slate 800
-    primaryDark: Color(0xFFF8FAFC), // Slate 50
+    primary: Color(
+      0xFF34D399,
+    ), // Emerald 400 (Hijau terang agar 'pop up' di layar gelap)
+    primaryLight: Color(0xFF064E3B), // Emerald 900
+    primaryDark: Color(0xFFECFDF5), // Emerald 50
     accent: Color(0xFFEAB308), // Yellow 500
     background: Color(0xFF0F172A), // Slate 900
     surface: Color(0xFF1E293B), // Slate 800
@@ -128,18 +141,20 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
     border: Color(0xFF334155), // Slate 700
     textPrimary: Color(0xFFF1F5F9), // Slate 100
     textSecondary: Color(0xFF94A3B8), // Slate 400
-    income: Color(0xFF34D399), // Emerald 400
-    expense: Color(0xFFF87171), // Red 400
-    transfer: Color(0xFF60A5FA), // Blue 400
-    debt: Color(0xFFFB923C), // Orange 400
-    loan: Color(0xFFC084FC), // Purple 400
-    warning: Color(0xFFEAB308), // Yellow 500
-    error: Color(0xFFF87171), // Red 400
-    onPrimary: Color(0xFF0F172A), // Slate 900
-    success: Color(0xFF34D399), // Emerald 400
-    info: Color(0xFF60A5FA), // Blue 400
+    // Semantic Colors
+    income: Color(0xFF6EE7B7), // Emerald 300
+    expense: Color(0xFFF87171),
+    transfer: Color(0xFF60A5FA),
+    debt: Color(0xFFFB923C),
+    loan: Color(0xFFC084FC),
+    warning: Color(0xFFEAB308),
+    error: Color(0xFFF87171),
+    onPrimary: Color(
+      0xFF022C22,
+    ), // Emerald 950 (Teks gelap/hitam di atas primary hijau terang)
+    success: Color(0xFF6EE7B7),
+    info: Color(0xFF60A5FA),
   );
-
   // ─────────────────────────────────────────────────────────────
   // ThemeExtension overrides
   // ─────────────────────────────────────────────────────────────

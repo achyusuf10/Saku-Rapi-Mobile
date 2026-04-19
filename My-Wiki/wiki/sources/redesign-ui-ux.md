@@ -61,7 +61,7 @@ Rangkuman menyeluruh proyek redesign UI/UX SakuRapi. Proyek ini mengganti seluru
 
 ### Typography
 
-- **Satu font family**: IBM Plex Sans (via `GoogleFonts.ibmPlexSans`)
+- **Satu font family**: IBM Plex Sans (via `GoogleFonts.nunitoSans`)
 - Menggantikan campuran Plus Jakarta Sans + Nunito Sans
 - Weight hierarchy: 400 (body), 500 (emphasis), 600 (labels/buttons), 700 (headings)
 

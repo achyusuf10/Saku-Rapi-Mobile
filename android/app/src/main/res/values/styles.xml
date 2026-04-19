@@ -15,4 +15,15 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Theme for Widget Config Activity — matches Flutter "Financial Trust" light design system -->
+    <style name="WidgetConfigTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/widget_background</item>
+        <item name="colorPrimary">@color/widget_primary</item>
+        <item name="colorPrimaryDark">@color/widget_primary</item>
+        <item name="colorAccent">@color/widget_primary</item>
+        <item name="android:textColorPrimary">@color/widget_text_primary</item>
+        <item name="android:textColorSecondary">@color/widget_text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
 </resources>

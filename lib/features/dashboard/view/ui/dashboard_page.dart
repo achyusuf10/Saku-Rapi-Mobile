@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
@@ -33,8 +34,6 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
-  bool _coldStartHandled = false;
-
   @override
   void initState() {
     super.initState();
@@ -47,16 +46,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       final catState = ref.read(categoryControllerProvider);
       if (catState.status == CategoryStatus.initial) {
         ref.read(categoryControllerProvider.notifier).loadCategories();
-      }
-
-      // Cold start: check if there's a pending widget action that was set
-      // BEFORE this widget mounted (ref.listen won't fire for pre-existing state)
-      if (!_coldStartHandled) {
-        _coldStartHandled = true;
-        final pendingUri = ref.read(pendingWidgetActionProvider);
-        if (pendingUri != null) {
-          HomeWidgetDeepLinkHandler.consumeAction(ref, context);
-        }
       }
     });
   }
@@ -77,12 +66,25 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     final adsEligible = ref.watch(adsEligibleProvider);
 
+    // Cold start via Splash: appReadyProvider di-set true oleh SplashPage setelah
+    // auth selesai. Ini memastikan consumeAction dipanggil setelah session restore.
+    final pendingUri = ref.read(pendingWidgetActionProvider);
+    if (pendingUri != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = AppRouter.navigatorKey.currentContext;
+        if (ctx != null) {
+          HomeWidgetDeepLinkHandler.consumeAction(ref, ctx);
+        }
+      });
+    }
+
     // Warm start: listen for widget action changes while Dashboard is mounted
     ref.listen<Uri?>(pendingWidgetActionProvider, (prev, next) {
       if (next != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            HomeWidgetDeepLinkHandler.consumeAction(ref, context);
+          final ctx = AppRouter.navigatorKey.currentContext;
+          if (ctx != null) {
+            HomeWidgetDeepLinkHandler.consumeAction(ref, ctx);
           }
         });
       }
@@ -152,7 +154,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
                 // ─── Recent Transactions ───
                 const SliverToBoxAdapter(child: DashboardRecentTransactions()),
-                SliverToBoxAdapter(child: SizedBox(height: adsEligible ? 8.h : 24.h)),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: adsEligible ? 8.h : 24.h),
+                ),
               ],
             ],
           ),

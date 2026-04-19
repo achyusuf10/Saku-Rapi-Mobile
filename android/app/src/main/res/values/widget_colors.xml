@@ -2,18 +2,19 @@
 <resources>
     <!-- SakuRapi Home Widget Colors — "Financial Trust" Design System -->
 
-    <!-- Light Mode -->
-    <color name="widget_background">#FFF1F5F9</color>         <!-- Slate 100 -->
-    <color name="widget_surface">#FFFFFFFF</color>             <!-- Pure White -->
-    <color name="widget_primary">#FF0F172A</color>             <!-- Slate 900 (Trust Navy) -->
-    <color name="widget_accent">#FFCA8A04</color>              <!-- Yellow 600 (Premium Gold) -->
-    <color name="widget_text_primary">#FF0F172A</color>        <!-- Slate 900 -->
-    <color name="widget_text_secondary">#FF64748B</color>      <!-- Slate 500 -->
+    <!-- Light Mode — synced with AppColorScheme.light (app_colors.dart) -->
+    <color name="widget_background">#FFF1F5F9</color>         <!-- background: Slate 100 -->
+    <color name="widget_surface">#FFFFFFFF</color>             <!-- surface: Pure White -->
+    <color name="widget_primary">#FF047857</color>             <!-- primary: Emerald 700 -->
+    <color name="widget_primary_light">#FFD1FAE5</color>       <!-- primaryLight: Emerald 100 -->
+    <color name="widget_accent">#FFCA8A04</color>              <!-- accent: Yellow 600 (Premium Gold) -->
+    <color name="widget_text_primary">#FF0F172A</color>        <!-- textPrimary: Slate 900 -->
+    <color name="widget_text_secondary">#FF64748B</color>      <!-- textSecondary: Slate 500 -->
     <color name="widget_text_tertiary">#FF94A3B8</color>       <!-- Slate 400 -->
-    <color name="widget_border">#FFCBD5E1</color>              <!-- Slate 300 -->
+    <color name="widget_border">#FFCBD5E1</color>              <!-- border: Slate 300 -->
     <color name="widget_icon_tint">#FF64748B</color>           <!-- Slate 500 -->
-    <color name="widget_action_bg">#FFE2E8F0</color>           <!-- Slate 200 -->
-    <color name="widget_action_icon">#FF0F172A</color>         <!-- Slate 900 -->
+    <color name="widget_action_bg">#FFE2E8F0</color>           <!-- surfaceVariant: Slate 200 -->
+    <color name="widget_action_icon">#FF0F172A</color>         <!-- textPrimary: Slate 900 -->
 
     <!-- Widget strings -->
     <string name="widget_description">Lihat saldo dompet dan input transaksi cepat</string>
@@ -21,6 +22,7 @@
     <string name="widget_no_balance">—</string>
     <string name="widget_balance_hidden">Rp •••••••</string>
     <string name="widget_config_title">Pilih Dompet</string>
+    <string name="widget_config_subtitle">Pilih dompet yang ingin ditampilkan di widget</string>
     <string name="widget_config_empty_message">Silakan buka aplikasi Saku Rapi terlebih dahulu untuk memuat data dompet.</string>
     <string name="widget_config_open_app">Buka Saku Rapi</string>
     <string name="widget_config_save">Simpan</string>

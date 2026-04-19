@@ -27,6 +27,10 @@ class AuthLocalDataSource {
   UserModel? getCachedUserProfile() {
     final raw = HiveService.get<String>(key: _userKey);
     if (raw == null) return null;
+    AppLogger.call(
+      '[Auth] [AuthLocalDataSource] Retrieved cached user profile',
+      colorLog: ColorLog.blue,
+    );
 
     final map = jsonDecode(raw) as Map<String, dynamic>;
     return UserModel.fromMap(map);

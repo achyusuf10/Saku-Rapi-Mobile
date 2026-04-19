@@ -160,7 +160,7 @@ class _QuickActionButton extends StatelessWidget {
           SizedBox(height: 6.h),
           Text(
             action.label,
-            style: TextStyleConstants.label3.copyWith(
+            style: TextStyleConstants.label2.copyWith(
               color: colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),

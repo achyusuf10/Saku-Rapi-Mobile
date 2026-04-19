@@ -30,7 +30,7 @@ class AppThemes {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.light.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.light.background.withValues(alpha: 0.5);
+        return AppColorScheme.dark.background.withValues(alpha: 0.2);
       }),
     ),
     colorScheme: ColorScheme.light(
@@ -46,7 +46,7 @@ class AppThemes {
       onSurface: AppColorScheme.light.textPrimary,
       outline: AppColorScheme.light.border,
     ),
-    textTheme: GoogleFonts.ibmPlexSansTextTheme(
+    textTheme: GoogleFonts.nunitoSansTextTheme(
       TextTheme(
         bodyLarge: TextStyleConstants.b1.copyWith(
           color: AppColorScheme.light.textPrimary,
@@ -279,7 +279,7 @@ class AppThemes {
         if (states.contains(WidgetState.selected)) {
           return AppColorScheme.dark.primary.withValues(alpha: 0.25);
         }
-        return AppColorScheme.dark.background.withValues(alpha: 0.5);
+        return AppColorScheme.light.background.withValues(alpha: 0.2);
       }),
     ),
     colorScheme: ColorScheme.dark(
@@ -295,7 +295,7 @@ class AppThemes {
       onSurface: AppColorScheme.dark.textPrimary,
       outline: AppColorScheme.dark.border,
     ),
-    textTheme: GoogleFonts.ibmPlexSansTextTheme(
+    textTheme: GoogleFonts.nunitoSansTextTheme(
       TextTheme(
         bodyLarge: TextStyleConstants.b1.copyWith(
           color: AppColorScheme.dark.textPrimary,

@@ -133,7 +133,10 @@ enum AuthStatus {
 ///
 /// Tidak menggunakan Riverpod Generator sesuai aturan SakuRapi.
 class AuthController extends StateNotifier<AppAuthState> {
-  AuthController(this._repository) : super(const AppAuthState());
+  AuthController(this._repository) : super(const AppAuthState()) {
+    // Cek session saat controller diinisialisasi
+    restoreSession();
+  }
 
   final AuthRepository _repository;
 

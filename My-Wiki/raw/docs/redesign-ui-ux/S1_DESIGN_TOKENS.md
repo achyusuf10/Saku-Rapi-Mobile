@@ -111,7 +111,7 @@ SINGLE FAMILY: IBM Plex Sans
 ```
 
 **Hapus**: Plus Jakarta Sans (heading), Nunito Sans (theme default)
-**Ganti semua** ke IBM Plex Sans via `GoogleFonts.ibmPlexSans()`
+**Ganti semua** ke IBM Plex Sans via `GoogleFonts.nunitoSans()`
 
 ### Type Scale (tetap sama ukurannya, hanya font berubah)
 
@@ -143,7 +143,7 @@ overline: 9sp → tetap
 | Aspek | Sekarang | Baru |
 |-------|----------|------|
 | `useMaterial3` | `false` | Tetap `false` (avoid breaking change) |
-| `textTheme` | `nunitoSansTextTheme` | `ibmPlexSansTextTheme` |
+| `textTheme` | `nunitoSansTextTheme` | `nunitoSansTextTheme` |
 | AppBar bg | `#FAFAFC` | `surface` color (white/slate-800) |
 | AppBar elevation | 4 | 0 (flat minimalist) + subtle bottom border |
 | Button radius | 12.r | 12.r (tetap) |
@@ -189,8 +189,8 @@ gradient: LinearGradient(
 
 - [ ] Update `AppColorScheme.light` dengan palette baru
 - [ ] Update `AppColorScheme.dark` dengan palette baru
-- [ ] Ganti semua `GoogleFonts.plusJakartaSans` → `GoogleFonts.ibmPlexSans`
-- [ ] Ganti `GoogleFonts.nunitoSansTextTheme` → `GoogleFonts.ibmPlexSansTextTheme`
+- [ ] Ganti semua `GoogleFonts.plusJakartaSans` → `GoogleFonts.nunitoSans`
+- [ ] Ganti `GoogleFonts.nunitoSansTextTheme` → `GoogleFonts.nunitoSansTextTheme`
 - [ ] Update `app_themes.dart`: AppBar, button, input, nav, shadow styles
 - [ ] Pastikan `fvm flutter analyze` clean
 - [ ] Test visual light mode

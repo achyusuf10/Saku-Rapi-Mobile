@@ -3,28 +3,55 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:background="@color/widget_surface">
+    android:background="@color/widget_background">
 
-    <!-- Title -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/widget_config_title"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/widget_text_primary"
-        android:layout_marginBottom="16dp" />
+        android:orientation="vertical"
+        android:background="@color/widget_surface"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="18dp">
 
-    <!-- Normal State: Wallet List -->
-    <ListView
-        android:id="@+id/lv_wallets"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_config_title"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_text_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_config_subtitle"
+            android:textSize="13sp"
+            android:textColor="@color/widget_text_secondary"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+
+    <!-- Divider under header -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/widget_border" />
+
+    <!-- Wallet List (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_wallets"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:visibility="gone"
-        android:divider="@color/widget_border"
-        android:dividerHeight="1dp" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"
+        android:visibility="gone" />
 
     <!-- Empty State (R4) -->
     <LinearLayout
@@ -34,42 +61,72 @@
         android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:src="@drawable/ic_empty_wallet"
             android:contentDescription="No wallets" />
 
         <TextView
-            android:id="@+id/tv_empty_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/widget_config_empty_message"
             android:textSize="14sp"
             android:textColor="@color/widget_text_secondary"
             android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp" />
+            android:lineSpacingMultiplier="1.5"
+            android:layout_marginTop="16dp" />
 
         <Button
             android:id="@+id/btn_open_app"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:text="@string/widget_config_open_app"
-            android:layout_marginTop="12dp" />
+            android:textColor="@color/widget_primary"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:background="@drawable/bg_config_button_secondary"
+            android:paddingStart="28dp"
+            android:paddingEnd="28dp"
+            android:layout_marginTop="20dp"
+            android:stateListAnimator="@null" />
 
     </LinearLayout>
 
-    <!-- Save Button (only visible when wallets exist) -->
-    <Button
-        android:id="@+id/btn_save"
+    <!-- Bottom Bar with Save button -->
+    <LinearLayout
+        android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/widget_config_save"
-        android:visibility="gone"
-        android:layout_marginTop="16dp" />
+        android:orientation="vertical"
+        android:background="@color/widget_surface"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/widget_border"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/widget_config_save"
+            android:textColor="@color/widget_surface"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:background="@drawable/bg_config_button_primary"
+            android:stateListAnimator="@null" />
+
+    </LinearLayout>
 
 </LinearLayout>

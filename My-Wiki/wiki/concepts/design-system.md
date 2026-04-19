@@ -38,43 +38,51 @@ Desain yang bersih, profesional, dan terpercaya — cocok untuk aplikasi keuanga
 
 | Token | Hex | Nama | Keterangan |
 |-------|-----|------|------------|
-| `primary` | `#0F172A` | Slate 900 | Trust Navy — main brand color |
-| `primaryLight` | `#E2E8F0` | Slate 200 | Subtle background tint |
-| `primaryDark` | `#020617` | Slate 950 | Deep press state |
-| `onPrimary` | `#FFFFFF` | White | Text on primary |
+| `primary` | `#047857` | Emerald 700 | Main brand color — hijau solid & kontras |
+| `primaryLight` | `#D1FAE5` | Emerald 100 | Background chip, badge, subtle tint |
+| `primaryDark` | `#064E3B` | Emerald 900 | Pressed state |
+| `onPrimary` | `#FFFFFF` | White | Teks/ikon di atas primary background |
 | `accent` | `#CA8A04` | Yellow 600 | Premium Gold — highlight/CTA |
-| `background` | `#F8FAFC` | Slate 50 | Clean off-white page bg |
+| `background` | `#F1F5F9` | Slate 100 | Page background |
 | `surface` | `#FFFFFF` | Pure White | Card background |
-| `surfaceVariant` | `#F1F5F9` | Slate 100 | Input field bg, secondary surface |
-| `border` | `#E2E8F0` | Slate 200 | Soft border |
+| `surfaceVariant` | `#E2E8F0` | Slate 200 | Input field bg, secondary surface |
+| `border` | `#CBD5E1` | Slate 300 | Border/divider |
 | `textPrimary` | `#0F172A` | Slate 900 | Maximum readability |
 | `textSecondary` | `#64748B` | Slate 500 | Muted text, WCAG AA compliant |
-| `income` | `#059669` | Emerald 600 | Muted green — pemasukan |
+| `income` | `#10B981` | Emerald 500 | Dibedakan dari primary agar stand-out |
 | `expense` | `#DC2626` | Red 600 | Solid red — pengeluaran |
 | `transfer` | `#2563EB` | Blue 600 | Solid blue — transfer |
 | `debt` | `#EA580C` | Orange 600 | Solid orange — hutang |
 | `loan` | `#9333EA` | Purple 600 | Solid purple — piutang |
-| `success` | Emerald 600 | | Semantic — berhasil |
-| `warning` | Yellow 600 | | Semantic — peringatan |
-| `error` | Red 600 | | Semantic — error |
-| `info` | Blue 600 | | Semantic — informasi |
+| `success` | `#10B981` | Emerald 500 | Semantic — berhasil |
+| `warning` | `#CA8A04` | Yellow 600 | Semantic — peringatan |
+| `error` | `#DC2626` | Red 600 | Semantic — error |
+| `info` | `#2563EB` | Blue 600 | Semantic — informasi |
 
 ### Dark Mode — "Calm Depth"
 
 | Token | Hex | Nama | Keterangan |
 |-------|-----|------|------------|
-| `primary` | `#E2E8F0` | Slate 200 | Light text on dark |
-| `background` | `#0F172A` | Slate 900 | **Neutral** — tanpa green tint |
+| `primary` | `#34D399` | Emerald 400 | Hijau terang agar pop di layar gelap |
+| `primaryLight` | `#064E3B` | Emerald 900 | Subtle tint on dark |
+| `primaryDark` | `#ECFDF5` | Emerald 50 | Pressed state (light) |
+| `onPrimary` | `#022C22` | Emerald 950 | Teks gelap di atas primary hijau terang |
+| `accent` | `#EAB308` | Yellow 500 | Brighter gold untuk dark mode |
+| `background` | `#0F172A` | Slate 900 | Neutral — tanpa green tint |
 | `surface` | `#1E293B` | Slate 800 | Card background |
 | `surfaceVariant` | `#334155` | Slate 700 | Input/secondary surface |
-| `accent` | `#EAB308` | Yellow 500 | Brighter gold untuk dark mode |
+| `border` | `#334155` | Slate 700 | Border/divider |
 | `textPrimary` | `#F1F5F9` | Slate 100 | High contrast text |
 | `textSecondary` | `#94A3B8` | Slate 400 | Muted text |
-| `income` | 400-level | Emerald 400 | Soft, not neon |
-| `expense` | 400-level | Red 400 | Soft, not neon |
-| `transfer` | 400-level | Blue 400 | Soft, not neon |
-| `debt` | 400-level | Orange 400 | Soft, not neon |
-| `loan` | 400-level | Purple 400 | Soft, not neon |
+| `income` | `#6EE7B7` | Emerald 300 | Soft, not neon |
+| `expense` | `#F87171` | Red 400 | Soft, not neon |
+| `transfer` | `#60A5FA` | Blue 400 | Soft, not neon |
+| `debt` | `#FB923C` | Orange 400 | Soft, not neon |
+| `loan` | `#C084FC` | Purple 400 | Soft, not neon |
+| `success` | `#6EE7B7` | Emerald 300 | Semantic |
+| `warning` | `#EAB308` | Yellow 500 | Semantic |
+| `error` | `#F87171` | Red 400 | Semantic |
+| `info` | `#60A5FA` | Blue 400 | Semantic |
 
 ---
 
@@ -82,7 +90,13 @@ Desain yang bersih, profesional, dan terpercaya — cocok untuk aplikasi keuanga
 
 | Aspek | Lama | Baru |
 |-------|------|------|
-| Primary | Emerald `#10B981` | Navy `#0F172A` |
+| Primary | Navy `#0F172A` | Emerald `#047857` |
+| PrimaryLight | Slate 200 `#E2E8F0` | Emerald 100 `#D1FAE5` |
+| PrimaryDark | Slate 950 `#020617` | Emerald 900 `#064E3B` |
+| Background (light) | Slate 50 `#F8FAFC` | Slate 100 `#F1F5F9` |
+| SurfaceVariant (light) | Slate 100 `#F1F5F9` | Slate 200 `#E2E8F0` |
+| Border (light) | Slate 200 `#E2E8F0` | Slate 300 `#CBD5E1` |
+| Income/Success | Emerald 600 `#059669` | Emerald 500 `#10B981` |
 | Dark BG | `#0F1412` (green-tinted) | `#0F172A` (neutral) |
 | Accent | Amber `#F59E0B` (bright) | Gold `#CA8A04` (restrained) |
 | Cards | Gradient emerald | Flat surface + border |
@@ -96,7 +110,7 @@ Desain yang bersih, profesional, dan terpercaya — cocok untuk aplikasi keuanga
 
 ### Satu Font: IBM Plex Sans
 
-Seluruh aplikasi menggunakan **IBM Plex Sans** (via `GoogleFonts.ibmPlexSans`), menggantikan campuran Plus Jakarta Sans (heading) + Nunito Sans (body).
+Seluruh aplikasi menggunakan **IBM Plex Sans** (via `GoogleFonts.nunitoSans`), menggantikan campuran Plus Jakarta Sans (heading) + Nunito Sans (body).
 
 **Alasan**: IBM Plex Sans memberikan kesan trustworthy dan professional — cocok untuk konteks keuangan.
 

@@ -46,7 +46,7 @@ class HomeWidgetDeepLinkHandler {
   ///
   /// Dipanggil dari Dashboard listener setelah dashboard fully mounted.
   /// Aman dipanggil meskipun tidak ada pending action (null-safe).
-  static void consumeAction(WidgetRef ref, BuildContext context) {
+  static Future<void> consumeAction(WidgetRef ref, BuildContext context) async {
     final uri = ref.read(pendingWidgetActionProvider);
     if (uri == null) return;
 
@@ -67,6 +67,8 @@ class HomeWidgetDeepLinkHandler {
       ref.read(pendingWidgetWalletIdProvider.notifier).state = walletId;
     }
 
+    AppLogger.call('[Online] [HomeWidget] Navigating to action: $type');
+    context.go(AppRouter.dashboard);
     switch (type) {
       case HomeWidgetConstants.actionManual:
         context.push(AppRouter.transactionForm);

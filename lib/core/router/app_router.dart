@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/features/auth/controllers/auth_controller.dart';
+import 'package:app_saku_rapi/features/auth/datasource/auth_local_data_source.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/login_page.dart';
 import 'package:app_saku_rapi/features/auth/view/ui/splash_page.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
@@ -17,10 +18,8 @@ import 'package:app_saku_rapi/features/history/view/ui/history_page.dart';
 import 'package:app_saku_rapi/features/investment/models/investment_asset_model.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_detail_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_inactive_page.dart';
-import 'package:app_saku_rapi/features/user_report/view/ui/send_report_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_page.dart';
 import 'package:app_saku_rapi/features/investment/view/ui/investment_smart_form_page.dart';
-
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_category_transactions_page.dart';
@@ -29,6 +28,7 @@ import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/ui/transaction_detail_page.dart';
 import 'package:app_saku_rapi/features/transaction/view/ui/transaction_form_page.dart';
+import 'package:app_saku_rapi/features/user_report/view/ui/send_report_page.dart';
 import 'package:app_saku_rapi/features/wallet/view/ui/wallet_page.dart';
 import 'package:app_saku_rapi/global/widgets/main_shell_page.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +90,6 @@ class AppRouter {
   static const String reportCategoryTransactions =
       '/reports/category-transactions';
 
-
   static const String debtLoan = '/debt-loan';
   static const String debtLoanPerson = '/debt-loan/person';
   static const String settlementHistory = '/debt-loan/settlement-history';
@@ -121,7 +120,9 @@ class AppRouter {
     return GoRouter(
       navigatorKey: navigatorKey,
       debugLogDiagnostics: true,
-      initialLocation: splash,
+      initialLocation: AuthLocalDataSource().getCachedUserProfile() == null
+          ? splash
+          : dashboard,
       // refreshListenable: authNotifier,
       // redirect: (context, state) {
       //   final authState = ref.read(authControllerProvider);

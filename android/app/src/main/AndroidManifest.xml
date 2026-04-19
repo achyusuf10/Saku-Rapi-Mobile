@@ -38,7 +38,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             <!-- Deep link from Home Widget quick actions -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -64,7 +64,7 @@
         <activity
             android:name="app.saku_rapi.com.widget.SakuRapiWidgetConfigActivity"
             android:exported="true"
-            android:theme="@style/NormalTheme">
+            android:theme="@style/WidgetConfigTheme">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
