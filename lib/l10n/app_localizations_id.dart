@@ -1898,6 +1898,19 @@ class AppLocalizationsId extends AppLocalizations {
   String get aiPreviewDiscardConfirm => 'Ya, Buang';
 
   @override
+  String aiPreviewItemsHeader(int count) {
+    return '$count item terdeteksi';
+  }
+
+  @override
+  String get aiPreviewGrandTotal => 'Total';
+
+  @override
+  String aiPreviewTotalMismatch(String itemsTotal, String grandTotal) {
+    return 'Total item ($itemsTotal) tidak cocok dengan total ($grandTotal)';
+  }
+
+  @override
   String get navInvestment => 'Investasi';
 
   @override

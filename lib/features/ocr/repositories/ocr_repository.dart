@@ -21,16 +21,19 @@ class OcrRepository {
 
   /// Kirim gambar struk ke Vision AI untuk parsing terstruktur.
   ///
-  /// [categories] berisi daftar kategori expense user ({id, name})
+  /// [categories] berisi daftar kategori expense user ({id, name, type, is_default})
   /// yang dikirim ke AI agar bisa auto-assign kategori per item.
+  /// [wallets] berisi daftar wallet user ({id, name}) untuk auto-match.
   /// Throws [Exception] jika AI gagal — controller akan tampilkan error + retry.
   Future<OcrParseResultModel> parseImage(
     File imageFile, {
-    List<Map<String, String>> categories = const [],
+    List<Map<String, dynamic>> categories = const [],
+    List<Map<String, String>> wallets = const [],
   }) async {
     final aiResult = await _remoteDataSource.callAiParseImage(
       imageFile,
       categories: categories,
+      wallets: wallets,
     );
 
     if (aiResult.isSuccess()) {

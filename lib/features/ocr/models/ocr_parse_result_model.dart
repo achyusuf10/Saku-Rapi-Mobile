@@ -16,8 +16,8 @@ import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 ///   "items": [...],
 ///   "categoryId": "<UUID | null>",
 ///   "categoryKeyword": "<string | null>",
-///   "suggestedWallet": "<string | null>",
-///   "destinationWallet": "<string | null>",
+///   "suggestedWalletId": "<UUID | null>",
+///   "destinationWalletId": "<UUID | null>",
 ///   "withPerson": "<string | null>",
 ///   "note": "<string | null>"
 /// }
@@ -32,8 +32,8 @@ class OcrParseResultModel {
     this.items = const [],
     this.categoryId,
     this.categoryKeyword,
-    this.suggestedWallet,
-    this.destinationWallet,
+    this.suggestedWalletId,
+    this.destinationWalletId,
     this.withPerson,
     this.note,
     this.provider,
@@ -65,10 +65,10 @@ class OcrParseResultModel {
   final String? categoryKeyword;
 
   /// Nama wallet/payment method yang terdeteksi.
-  final String? suggestedWallet;
+  final String? suggestedWalletId;
 
   /// Wallet tujuan (khusus transfer).
-  final String? destinationWallet;
+  final String? destinationWalletId;
 
   /// Nama orang terkait (khusus debt/loan).
   final String? withPerson;
@@ -133,8 +133,8 @@ class OcrParseResultModel {
       items: items,
       categoryId: data['categoryId'] as String?,
       categoryKeyword: data['categoryKeyword'] as String?,
-      suggestedWallet: data['suggestedWallet'] as String?,
-      destinationWallet: data['destinationWallet'] as String?,
+      suggestedWalletId: data['suggestedWalletId'] as String?,
+      destinationWalletId: data['destinationWalletId'] as String?,
       withPerson: data['withPerson'] as String?,
       note: data['note'] as String?,
       provider: provider ?? json['provider'] as String?,
@@ -174,8 +174,8 @@ class OcrParseResultModel {
       'items': items.map((i) => i.toMap()).toList(),
       'categoryId': categoryId,
       'categoryKeyword': categoryKeyword,
-      'suggestedWallet': suggestedWallet,
-      'destinationWallet': destinationWallet,
+      'suggestedWalletId': suggestedWalletId,
+      'destinationWalletId': destinationWalletId,
       'withPerson': withPerson,
       'note': note,
       'provider': provider,
@@ -192,8 +192,8 @@ class OcrParseResultModel {
     List<OcrItemModel>? items,
     String? categoryId,
     String? categoryKeyword,
-    String? suggestedWallet,
-    String? destinationWallet,
+    String? suggestedWalletId,
+    String? destinationWalletId,
     String? withPerson,
     String? note,
     String? provider,
@@ -208,8 +208,8 @@ class OcrParseResultModel {
       items: items ?? this.items,
       categoryId: categoryId ?? this.categoryId,
       categoryKeyword: categoryKeyword ?? this.categoryKeyword,
-      suggestedWallet: suggestedWallet ?? this.suggestedWallet,
-      destinationWallet: destinationWallet ?? this.destinationWallet,
+      suggestedWalletId: suggestedWalletId ?? this.suggestedWalletId,
+      destinationWalletId: destinationWalletId ?? this.destinationWalletId,
       withPerson: withPerson ?? this.withPerson,
       note: note ?? this.note,
       provider: provider ?? this.provider,

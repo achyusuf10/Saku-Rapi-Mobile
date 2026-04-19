@@ -22,10 +22,12 @@ class OcrRemoteDataSource {
   ///
   /// Gambar diencode sebagai base64 dan dikirim ke Gemini Vision.
   /// [categories] berisi daftar kategori expense user untuk auto-assign oleh AI.
+  /// [wallets] berisi daftar wallet user untuk auto-match oleh AI.
   /// Return [DataState] berisi response map dari AI.
   Future<DataState<Map<String, dynamic>>> callAiParseImage(
     File imageFile, {
-    List<Map<String, String>> categories = const [],
+    List<Map<String, dynamic>> categories = const [],
+    List<Map<String, String>> wallets = const [],
   }) {
     return SupabaseHandler.call<Map<String, dynamic>>(
       function: () async {
@@ -44,6 +46,9 @@ class OcrRemoteDataSource {
         };
         if (categories.isNotEmpty) {
           body['categories'] = categories;
+        }
+        if (wallets.isNotEmpty) {
+          body['wallets'] = wallets;
         }
 
         final response = await _client.functions.invoke('ai-parse', body: body);

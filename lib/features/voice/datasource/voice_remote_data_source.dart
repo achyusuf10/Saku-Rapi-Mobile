@@ -21,12 +21,14 @@ class VoiceRemoteDataSource {
   ///
   /// [mode] menentukan kuota yang digunakan: `'text'` atau `'voice'`.
   /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
+  /// [wallets] berisi daftar wallet user untuk auto-match oleh AI.
   /// Returns raw response map: `{ success, mode, provider, data, quota }`.
   /// Caller bertanggung jawab parse `data` ke [VoiceParseResultModel].
   Future<DataState<Map<String, dynamic>>> callAiParse(
     String text, {
     String mode = 'text',
-    List<Map<String, String>> categories = const [],
+    List<Map<String, dynamic>> categories = const [],
+    List<Map<String, String>> wallets = const [],
   }) {
     return SupabaseHandler.call<Map<String, dynamic>>(
       function: () async {
@@ -44,6 +46,9 @@ class VoiceRemoteDataSource {
         };
         if (categories.isNotEmpty) {
           body['categories'] = categories;
+        }
+        if (wallets.isNotEmpty) {
+          body['wallets'] = wallets;
         }
 
         final response = await _client.functions.invoke('ai-parse', body: body);

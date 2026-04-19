@@ -1169,6 +1169,26 @@
   "aiPreviewDiscardTitle": "Discard Result?",
   "aiPreviewDiscardMessage": "The AI analysis result will be discarded. You will need to restart to get new results.",
   "aiPreviewDiscardConfirm": "Yes, Discard",
+  "aiPreviewItemsHeader": "{count} item detected",
+  "@aiPreviewItemsHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiPreviewGrandTotal": "Total",
+  "aiPreviewTotalMismatch": "Total item ({itemsTotal}) does not match the total ({grandTotal})",
+  "@aiPreviewTotalMismatch": {
+    "placeholders": {
+      "itemsTotal": {
+        "type": "String"
+      },
+      "grandTotal": {
+        "type": "String"
+      }
+    }
+  },
   "colorPickerPresetTab": "Preset",
   "colorPickerWheelTab": "Custom",
   "colorPickerSelectButton": "Select This Color",

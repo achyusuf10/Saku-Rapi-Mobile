@@ -989,6 +989,26 @@
   "aiPreviewDiscardTitle": "Buang Hasil?",
   "aiPreviewDiscardMessage": "Hasil analisa AI akan dibuang. Kamu harus memulai ulang untuk mendapatkan hasil baru.",
   "aiPreviewDiscardConfirm": "Ya, Buang",
+  "aiPreviewItemsHeader": "{count} item terdeteksi",
+  "@aiPreviewItemsHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiPreviewGrandTotal": "Total",
+  "aiPreviewTotalMismatch": "Total item ({itemsTotal}) tidak cocok dengan total ({grandTotal})",
+  "@aiPreviewTotalMismatch": {
+    "placeholders": {
+      "itemsTotal": {
+        "type": "String"
+      },
+      "grandTotal": {
+        "type": "String"
+      }
+    }
+  },
   "navInvestment": "Investasi",
   "navSettings": "Pengaturan",
   "investmentTitle": "Portofolio Investasi",

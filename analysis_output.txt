@@ -1,0 +1,13 @@
+Analyzing app_saku_rapi...                                      
+
+warning • Dead code • lib/features/ocr/services/ocr_image_service.dart:30:5 • dead_code
+  error • Undefined name 'walletListProvider' • lib/features/ocr/view/ui/ocr_result_sheet.dart:68:30 • undefined_identifier
+warning • The declaration 'resolveWalletName' isn't referenced • lib/features/ocr/view/ui/ocr_result_sheet.dart:69:12 • unused_element
+  error • The method 'resolveWalletName' isn't defined for the type 'OcrResultSheet' • lib/features/ocr/view/ui/ocr_result_sheet.dart:409:24 • undefined_method
+  error • The method 'resolveWalletName' isn't defined for the type 'OcrResultSheet' • lib/features/ocr/view/ui/ocr_result_sheet.dart:418:24 • undefined_method
+  error • The method 'resolveWalletName' isn't defined for the type 'OcrResultSheet' • lib/features/ocr/view/ui/ocr_result_sheet.dart:443:22 • undefined_method
+  error • Undefined name 'ref' • lib/features/voice/view/ui/text_input_sheet.dart:539:21 • undefined_identifier
+  error • Undefined name 'ref' • lib/features/voice/view/ui/voice_input_sheet.dart:726:21 • undefined_identifier
+   info • The import of 'package:app_saku_rapi/features/history/models/history_models.dart' is unnecessary because all of the used elements are also provided by the import of 'package:app_saku_rapi/features/history/controllers/history_controller.dart' • test/features/history/controllers/history_controller_race_condition_test.dart:7:8 • unnecessary_import
+
+9 issues found. (ran in 7.7s)

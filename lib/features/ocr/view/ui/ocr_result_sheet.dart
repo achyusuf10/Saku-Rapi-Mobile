@@ -9,8 +9,11 @@ import 'package:app_saku_rapi/features/category/controllers/category_controller.
 import 'package:app_saku_rapi/features/ocr/controllers/ocr_scan_controller.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
+import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_source_button.dart';
 import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/global/widgets/ai_item_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -326,7 +329,7 @@ class OcrResultSheet extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: _SourceButton(
+                child: OcrSourceButton(
                   icon: FontAwesomeIcons.camera,
                   label: l10n.ocrCamera,
                   color: colors.info,
@@ -335,7 +338,7 @@ class OcrResultSheet extends ConsumerWidget {
               ),
               SizedBox(width: 16.w),
               Expanded(
-                child: _SourceButton(
+                child: OcrSourceButton(
                   icon: FontAwesomeIcons.images,
                   label: l10n.ocrGallery,
                   color: colors.primary,
@@ -347,6 +350,12 @@ class OcrResultSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Resolve wallet UUID ke nama wallet untuk display.
+  String _resolveWalletName(WidgetRef ref, String walletId) {
+    final wallets = ref.read(walletListProvider);
+    return wallets.where((w) => w.id == walletId).firstOrNull?.name ?? walletId;
   }
 
   Widget _buildResult(BuildContext context, WidgetRef ref, OcrScanState state) {
@@ -397,20 +406,20 @@ class OcrResultSheet extends ConsumerWidget {
 
           // Transfer: wallet info
           if (result.type == 'transfer') ...[
-            if (result.suggestedWallet != null) ...[
+            if (result.suggestedWalletId != null) ...[
               _InfoRow(
                 icon: FontAwesomeIcons.wallet,
                 label: l10n.ocrSourceWallet,
-                value: result.suggestedWallet!,
+                value: _resolveWalletName(ref, result.suggestedWalletId!),
                 colors: colors,
               ),
               SizedBox(height: 8.h),
             ],
-            if (result.destinationWallet != null) ...[
+            if (result.destinationWalletId != null) ...[
               _InfoRow(
                 icon: FontAwesomeIcons.arrowRight,
                 label: l10n.ocrDestWallet,
-                value: result.destinationWallet!,
+                value: _resolveWalletName(ref, result.destinationWalletId!),
                 colors: colors,
               ),
               SizedBox(height: 8.h),
@@ -430,11 +439,12 @@ class OcrResultSheet extends ConsumerWidget {
           ],
 
           // Payment method (non-transfer)
-          if (result.type != 'transfer' && result.suggestedWallet != null) ...[
+          if (result.type != 'transfer' &&
+              result.suggestedWalletId != null) ...[
             _InfoRow(
               icon: FontAwesomeIcons.creditCard,
               label: l10n.ocrPaymentMethod,
-              value: result.suggestedWallet!,
+              value: _resolveWalletName(ref, result.suggestedWalletId!),
               colors: colors,
             ),
             SizedBox(height: 8.h),
@@ -459,10 +469,12 @@ class OcrResultSheet extends ConsumerWidget {
             ),
             SizedBox(height: 8.h),
             ...result.items.asMap().entries.map(
-              (e) => _OcrItemTile(
+              (e) => AiItemTile(
                 index: e.key,
-                item: e.value,
-                colors: colors,
+                name: e.value.name,
+                qty: e.value.qty,
+                unitPrice: e.value.unitPrice,
+                subtotal: e.value.subtotal,
                 categoryName: e.value.categoryId != null
                     ? categoryMap[e.value.categoryId]
                     : null,
@@ -485,14 +497,14 @@ class OcrResultSheet extends ConsumerWidget {
               children: [
                 Text(
                   l10n.ocrGrandTotal,
-                  style: TextStyleConstants.h7.copyWith(
+                  style: TextStyleConstants.b1.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   result.grandTotal?.toCurrency() ?? '-',
-                  style: TextStyleConstants.h6.copyWith(
+                  style: TextStyleConstants.h7.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colors.accent,
                   ),
@@ -722,60 +734,6 @@ class OcrResultSheet extends ConsumerWidget {
 
 // ───────────────── Private Widgets ─────────────────
 
-class _SourceButton extends StatelessWidget {
-  const _SourceButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24.h),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 56.w,
-              height: 56.w,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color.withValues(alpha: 0.12),
-              ),
-              child: Center(
-                child: FaIcon(icon, size: 22.w, color: color),
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Text(
-              label,
-              style: TextStyleConstants.label1.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _InfoRow extends StatelessWidget {
   const _InfoRow({
     required this.icon,
@@ -812,113 +770,6 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _OcrItemTile extends StatelessWidget {
-  const _OcrItemTile({
-    required this.index,
-    required this.item,
-    required this.colors,
-    this.categoryName,
-  });
-
-  final int index;
-  final OcrItemModel item;
-  final dynamic colors;
-  final String? categoryName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 6.h),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        children: [
-          // Index badge
-          Container(
-            width: 24.w,
-            height: 24.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.accent.withValues(alpha: 0.1),
-            ),
-            child: Center(
-              child: Text(
-                '${index + 1}',
-                style: TextStyleConstants.caption.copyWith(
-                  color: colors.accent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 10.w),
-
-          // Name + qty
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name ?? '-',
-                  style: TextStyleConstants.b2.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (item.qty > 1 || item.unitPrice != null)
-                  Text(
-                    '${item.qty > 1 ? '${item.qty.toInt()}x ' : ''}'
-                    '${item.unitPrice != null ? '@ ${item.unitPrice!.toCurrency(withPrefix: false)}' : ''}',
-                    style: TextStyleConstants.caption.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                if (categoryName != null)
-                  Padding(
-                    padding: EdgeInsets.only(top: 2.h),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.accent.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Text(
-                        categoryName!,
-                        style: TextStyleConstants.caption.copyWith(
-                          color: colors.accent,
-                          fontSize: 10.sp,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Subtotal
-          Text(
-            item.subtotal.toCurrency(withPrefix: false),
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

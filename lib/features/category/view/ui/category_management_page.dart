@@ -177,14 +177,22 @@ class _CategoryManagementTile extends ConsumerWidget {
 
     return CategoryParentListTile(
       category: category,
-      onTap: () => _showEditForm(context, category),
-      onLongPress: () => _showActions(context, ref, category),
-      onChildTap: (child) => CategoryFormSheet.show(
-        context: context,
-        type: type,
-        editCategory: child,
-      ),
-      onChildLongPress: (child) => _showActions(context, ref, child),
+      onTap: category.isDefault
+          ? () {}
+          : () => _showEditForm(context, category),
+      onLongPress: category.isDefault
+          ? null
+          : () => _showActions(context, ref, category),
+      onChildTap: (child) => child.isDefault
+          ? null
+          : CategoryFormSheet.show(
+              context: context,
+              type: type,
+              editCategory: child,
+            ),
+      onChildLongPress: (child) {
+        if (!child.isDefault) _showActions(context, ref, child);
+      },
       trailing: (ctx, cat) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -296,26 +304,27 @@ class _CategoryManagementTile extends ConsumerWidget {
                 },
               ),
 
-            // Hide/Show
-            ListTile(
-              leading: FaIcon(
-                category.isHidden
-                    ? FontAwesomeIcons.eye
-                    : FontAwesomeIcons.eyeSlash,
-                size: 16.w,
-                color: colors.textPrimary,
-              ),
-              title: Text(
-                category.isHidden ? l10n.categoryShow : l10n.categoryHide,
-                style: TextStyleConstants.b2.copyWith(
+            // Hide/Show (not for system categories)
+            if (!category.isDefault)
+              ListTile(
+                leading: FaIcon(
+                  category.isHidden
+                      ? FontAwesomeIcons.eye
+                      : FontAwesomeIcons.eyeSlash,
+                  size: 16.w,
                   color: colors.textPrimary,
                 ),
+                title: Text(
+                  category.isHidden ? l10n.categoryShow : l10n.categoryHide,
+                  style: TextStyleConstants.b2.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _toggleHidden(context, ref, category);
+                },
               ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _toggleHidden(context, ref, category);
-              },
-            ),
 
             // Delete (non-default only)
             if (!category.isDefault)

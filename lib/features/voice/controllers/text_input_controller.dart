@@ -4,6 +4,8 @@ import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/voice/controllers/voice_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/repositories/voice_repository.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 // ═══════════════ Providers ═══════════════
@@ -18,6 +20,7 @@ final textInputControllerProvider =
             .categories
             .where((c) => c.type != CategoryType.system && !c.isHidden)
             .toList(),
+        wallets: ref.read(walletListProvider),
       ),
     );
 
@@ -78,12 +81,15 @@ class TextInputController extends StateNotifier<TextInputState> {
   TextInputController({
     required VoiceRepository repository,
     List<CategoryModel> categories = const [],
+    List<WalletModel> wallets = const [],
   }) : _repository = repository,
        _categories = categories,
+       _wallets = wallets,
        super(const TextInputState());
 
   final VoiceRepository _repository;
   final List<CategoryModel> _categories;
+  final List<WalletModel> _wallets;
 
   static const _tag = '[TextInput] [TextInputController]';
 
@@ -99,13 +105,25 @@ class TextInputController extends StateNotifier<TextInputState> {
       inputText: trimmed,
     );
 
+    // Kategori + is_default untuk AI
     final categoryMaps = _categories
-        .map((c) => {'id': c.id, 'name': c.name, 'type': c.type.name})
+        .map((c) => {
+              'id': c.id,
+              'name': c.name,
+              'type': c.type.name,
+              'is_default': c.isDefault.toString(),
+            })
+        .toList();
+
+    // Wallet list untuk AI wallet matching
+    final walletMaps = _wallets
+        .map((w) => {'id': w.id, 'name': w.name})
         .toList();
 
     final result = await _repository.parseVoiceText(
       trimmed,
       categories: categoryMaps,
+      wallets: walletMaps,
     );
 
     if (!mounted) return;

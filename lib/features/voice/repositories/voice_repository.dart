@@ -21,11 +21,13 @@ class VoiceRepository {
   ///
   /// [mode] menentukan kuota: `'text'` (keyboard input) atau `'voice'` (STT).
   /// [categories] berisi daftar kategori user untuk auto-assign oleh AI.
+  /// [wallets] berisi daftar wallet user untuk auto-match oleh AI.
   /// Return DataState.error jika AI gagal — caller harus tampilkan error + retry.
   Future<DataState<VoiceParseResultModel>> parseVoiceText(
     String text, {
     String mode = 'text',
-    List<Map<String, String>> categories = const [],
+    List<Map<String, dynamic>> categories = const [],
+    List<Map<String, String>> wallets = const [],
   }) async {
     AppLogger.call('$_tag parseVoiceText (mode: $mode): "$text"');
 
@@ -33,6 +35,7 @@ class VoiceRepository {
       text,
       mode: mode,
       categories: categories,
+      wallets: wallets,
     );
 
     if (aiResult.isSuccess()) {
@@ -48,7 +51,9 @@ class VoiceRepository {
         return DataState.success(data: model);
       } catch (e) {
         AppLogger.logError('$_tag AI response parse error: $e');
-        return DataState.error(message: 'Gagal memproses respons AI. Coba lagi.');
+        return DataState.error(
+          message: 'Gagal memproses respons AI. Coba lagi.',
+        );
       }
     }
 
@@ -75,4 +80,3 @@ class VoiceRepository {
     );
   }
 }
-

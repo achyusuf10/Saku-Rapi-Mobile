@@ -3587,6 +3587,24 @@ abstract class AppLocalizations {
   /// **'Ya, Buang'**
   String get aiPreviewDiscardConfirm;
 
+  /// No description provided for @aiPreviewItemsHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} item terdeteksi'**
+  String aiPreviewItemsHeader(int count);
+
+  /// No description provided for @aiPreviewGrandTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total'**
+  String get aiPreviewGrandTotal;
+
+  /// No description provided for @aiPreviewTotalMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Total item ({itemsTotal}) tidak cocok dengan total ({grandTotal})'**
+  String aiPreviewTotalMismatch(String itemsTotal, String grandTotal);
+
   /// No description provided for @navInvestment.
   ///
   /// In id, this message translates to:

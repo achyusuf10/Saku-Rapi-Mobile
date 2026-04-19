@@ -6,6 +6,8 @@ import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/ocr/services/ocr_image_service.dart';
+import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -33,6 +35,7 @@ final ocrScanControllerProvider =
             .categories
             .where((c) => !c.isHidden && c.type != CategoryType.system)
             .toList(),
+        wallets: ref.read(walletListProvider),
       ),
     );
 
@@ -124,14 +127,17 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     required OcrRepository repository,
     required OcrImageService imageService,
     List<CategoryModel> categories = const [],
+    List<WalletModel> wallets = const [],
   }) : _repository = repository,
        _imageService = imageService,
        _categories = categories,
+       _wallets = wallets,
        super(const OcrScanState());
 
   final OcrRepository _repository;
   final OcrImageService _imageService;
   final List<CategoryModel> _categories;
+  final List<WalletModel> _wallets;
   static const _tag = '[OcrScanController]';
 
   /// Mulai flow OCR dari kamera.
@@ -201,21 +207,28 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     state = state.copyWith(status: OcrScanStatus.analyzingAi);
     OcrParseResultModel result;
 
-    // Siapkan daftar kategori (expense + income) untuk AI categorization
+    // Siapkan daftar kategori (expense + income) + is_default untuk AI categorization
     final categoryMaps = _categories
         .map(
           (c) => {
             'id': c.id,
             'name': c.name,
             'type': c.type == CategoryType.income ? 'income' : 'expense',
+            'is_default': c.isDefault.toString(),
           },
         )
+        .toList();
+
+    // Siapkan daftar wallet untuk AI wallet matching
+    final walletMaps = _wallets
+        .map((w) => {'id': w.id, 'name': w.name})
         .toList();
 
     try {
       result = await _repository.parseImage(
         finalImage,
         categories: categoryMaps,
+        wallets: walletMaps,
       );
     } catch (aiError) {
       AppLogger.call('$_tag Vision AI failed: $aiError');

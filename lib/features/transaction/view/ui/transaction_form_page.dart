@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
+import 'package:app_saku_rapi/core/ads/ads_service.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
@@ -35,8 +37,6 @@ import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_p
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
-import 'package:app_saku_rapi/core/ads/ads_eligibility_provider.dart';
-import 'package:app_saku_rapi/core/ads/ads_service.dart';
 import 'package:app_saku_rapi/global/widgets/image_source_picker_sheet.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_picker_sheet.dart';
@@ -135,14 +135,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   /// Membaca [pendingVoicePrefillProvider], jika ada data:
   /// - Set type (expense/income/transfer/debt/loan)
   /// - Set debtLoanKind (debt/loan/debt_payment/loan_collection)
-  /// - Set total amount
+  /// - Set total amount (dari items total jika multi-item)
   /// - Set note
   /// - Set date
   /// - Set merchant
-  /// - Set wallet (match by name)
+  /// - Set wallet (match by UUID)
   /// - Set destination wallet (transfer)
   /// - Set withPerson (debt/loan)
-  /// - Set category (lookup via categoryKeyword)
+  /// - Set category (lookup via categoryId → fallback categoryKeyword)
+  /// - Prefill items (multi-item mode jika expense > 1 item)
   /// - Clear provider setelah dibaca
   void _applyVoicePrefill(TransactionFormController ctrl) {
     final voiceResult = ref.read(pendingVoicePrefillProvider);
@@ -165,9 +166,12 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       }
     }
 
-    // Set amount
-    if (voiceResult.amount != null && voiceResult.amount! > 0) {
-      ctrl.setTotalAmount(voiceResult.amount!);
+    // Set amount (gunakan itemsTotal jika multi-item, fallback amount)
+    final effectiveAmount = voiceResult.items.length > 1
+        ? voiceResult.itemsTotal
+        : voiceResult.amount;
+    if (effectiveAmount != null && effectiveAmount > 0) {
+      ctrl.setTotalAmount(effectiveAmount);
     }
 
     // Set note (prefer note > rawTranscript)
@@ -189,12 +193,13 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       _merchantController.text = voiceResult.merchantName!;
     }
 
-    // Set wallet (match by name, case-insensitive)
+    // Set wallet (match by UUID langsung dari AI)
     final wallets = ref.read(walletListProvider);
-    if (voiceResult.suggestedWallet != null &&
-        voiceResult.suggestedWallet!.isNotEmpty) {
-      final walletName = voiceResult.suggestedWallet!.toLowerCase();
-      final matched = wallets.where((w) => w.name.toLowerCase() == walletName);
+    if (voiceResult.suggestedWalletId != null &&
+        voiceResult.suggestedWalletId!.isNotEmpty) {
+      final matched = wallets.where(
+        (w) => w.id == voiceResult.suggestedWalletId,
+      );
       if (matched.isNotEmpty) {
         ctrl.setWallet(matched.first);
       }
@@ -202,10 +207,11 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     // Set destination wallet (transfer)
     if (voiceResult.type == TransactionTypeEnum.transfer &&
-        voiceResult.destinationWallet != null &&
-        voiceResult.destinationWallet!.isNotEmpty) {
-      final destName = voiceResult.destinationWallet!.toLowerCase();
-      final matched = wallets.where((w) => w.name.toLowerCase() == destName);
+        voiceResult.destinationWalletId != null &&
+        voiceResult.destinationWalletId!.isNotEmpty) {
+      final matched = wallets.where(
+        (w) => w.id == voiceResult.destinationWalletId,
+      );
       if (matched.isNotEmpty) {
         ctrl.setDestinationWallet(matched.first);
       }
@@ -216,7 +222,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       ctrl.setWithPerson(voiceResult.withPerson);
     }
 
-    // Set category (prefer categoryId exact match → fallback categoryKeyword)
+    // Set category + multi-item (expense/income saja)
     if (voiceResult.type == TransactionTypeEnum.expense ||
         voiceResult.type == TransactionTypeEnum.income) {
       final categoryType = voiceResult.type == TransactionTypeEnum.income
@@ -227,15 +233,39 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
           .categories
           .where((c) => c.type == categoryType)
           .toList();
+      final categoryLookup = {for (final c in allCategories) c.id: c};
 
+      // ── Multi-item voice (expense only) ──
+      if (voiceResult.type == TransactionTypeEnum.expense &&
+          voiceResult.items.length > 1) {
+        final txItems = voiceResult.items.asMap().entries.map((e) {
+          final voiceItem = e.value;
+          final cat = voiceItem.categoryId != null
+              ? categoryLookup[voiceItem.categoryId]
+              : null;
+
+          return TransactionItemModel(
+            itemName: voiceItem.name,
+            qty: voiceItem.qty,
+            unitPrice: voiceItem.unitPrice,
+            amount: voiceItem.subtotal,
+            sortOrder: e.key,
+            categoryId: cat?.id,
+            categoryName: cat?.name,
+            categoryIcon: cat?.icon,
+            categoryColor: cat?.color,
+          );
+        }).toList();
+        ctrl.prefillItems(txItems);
+      }
+
+      // ── Top-level category matching ──
       CategoryModel? matched;
 
       // 1) Exact match by categoryId (dari AI)
       if (voiceResult.categoryId != null &&
           voiceResult.categoryId!.isNotEmpty) {
-        matched = allCategories
-            .where((c) => c.id == voiceResult.categoryId)
-            .firstOrNull;
+        matched = categoryLookup[voiceResult.categoryId];
       }
 
       // 2) Fallback: fuzzy match by categoryKeyword
@@ -312,12 +342,11 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       ctrl.setDate(ocrResult.date!);
     }
 
-    // Wallet matching (by name, case-insensitive)
+    // Wallet matching (by UUID langsung dari AI)
     final wallets = ref.read(walletListProvider);
-    if (ocrResult.suggestedWallet != null &&
-        ocrResult.suggestedWallet!.isNotEmpty) {
-      final walletName = ocrResult.suggestedWallet!.toLowerCase();
-      final matched = wallets.where((w) => w.name.toLowerCase() == walletName);
+    if (ocrResult.suggestedWalletId != null &&
+        ocrResult.suggestedWalletId!.isNotEmpty) {
+      final matched = wallets.where((w) => w.id == ocrResult.suggestedWalletId);
       if (matched.isNotEmpty) {
         ctrl.setWallet(matched.first);
       }
@@ -325,10 +354,11 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     // Destination wallet (transfer only)
     if (type == TransactionTypeEnum.transfer &&
-        ocrResult.destinationWallet != null &&
-        ocrResult.destinationWallet!.isNotEmpty) {
-      final destName = ocrResult.destinationWallet!.toLowerCase();
-      final matched = wallets.where((w) => w.name.toLowerCase() == destName);
+        ocrResult.destinationWalletId != null &&
+        ocrResult.destinationWalletId!.isNotEmpty) {
+      final matched = wallets.where(
+        (w) => w.id == ocrResult.destinationWalletId,
+      );
       if (matched.isNotEmpty) {
         ctrl.setDestinationWallet(matched.first);
       }

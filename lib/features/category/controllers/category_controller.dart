@@ -168,6 +168,7 @@ class CategoryController extends StateNotifier<CategoryState> {
   /// Buat kategori baru.
   ///
   /// Returns [DataState] untuk UI handling (success alert / error alert).
+  /// Setelah berhasil, langsung update state dari response (tanpa reload).
   Future<DataState<CategoryModel>> createCategory({
     required String name,
     required String icon,
@@ -184,15 +185,20 @@ class CategoryController extends StateNotifier<CategoryState> {
       existingCategories: state.categories,
     );
 
-    if (result.isSuccess()) {
-      // Reload semua kategori setelah berhasil
-      await loadCategories();
+    final created = result.dataSuccess();
+    if (created != null) {
+      state = state.copyWith(
+        status: CategoryStatus.loaded,
+        categories: [...state.categories, created],
+      );
     }
 
     return result;
   }
 
   /// Update kategori existing.
+  ///
+  /// Setelah berhasil, langsung update state dari response (tanpa reload).
   Future<DataState<CategoryModel>> updateCategory({
     required String categoryId,
     String? name,
@@ -210,25 +216,40 @@ class CategoryController extends StateNotifier<CategoryState> {
       sortOrder: sortOrder,
     );
 
-    if (result.isSuccess()) {
-      await loadCategories();
+    final updated = result.dataSuccess();
+    if (updated != null) {
+      state = state.copyWith(
+        status: CategoryStatus.loaded,
+        categories: state.categories
+            .map((c) => c.id == updated.id ? updated : c)
+            .toList(),
+      );
     }
 
     return result;
   }
 
   /// Hapus kategori.
+  ///
+  /// Setelah berhasil, langsung hapus dari state (tanpa reload).
   Future<DataState<void>> deleteCategory(String categoryId) async {
     final result = await _repository.deleteCategory(categoryId);
 
     if (result.isSuccess()) {
-      await loadCategories();
+      state = state.copyWith(
+        status: CategoryStatus.loaded,
+        categories: state.categories
+            .where((c) => c.id != categoryId && c.parentId != categoryId)
+            .toList(),
+      );
     }
 
     return result;
   }
 
   /// Toggle hide/show kategori.
+  ///
+  /// Setelah berhasil, langsung update state dari response (tanpa reload).
   Future<DataState<CategoryModel>> toggleHidden({
     required String categoryId,
     required bool isHidden,
@@ -238,8 +259,14 @@ class CategoryController extends StateNotifier<CategoryState> {
       isHidden: isHidden,
     );
 
-    if (result.isSuccess()) {
-      await loadCategories();
+    final updated = result.dataSuccess();
+    if (updated != null) {
+      state = state.copyWith(
+        status: CategoryStatus.loaded,
+        categories: state.categories
+            .map((c) => c.id == updated.id ? updated : c)
+            .toList(),
+      );
     }
 
     return result;

@@ -1901,6 +1901,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiPreviewDiscardConfirm => 'Yes, Discard';
 
   @override
+  String aiPreviewItemsHeader(int count) {
+    return '$count item detected';
+  }
+
+  @override
+  String get aiPreviewGrandTotal => 'Total';
+
+  @override
+  String aiPreviewTotalMismatch(String itemsTotal, String grandTotal) {
+    return 'Total item ($itemsTotal) does not match the total ($grandTotal)';
+  }
+
+  @override
   String get navInvestment => 'Investment';
 
   @override
