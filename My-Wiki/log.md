@@ -1,6 +1,6 @@
 ---
 title: "Log Wiki"
-updated: 2026-04-14
+updated: 2026-04-19
 ---
 
 # 📋 Log Wiki SakuRapi
@@ -163,6 +163,34 @@ updated: 2026-04-14
   - `wiki/entities/database-schema.md` — RLS optimization pattern, 7 FK indexes baru, gold_prices security note, link ke keamanan
 - **Total halaman wiki**: 44 (20 entitas, 8 konsep, 10 sumber, 5 analisis)
 - **Action manual tersisa**: Aktifkan Leaked Password Protection di Supabase Dashboard (prod)
+
+## [2026-04-19] ingest | Batch 12 sumber + 2 entitas + 1 fix frontmatter
+
+- **Sumber diproses**: 12 raw docs yang belum di-ingest (7 dari `raw/` root + 5 dari `raw/docs/`)
+- **Halaman baru dibuat**: 14
+
+### wiki/sources/ (12 halaman baru)
+  - `wiki/sources/plan-ads-integration.md` — Plan integrasi Google AdMob (banner, native, interstitial, eligibility gate `show_ads`)
+  - `wiki/sources/audit-dashboard-charts.md` — Audit dashboard charts: 8 bug (loading state, stale flash, tooltip single-series, label)
+  - `wiki/sources/audit-report-page.md` — Audit report page: tooltip single-series, gap fill, hardcoded string
+  - `wiki/sources/plan-image-upload-edge-fn.md` — Plan edge function `image-upload` (Supabase Storage + GCS fallback)
+  - `wiki/sources/plan-ai-parse-enhancement.md` — Enhancement AI Parse: wallet short ID mapping, multi-item, rename `suggestedWalletId`
+  - `wiki/sources/plan-android-home-widget.md` — Plan Android Home Widget (XML RemoteViews, cold start fix, 4 quick actions)
+  - `wiki/sources/plan-fix-ai-parse-gemini-404.md` — Plan fix model 404: `gemini-1.5-flash` → `gemini-2.5-flash-lite`, pindah ke Vertex AI
+  - `wiki/sources/plan-normalize-date-iso8601.md` — Plan normalisasi date ISO 8601: kontrak final timestamp vs date-only, `SakuDateUtils`, migration 021 ✅
+  - `wiki/sources/plan-refactor-ai-parse.md` — Plan refactor AI Parse: Gemini-only, note quality fix, rate limiting tier ✅
+  - `wiki/sources/plan-refactor-gold-price.md` — Plan refactor gold-price: Vertex Gemini saja, hapus Groq/OpenRouter ✅
+  - `wiki/sources/plan-remove-manual-parsing.md` — Plan hapus manual parsing fallback: regex + parsing_dictionaries ✅
+  - `wiki/sources/plan-ui-grouping-attachment.md` — Plan UI grouping by date + fix wallet/category alias + lampiran TransactionDetail
+
+### wiki/entities/ (2 halaman baru)
+  - `wiki/entities/ads.md` — Entitas Ads: AdMob integration, eligibility gate, UserModel.showAds, 3 tipe iklan
+  - `wiki/entities/home-widget.md` — Entitas Android Home Widget: XML RemoteViews, cold start dual-path, deep links
+
+### wiki/analysis/ (1 fix frontmatter)
+  - `wiki/analysis/refactor-ai-parse-gemini-quota.md` — Tambah YAML frontmatter (sebelumnya tidak ada)
+
+- **index.md diperbarui**: tambah 14 entry, total halaman 59 (22 entitas, 8 konsep, 22 sumber, 5 analisis)
 
 - **Tujuan**: Hapus semua jalur fallback parsing lokal (regex + `parsing_dictionaries`) dari ketiga fitur AI input
 - **File dihapus**: `ocr_local_parser.dart`, `voice_local_parser.dart`, `parsing_dictionary_model.dart`, `voice_local_data_source.dart`, dan test-test terkait

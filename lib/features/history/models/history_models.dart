@@ -29,10 +29,26 @@ class SubPeriodTab {
 
 /// Container untuk hasil RPC [get_history_transactions].
 ///
-/// Menyimpan list transaksi dan flag apakah masih ada data berikutnya.
+/// Menyimpan list transaksi, flag hasMore, dan aggregate totals
+/// (dihitung di server dari seluruh data yang cocok — bukan hanya halaman ini).
 class HistoryResult {
-  const HistoryResult({required this.transactions, required this.hasMore});
+  const HistoryResult({
+    required this.transactions,
+    required this.hasMore,
+    this.totalIncome = 0,
+    this.totalExpense = 0,
+    this.totalCount = 0,
+  });
 
   final List<TransactionModel> transactions;
   final bool hasMore;
+
+  /// Total pemasukan (income, bukan settlement) untuk seluruh periode.
+  final double totalIncome;
+
+  /// Total pengeluaran (expense, bukan settlement) untuk seluruh periode.
+  final double totalExpense;
+
+  /// Jumlah total transaksi yang cocok filter (bukan hanya halaman ini).
+  final int totalCount;
 }

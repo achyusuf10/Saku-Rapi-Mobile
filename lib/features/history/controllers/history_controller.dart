@@ -53,6 +53,9 @@ class HistoryState {
     this.hasMore = true,
     this.isLoadingMore = false,
     this.subPeriodIndex,
+    this.summaryTotalIncome = 0,
+    this.summaryTotalExpense = 0,
+    this.summaryTotalCount = 0,
   });
 
   final HistoryStatus status;
@@ -72,6 +75,12 @@ class HistoryState {
   /// Index tab sub-period yang sedang aktif.
   /// null berarti belum di-init (akan di-set ke tab terakhir / "saat ini").
   final int? subPeriodIndex;
+
+  /// Aggregate totals dari server — mencakup SELURUH data yang cocok filter,
+  /// bukan hanya halaman yang sudah di-load.
+  final double summaryTotalIncome;
+  final double summaryTotalExpense;
+  final int summaryTotalCount;
 
   HistoryState copyWith({
     HistoryStatus? status,
@@ -93,6 +102,9 @@ class HistoryState {
     bool clearError = false,
     int? subPeriodIndex,
     bool clearSubPeriod = false,
+    double? summaryTotalIncome,
+    double? summaryTotalExpense,
+    int? summaryTotalCount,
   }) {
     return HistoryState(
       status: status ?? this.status,
@@ -111,6 +123,9 @@ class HistoryState {
       subPeriodIndex: clearSubPeriod
           ? null
           : (subPeriodIndex ?? this.subPeriodIndex),
+      summaryTotalIncome: summaryTotalIncome ?? this.summaryTotalIncome,
+      summaryTotalExpense: summaryTotalExpense ?? this.summaryTotalExpense,
+      summaryTotalCount: summaryTotalCount ?? this.summaryTotalCount,
     );
   }
 
@@ -427,19 +442,11 @@ class HistoryState {
     return Map.fromEntries(sorted);
   }
 
-  /// Total pemasukan dari transaksi terffilter.
-  double get totalIncome {
-    return filteredTransactions
-        .where((t) => t.type == TransactionTypeEnum.income && !t.isSettlement)
-        .fold(0.0, (sum, t) => sum + t.totalAmount);
-  }
+  /// Total pemasukan dari server (mencakup semua data, bukan hanya yang ter-load).
+  double get totalIncome => summaryTotalIncome;
 
-  /// Total pengeluaran dari transaksi terfilter.
-  double get totalExpense {
-    return filteredTransactions
-        .where((t) => t.type == TransactionTypeEnum.expense && !t.isSettlement)
-        .fold(0.0, (sum, t) => sum + t.totalAmount);
-  }
+  /// Total pengeluaran dari server (mencakup semua data, bukan hanya yang ter-load).
+  double get totalExpense => summaryTotalExpense;
 }
 
 // ───────────────── Controller ─────────────────
@@ -645,6 +652,9 @@ class HistoryController extends StateNotifier<HistoryState> {
         transactions: data.transactions,
         offset: _currentPageSize,
         hasMore: data.hasMore,
+        summaryTotalIncome: data.totalIncome,
+        summaryTotalExpense: data.totalExpense,
+        summaryTotalCount: data.totalCount,
       );
     } else {
       final (message, _, _, _) = result.dataError()!;

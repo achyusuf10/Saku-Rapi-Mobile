@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-14
+updated: 2026-04-19
 ---
 
 # 📚 Indeks Wiki SakuRapi
@@ -11,9 +11,9 @@ updated: 2026-04-14
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 45 |
-| Sumber diproses | 10 |
-| Entitas | 20 |
+| Total halaman | 59 |
+| Sumber diproses | 22 |
+| Entitas | 22 |
 | Konsep | 8 |
 | Analisis | 5 |
 
@@ -43,6 +43,8 @@ updated: 2026-04-14
 - [[wiki/entities/reports|Reports]] — Laporan keuangan (summary, pie chart, trend chart, per kategori)
 - [[wiki/entities/edge-functions|Edge Functions]] — Supabase Edge Functions (ai-parse, gold-price, bitcoin-price) berbasis Deno + TypeScript
 - [[wiki/entities/notifikasi|Notifikasi]] — Sistem notifikasi lokal (daily reminder, budget alert, pengingat piutang)
+- [[wiki/entities/ads|Ads]] — Sistem iklan Google AdMob (banner, native, interstitial, eligibility gate via `show_ads`)
+- [[wiki/entities/home-widget|Android Home Widget]] — Widget Android (XML RemoteViews, wallet display, balance privacy toggle, 4 quick actions)
 
 ## 💡 Konsep
 
@@ -71,6 +73,18 @@ updated: 2026-04-14
 - [[wiki/sources/plan-history-search-category-pagination|Plan: History Search + Category Pagination]] — Rencana dan implementasi search server-side + category-level pagination di History (April 2026)
 - [[wiki/sources/plan-refactor-report-category-breakdown|Plan: Refactor Breakdown Kategori Reports]] — Refactor breakdown kategori Reports: pie chart + linear list digabung, top 5 + Lainnya, mode toggle dihapus (April 2026)
 - [[wiki/sources/plan-sentry-integration|Plan: Sentry Integration]] — Integrasi Sentry error monitoring: flavor-based config, noise filtering, SentryContext per event (April 2026)
+- [[wiki/sources/plan-ads-integration|Plan: Integrasi Google AdMob]] — Rencana monetisasi iklan: Banner (dashboard+history), Native (every 10), Interstitial (per 5 simpan), eligibility gate `show_ads` (April 2026)
+- [[wiki/sources/audit-dashboard-charts|Audit: Dashboard Charts]] — 8 bug ditemukan: loading state, stale flash, tooltip single-series, label "kemarin" salah (April 2026)
+- [[wiki/sources/audit-report-page|Audit: Report Page]] — Bug tooltip single-series, gap fill hari kosong, hardcoded "Income"/"Expense" di tooltip (April 2026)
+- [[wiki/sources/plan-image-upload-edge-fn|Plan: Edge Function image-upload]] — Edge function upload gambar: Supabase Storage primary, GCS fallback jika over limit (April 2026)
+- [[wiki/sources/plan-ai-parse-enhancement|Plan: Enhancement AI Parse (Wallet + Category)]] — Kirim wallet list ke AI, short ID mapping, multi-item text/voice, rename `suggestedWalletId` (April 2026)
+- [[wiki/sources/plan-android-home-widget|Plan: Android Home Widget]] — XML RemoteViews, wallet navigation arrows, balance privacy toggle, 4 quick action deep links, cold start fix (April 2026)
+- [[wiki/sources/plan-fix-ai-parse-gemini-404|Plan: Fix AI Parse Gemini Model 404]] — Root cause + fix model 404: `gemini-1.5-flash` → `gemini-2.5-flash-lite`, pindah ke Vertex AI auth (April 2026)
+- [[wiki/sources/plan-normalize-date-iso8601|Plan: Normalisasi Date ISO 8601]] — Kontrak akhir timestamp vs date-only, `SakuDateUtils`, migration 021 restore timestamptz — ✅ Implemented (April 2026)
+- [[wiki/sources/plan-refactor-ai-parse|Plan: Refactor AI Parse (Gemini Only + Daily Quota)]] — Gemini-only, perbaikan note quality, rate limiting per mode, tier free/premium — ✅ Implemented (April 2026)
+- [[wiki/sources/plan-refactor-gold-price|Plan: Refactor Gold Price ke Gemini Only]] — Hapus Groq/OpenRouter, Vertex AI Gemini 2.5 Flash saja — ✅ Implemented (April 2026)
+- [[wiki/sources/plan-remove-manual-parsing|Plan: Hapus Manual Parsing]] — Hapus regex fallback + parsing_dictionaries; AI fail → error + retry, bukan silent fallback — ✅ Implemented (April 2026)
+- [[wiki/sources/plan-ui-grouping-attachment|Plan: UI Grouping + Attachment + Transaction Detail]] — Group-by-date di BudgetDetail+ReportCategory, fix wallet/kategori alias bug, tampilkan lampiran di TransactionDetail (April 2026)
 
 ## 🔬 Analisis
 

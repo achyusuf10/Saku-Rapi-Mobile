@@ -238,7 +238,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           _SummaryCard(
             income: historyState.totalIncome,
             expense: historyState.totalExpense,
-            transactionCount: historyState.filteredTransactions.length,
+            transactionCount: historyState.summaryTotalCount,
             onViewReport: () {
               context.push(
                 AppRouter.reports,

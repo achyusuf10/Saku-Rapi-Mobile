@@ -68,6 +68,9 @@ class HistoryRemoteDataSource {
         return HistoryResult(
           transactions: txList,
           hasMore: data['has_more'] as bool,
+          totalIncome: (data['total_income'] as num?)?.toDouble() ?? 0,
+          totalExpense: (data['total_expense'] as num?)?.toDouble() ?? 0,
+          totalCount: (data['total_count'] as num?)?.toInt() ?? 0,
         );
       },
     );

@@ -93,6 +93,38 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                       .setSelectedPeriodKey(periodTypes[i]),
                 ),
               )
+            : periodTypes.length == 1
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(40.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: colors.primary, width: 2.w),
+                        ),
+                      ),
+                      child: Text(
+                        _PeriodTabBar(
+                          types: periodTypes,
+                          onTap: (i) => ref
+                              .read(budgetControllerProvider.notifier)
+                              .setSelectedPeriodKey(periodTypes[i]),
+                        )._periodLabel(periodTypes.first, context),
+                        style: TextStyleConstants.b2.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : null,
       ),
       body: _buildBody(budgetState, periodTypes),

@@ -1,3 +1,12 @@
+---
+title: "Analisis: Refactor AI Parse Gemini-Only + Daily Quota"
+type: analysis
+tags: [analysis, ai-parse, gemini, rate-limiting, quota, edge-function]
+sources: [raw/docs/plan-refactor-ai-parse.md]
+created: 2026-04-12
+updated: 2026-04-12
+---
+
 # Refactor AI Parse: Gemini-Only + Daily Quota
 
 **Tanggal:** 2026-04-12  
