@@ -4,6 +4,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/view/widgets/category_filter_row.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_list_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
@@ -29,6 +30,11 @@ class CategoryManagementPage extends ConsumerStatefulWidget {
 class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+
+  // Filter & sort state
+  CategorySortField _sortField = CategorySortField.name;
+  CategorySortDirection _sortDirection = CategorySortDirection.asc;
+  CategorySourceFilter _sourceFilter = CategorySourceFilter.all;
 
   @override
   void initState() {
@@ -105,11 +111,47 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
       );
     }
 
-    return TabBarView(
-      controller: _tabController,
+    return Column(
       children: [
-        _CategoryListTab(type: CategoryType.expense),
-        _CategoryListTab(type: CategoryType.income),
+        // ── Filter & sort row ──
+        CategoryFilterRow(
+          sortField: _sortField,
+          sortDirection: _sortDirection,
+          sourceFilter: _sourceFilter,
+          onSortChanged: (field, dir) => setState(() {
+            _sortField = field;
+            _sortDirection = dir;
+          }),
+          onSourceFilterChanged: (filter) =>
+              setState(() => _sourceFilter = filter),
+          onReset: () => setState(() {
+            _sortField = CategorySortField.name;
+            _sortDirection = CategorySortDirection.asc;
+            _sourceFilter = CategorySourceFilter.all;
+          }),
+        ),
+        Divider(height: 1, color: context.colors.border.withValues(alpha: 0.3)),
+
+        // ── Tab content ──
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _CategoryListTab(
+                type: CategoryType.expense,
+                sortField: _sortField,
+                sortDirection: _sortDirection,
+                sourceFilter: _sourceFilter,
+              ),
+              _CategoryListTab(
+                type: CategoryType.income,
+                sortField: _sortField,
+                sortDirection: _sortDirection,
+                sourceFilter: _sourceFilter,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -125,24 +167,48 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
 
 /// Tab content untuk satu tipe kategori (expense/income).
 class _CategoryListTab extends ConsumerWidget {
-  const _CategoryListTab({required this.type});
+  const _CategoryListTab({
+    required this.type,
+    required this.sortField,
+    required this.sortDirection,
+    required this.sourceFilter,
+  });
 
   final CategoryType type;
+  final CategorySortField sortField;
+  final CategorySortDirection sortDirection;
+  final CategorySourceFilter sourceFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
 
-    final groupedCategories = type == CategoryType.expense
+    final allCategories = type == CategoryType.expense
         ? ref.watch(allExpenseCategoriesProvider)
         : ref.watch(allIncomeCategoriesProvider);
 
-    if (groupedCategories.isEmpty) {
+    // Apply source filter + sort
+    final filtered = applyCategorySort(
+      applySourceFilter(allCategories, sourceFilter),
+      sortField,
+      sortDirection,
+    );
+
+    // No categories at all → empty state with add button
+    if (allCategories.isEmpty) {
       return SakuEmptyState(
         message: l10n.categoryEmpty,
         icon: FontAwesomeIcons.layerGroup,
         actionLabel: l10n.categoryAdd,
         onAction: () => CategoryFormSheet.show(context: context, type: type),
+      );
+    }
+
+    // Categories exist but filter returns nothing
+    if (filtered.isEmpty) {
+      return SakuEmptyState(
+        message: l10n.categoryFilterNoResults,
+        icon: FontAwesomeIcons.filter,
       );
     }
 
@@ -152,10 +218,10 @@ class _CategoryListTab extends ConsumerWidget {
       },
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        itemCount: groupedCategories.length,
+        itemCount: filtered.length,
         separatorBuilder: (_, index) => SizedBox(height: 4.h),
         itemBuilder: (context, index) {
-          final parent = groupedCategories[index];
+          final parent = filtered[index];
           return _CategoryManagementTile(category: parent, type: type);
         },
       ),

@@ -1454,6 +1454,60 @@ abstract class AppLocalizations {
   /// **'Cari icon...'**
   String get categorySearchIcon;
 
+  /// No description provided for @categorySortNameAZ.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama: A→Z'**
+  String get categorySortNameAZ;
+
+  /// No description provided for @categorySortNameZA.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama: Z→A'**
+  String get categorySortNameZA;
+
+  /// No description provided for @categorySortNewest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terbaru'**
+  String get categorySortNewest;
+
+  /// No description provided for @categorySortOldest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terlama'**
+  String get categorySortOldest;
+
+  /// No description provided for @categoryFilterAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get categoryFilterAll;
+
+  /// No description provided for @categoryFilterUserCreated.
+  ///
+  /// In id, this message translates to:
+  /// **'Buatan Saya'**
+  String get categoryFilterUserCreated;
+
+  /// No description provided for @categoryFilterSystem.
+  ///
+  /// In id, this message translates to:
+  /// **'Dari Sistem'**
+  String get categoryFilterSystem;
+
+  /// No description provided for @categoryFilterReset.
+  ///
+  /// In id, this message translates to:
+  /// **'Reset'**
+  String get categoryFilterReset;
+
+  /// No description provided for @categoryFilterNoResults.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada kategori yang cocok dengan filter'**
+  String get categoryFilterNoResults;
+
   /// No description provided for @categoryChildCount.
   ///
   /// In id, this message translates to:

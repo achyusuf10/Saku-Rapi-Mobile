@@ -303,6 +303,15 @@
   "categoryErrorDelete": "Gagal menghapus kategori",
   "categoryEmpty": "Belum ada kategori",
   "categorySearchIcon": "Cari icon...",
+  "categorySortNameAZ": "Nama: A→Z",
+  "categorySortNameZA": "Nama: Z→A",
+  "categorySortNewest": "Terbaru",
+  "categorySortOldest": "Terlama",
+  "categoryFilterAll": "Semua",
+  "categoryFilterUserCreated": "Buatan Saya",
+  "categoryFilterSystem": "Dari Sistem",
+  "categoryFilterReset": "Reset",
+  "categoryFilterNoResults": "Tidak ada kategori yang cocok dengan filter",
   "categoryChildCount": "{count} sub-kategori",
   "@categoryChildCount": {
     "placeholders": {

@@ -300,6 +300,15 @@
   "categoryErrorDelete": "Failed to delete category",
   "categoryEmpty": "No categories yet",
   "categorySearchIcon": "Search icon...",
+  "categorySortNameAZ": "Name: A→Z",
+  "categorySortNameZA": "Name: Z→A",
+  "categorySortNewest": "Newest",
+  "categorySortOldest": "Oldest",
+  "categoryFilterAll": "All",
+  "categoryFilterUserCreated": "My Categories",
+  "categoryFilterSystem": "System",
+  "categoryFilterReset": "Reset",
+  "categoryFilterNoResults": "No categories match the selected filter",
   "categoryChildCount": "{count} sub-categories",
   "@categoryChildCount": {
     "placeholders": {

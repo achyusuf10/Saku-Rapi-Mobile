@@ -6,6 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 // ─────────────────────────────────────────────────────────
+// Filter & Sort Enums (UI-level)
+// ─────────────────────────────────────────────────────────
+
+/// Kolom urutan untuk filter kategori di UI.
+enum CategorySortField { name, createdAt }
+
+/// Arah urutan untuk filter kategori di UI.
+enum CategorySortDirection { asc, desc }
+
+/// Filter sumber kategori di UI (semua / buatan user / dari sistem).
+enum CategorySourceFilter { all, user, system }
+
+// ─────────────────────────────────────────────────────────
 // Providers
 // ─────────────────────────────────────────────────────────
 

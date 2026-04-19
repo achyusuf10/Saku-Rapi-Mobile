@@ -189,3 +189,4 @@ Located in `supabase/functions/`.
 - Config: `l10n.yaml` with `flutter: generate: true`
 - Always check existing keys before adding new ones
 - Run `fvm flutter gen-l10n` after `.arb` changes
+- **⚠️ WAJIB: Setiap menambahkan key baru di `app_id.arb`, HARUS langsung ditambahkan juga di semua ARB lain (minimal `app_en.arb`) dengan terjemahan yang sesuai. Jangan hanya tambah di satu bahasa.**

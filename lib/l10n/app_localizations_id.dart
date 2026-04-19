@@ -714,6 +714,34 @@ class AppLocalizationsId extends AppLocalizations {
   String get categorySearchIcon => 'Cari icon...';
 
   @override
+  String get categorySortNameAZ => 'Nama: A→Z';
+
+  @override
+  String get categorySortNameZA => 'Nama: Z→A';
+
+  @override
+  String get categorySortNewest => 'Terbaru';
+
+  @override
+  String get categorySortOldest => 'Terlama';
+
+  @override
+  String get categoryFilterAll => 'Semua';
+
+  @override
+  String get categoryFilterUserCreated => 'Buatan Saya';
+
+  @override
+  String get categoryFilterSystem => 'Dari Sistem';
+
+  @override
+  String get categoryFilterReset => 'Reset';
+
+  @override
+  String get categoryFilterNoResults =>
+      'Tidak ada kategori yang cocok dengan filter';
+
+  @override
   String categoryChildCount(int count) {
     return '$count sub-kategori';
   }

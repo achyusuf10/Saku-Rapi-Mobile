@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/view/widgets/category_filter_row.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_list_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
+import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -66,6 +70,49 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
+  // Filter & sort state (persisted per type)
+  CategorySortField _sortField = CategorySortField.name;
+  CategorySortDirection _sortDirection = CategorySortDirection.asc;
+  CategorySourceFilter _sourceFilter = CategorySourceFilter.all;
+
+  static String _prefsKey(CategoryType type) =>
+      'category_filter_prefs_${type.value}';
+
+  /// Load filter prefs dari Hive saat sheet dibuka.
+  void _loadFilterPrefs() {
+    final raw = HiveService.get<String>(key: _prefsKey(widget.type));
+    if (raw == null) return;
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      _sortField = CategorySortField.values.firstWhere(
+        (e) => e.name == map['sort_field'],
+        orElse: () => CategorySortField.name,
+      );
+      _sortDirection = CategorySortDirection.values.firstWhere(
+        (e) => e.name == map['sort_direction'],
+        orElse: () => CategorySortDirection.asc,
+      );
+      _sourceFilter = CategorySourceFilter.values.firstWhere(
+        (e) => e.name == map['source_filter'],
+        orElse: () => CategorySourceFilter.all,
+      );
+    } catch (_) {
+      // Keep defaults
+    }
+  }
+
+  /// Simpan filter prefs ke Hive.
+  void _saveFilterPrefs() {
+    HiveService.set<String>(
+      key: _prefsKey(widget.type),
+      data: jsonEncode({
+        'sort_field': _sortField.name,
+        'sort_direction': _sortDirection.name,
+        'source_filter': _sourceFilter.name,
+      }),
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -75,6 +122,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   @override
   void initState() {
     super.initState();
+    // Load persisted filter prefs sebelum build pertama
+    _loadFilterPrefs();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(categoryControllerProvider);
       if (state.status == CategoryStatus.initial) {
@@ -102,19 +151,27 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         if (mounted) {
           setState(() {
             _initialized = true;
-            // _expandedParentIds.addAll(
-            //   groupedCategories.map((c) => c.id).whereType<String>(),
-            // );
           });
         }
       });
     }
 
-    // Filter kategori berdasarkan search query.
+    // Step 1: Apply source filter + sort
+    final sourceSorted = applyCategorySort(
+      applySourceFilter(groupedCategories, _sourceFilter),
+      _sortField,
+      _sortDirection,
+    );
+
+    // Step 2: Apply search query
     final q = _searchQuery.toLowerCase().trim();
+    // Auto-expand semua hasil saat sedang search.
+    if (q.isNotEmpty) {
+      _collapsedParentIds.clear();
+    }
     final filteredCategories = q.isEmpty
-        ? groupedCategories
-        : groupedCategories
+        ? sourceSorted
+        : sourceSorted
               .map((parent) {
                 final parentMatches = parent.name.toLowerCase().contains(q);
                 final matchingChildren = parent.children
@@ -122,24 +179,14 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                     .toList();
 
                 if (parentMatches) {
-                  // Return parent dengan semua children tetap
                   return parent;
                 } else if (matchingChildren.isNotEmpty) {
-                  // Return parent dengan hanya children yang cocok
                   return parent.copyWith(children: matchingChildren);
                 }
                 return null;
               })
               .whereType<CategoryModel>()
               .toList();
-
-    // Auto-expand semua hasil saat sedang search.
-    if (q.isNotEmpty) {
-      _collapsedParentIds.clear();
-      // _expandedParentIds.addAll(
-      //   filteredCategories.map((c) => c.id).whereType<String>(),
-      // );
-    }
 
     return Container(
       height: double.infinity,
@@ -320,6 +367,32 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 ),
               ),
             ),
+          ),
+
+          // Filter & sort row
+          CategoryFilterRow(
+            sortField: _sortField,
+            sortDirection: _sortDirection,
+            sourceFilter: _sourceFilter,
+            onSortChanged: (field, dir) {
+              setState(() {
+                _sortField = field;
+                _sortDirection = dir;
+              });
+              _saveFilterPrefs();
+            },
+            onSourceFilterChanged: (filter) {
+              setState(() => _sourceFilter = filter);
+              _saveFilterPrefs();
+            },
+            onReset: () {
+              setState(() {
+                _sortField = CategorySortField.name;
+                _sortDirection = CategorySortDirection.asc;
+                _sourceFilter = CategorySourceFilter.all;
+              });
+              _saveFilterPrefs();
+            },
           ),
 
           // Category list

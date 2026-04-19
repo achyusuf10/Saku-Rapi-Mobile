@@ -716,6 +716,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categorySearchIcon => 'Search icon...';
 
   @override
+  String get categorySortNameAZ => 'Name: A→Z';
+
+  @override
+  String get categorySortNameZA => 'Name: Z→A';
+
+  @override
+  String get categorySortNewest => 'Newest';
+
+  @override
+  String get categorySortOldest => 'Oldest';
+
+  @override
+  String get categoryFilterAll => 'All';
+
+  @override
+  String get categoryFilterUserCreated => 'My Categories';
+
+  @override
+  String get categoryFilterSystem => 'System';
+
+  @override
+  String get categoryFilterReset => 'Reset';
+
+  @override
+  String get categoryFilterNoResults =>
+      'No categories match the selected filter';
+
+  @override
   String categoryChildCount(int count) {
     return '$count sub-categories';
   }
