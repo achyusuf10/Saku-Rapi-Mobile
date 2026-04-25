@@ -4,6 +4,9 @@ import 'package:app_saku_rapi/features/category/datasource/category_local_data_s
 import 'package:app_saku_rapi/features/category/datasource/category_remote_data_source.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 
+export 'package:app_saku_rapi/features/category/datasource/category_local_data_source.dart'
+    show CategoryPickerPrefs;
+
 /// Repository utama untuk modul kategori.
 ///
 /// Mengorkestrasikan [CategoryRemoteDataSource] dan [CategoryLocalDataSource]
@@ -211,6 +214,30 @@ class CategoryRepository {
   /// Bersihkan cache lokal (dipanggil saat sign out).
   void clearCache() {
     _localDataSource.clearCategoryCache();
+  }
+
+  // ───────────────── Picker Filter Prefs ─────────────────
+
+  /// Baca preferensi filter picker kategori untuk [typeValue].
+  CategoryPickerPrefs getFilterPrefs(String typeValue) {
+    return _localDataSource.getFilterPrefs(typeValue);
+  }
+
+  /// Simpan preferensi filter picker kategori untuk [typeValue].
+  void saveFilterPrefs(String typeValue, CategoryPickerPrefs prefs) {
+    _localDataSource.saveFilterPrefs(typeValue, prefs);
+  }
+
+  // ───────────────── Picker Collapsed State ─────────────────
+
+  /// Baca set ID parent yang di-collapse user di picker untuk [typeValue].
+  Set<String> getCollapsedParentIds(String typeValue) {
+    return _localDataSource.getCollapsedParentIds(typeValue);
+  }
+
+  /// Simpan set ID parent yang di-collapse user di picker untuk [typeValue].
+  void saveCollapsedParentIds(String typeValue, Set<String> ids) {
+    _localDataSource.saveCollapsedParentIds(typeValue, ids);
   }
 
   // ─────────────────────────────────────────────────────────

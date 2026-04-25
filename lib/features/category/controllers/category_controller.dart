@@ -5,6 +5,9 @@ import 'package:app_saku_rapi/features/category/repositories/category_repository
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+export 'package:app_saku_rapi/features/category/repositories/category_repository.dart'
+    show CategoryPickerPrefs;
+
 // ─────────────────────────────────────────────────────────
 // Filter & Sort Enums (UI-level)
 // ─────────────────────────────────────────────────────────
@@ -287,5 +290,29 @@ class CategoryController extends StateNotifier<CategoryState> {
   void clearCache() {
     _repository.clearCache();
     state = const CategoryState();
+  }
+
+  // ───────────────── Picker Filter Prefs ─────────────────
+
+  /// Baca preferensi filter picker kategori untuk [typeValue].
+  CategoryPickerPrefs getFilterPrefs(String typeValue) {
+    return _repository.getFilterPrefs(typeValue);
+  }
+
+  /// Simpan preferensi filter picker kategori untuk [typeValue].
+  void saveFilterPrefs(String typeValue, CategoryPickerPrefs prefs) {
+    _repository.saveFilterPrefs(typeValue, prefs);
+  }
+
+  // ───────────────── Picker Collapsed State ─────────────────
+
+  /// Baca set ID parent yang di-collapse user di picker untuk [typeValue].
+  Set<String> getCollapsedParentIds(String typeValue) {
+    return _repository.getCollapsedParentIds(typeValue);
+  }
+
+  /// Simpan set ID parent yang di-collapse user di picker untuk [typeValue].
+  void saveCollapsedParentIds(String typeValue, Set<String> ids) {
+    _repository.saveCollapsedParentIds(typeValue, ids);
   }
 }

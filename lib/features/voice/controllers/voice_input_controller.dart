@@ -34,9 +34,33 @@ final voiceInputControllerProvider =
             .categories
             .where((c) => c.type != CategoryType.system && !c.isHidden)
             .toList(),
-        wallets: ref.read(walletListProvider),
+        walletResolver: () => _resolveWallets(ref),
       ),
     );
+
+// ─── Wallet resolver helper ───
+
+/// Menunggu wallet selesai loading lalu return list-nya.
+/// Jika wallet masih [WalletStatus.loading], poll sampai selesai atau timeout 5 detik.
+/// Return list kosong jika error atau timeout.
+Future<List<WalletModel>> _resolveWallets(Ref ref) async {
+  const timeout = Duration(seconds: 5);
+  const pollInterval = Duration(milliseconds: 100);
+  final deadline = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(deadline)) {
+    final walletState = ref.read(walletControllerProvider);
+    if (walletState.status == WalletStatus.loaded) {
+      return walletState.wallets;
+    }
+    if (walletState.status == WalletStatus.error) {
+      return const [];
+    }
+    await Future<void>.delayed(pollInterval);
+  }
+
+  return const [];
+}
 
 // ═══════════════ State ═══════════════
 
@@ -126,17 +150,17 @@ class VoiceInputController extends StateNotifier<VoiceInputState> {
     required VoiceRepository repository,
     required VoiceInputService service,
     List<CategoryModel> categories = const [],
-    List<WalletModel> wallets = const [],
+    Future<List<WalletModel>> Function()? walletResolver,
   }) : _repository = repository,
        _service = service,
        _categories = categories,
-       _wallets = wallets,
+       _walletResolver = walletResolver,
        super(const VoiceInputState());
 
   final VoiceRepository _repository;
   final VoiceInputService _service;
   final List<CategoryModel> _categories;
-  final List<WalletModel> _wallets;
+  final Future<List<WalletModel>> Function()? _walletResolver;
 
   static const _tag = '[Voice] [VoiceInputController]';
 
@@ -267,10 +291,9 @@ class VoiceInputController extends StateNotifier<VoiceInputState> {
             })
         .toList();
 
-    // Siapkan daftar wallet untuk AI wallet matching
-    final walletMaps = _wallets
-        .map((w) => {'id': w.id, 'name': w.name})
-        .toList();
+    // Wallet list untuk AI wallet matching — tunggu jika masih loading
+    final wallets = await (_walletResolver?.call() ?? Future.value(const <WalletModel>[]));
+    final walletMaps = wallets.map((w) => {'id': w.id, 'name': w.name}).toList();
 
     final result = await _repository.parseVoiceText(
       transcript,

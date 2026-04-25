@@ -12,6 +12,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+// ─── Wallet resolver helper ───
+
+/// Menunggu wallet selesai loading lalu return list-nya.
+/// Jika wallet masih [WalletStatus.loading], poll sampai selesai atau timeout 5 detik.
+/// Return list kosong jika error atau timeout.
+Future<List<WalletModel>> _resolveWallets(Ref ref) async {
+  const timeout = Duration(seconds: 5);
+  const pollInterval = Duration(milliseconds: 100);
+  final deadline = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(deadline)) {
+    final walletState = ref.read(walletControllerProvider);
+    if (walletState.status == WalletStatus.loaded) {
+      return walletState.wallets;
+    }
+    if (walletState.status == WalletStatus.error) {
+      return const [];
+    }
+    await Future<void>.delayed(pollInterval);
+  }
+
+  return const [];
+}
+
 // ═══════════════ Providers ═══════════════
 
 /// Singleton provider untuk [OcrRepository].
@@ -35,7 +59,7 @@ final ocrScanControllerProvider =
             .categories
             .where((c) => !c.isHidden && c.type != CategoryType.system)
             .toList(),
-        wallets: ref.read(walletListProvider),
+        walletResolver: () => _resolveWallets(ref),
       ),
     );
 
@@ -127,17 +151,17 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     required OcrRepository repository,
     required OcrImageService imageService,
     List<CategoryModel> categories = const [],
-    List<WalletModel> wallets = const [],
+    Future<List<WalletModel>> Function()? walletResolver,
   }) : _repository = repository,
        _imageService = imageService,
        _categories = categories,
-       _wallets = wallets,
+       _walletResolver = walletResolver,
        super(const OcrScanState());
 
   final OcrRepository _repository;
   final OcrImageService _imageService;
   final List<CategoryModel> _categories;
-  final List<WalletModel> _wallets;
+  final Future<List<WalletModel>> Function()? _walletResolver;
   static const _tag = '[OcrScanController]';
 
   /// Mulai flow OCR dari kamera.
@@ -219,10 +243,9 @@ class OcrScanController extends StateNotifier<OcrScanState> {
         )
         .toList();
 
-    // Siapkan daftar wallet untuk AI wallet matching
-    final walletMaps = _wallets
-        .map((w) => {'id': w.id, 'name': w.name})
-        .toList();
+    // Wallet list untuk AI wallet matching — tunggu jika masih loading
+    final wallets = await (_walletResolver?.call() ?? Future.value(const <WalletModel>[]));
+    final walletMaps = wallets.map((w) => {'id': w.id, 'name': w.name}).toList();
 
     try {
       result = await _repository.parseImage(

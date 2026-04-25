@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dar
 import 'package:app_saku_rapi/features/voice/repositories/voice_repository.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 // ═══════════════ Providers ═══════════════
@@ -20,9 +21,35 @@ final textInputControllerProvider =
             .categories
             .where((c) => c.type != CategoryType.system && !c.isHidden)
             .toList(),
-        wallets: ref.read(walletListProvider),
+        walletResolver: () => _resolveWallets(ref),
       ),
     );
+
+// ─── Wallet resolver helper ───
+
+/// Menunggu wallet selesai loading lalu return list-nya.
+/// Jika wallet masih [WalletStatus.loading], poll sampai selesai atau timeout 5 detik.
+/// Return list kosong jika error atau timeout.
+Future<List<WalletModel>> _resolveWallets(Ref ref) async {
+  const timeout = Duration(seconds: 5);
+  const pollInterval = Duration(milliseconds: 100);
+  final deadline = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(deadline)) {
+    final walletState = ref.read(walletControllerProvider);
+    if (walletState.status == WalletStatus.loaded) {
+      return walletState.wallets;
+    }
+    if (walletState.status == WalletStatus.error) {
+      return const [];
+    }
+    // Masih loading/initial — tunggu sebentar
+    await Future<void>.delayed(pollInterval);
+  }
+
+  // Timeout — kembalikan kosong agar tidak blokir AI process
+  return const [];
+}
 
 // ═══════════════ State ═══════════════
 
@@ -81,15 +108,15 @@ class TextInputController extends StateNotifier<TextInputState> {
   TextInputController({
     required VoiceRepository repository,
     List<CategoryModel> categories = const [],
-    List<WalletModel> wallets = const [],
+    Future<List<WalletModel>> Function()? walletResolver,
   }) : _repository = repository,
        _categories = categories,
-       _wallets = wallets,
+       _walletResolver = walletResolver,
        super(const TextInputState());
 
   final VoiceRepository _repository;
   final List<CategoryModel> _categories;
-  final List<WalletModel> _wallets;
+  final Future<List<WalletModel>> Function()? _walletResolver;
 
   static const _tag = '[TextInput] [TextInputController]';
 
@@ -107,18 +134,19 @@ class TextInputController extends StateNotifier<TextInputState> {
 
     // Kategori + is_default untuk AI
     final categoryMaps = _categories
-        .map((c) => {
-              'id': c.id,
-              'name': c.name,
-              'type': c.type.name,
-              'is_default': c.isDefault.toString(),
-            })
+        .map(
+          (c) => {
+            'id': c.id,
+            'name': c.name,
+            'type': c.type.name,
+            'is_default': c.isDefault.toString(),
+          },
+        )
         .toList();
 
-    // Wallet list untuk AI wallet matching
-    final walletMaps = _wallets
-        .map((w) => {'id': w.id, 'name': w.name})
-        .toList();
+    // Wallet list untuk AI wallet matching — tunggu jika masih loading
+    final wallets = await (_walletResolver?.call() ?? Future.value(const <WalletModel>[]));
+    final walletMaps = wallets.map((w) => {'id': w.id, 'name': w.name}).toList();
 
     final result = await _repository.parseVoiceText(
       trimmed,

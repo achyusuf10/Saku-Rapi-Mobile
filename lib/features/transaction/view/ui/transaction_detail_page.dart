@@ -447,7 +447,9 @@ class _HeaderCard extends StatelessWidget {
           SizedBox(height: 12.h),
           // Amount
           Text(
-            transaction.totalAmount.toCurrency(),
+            transaction.type == TransactionTypeEnum.adjustment
+                ? '${transaction.totalAmount >= 0 ? '+' : '-'} ${transaction.totalAmount.abs().toCurrency(withPrefix: false)}'
+                : transaction.totalAmount.toCurrency(),
             style: TextStyleConstants.h4.copyWith(
               color: typeColor,
               fontWeight: FontWeight.bold,
@@ -468,6 +470,12 @@ class _HeaderCard extends StatelessWidget {
   }
 
   Color _typeColor(TransactionTypeEnum type, dynamic colors) {
+    if (type == TransactionTypeEnum.adjustment) {
+      // Warna sesuai arah: hijau jika saldo naik, merah jika saldo turun
+      return transaction.totalAmount >= 0
+          ? colors.income as Color
+          : colors.expense as Color;
+    }
     return switch (type) {
       TransactionTypeEnum.income => colors.income as Color,
       TransactionTypeEnum.expense => colors.expense as Color,

@@ -386,6 +386,7 @@ class HistoryState {
 
   /// Hitung net total untuk sekumpulan transaksi.
   /// Income/debt positif, expense/loan negatif, settlement di-skip.
+  /// Adjustment: total_amount sudah signed (positif = saldo naik, negatif = saldo turun).
   static double groupNetTotal(List<TransactionModel> txs) {
     double total = 0;
     for (final tx in txs) {
@@ -396,6 +397,9 @@ class HistoryState {
       } else if (tx.type == TransactionTypeEnum.expense ||
           tx.type == TransactionTypeEnum.loan) {
         total -= tx.totalAmount;
+      } else if (tx.type == TransactionTypeEnum.adjustment) {
+        // total_amount is signed: positive = balance went up, negative = went down
+        total += tx.totalAmount;
       }
     }
     return total;

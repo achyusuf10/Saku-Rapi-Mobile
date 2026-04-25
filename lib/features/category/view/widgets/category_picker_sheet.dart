@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
@@ -9,7 +7,6 @@ import 'package:app_saku_rapi/features/category/view/widgets/category_filter_row
 import 'package:app_saku_rapi/features/category/view/widgets/category_form_sheet.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_list_tile.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
-import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -60,11 +57,10 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
 }
 
 class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
-  /// Set of parent IDs yang sedang di-expand (independen per parent).
-  // final Set<String> _expandedParentIds = {};
+  /// Set ID parent yang sedang di-collapse — di-persist ke Hive per type.
   final Set<String> _collapsedParentIds = {};
 
-  /// Flag agar auto-expand hanya dijalankan sekali saat categories pertama load.
+  /// Flag agar init hanya dijalankan sekali saat categories pertama load.
   bool _initialized = false;
 
   final _searchController = TextEditingController();
@@ -75,42 +71,53 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   CategorySortDirection _sortDirection = CategorySortDirection.asc;
   CategorySourceFilter _sourceFilter = CategorySourceFilter.all;
 
-  static String _prefsKey(CategoryType type) =>
-      'category_filter_prefs_${type.value}';
-
-  /// Load filter prefs dari Hive saat sheet dibuka.
+  /// Load filter prefs lewat controller.
   void _loadFilterPrefs() {
-    final raw = HiveService.get<String>(key: _prefsKey(widget.type));
-    if (raw == null) return;
-    try {
-      final map = jsonDecode(raw) as Map<String, dynamic>;
-      _sortField = CategorySortField.values.firstWhere(
-        (e) => e.name == map['sort_field'],
-        orElse: () => CategorySortField.none,
-      );
-      _sortDirection = CategorySortDirection.values.firstWhere(
-        (e) => e.name == map['sort_direction'],
-        orElse: () => CategorySortDirection.asc,
-      );
-      _sourceFilter = CategorySourceFilter.values.firstWhere(
-        (e) => e.name == map['source_filter'],
-        orElse: () => CategorySourceFilter.all,
-      );
-    } catch (_) {
-      // Keep defaults
-    }
+    final prefs = ref
+        .read(categoryControllerProvider.notifier)
+        .getFilterPrefs(widget.type.value);
+    _sortField = CategorySortField.values.firstWhere(
+      (e) => e.name == prefs.sortField,
+      orElse: () => CategorySortField.none,
+    );
+    _sortDirection = CategorySortDirection.values.firstWhere(
+      (e) => e.name == prefs.sortDirection,
+      orElse: () => CategorySortDirection.asc,
+    );
+    _sourceFilter = CategorySourceFilter.values.firstWhere(
+      (e) => e.name == prefs.sourceFilter,
+      orElse: () => CategorySourceFilter.all,
+    );
   }
 
-  /// Simpan filter prefs ke Hive.
+  /// Simpan filter prefs lewat controller.
   void _saveFilterPrefs() {
-    HiveService.set<String>(
-      key: _prefsKey(widget.type),
-      data: jsonEncode({
-        'sort_field': _sortField.name,
-        'sort_direction': _sortDirection.name,
-        'source_filter': _sourceFilter.name,
-      }),
-    );
+    ref
+        .read(categoryControllerProvider.notifier)
+        .saveFilterPrefs(
+          widget.type.value,
+          CategoryPickerPrefs(
+            sortField: _sortField.name,
+            sortDirection: _sortDirection.name,
+            sourceFilter: _sourceFilter.name,
+          ),
+        );
+  }
+
+  /// Load collapsed IDs lewat controller, lalu apply ke state.
+  /// Dipanggil di dalam setState() dari caller.
+  void _loadCollapsedState() {
+    final saved = ref
+        .read(categoryControllerProvider.notifier)
+        .getCollapsedParentIds(widget.type.value);
+    _collapsedParentIds.addAll(saved);
+  }
+
+  /// Persist collapsed IDs lewat controller.
+  void _saveCollapsedState() {
+    ref
+        .read(categoryControllerProvider.notifier)
+        .saveCollapsedParentIds(widget.type.value, _collapsedParentIds);
   }
 
   @override
@@ -122,11 +129,14 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   @override
   void initState() {
     super.initState();
-    // Load persisted filter prefs sebelum build pertama
-    _loadFilterPrefs();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(categoryControllerProvider);
-      if (state.status == CategoryStatus.initial) {
+      if (!mounted) return;
+      setState(() {
+        _loadFilterPrefs();
+        _loadCollapsedState();
+      });
+      final catState = ref.read(categoryControllerProvider);
+      if (catState.status == CategoryStatus.initial) {
         ref.read(categoryControllerProvider.notifier).loadCategories();
       }
     });
@@ -442,6 +452,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         _collapsedParentIds.add(parentId);
       }
     });
+    _saveCollapsedState();
   }
 
   void _selectCategory(CategoryModel category) {

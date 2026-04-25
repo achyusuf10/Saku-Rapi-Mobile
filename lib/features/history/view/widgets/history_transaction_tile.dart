@@ -51,9 +51,7 @@ class HistoryTransactionTile extends StatelessWidget {
   Widget _buildByDateLayout(BuildContext context) {
     final colors = context.colors;
     final typeColor = _resolveIconColor(transaction, colors);
-    final isIncoming =
-        transaction.type == TransactionTypeEnum.income ||
-        transaction.type == TransactionTypeEnum.debt;
+    final isIncoming = _isIncoming(transaction);
 
     return Material(
       color: Colors.transparent,
@@ -113,7 +111,7 @@ class HistoryTransactionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
+                    '${isIncoming ? '+' : '-'} ${transaction.totalAmount.abs().toCurrency(withPrefix: false)}',
                     style: TextStyleConstants.caption.copyWith(
                       fontWeight: FontWeight.w700,
                       color: isIncoming ? colors.income : colors.expense,
@@ -141,9 +139,7 @@ class HistoryTransactionTile extends StatelessWidget {
   /// Date(EEE, dd MMM yyyy HH:mm) + Note | Amount
   Widget _buildByCategoryLayout(BuildContext context) {
     final colors = context.colors;
-    final isIncoming =
-        transaction.type == TransactionTypeEnum.income ||
-        transaction.type == TransactionTypeEnum.debt;
+    final isIncoming = _isIncoming(transaction);
 
     return Material(
       color: Colors.transparent,
@@ -190,7 +186,7 @@ class HistoryTransactionTile extends StatelessWidget {
 
               // ─── Amount ───
               Text(
-                '${isIncoming ? '+' : '-'} ${transaction.totalAmount.toCurrency(withPrefix: false)}',
+                '${isIncoming ? '+' : '-'} ${transaction.totalAmount.abs().toCurrency(withPrefix: false)}',
                 style: TextStyleConstants.caption.copyWith(
                   fontWeight: FontWeight.w700,
                   color: isIncoming ? colors.income : colors.expense,
@@ -233,6 +229,19 @@ class HistoryTransactionTile extends StatelessWidget {
     }
     if (tx.type == TransactionTypeEnum.adjustment) return 'Adjustment';
     return tx.note ?? tx.type.toDbValue();
+  }
+
+  /// Menentukan apakah transaksi ini "masuk" (tampil warna hijau / tanda +).
+  ///
+  /// Untuk tipe `adjustment`, arah ditentukan dari sign `total_amount`:
+  ///   - positif (saldo naik)  → incoming (+)
+  ///   - negatif (saldo turun) → outgoing (-)
+  bool _isIncoming(TransactionModel tx) {
+    if (tx.type == TransactionTypeEnum.adjustment) {
+      return tx.totalAmount >= 0;
+    }
+    return tx.type == TransactionTypeEnum.income ||
+        tx.type == TransactionTypeEnum.debt;
   }
 
   Widget _buildIcon(TransactionModel tx, Color fallbackColor) {
