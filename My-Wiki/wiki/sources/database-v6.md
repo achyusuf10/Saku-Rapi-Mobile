@@ -1,167 +1,103 @@
 ---
-title: "SakuRapi Database Final v6.4 — Ringkasan"
+title: "SakuRapi Database — Ringkasan sumber 02 + evolusi"
 type: source
-tags: [database, supabase, postgres, schema, rpc, triggers, rls, investasi, sakurapi]
+tags: [database, supabase, postgres, schema, rpc, triggers, rls, investasi, sakurapi, categories]
 sources: [raw/docs/02_DATABASE.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-25
 ---
 
-# SakuRapi Database Final v6.4 — Ringkasan
+# SakuRapi Database — Ringkasan sumber 02 + evolusi
 
-**Jenis**: Dokumen internal — Spesifikasi database (schema, constraint, trigger, RPC, indexing)
-**Tanggal sumber**: 2026 (versi 6.4 — Final for implementation)
-**Database authority**: Supabase Postgres
-**Ledger rule**: `wallets.balance` hanya berubah dari trigger berbasis `transactions`
+**Jenis:** Dokumen internal — ringkasan *snapshot* lama + **status skema saat ini (Apr 2026)**
+**Tanggal sumber asli:** `raw/docs/02_DATABASE.md` (diberi label v6.4, fokus implementasi lama)
+**Otoritas skema terkini (Flutter + Supabase, repo + wiki):** [[wiki/entities/database-schema|Database Schema]] — 19 tabel, trigger/RPC/RLS termasuk kategori global.
+
+> File `02_DATABASE.md` di `raw/docs/` **tidak lagi** menjelaskan kategori, *seed* pendaftaran, dan hitungan tabel sebagaimana app berjalan hari ini. Bagian bawah memuat ringkasan evolusi. Untuk detail kategori: [[wiki/entities/categories|Categories]].
+
+**Database authority:** Supabase Postgres
+**Ledger rule:** `wallets.balance` hanya berubah dari trigger berbasis `transactions`
 
 ## Ringkasan
 
-Dokumen ini adalah **sumber kebenaran tunggal** untuk seluruh struktur database SakuRapi yang berjalan di Supabase/Postgres. Versi 6.4 mendefinisikan 15 tabel bisnis, lengkap dengan constraint, trigger, RPC (Remote Procedure Call), RLS policy, dan indexing strategy.
+Arsitektur inti (ledger, RPC atomik, RLS) **tetap valid**. **Per 2026-04**, skema berkembang dari *baseline* v6.4: antara lain tabel notifikasi lokal di-drop (migrasi 015), tabel/ kuota/ laporan AI & *user report*, **tabel `user_category_hidden`**, katalog kategori **global** (`categories.user_id` null), *drop* kolom `categories.is_hidden`, RPC `get_user_categories` / `toggle_category_hidden`, serta **penghapusan trigger** `trg_seed_default_categories` (fungsi `seed_default_categories` *no-op*).
 
-Arsitektur database menganut prinsip **ledger-based**: tabel `transactions` menjadi catatan utama semua aktivitas keuangan, dan saldo wallet (`wallets.balance`) merupakan nilai turunan yang hanya diperbarui oleh database trigger — bukan oleh client Flutter. Semua write yang melibatkan perubahan saldo wajib dilakukan secara **atomik** melalui RPC untuk mencegah race condition.
+## Inventaris tabel (Apr 2026) — sejalan dengan `database-schema`
 
-Database mendukung fitur inti SakuRapi: multi-wallet, kategori parent-child, transaksi multi-item, budgeting berbasis expense, hutang-piutang dengan settlement tracking, investasi (emas, bitcoin, custom asset), serta kontak dan parsing dictionary untuk fitur AI. Semua tabel bisnis dilindungi oleh Row Level Security (RLS) agar user hanya dapat mengakses datanya sendiri.
+| # | Tabel | Catatan |
+|---|-------|--------|
+| 1 | `users` | Mirror profil dari auth |
+| 2 | `wallets` | Saldo hanya lewat trigger |
+| 3 | `categories` | Katalog global (`user_id` null); **tanpa** `is_hidden` (2026-04) |
+| 4 | `user_category_hidden` | Preferensi *hide* per (user, `category_id`) |
+| 5 | `transactions` | Ledger |
+| 6 | `transaction_items` | Detail item |
+| 7 | `budgets` | Hanya *expense* |
+| 8 | `custom_gold_types` | *Max* 2 per user |
+| 9 | `custom_asset_categories` | *Max* 3 per user |
+| 10 | `investment_assets` | |
+| 11 | `investment_transactions` | |
+| 12 | `gold_prices` | Append-only |
+| 13 | `bitcoin_prices` | UPSERT 2 sumber |
+| 14 | `parsing_dictionaries` | *Skip* aman bila tabel belum ada |
+| 15 | *`notification_settings`* | **Dihapus** (migrasi 015) — *section* tersisa di doc entitas hanya sejarah |
+| 16 | `contacts` | |
+| 17 | `ai_usage_quotas` | |
+| 18 | `ai_usage_logs` | |
+| 19 | `user_reports` | |
 
-Dokumen juga mencantumkan 18+ index untuk performa query, seed categories default (expense, income, system), dan accounting rules checklist yang menjadi panduan validasi di level database maupun aplikasi.
+Penomoran 1–19 = selaras [[wiki/entities/database-schema|Database Schema]]; **18 tabel hidup** di produk bila `notification_settings` (§15) tidak dihitung. Penambahan kunci vs baseline `02_DATABASE`: **`user_category_hidden`**, tabel/ kuota/ laporan AI, *user report*, dsb.
 
-## Poin Kunci
+## Prinsip (tetap)
 
-### 15 Tabel Database
+1. RLS **wajib** pada tabel business (lihat bagian *RLS* di [[wiki/entities/database-schema|Database Schema]])
+2. *Atomic writes* ke saldo lewat RPC + trigger, bukan update saldo dari klien
+3. `transactions` = ledger utama; `sum(items) = total`
+4. **IDR / UTC** — konsisten dengan produk
+5. **Kategori (2026-04):** bawaan app = baris global; *hide* = `user_category_hidden` + RPC, bukan `UPDATE` kolom lama
 
-| # | Tabel | Deskripsi Singkat |
-|---|-------|-------------------|
-| 1 | `users` | Mirror dari `auth.users`, menyimpan profil user |
-| 2 | `wallets` | Dompet user — balance hanya via trigger |
-| 3 | `categories` | Kategori income/expense/system, hierarki parent-child (max 2 level) |
-| 4 | `transactions` | **Ledger utama** — 7 tipe: income, expense, transfer, debt, loan, adjustment, transfer_to_asset |
-| 5 | `transaction_items` | Detail item per transaksi — minimal 1 row per transaksi |
-| 6 | `budgets` | Budget hanya untuk category expense, recurring support |
-| 7 | `custom_gold_types` | Jenis emas custom per user (max 2) |
-| 8 | `custom_asset_categories` | Kategori aset custom per user (max 3), memiliki `unit_label` |
-| 9 | `investment_assets` | Aset investasi: gold, bitcoin, custom |
-| 10 | `investment_transactions` | Transaksi investasi: buy/sell dengan opsional wallet deduction |
-| 11 | `gold_prices` | Harga emas append-only (antaremas, logammulia) untuk charting historis |
-| 12 | `bitcoin_prices` | Harga BTC via UPSERT — hanya 2 row (indodax, coingecko) |
-| 13 | `parsing_dictionaries` | Keyword-to-category mapping untuk fitur AI parse |
-| 14 | `notification_settings` | Pengaturan notifikasi: reminder, budget alert, debt reminder |
-| 15 | `contacts` | Kontak untuk referensi hutang/piutang |
+## Trigger & function — delta besar
 
-### Prinsip Database
-1. **RLS wajib** pada semua 15 tabel bisnis — user hanya akses data miliknya
-2. **Atomic writes** — semua write yang memengaruhi saldo harus melalui RPC
-3. **`transactions` = ledger utama** — sumber kebenaran untuk semua aktivitas keuangan
-4. **`transaction_items` wajib** — minimal 1 row per transaksi
-5. **`sum(items.amount) == total_amount`** — integritas data wajib dijaga
-6. **UTC untuk semua tanggal** operasional, render dengan timezone Asia/Jakarta
-7. **IDR only** — MVP single currency
+| Nama | Perilaku terkini (2026) |
+|------|---------------------|
+| `handle_new_user` | Setelah *sign-up*, upsert `public.users` (tetap) |
+| `seed_default_categories` | **Tidak** mem-*fire* lewat trigger; fungsi *no-op*; **tidak** *insert* 60 baris per user pendaftaran setelah *katalog global* |
+| `trg_seed_default_categories` | **Dihapus** (katalog global) |
+| `set_updated_at` | Tetap; `categories` termasuk tabel *mutable* |
+| Lain-lain (wallet, budget, invest, max custom) | Lihat tabel penuh di entitas *Database Schema* |
 
-### Constraint Penting
-- `wallets.balance` hanya berubah via trigger — **dilarang** update langsung dari client
-- Transfer wajib punya `destination_wallet_id`, tidak boleh sama dengan wallet asal
-- `debt`/`loan` wajib punya `with_person`
-- Settlement amount tidak boleh melebihi remaining dari transaksi referensi
-- `settlement_kind = 'debt_payment'` → `type = 'expense'`; `settlement_kind = 'loan_collection'` → `type = 'income'`
-- Budget hanya boleh terkait category `type = 'expense'`
-- Max 2 custom gold types dan max 3 custom asset categories per user
+## RPC — tambahan kategori (2026-04)
 
-### Trigger & Function
+- `get_user_categories()` — *response* `is_hidden` berasal dari proyeksi, bukan kolom tabel lama
+- `toggle_category_hidden(p_category_id, p_is_hidden)` — `user_category_hidden`; perbaikan plpgsql `p_uid` (migrasi `20260425220000`)
 
-| Trigger | Tujuan |
-|---------|--------|
-| `handle_new_user()` | Upsert `public.users` setelah registrasi di `auth.users` |
-| `seed_default_categories()` | Insert kategori default saat user baru dibuat |
-| `seed_notification_settings()` | Insert pengaturan notifikasi default |
-| `update_wallet_balance()` | Update saldo wallet setelah insert/update/delete pada `transactions` |
-| `update_budget_usage()` | Recalculate budget usage setelah perubahan `transaction_items` |
-| `set_updated_at()` | Auto-update timestamp pada semua tabel mutable |
-| `auto_renew_budgets()` | pg_cron daily — clone recurring budgets dengan period-aware calculation, carry_forward support |
-| `check_max_custom_gold_types()` | Enforce max 2 jenis emas custom per user |
-| `check_max_custom_asset_categories()` | Enforce max 3 kategori aset custom per user |
+*(RPC transaksi, hutang, invest, kuota, dll. tidak diulang penuh di sini; lihat entitas.)*
 
-### RPC (Remote Procedure Call)
+## RLS (ringkas)
 
-**Transaction RPCs:**
-- `create_transaction_with_items(...)` → Buat transaksi + items secara atomik
-- `update_transaction_with_items(...)` → Update transaksi + items secara atomik
-- `delete_transaction(p_transaction_id)` → Hapus transaksi
-- `create_adjustment_transaction(p_wallet_id, p_target_balance, ...)` → Penyesuaian saldo
+- **~17+** tabel dengan RLS mode produk; daftar terverifikasi: [[wiki/entities/database-schema#rls-row-level-security|Database Schema]]
+- Kategori `user_id` null: readable (global); `user_category_hidden` hanya baris milik `auth.uid()`
 
-**Settlement RPCs:**
-- `settle_debt_or_loan(...)` → Bayar hutang atau terima piutang
-- `update_settlement(...)` → Edit settlement
-- `delete_settlement(...)` → Hapus settlement
+## Indexing
 
-**Debt/Loan Query RPCs:**
-- `get_debt_loan_summary(p_type, p_wallet_id?)` → Ringkasan per orang
-- `get_debt_loan_transactions_by_person(...)` → Daftar transaksi per orang
-- `get_all_unpaid_debt_loan(p_type)` → Semua hutang/piutang belum lunas
-- `get_settlement_history(p_reference_transaction_id)` → Riwayat pembayaran
+- 28+ indeks minimum di entitas; **UNIQUE** `user_category_hidden` (user_id, category_id) termasuk
+- *Snapshot* 02 menyebut ~18+ indeks — baca entitas untuk daftar *current*
 
-**Contact RPC:**
-- `upsert_contact(p_name, p_phone?)` → Upsert kontak dari phonebook
+## Sumber sementara vs sumber wajib
 
-**Budget RPC:**
-- `replace_budget(...)` → Atomic DELETE old + INSERT new untuk replace budget overlap
-
-**Investment RPCs (7 fungsi):**
-- `get_investment_dashboard()` → Dashboard investasi (aggregated fields per aset)
-- `create_investment_asset(...)` → Buat aset + transaksi beli pertama, opsional wallet deduction
-- `topup_investment(...)` → Tambah pembelian, reactivate aset jika inactive
-- `sell_investment(...)` → Jual aset, opsional wallet credit via `income`, auto-deactivate jika habis
-- `edit_investment_transaction(...)` → Edit transaksi buy only, validasi unit
-- `delete_investment_transaction(...)` → Hapus transaksi buy only, validasi unit
-- `delete_investment_asset(...)` → CASCADE delete semua transaksi, opsional revert wallet
-- `upsert_bitcoin_price(...)` → UPSERT harga BTC
-
-> **Penting:** Semua Investment RPC menggunakan `auth.uid()` secara internal — **bukan** menerima `p_user_id` sebagai parameter. Ini menjamin keamanan: user hanya bisa mengakses data miliknya.
-
-### Indexing (18+ Index)
-- `transactions(user_id, date desc)`, `transactions(wallet_id, date desc)`, `transactions(reference_transaction_id)`, `transactions(contact_id)`
-- `transaction_items(transaction_id, sort_order)`
-- `budgets(user_id, start_date, end_date)`
-- `categories(user_id, type, parent_id)`
-- `wallets(user_id, sort_order)`
-- `contacts(user_id, name)`
-- `investment_assets(user_id)`, `(user_id, type)`, partial index `WHERE is_active = true`
-- `investment_transactions(asset_id)`, `(asset_id, direction)`, `(user_id)`
-- `gold_prices(source, fetched_at DESC)`
-- `custom_gold_types(user_id)`, `custom_asset_categories(user_id)`
-
-### Default Seed Categories
-- **Expense** (7 parent + children): Kebutuhan Rumah Tangga, Kesehatan & Kebugaran, Transportasi, Tagihan & Kewajiban, Teknologi & Edukasi, Keluarga & Sosial, Lain-lain
-- **Income** (3 parent + children): Gaji & Pendapatan Utama, Pendapatan Tambahan, Lain-lain
-- **System** (2): Penyesuaian Saldo, Transfer ke Aset
-
-### Performance Rules
-- History list wajib pagination / infinite scroll
-- Jangan fetch seluruh transaksi untuk dashboard
-- Grouping history dilakukan lokal dari satu fetch source
-- Cache parsing dictionary 24 jam
-- Cache harga investasi 12 jam (TTL-based di Hive)
-- Harga emas via Edge Function `gold-price` (pg_cron daily 09:00 WIB)
-- Harga bitcoin via Edge Function `bitcoin-price` (pg_cron hourly)
-
-### Final Database Decisions
-- `transactions` = ledger utama
-- `wallets.balance` = hasil turunan ledger (derived)
-- Budget hanya untuk category expense
-- Settlement **tidak masuk** report dan budget
-- Investasi yang memotong wallet harus membuat `transfer_to_asset`
-- Settlement memiliki RPC terpisah (`settle_debt_or_loan`, `update_settlement`, `delete_settlement`)
-- Debt/loan query memiliki RPC khusus grouped by contact
-
-## Relevansi untuk SakuRapi
-
-Dokumen ini adalah **otoritas tertinggi** untuk schema database. Jika ada konflik antara dokumen ini dengan dokumen lain, 02_DATABASE.md yang dimenangkan. Semua developer dan AI assistant wajib merujuk dokumen ini sebelum membuat Model, menulis RemoteDataSource, atau merancang query. Prinsip ledger-based dan atomic write via RPC menjadi tulang punggung integritas data finansial SakuRapi.
+| Situasi | Rujuk |
+|--------|--------|
+| Kode hari ini + *migration* di repo | `supabase/migrations/`, lalu [[wiki/entities/database-schema|Database Schema]] + [[wiki/entities/categories|Categories]] |
+| Teks lama 02 hanya bila cek sejarah | `raw/docs/02_DATABASE.md` |
 
 ## Halaman Terkait
 
 - [[wiki/entities/database-schema|Database Schema]]
+- [[wiki/entities/categories|Categories]]
 - [[wiki/entities/wallet|Wallet]]
 - [[wiki/entities/transaksi|Transaksi]]
 - [[wiki/entities/budgeting|Budgeting]]
 - [[wiki/entities/investasi|Investasi]]
 - [[wiki/entities/hutang-piutang|Hutang-Piutang]]
-- [[wiki/entities/categories|Categories]]
 - [[wiki/entities/contacts|Contacts]]
 - [[wiki/concepts/aturan-keuangan|Aturan Keuangan]]

@@ -1,5 +1,7 @@
 # Plan: Perbaikan & Penambahan Kategori Default
 
+> **Pasca 2026-04 (katalog global):** lihat `My-Wiki/wiki/entities/categories.md` — *seed* pendaftaran *no-op*, *hide* lewat `user_category_hidden` + RPC.
+
 > **Status:** Disetujui — siap implementasi
 > **Tanggal:** 2026-04-19
 > **Scope:** UPDATE + INSERT ke tabel `categories` (semua user existing) + update `seed_default_categories()`
@@ -249,7 +251,9 @@ WHERE c.is_default = true AND c.type = 'expense';
 Child harus di-insert dengan referensi `parent_id` yang baru dibuat — perlu `WITH` CTE atau loop per user.
 
 ### Update seed function
-Fungsi `seed_default_categories()` harus diupdate agar user baru dapat semua kategori baru. Ini adalah perubahan DDL (CREATE OR REPLACE FUNCTION).
+Fungsi `seed_default_categories()` harus diupdate agar isi kategori bawaan selaras (DDL `CREATE OR REPLACE FUNCTION`).
+
+> **Pasca 2026-04 (katalog global):** fungsi ini *no-op* di runtime; pendaftaran user tidak lagi mem-*insert* 60 baris. Paragraf di atas menggambarkan *run* migrasi revamp 19 Apr, bukan perilaku app terkini.
 
 ---
 

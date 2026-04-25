@@ -4,7 +4,7 @@ type: concept
 tags: [keuangan, aturan, trigger, wallet, balance, keputusan-final]
 sources: [raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-25
 ---
 
 # Aturan Keuangan Fundamental
@@ -91,7 +91,7 @@ Permission (kamera, mikrofon, dll) diminta saat fitur dibutuhkan, bukan saat app
 
 ## Accounting Rules Checklist (Database Validation)
 
-Checklist lengkap validasi aturan keuangan di level database (dari `02_DATABASE.md`):
+Checklist validasi keuangan di level database (dari *baseline* `02_DATABASE.md` + perluas dengan [[wiki/entities/database-schema|Database Schema]] untuk aturan kategori *global* 2026-04):
 
 - ✅ Transfer wajib punya `destination_wallet_id`
 - ✅ Transfer tidak boleh pakai wallet yang sama sebagai source dan destination
@@ -149,7 +149,7 @@ Dari `03_COPILOT_RULES.md`, 10 guardrails finansial yang wajib dipatuhi:
 - [[wiki/entities/transaksi|Transaksi]] — Entitas transaksi
 - [[wiki/concepts/arsitektur-app|Arsitektur App]] — Financial guardrails dalam arsitektur
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]] — Dokumen sumber aturan keuangan
-- [[wiki/entities/database-schema|Database Schema]] — 15 tabel Supabase/Postgres
+- [[wiki/entities/database-schema|Database Schema]] — Skema terkini (termasuk katalog kategori global + `user_category_hidden`)
 - [[wiki/concepts/coding-rules|Coding Rules]] — Aturan coding dan konvensi
-- [[wiki/sources/database-v6|Database v6.4]] — Sumber database schema
+- [[wiki/sources/database-v6|Database v6.4 (sumber 02)]] — Ringkasan 02 + evolusi; skema penuh: *Database Schema*
 - [[wiki/sources/copilot-rules|Copilot Rules]] — Sumber copilot guardrails

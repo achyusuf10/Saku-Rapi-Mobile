@@ -256,9 +256,8 @@ class _CategoryManagementTile extends ConsumerWidget {
               type: type,
               editCategory: child,
             ),
-      onChildLongPress: (child) {
-        if (!child.isDefault) _showActions(context, ref, child);
-      },
+      onChildLongPress: (child) =>
+          _showActions(context, ref, child, parentCategory: category),
       trailing: (ctx, cat) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -301,12 +300,25 @@ class _CategoryManagementTile extends ConsumerWidget {
       childTrailing: (ctx, child) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (child.isHidden)
+          // Badge hidden: muncul jika child sendiri hidden ATAU parent hidden
+          if (child.isHidden || category.isHidden) ...[
             FaIcon(
               FontAwesomeIcons.eyeSlash,
               size: 10.w,
               color: colors.textSecondary.withValues(alpha: 0.7),
             ),
+            SizedBox(width: 4.w),
+          ],
+          IconButton(
+            onPressed: () =>
+                _showActions(ctx, ref, child, parentCategory: category),
+            icon: FaIcon(
+              FontAwesomeIcons.ellipsisVertical,
+              size: 14.w,
+              color: colors.textSecondary,
+            ),
+            visualDensity: VisualDensity.compact,
+          ),
         ],
       ),
     );
@@ -323,10 +335,18 @@ class _CategoryManagementTile extends ConsumerWidget {
   void _showActions(
     BuildContext context,
     WidgetRef ref,
-    CategoryModel category,
-  ) {
+    CategoryModel category, {
+    CategoryModel? parentCategory,
+  }) {
     final colors = context.colors;
     final l10n = context.l10n;
+
+    // Logika tampil/sembunyikan tombol hide-show:
+    // - "Sembunyikan": muncul jika kategori belum hidden
+    // - "Tampilkan": muncul jika hidden DAN parent tidak hidden (atau ini level parent)
+    final bool parentIsHidden = parentCategory?.isHidden ?? false;
+    final bool canHide = !category.isHidden;
+    final bool canShow = category.isHidden && !parentIsHidden;
 
     showModalBottomSheet(
       context: context,
@@ -371,25 +391,26 @@ class _CategoryManagementTile extends ConsumerWidget {
               ),
 
             // Hide/Show
-            ListTile(
-              leading: FaIcon(
-                category.isHidden
-                    ? FontAwesomeIcons.eye
-                    : FontAwesomeIcons.eyeSlash,
-                size: 16.w,
-                color: colors.textPrimary,
-              ),
-              title: Text(
-                category.isHidden ? l10n.categoryShow : l10n.categoryHide,
-                style: TextStyleConstants.b2.copyWith(
+            if (canHide || canShow)
+              ListTile(
+                leading: FaIcon(
+                  category.isHidden
+                      ? FontAwesomeIcons.eye
+                      : FontAwesomeIcons.eyeSlash,
+                  size: 16.w,
                   color: colors.textPrimary,
                 ),
+                title: Text(
+                  category.isHidden ? l10n.categoryShow : l10n.categoryHide,
+                  style: TextStyleConstants.b2.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _toggleHidden(context, ref, category);
+                },
               ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _toggleHidden(context, ref, category);
-              },
-            ),
 
             // Delete (non-default only)
             if (!category.isDefault)

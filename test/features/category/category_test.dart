@@ -95,6 +95,27 @@ void main() {
   // CategoryModel — fromMap
   // ─────────────────────────────────────────────────────────────
   group('CategoryModel — fromMap', () {
+    test('allows null user_id (kategori global, RPC get/toggle)', () {
+      final map = {
+        'id': 'g1',
+        'user_id': null,
+        'name': 'Transport',
+        'icon': 'car',
+        'color': '#3B82F6',
+        'type': 'expense',
+        'parent_id': null,
+        'is_default': true,
+        'is_hidden': true,
+        'sort_order': 1,
+        'created_at': '2025-01-01T00:00:00.000Z',
+        'updated_at': '2025-01-01T00:00:00.000Z',
+      };
+      final c = CategoryModel.fromMap(map);
+      expect(c.userId, isNull);
+      expect(c.isDefault, isTrue);
+      expect(c.isHidden, isTrue);
+    });
+
     test('parses all fields correctly', () {
       final map = {
         'id': 'cat-1',

@@ -4,7 +4,7 @@ type: source
 tags: [copilot-rules, guardrails, financial-rules, testing, arsitektur, conventions, sakurapi]
 sources: [raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-25
 ---
 
 # SakuRapi Merged Copilot Rules — Ringkasan
@@ -199,10 +199,11 @@ Sebuah task dianggap selesai jika:
 - Tidak memindahkan logic inti ke widget
 
 ### Prioritas pada Konflik
-1. **`02_DATABASE.md`** — untuk schema dan constraint (otoritas tertinggi)
-2. **`docs/prd/`** — untuk business intent dan flow
-3. **Dokumen ini** — untuk cara implementasi
-4. Jangan membuat asumsi baru tanpa menandai sebagai **TODO/QUESTION**
+1. **Skema aktual** — `supabase/migrations/` (repo) + [[wiki/entities/database-schema|Database Schema]]; untuk kategori: [[wiki/entities/categories|Categories]] (katalog global 2026-04, `user_category_hidden`, RPC)
+2. **`raw/docs/02_DATABASE.md`** — *baseline* v6.4; bila berbeda dengan migrasi/entitas di atas, **utamakan poin 1**
+3. **`raw/docs/prd/`** — business intent dan flow
+4. **Dokumen ini** — cara implementasi
+5. Jangan membuat asumsi baru tanpa menandai **TODO/QUESTION**
 
 > **Catatan:** Pada konflik antara Bagian A dan Bagian B dalam dokumen ini sendiri, **Bagian A (Coding Rules) yang dimenangkan**.
 

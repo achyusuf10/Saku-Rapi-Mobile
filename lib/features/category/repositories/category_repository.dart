@@ -161,7 +161,6 @@ class CategoryRepository {
     String? name,
     String? icon,
     String? color,
-    bool? isHidden,
     int? sortOrder,
   }) async {
     final result = await _remoteDataSource.updateCategory(
@@ -169,7 +168,6 @@ class CategoryRepository {
       name: name,
       icon: icon,
       color: color,
-      isHidden: isHidden,
       sortOrder: sortOrder,
     );
 

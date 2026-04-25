@@ -4,7 +4,7 @@ type: source
 tags: [prd, product-requirements, sakurapi, v7]
 sources: [raw/docs/prd/00_INDEX.md, raw/docs/prd/01_TENTANG_SAKURAPI.md, raw/docs/prd/02_PRIORITAS_FITUR.md, raw/docs/prd/03_KPI_TARGET.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/prd/05_USER_FLOWS.md, raw/docs/prd/06_AUTH_PROFIL.md, raw/docs/prd/07_DASHBOARD.md, raw/docs/prd/08_WALLETS.md, raw/docs/prd/09_TRANSAKSI.md, raw/docs/prd/10_TRANSACTION_DETAIL.md, raw/docs/prd/11_HUTANG_PIUTANG.md, raw/docs/prd/12_HISTORY.md, raw/docs/prd/13_CATEGORIES.md, raw/docs/prd/14_BUDGETING.md, raw/docs/prd/15_INVESTASI.md, raw/docs/prd/16_SETTINGS.md, raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/19_PARSING_DICTIONARY.md, raw/docs/prd/20_EXTERNAL_API.md, raw/docs/prd/21_KATEGORI_DEFAULT.md, raw/docs/prd/22_EDGE_CASES.md, raw/docs/prd/23_PERMISSIONS.md, raw/docs/prd/24_TESTING.md, raw/docs/prd/25_ROADMAP.md, raw/docs/prd/26_KEPUTUSAN_FINAL.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-25
 ---
 
 # PRD SakuRapi v7.0 — Ringkasan
@@ -18,7 +18,7 @@ updated: 2026-04-10
 
 SakuRapi adalah aplikasi pencatat keuangan pribadi untuk platform Android yang ditargetkan khusus untuk pasar Indonesia. Aplikasi ini dibangun menggunakan **Flutter** di sisi client dan **Supabase** (PostgreSQL + Edge Functions) di sisi backend. Mata uang yang didukung hanya **IDR** — tidak ada dukungan multi-currency. PRD v7.0 merupakan dokumen spesifikasi komprehensif yang dipecah ke dalam 27 file, masing-masing membahas aspek produk secara mendalam mulai dari autentikasi hingga roadmap pengembangan.
 
-Fitur utama mencakup pencatatan transaksi manual, pengelolaan multi-wallet, sistem kategori parent-child, dashboard ringkasan keuangan, serta fitur hutang-piutang yang terintegrasi langsung ke dalam alur transaksi. Di luar fitur dasar, SakuRapi memiliki kemampuan input berbasis AI: voice input yang memanfaatkan speech-to-text lalu di-parse oleh Gemini (dengan failover ke Groq), OCR struk belanja, serta parsing dictionary untuk mengenali merchant dan kategori secara otomatis.
+Fitur utama mencakup pencatatan transaksi manual, pengelolaan multi-wallet, sistem kategori parent-child, dashboard ringkasan keuangan, serta fitur hutang-piutang yang terintegrasi langsung ke dalam alur transaksi. Di luar fitur dasar, SakuRapi memiliki kemampuan input berbasis AI: voice (STT lalu teks ke Edge Function), teks, dan OCR struk — **semuanya** diproses lewat `ai-parse` dengan **Vertex AI / Gemini** sebagai *provider* AI (tanpa Groq/OpenRouter, tanpa *fallback* parser regex lokal). Lihat [[wiki/concepts/ai-pipeline|AI Pipeline]] dan [[wiki/analysis/remove-manual-parsing|Penghapusan manual parsing]].
 
 Aturan keuangan dalam aplikasi sangat ketat dan menjadi fondasi integritas data. Saldo wallet tidak pernah dihitung secara manual — selalu melalui database trigger berdasarkan ledger transaksi. Terdapat 7 tipe transaksi yang didefinisikan: income, expense, transfer, debt, loan, adjustment, dan transfer_to_asset. Settlement hutang/piutang secara eksplisit dikecualikan dari laporan dan budgeting agar tidak mengacaukan analisa keuangan pengguna.
 
@@ -34,7 +34,7 @@ Target KPI utama yang ditetapkan meliputi: pencatatan transaksi manual harus sel
 - **7 tipe transaksi**: income, expense, transfer, debt, loan, adjustment, transfer_to_asset
 - **Saldo via trigger**: Tidak ada perhitungan saldo manual; semua melalui database trigger pada ledger
 - **AI hanya prefill**: Voice input, OCR, dan text parsing hanya mengisi form — pengguna selalu konfirmasi
-- **AI pipeline**: STT → Edge Function `ai-parse` → Gemini → Groq failover → local parser
+- **AI pipeline**: STT (suara) → `ai-parse` (mode text/ocr) → **Gemini (Vertex AI)**; jika gagal → *error* + *retry* di UI (bukan *chain* Groq / parser lokal)
 - **Settlement dikecualikan** dari laporan keuangan dan budgeting
 - **Multi-item & split bill** menggunakan tabel `transaction_items`
 - **Transfer bukan expense**: Transfer antar wallet tidak dihitung sebagai pengeluaran
@@ -64,9 +64,9 @@ Target KPI utama yang ditetapkan meliputi: pencatatan transaksi manual harus sel
 | Text Input AI | Input transaksi via teks bebas, di-parse AI |
 | OCR Struk | Scan struk belanja, ekstrak data otomatis |
 | Parsing Dictionary | Kamus merchant ↔ kategori untuk AI parsing |
-| Budgeting + Alert | Budget per kategori dengan notifikasi threshold |
+| Budgeting | Anggaran per kategori *expense*; *alert* notifikasi lokal PRD **tidak** di app (2026) — [[wiki/entities/budgeting|Budgeting]] |
 | Visual Reports | Laporan grafis: pie chart, bar chart, tren |
-| Local Notifications | Reminder dan alert via notifikasi lokal |
+| *Local Notifications* (PRD asli) | **Dihapun** — lihat [[wiki/entities/notifikasi|Notifikasi]] |
 
 ### P2 — Future
 
@@ -101,7 +101,7 @@ Target KPI utama yang ditetapkan meliputi: pencatatan transaksi manual harus sel
 | 7 | Voice Input AI | ✅ Done |
 | 8 | OCR Receipt | ✅ Done |
 | 9 | Multi-item & Split Bill | ✅ Done |
-| 10 | Settings & Notifications | ✅ Done |
+| 10 | Settings (notifikasi lokal **dihapun** 2026) | ✅ Done |
 | 11 | Investasi & Export | ✅ Done |
 | 12 | Polish & QA | 🔄 Active |
 
@@ -130,3 +130,4 @@ Tujuh keputusan arsitektural final yang ditetapkan dalam PRD:
 - [[wiki/concepts/aturan-keuangan|Aturan Keuangan Fundamental]]
 - [[wiki/concepts/matrix-transaksi|Matrix Tipe Transaksi]]
 - [[wiki/concepts/ai-pipeline|AI Pipeline]]
+- [[wiki/analysis/remove-manual-parsing|Penghapusan manual parsing (AI)]]

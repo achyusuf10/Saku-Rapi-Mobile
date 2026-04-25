@@ -9,8 +9,9 @@
 **Status:** Final for implementation  
 
 > **Dokumen terkait:**
-> - Database schema, constraint, trigger, RPC → [`02_DATABASE.md`](../02_DATABASE.md)
-> - Coding rules & Copilot guardrails → [`03_COPILOT_RULES.md`](../03_COPILOT_RULES.md)
+> - Skema **aktual** (Supabase) → `supabase/migrations/` (repo) + `My-Wiki/wiki/entities/database-schema.md` + kategori: `My-Wiki/wiki/entities/categories.md`
+> - *Baseline* lama: [`02_DATABASE.md`](../02_DATABASE.md) (bisa usang soal kategori/*seed*)
+> - Coding & Copilot → [`03_COPILOT_RULES.md`](../03_COPILOT_RULES.md)
 
 ---
 

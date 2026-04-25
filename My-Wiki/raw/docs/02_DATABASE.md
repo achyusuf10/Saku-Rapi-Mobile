@@ -5,6 +5,8 @@
 > Untuk requirement produk dan flow, lihat folder [`prd/`](prd/00_INDEX.md) (PRD dipecah per section).
 > Untuk aturan implementasi Flutter/Copilot, lihat `03_COPILOT_RULES.md`.
 
+> **Pemutakhiran skema (2026-04, katalog kategori global):** snapshot di bawah **usang** untuk tabel `categories` (kolom `is_hidden` di-drop, tabel `user_category_hidden`, RPC `get_user_categories` / `toggle_category_hidden`, *drop* trigger `trg_seed_default_categories`, `seed_default_categories` *no-op*). Otoritas teks: `My-Wiki/wiki/entities/database-schema.md` dan `My-Wiki/wiki/entities/categories.md` (repo `app_saku_rapi`).
+
 **Status:** Final for implementation  
 **Database authority:** Supabase Postgres  
 **Ledger rule:** `wallets.balance` hanya berubah dari trigger berbasis `transactions`
@@ -67,10 +69,11 @@
 | type | text not null | `income`, `expense`, `system` |
 | parent_id | uuid nullable FK self | max 2 level |
 | is_default | boolean not null default false | |
-| is_hidden | boolean not null default false | |
 | sort_order | integer not null default 0 | |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
+
+> **2026-04 (katalog global):** kolom `is_hidden` pada `public.categories` **dihapus**; tabel `public.user_category_hidden` + RPC `get_user_categories` / `toggle_category_hidden` menggantikan perilaku *hide*.
 
 ### Constraint
 - parent dan child harus punya `type` yang sama.
@@ -305,7 +308,7 @@
 | Nama | Event | Tujuan |
 |---|---|---|
 | `handle_new_user()` | after insert on `auth.users` | upsert `public.users` |
-| `seed_default_categories()` | after insert on `public.users` | insert kategori default |
+| `seed_default_categories()` | *trigger dihapus 2026-04* | Fungsi *no-op*; katalog = baris global `categories` (bukan *insert* per pendaftaran) |
 | `seed_notification_settings()` | after insert on `public.users` | insert default notification settings |
 | `update_wallet_balance()` | after insert/update/delete on `transactions` | update saldo wallet |
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
@@ -363,7 +366,7 @@ Jangan membangun multi-step write yang rentan race condition langsung dari clien
 
 ## 4. RLS Policy
 
-Semua tabel business wajib mengaktifkan RLS (15 tabel: users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, notification_settings, contacts).
+Semua tabel business wajib mengaktifkan RLS. *Baseline* file ini menyebut 15 tabel (termasuk `notification_settings`); **terkini** + katalog kategori: tambah `user_category_hidden`, tabel/mekanisme lain (AI, *user report*), notifikasi lokal di-drop — lihat *Database Schema* di wiki.
 
 ### Prinsip umum
 - user hanya boleh membaca/menulis data miliknya sendiri.

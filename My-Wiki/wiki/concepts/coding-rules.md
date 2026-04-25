@@ -4,7 +4,7 @@ type: concept
 tags: [coding-rules, arsitektur, konvensi, flutter, riverpod, copilot, testing, forbidden]
 sources: [raw/docs/00_SakuRapi_Coding_Rules.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-25
 ---
 
 # Coding Rules
@@ -350,10 +350,11 @@ Sebuah task implementasi dianggap selesai jika memenuhi **8 kriteria**:
 
 Jika menemukan konflik antar dokumen, ikuti urutan prioritas berikut:
 
-1. **`02_DATABASE.md`** — Schema dan constraint (tertinggi)
-2. **`docs/prd/`** — Business intent dan flow
-3. **`03_COPILOT_RULES.md`** — Cara implementasi
-4. **Jangan asumsi** — Tandai sebagai `TODO/QUESTION`
+1. **Skema aktual** — `supabase/migrations/`, [[wiki/entities/database-schema|Database Schema]], [[wiki/entities/categories|Categories]] (bila kategori/RLS/RPC)
+2. **`02_DATABASE.md`** — *Baseline*; kalau beda dengan migrasi → ikuti poin 1
+3. **`docs/prd/`** — Business intent dan flow
+4. **`03_COPILOT_RULES.md`** — Cara implementasi
+5. **Jangan asumsi** — Tandai sebagai `TODO/QUESTION`
 
 > **`00_SakuRapi_Coding_Rules.md`** mengambil prioritas di atas **`03_COPILOT_RULES.md`** jika terjadi pertentangan pada aturan coding.
 

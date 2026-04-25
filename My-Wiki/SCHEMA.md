@@ -149,9 +149,12 @@ Ketika pengguna meminta health-check:
 ## Konteks Proyek SakuRapi
 
 Untuk referensi arsitektur dan aturan teknis SakuRapi, lihat:
-- `docs/02_DATABASE.md` — Schema database
-- `docs/prd/00_INDEX.md` — Product requirements
-- `docs/03_COPILOT_RULES.md` — Aturan implementasi
-- `docs/00_SakuRapi_Coding_Rules.md` — Coding rules
+- `My-Wiki/wiki/entities/database-schema.md` — skema **terkini** (termasuk katalog kategori 2026-04)
+- `My-Wiki/wiki/entities/categories.md` — kategori global, `user_category_hidden`, RPC, migrasi
+- `supabase/migrations/` (root repo) — *DDL* aktual
+- `My-Wiki/raw/docs/02_DATABASE.md` — *baseline* v6.4 (bisa usang di bagian kategori)
+- `My-Wiki/raw/docs/prd/00_INDEX.md` — PRD
+- `My-Wiki/raw/docs/03_COPILOT_RULES.md` — implementasi
+- `docs/00_SakuRapi_Coding_Rules.md` — coding rules (jika dipakai di monorepo)
 
-(File-file ini ada di root repo `app_saku_rapi/`, bukan di dalam wiki ini)
+(Sebagian path mengacu file di dalam repo `app_saku_rapi/`, bukan hanya folder `My-Wiki/`.)

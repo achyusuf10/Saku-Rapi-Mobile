@@ -208,19 +208,29 @@ class CategoryParentListTile extends StatelessWidget {
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: category.children
-                                .map(
-                                  (child) => CategoryChildListTile(
-                                    category: child,
-                                    isSelected: selectedChildId == child.id,
-                                    onTap: () => onChildTap?.call(child),
-                                    onLongPress: onChildLongPress != null
-                                        ? () => onChildLongPress!(child)
-                                        : null,
-                                    trailing: childTrailing,
-                                  ),
-                                )
-                                .toList(),
+                            children:
+                                [
+                                      // Sub-kategori yang visible dulu, lalu yang hidden
+                                      ...category.children.where(
+                                        (c) => !c.isHidden,
+                                      ),
+                                      ...category.children.where(
+                                        (c) => c.isHidden,
+                                      ),
+                                    ]
+                                    .map(
+                                      (child) => CategoryChildListTile(
+                                        category: child,
+                                        isSelected: selectedChildId == child.id,
+                                        isParentHidden: category.isHidden,
+                                        onTap: () => onChildTap?.call(child),
+                                        onLongPress: onChildLongPress != null
+                                            ? () => onChildLongPress!(child)
+                                            : null,
+                                        trailing: childTrailing,
+                                      ),
+                                    )
+                                    .toList(),
                           ),
                         ),
                       ],
@@ -241,6 +251,7 @@ class CategoryChildListTile extends StatelessWidget {
     required this.onTap,
     this.onLongPress,
     this.isSelected = false,
+    this.isParentHidden = false,
     this.trailing,
   });
 
@@ -248,12 +259,18 @@ class CategoryChildListTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final bool isSelected;
+
+  /// Jika true, tile tampil dimmed meskipun category.isHidden == false
+  /// (karena parent-nya disembunyikan).
+  final bool isParentHidden;
   final Widget Function(BuildContext context, CategoryModel child)? trailing;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final categoryColor = parseHexColor(category.color);
+    // Dimmed jika hidden sendiri ATAU parent-nya hidden
+    final isEffectivelyHidden = category.isHidden || isParentHidden;
 
     return Material(
       color: Colors.transparent,
@@ -278,7 +295,7 @@ class CategoryChildListTile extends StatelessWidget {
                 size: 36,
                 iconSize: 14,
                 borderRadius: 8,
-                colorOverride: category.isHidden
+                colorOverride: isEffectivelyHidden
                     ? colors.textSecondary.withValues(alpha: 0.5)
                     : null,
               ),
@@ -292,7 +309,7 @@ class CategoryChildListTile extends StatelessWidget {
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
                         ? categoryColor
-                        : category.isHidden
+                        : isEffectivelyHidden
                         ? colors.textSecondary
                         : colors.textPrimary,
                   ),

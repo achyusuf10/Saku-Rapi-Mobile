@@ -1,6 +1,8 @@
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
-/// Model data kategori dari tabel `public.categories`.
+/// Model data kategori dari tabel `public.categories` (plus `is_hidden` hasil
+/// [get_user_categories] — disembunyikan lewat `user_category_hidden`, bukan
+/// kolom `categories` setelah migrasi globalisasi kategori).
 ///
 /// Mendukung hierarki parent-child max 2 level.
 /// Field `type` berupa [CategoryType] (income, expense, system).

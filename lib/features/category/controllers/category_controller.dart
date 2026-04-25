@@ -217,7 +217,6 @@ class CategoryController extends StateNotifier<CategoryState> {
     String? name,
     String? icon,
     String? color,
-    bool? isHidden,
     int? sortOrder,
   }) async {
     final result = await _repository.updateCategory(
@@ -225,7 +224,6 @@ class CategoryController extends StateNotifier<CategoryState> {
       name: name,
       icon: icon,
       color: color,
-      isHidden: isHidden,
       sortOrder: sortOrder,
     );
 

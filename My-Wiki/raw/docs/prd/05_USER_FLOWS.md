@@ -2,6 +2,8 @@
 
 [← Aturan Keuangan](04_ATURAN_KEUANGAN.md) · [Index](00_INDEX.md) · [Auth & Profil →](06_AUTH_PROFIL.md)
 
+> **Katalog kategori 2026-04:** pasca-login kategori bawaan lewat **baris global** + `get_user_categories` (bukan *trigger* *seed* per pendaftaran). Lihat `My-Wiki/wiki/entities/categories.md`.
+
 ---
 
 > **Panduan membaca flowchart:**
@@ -51,10 +53,8 @@ flowchart TD
     F --> G[Supabase Google OAuth]
     G --> H{Login\nberhasil?}
 
-    H -->|✅ Ya| I["Trigger handle_new_user\n(buat/update public.users)"]
-    I --> J["Trigger seed_default_categories\n(buat kategori default)"]
-    J --> K["Buat notification_settings\n(default settings)"]
-    K --> D
+    H -->|✅ Ya| I["Trigger: handle_new_user\n→ public.users"]
+    I --> D
 
     H -->|❌ Gagal| L[Tampilkan error]
     L --> E
@@ -64,8 +64,9 @@ flowchart TD
 ```
 
 **Catatan penting:**
-- Flutter **TIDAK** insert manual ke `public.users` — semua dilakukan oleh trigger database
-- Login pertama kali otomatis membuat kategori default dan notification settings
+- Flutter **TIDAK** insert manual ke `public.users` — `handle_new_user` mengisi profil
+- Kategori: katalog **global** + RPC (bukan *insert* *seed* per pendaftaran, Apr 2026)
+- *Notification settings* DB (baseline) sudah di-drop; notifikasi lokal di app dihapun
 - Logout membersihkan session lokal + cache Hive → navigasi ke login
 
 ## 5.3. Manual Transaction Flow

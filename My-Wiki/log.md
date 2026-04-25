@@ -1,6 +1,6 @@
 ---
 title: "Log Wiki"
-updated: 2026-04-19
+updated: 2026-04-25
 ---
 
 # 📋 Log Wiki SakuRapi
@@ -219,3 +219,25 @@ updated: 2026-04-19
   - INSERT Kesehatan Mental / Terapi di bawah Kesehatan & Kebugaran
   - INSERT Cashback & Reward + Penjualan Barang / Aset di bawah Pendapatan Tambahan
   - CREATE OR REPLACE FUNCTION `seed_default_categories()` — user baru mendapat 60 kategori default
+
+## [2026-04-25] cleanup + ingest | Katalog kategori global (migrasi, raw docs)
+
+- **Raw dihapus** (duplikat / usang, isi sudah digabung ke entitas): `migrasi-kategori-dev-execution-log.md`, `summary-rencana-is-hidden-categories-satu-sumber.md`, `plan-migrasi-kategori-global-tanpa-per-user-seed.md`, `audit-category-management-flutter-supabase.md`
+- **Halaman diperbarui**: `wiki/entities/categories.md` — katalog global (`user_id` null), tabel `user_category_hidden`, drop `categories.is_hidden`, RPC `get_user_categories` / `toggle_category_hidden` (perbaikan `p_uid` / `r.relname`), daftar file migrasi `2026042509*` + `2026042522*` + `2026042523*`, uji `flutter test test/features/category/`, catatan MCP dev vs `mcp_supabase-prod_*`, *retry* migrasi 03 di prod; *seed* referensi (revamp 2026-04-19) tetap sebagai isi katalog, bukan *copy* per pendaftaran
+
+## [2026-04-25] update | `database-schema.md` selaraskan kategori global
+
+- **Entitas** `wiki/entities/database-schema.md` — 19 tabel: heading `### 1. users` diperbaiki, `categories` tanpa `is_hidden`, tabel `user_category_hidden`, semua entitas di-renomor, trigger `trg_seed_default_categories` + *no-op* `seed_default_categories` sesuai migrasi Apr 2026, RLS 17 tabel, RPC *Category* `get_user_categories` / `toggle_category_hidden`, indeks UNIQUE *hidden*, catatan `parsing_dictionaries` + intro cross-link ke [[wiki/entities/categories|Categories]]
+
+## [2026-04-25] update | Otoritas skema + sisa selarasan kategori
+
+- **Prioritas konflik** diselaraskan di `wiki/sources/copilot-rules.md`, `wiki/concepts/coding-rules.md`, `raw/docs/03_COPILOT_RULES.md` — *skema aktual* = `supabase/migrations/` + `wiki/entities/database-schema` + (kategori) `wiki/entities/categories`; `02_DATABASE` sebagai *baseline*
+- **`SCHEMA.md`**: arah rujukan ke entitas *database-schema* / *categories* / migrasi
+- **`raw/docs/prd/00_INDEX.md`**, **`raw/docs/plan-revamp-default-categories.md`**: catatan pasca *katalog global* + fungsi *seed* *no-op*
+- **Konsep** `aturan-keuangan`, `arsitektur-app` — *updated*, checklist & link sumber *database* disesuaikan
+- **`wiki/concepts/ai-pipeline.md`** — katalog kategori + catatan `parsing_dictionaries` opsional
+
+## [2026-04-25] update | PRD ringkas + AI pipeline (tanpa Groq / tanpa parser lokal)
+
+- **`wiki/sources/prd-sakurapi-v7.md`** — teks AI: Vertex/Gemini saja, error + *retry*; *bullet* *pipeline*; P1: baris *Local Notifications* + penyesuaian *Budgeting*; `updated` 2026-04-25
+- **`wiki/concepts/ai-pipeline.md`** — diagram & section: singel provider, hapus Groq + *local parser*; `parsing_dictionaries` disingkat; link ke *remove manual parsing* + *refactor AI quota*

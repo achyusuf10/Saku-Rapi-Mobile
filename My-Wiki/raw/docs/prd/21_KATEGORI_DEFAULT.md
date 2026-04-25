@@ -2,6 +2,8 @@
 
 [← External API](20_EXTERNAL_API.md) · [Index](00_INDEX.md) · [Edge Cases →](22_EDGE_CASES.md)
 
+> **2026-04 (katalog global):** isi tabel bawaan = **baris global**; pendaftaran user **tidak** mem-*trigger* *insert* kategori; *hide* lewat `user_category_hidden` + RPC. Rincian: `My-Wiki/wiki/entities/categories.md`.
+
 ---
 
 ## 21.1. Expense (Pengeluaran)
@@ -35,16 +37,13 @@
 
 ```mermaid
 flowchart TD
-    A([User pertama kali\nlogin]) --> B["DB Trigger:\nseed_default_categories"]
-    B --> C["Insert 7 expense parents\n+ 22 expense children"]
-    C --> D["Insert 3 income parents\n+ 5 income children"]
-    D --> E["Insert 2 system categories"]
-    E --> F["Semua is_default = true"]
+    A([User terautentikasi]) --> B["Baca katalog (get_user_categories)\nbaris user_id = null"]
+    B --> C["Kategori tampil + is_hidden (proyeksi)"]
+    C --> D["User bisa:\n• Tambah custom\n• Sembunyi bawaan (user_category_hidden + toggle RPC)\n• Default tidak hard-delete"]
 
-    F --> G["User bisa:\n• Tambah custom category\n• Hide default (is_hidden)\n• TIDAK bisa delete default"]
-
-    style F fill:#2d6a4f,color:#fff
+    style C fill:#2d6a4f,color:#fff
 ```
+> *Diagram lama* per *trigger* *seed* + *insert* per user disederhanakan pada *katalog global* (Apr 2026).
 
 ---
 

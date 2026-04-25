@@ -4,16 +4,16 @@ type: source
 tags: [kategori, seed, expense, income, migration, warna, revamp]
 sources: [raw/docs/plan-revamp-default-categories.md]
 created: 2026-04-19
-updated: 2026-04-19
+updated: 2026-04-25
 ---
 
 # Plan: Revamp Kategori Default
 
 > **Status:** ✅ Implemented — Dev & Prod (2026-04-19)
 > **Migration:** `revamp_default_categories` applied ke kedua environment
-> **Scope:** UPDATE existing rows + INSERT new categories + UPDATE `seed_default_categories()`
+> **Scope (per run 2026-04-19):** UPDATE/INSERT ke baris `categories` + *update* fungsi `seed_default_categories()` (waktu itu rencananya: user baru **mendapat** *copy* lewat *seed* — sebelum *katalog global* menyederhanakan alur)
 
----
+> **Pasca katalog global (2026-04-25):** satu set baris **global** (`user_id` null), `seed_default_categories` *no-op*, trigger pendaftaran dihapun, *hide* lewat `user_category_hidden` + RPC. Lihat [[wiki/entities/categories|Categories]].
 
 ## Masalah yang Diperbaiki
 
@@ -131,15 +131,16 @@ updated: 2026-04-19
 - Pattern INSERT child ke parent lama: `SELECT p.user_id ... FROM categories p CROSS JOIN (VALUES ...) sub WHERE p.name = '...' AND NOT EXISTS (...)` — idempotent
 - Semua INSERT memiliki guard `NOT EXISTS` sehingga bisa dijalankan ulang tanpa duplikasi
 
-### Seed Function
-- `seed_default_categories()` diupdate via `CREATE OR REPLACE FUNCTION`
-- Variabel baru: `v_makanan`, `v_belanja`, `v_hiburan` ditambahkan ke `declare` block
-- User baru mendapat 10 parent + 36 child expense + 3 parent + 9 child income + 2 system = **60 kategori default**
+### Seed Function (perilaku saat migrasi 2026-04-19)
+
+- `seed_default_categories()` di-*replace* agar isi fungsi selaras **60** kategori bawaan (struktur parent/child & variabel `v_makanan` / `v_belanja` / `v_hiburan`).
+
+**Setelah migrasi katalog global (2026-04-25):** fungsi dijadikan *no-op*; **tidak** ada lagi *insert* 60 baris per pendaftaran. Isi tabel bawaan = **katalog** di `categories` (baris global); lihat entitas *Categories*.
 
 ### AI Parse Impact
 - **Tidak ada perubahan ke `ai-parse/index.ts`** — mapping kategori bersifat dynamic (dikirim dari Flutter per request)
 - Dengan `Makanan & Minuman` di sort_order=0, ia menjadi `e1` di short ID mapping — sesuai dengan few-shot examples yang sudah ada
-- `MAX_CATEGORIES = 200` masih cukup (total ~62 kategori per user)
+- `MAX_CATEGORIES = 200` masih cukup: daftar pilihan berasal dari katalog (bukan 60 *salinan* per *user*).
 
 ---
 

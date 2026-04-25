@@ -2,12 +2,14 @@
 
 [← History](12_HISTORY.md) · [Index](00_INDEX.md) · [Budgeting →](14_BUDGETING.md)
 
+> **Katalog global 2026-04:** bawaan app = baris `categories` dengan `user_id` null. *Hide* = baris `user_category_hidden` + RPC `get_user_categories` / `toggle_category_hidden` (bukan `UPDATE` kolom `is_hidden` di `categories`).
+
 ---
 
 ## 13.1. Aturan
 - Parent-child max 2 level
 - `is_default = true` → tidak boleh hard delete
-- Default category bisa di-hide (`is_hidden = true`)
+- Default / kategori bawaan bisa disembunyi: preferensi tersimpan lewat *hide* per (user, `category_id`) (DB + RPC)
 - Form transaksi hanya tampilkan kategori sesuai type (expense → expense categories)
 - Tipe debt/loan tidak pakai taxonomy kategori normal di MVP
 
@@ -21,7 +23,7 @@ flowchart TD
     B -->|Tambah Child| D["Pilih parent\n→ Input: Nama, Icon"]
     B -->|Edit| E["Edit: Nama, Icon"]
     B -->|Delete| F{is_default\n= true?}
-    B -->|Hide/Show| G["Toggle is_hidden"]
+    B -->|Hide/Show| G["toggle_category_hidden / user_category_hidden"]
 
     C --> H["INSERT category\n(parent_id = null)"]
     D --> I["INSERT category\n(parent_id = parent.id)"]
@@ -32,7 +34,7 @@ flowchart TD
     L -->|Ya| M["❌ DIBLOK:\nKategori masih\ndipakai"]
     L -->|Tidak| N["DELETE category"]
 
-    G --> O["UPDATE is_hidden"]
+    G --> O["Simpan preferensi (hidden table / RPC)"]
 
     style K fill:#d32f2f,color:#fff
     style M fill:#d32f2f,color:#fff

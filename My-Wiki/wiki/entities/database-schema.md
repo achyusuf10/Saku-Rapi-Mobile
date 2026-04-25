@@ -1,15 +1,15 @@
 ---
 title: "Database Schema"
 type: entity
-tags: [database, schema, supabase, postgres, rls, trigger, rpc, index]
+tags: [database, schema, supabase, postgres, rls, trigger, rpc, index, categories, user_category_hidden]
 sources: [raw/docs/02_DATABASE.md, raw/security-audit.md]
 created: 2026-04-10
-updated: 2026-04-14
+updated: 2026-04-25
 ---
 
 # Database Schema
 
-> Halaman ini adalah referensi lengkap untuk seluruh struktur database Supabase/Postgres SakuRapi. Dokumen ini merupakan **sumber kebenaran tunggal** untuk schema, constraint, trigger, RPC, RLS, dan indexing.
+> Halaman ini adalah referensi untuk struktur database Supabase/Postgres SakuRapi: schema, constraint, trigger, RPC, RLS, dan indexing. Detail alur kategori global + `user_category_hidden` + migrasi Apr 2026: [[wiki/entities/categories|Categories]].
 
 **Database authority:** Supabase Postgres
 **Ledger rule:** `wallets.balance` hanya berubah dari trigger berbasis `transactions`
@@ -29,7 +29,9 @@ updated: 2026-04-14
 
 ---
 
-## Schema (18 Tabel)
+## Schema (19 Tabel)
+
+### 1. `users`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -73,17 +75,18 @@ updated: 2026-04-14
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | uuid PK | |
-| user_id | uuid nullable FK | null = global/default |
+| user_id | uuid nullable FK | `null` = katalog **global** (bukan salinan per user) |
 | name | text not null | |
 | icon | text not null | fontawesome icon |
 | color | text not null | |
 | type | text not null | `income`, `expense`, `system` |
 | parent_id | uuid nullable FK self | max 2 level |
 | is_default | boolean not null default false | |
-| is_hidden | boolean not null default false | |
 | sort_order | integer not null default 0 | |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
+
+> **Migrasi 2026-04 (katalog global):** kolom `categories.is_hidden` **dihapus**. Preferensi *hidden* per user: `user_category_hidden` + proyeksi `is_hidden` lewat RPC. Lihat [[wiki/entities/categories|Categories]].
 
 **Constraint:**
 - Parent dan child harus punya `type` yang sama
@@ -94,7 +97,18 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 4. `transactions`
+### 4. `user_category_hidden`
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| user_id | uuid | pemilik; UNIQUE berpasangan dengan `category_id` |
+| category_id | uuid FK | kategori (global atau milik user) yang disembunyikan di UI |
+
+**Semantik:** baris = pasangan (user, kategori) yang *hidden*. Katalog global (`categories.user_id` null) tetap satu baris bersama; *hide* tidak mengubah `categories`.
+
+---
+
+### 5. `transactions`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -132,7 +146,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 5. `transaction_items`
+### 6. `transaction_items`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -155,7 +169,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 6. `budgets`
+### 7. `budgets`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -184,7 +198,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 7. `custom_gold_types`
+### 8. `custom_gold_types`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -200,7 +214,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 8. `custom_asset_categories`
+### 9. `custom_asset_categories`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -218,7 +232,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 9. `investment_assets`
+### 10. `investment_assets`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -245,7 +259,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 10. `investment_transactions`
+### 11. `investment_transactions`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -272,7 +286,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 11. `gold_prices`
+### 12. `gold_prices`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -288,7 +302,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 12. `bitcoin_prices`
+### 13. `bitcoin_prices`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -301,7 +315,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 13. `parsing_dictionaries`
+### 14. `parsing_dictionaries`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -311,9 +325,11 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
+> Beberapa *migration* hanya memutakhirkan tabel ini jika `to_regclass('public.parsing_dictionaries')` ada, agar aman bila tabel belum/ tidak dipasang di lingkungan tertentu.
+
 ---
 
-### 14. `notification_settings` ⚠️ DIHAPUS
+### 15. `notification_settings` ⚠️ DIHAPUS
 
 > **Dihapus di Migration 015** (`20260412100000_015_remove_notification.sql`). Tabel ini tidak ada lagi di database. `DROP TABLE notification_settings CASCADE` juga menghapus trigger `trg_notification_settings_updated_at` dan RLS policies `notification_settings_select_own` / `notification_settings_update_own`.
 
@@ -332,7 +348,7 @@ Lihat detail di: [[wiki/entities/categories|Categories]]
 
 ---
 
-### 15. `contacts`
+### 16. `contacts`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -352,7 +368,7 @@ Lihat detail di: [[wiki/entities/contacts|Contacts]]
 
 ---
 
-### 16. `ai_usage_quotas`
+### 17. `ai_usage_quotas`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -370,7 +386,7 @@ Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
 
 ---
 
-### 17. `ai_usage_logs`
+### 18. `ai_usage_logs`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -386,7 +402,7 @@ Seed data: free (text=5, voice=5, ocr=3), premium (text=20, voice=20, ocr=10)
 
 Lihat detail di: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse]]
 
-### 18. `user_reports`
+### 19. `user_reports`
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
@@ -410,7 +426,7 @@ Lihat detail di: [[wiki/entities/user-report|User Report]]
 | Nama | Event | Tujuan |
 |---|---|---|
 | `handle_new_user()` | after insert on `auth.users` | upsert `public.users` |
-| `seed_default_categories()` | after insert on `public.users` | insert kategori default |
+| `seed_default_categories()` | *(tidak lagi dipasang ke `auth.users`)* | Fungsi tetap ada (RETURNS trigger) sebagai *no-op*; trigger `trg_seed_default_categories` **dihapus** pada migrasi katalog global **Apr 2026**. Kategori bawaan = **baris global** di `categories`, bukan *copy* per pendaftaran. |
 | `seed_notification_settings()` | after insert on `public.users` | insert default notification settings — **Dihapus di Migration 015** |
 | `update_wallet_balance()` | after insert/update/delete on `transactions` | update saldo wallet |
 | `update_budget_usage()` | after insert/update/delete on `transaction_items` | recalc budget usage |
@@ -459,6 +475,13 @@ Lihat detail di: [[wiki/entities/user-report|User Report]]
 
 - **`replace_budget`** — Atomic DELETE old + INSERT new dalam satu transaction (untuk duplicate overlap)
 
+### Category RPCs
+
+- **`get_user_categories()`** — Gabungan katalog global + kategori user; field `is_hidden` di *response* berasal dari proyeksi (termasuk `user_category_hidden`), bukan kolom `categories.is_hidden` (dihapus 2026-04). `SECURITY DEFINER`, `auth.uid()` internal.
+- **`toggle_category_hidden(p_category_id, p_is_hidden)`** — Toggle baris `user_category_hidden` / *unhide*; perbaikan PL/pgSQL memakai `p_uid` agar tidak ambigu dengan kolom `user_id` (migrasi `20260425220000`).
+
+> Detail migrasi + skrip *retry* prod: [[wiki/entities/categories|Categories]].
+
 ### Investment RPCs
 
 - **`get_investment_dashboard`** — Dashboard investasi (menggunakan `auth.uid()` internal)
@@ -484,16 +507,17 @@ Lihat detail di: [[wiki/entities/user-report|User Report]]
 
 ## RLS (Row Level Security)
 
-### Tabel yang dilindungi RLS (16 tabel)
+### Tabel yang dilindungi RLS (17 tabel)
 
-users, wallets, categories, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts, ai_usage_quotas, ai_usage_logs, **user_reports**.
+users, wallets, categories, **user_category_hidden**, transactions, transaction_items, budgets, investment_assets, investment_transactions, gold_prices, bitcoin_prices, custom_gold_types, custom_asset_categories, parsing_dictionaries, contacts, ai_usage_quotas, ai_usage_logs, **user_reports**.
 
 > `notification_settings` dihapus di Migration 015 — tidak lagi ada di daftar ini.
 
 ### Prinsip RLS
 
 - User hanya boleh membaca/menulis data **miliknya sendiri**
-- `categories` dengan `user_id IS NULL` boleh dibaca oleh semua user terautentikasi (global/default categories)
+- `categories` dengan `user_id IS NULL` readable oleh user terautentikasi (katalog **global** bersama)
+- `user_category_hidden`: hanya baris `user_id = (SELECT auth.uid())` (preferensi *hide* per user)
 - System categories **tidak boleh** diedit user
 - Akses storage attachment dibatasi ke owner
 - **Semua 44 policy menggunakan pattern `(SELECT auth.uid())`** — bukan `auth.uid()` langsung. Pattern ini mencegah PostgreSQL re-evaluate function per row, sehingga query lebih cepat untuk tabel besar. (Dioptimasi via Migration `security_optimize_rls_subselect`)
@@ -508,7 +532,7 @@ USING (user_id = auth.uid())
 
 ---
 
-## Indexes (Minimum 27)
+## Indexes (Minimum 28)
 
 | Index | Tujuan |
 |---|---|
@@ -522,6 +546,7 @@ USING (user_id = auth.uid())
 | `budgets(wallet_id)` | Filter budget per wallet *(ditambah security audit)* |
 | `categories(user_id, type, parent_id)` | Filter kategori |
 | `categories(parent_id)` | Self-join parent-child *(ditambah security audit)* |
+| `user_category_hidden(user_id, category_id)` | UNIQUE; preferensi *hide* per user *(constraint)* |
 | `wallets(user_id, sort_order)` | Urutan wallet |
 | `contacts(user_id, name)` | Lookup kontak |
 | `investment_assets(user_id)` | Basic user filter |
@@ -579,6 +604,7 @@ Checklist validasi database untuk memastikan integritas data keuangan:
 20. Edit/delete investment transaction hanya untuk `direction = 'buy'`
 21. Edit/delete buy transaction divalidasi: sisa buy units setelah perubahan tidak boleh < total sell units
 22. `contacts` di-upsert dari phonebook, referensi aman meskipun kontak diedit
+23. Katalog kategori bawaan = baris `categories` dengan `user_id` null; *hide* UI per user lewat `user_category_hidden` + RPC, bukan kolom `categories.is_hidden`
 
 ---
 

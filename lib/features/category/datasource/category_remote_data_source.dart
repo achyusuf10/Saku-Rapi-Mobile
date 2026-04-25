@@ -22,9 +22,10 @@ class CategoryRemoteDataSource {
 
   /// Fetch semua kategori milik user saat ini.
   ///
-  /// RLS `categories_select_own_and_system` memastikan hanya
-  /// kategori milik user atau system (user_id IS NULL) yang dikembalikan.
-  /// Hasil diurutkan berdasarkan `sort_order` lalu `name`.
+  /// RPC [get_user_categories] menggabungkan kategori global + milik user
+  /// dan menyetel `is_hidden` hanya dari tabel [user_category_hidden] (bukan
+  /// kolom di `categories` setelah migrasi).
+  /// Hasil diurutkan di sisi server (`sort_order`, `name`).
   Future<DataState<List<CategoryModel>>> getCategories() async {
     return SupabaseHandler.call<List<CategoryModel>>(
       function: () async {
@@ -33,14 +34,11 @@ class CategoryRemoteDataSource {
           colorLog: ColorLog.blue,
         );
 
-        final response = await _client
-            .from('categories')
-            .select()
-            .order('sort_order', ascending: true)
-            .order('name', ascending: true);
+        // `p_type` null = semua tipe; parameter opsional di postgres.
+        final response = await _client.rpc('get_user_categories', params: {});
 
         final categories = (response as List)
-            .map((e) => CategoryModel.fromMap(e))
+            .map((e) => CategoryModel.fromMap(e as Map<String, dynamic>))
             .toList();
 
         AppLogger.logSuccess(
@@ -54,6 +52,8 @@ class CategoryRemoteDataSource {
   }
 
   /// Fetch kategori berdasarkan [type] (income/expense/system).
+  /// Tetap lewat [get_user_categories] agar `is_hidden` konsisten dengan merge
+  /// `user_category_hidden` (bukan baca tabel [categories] mentah).
   Future<DataState<List<CategoryModel>>> getCategoriesByType(
     CategoryType type,
   ) async {
@@ -64,15 +64,13 @@ class CategoryRemoteDataSource {
           colorLog: ColorLog.blue,
         );
 
-        final response = await _client
-            .from('categories')
-            .select()
-            .eq('type', type.value)
-            .order('sort_order', ascending: true)
-            .order('name', ascending: true);
+        final response = await _client.rpc(
+          'get_user_categories',
+          params: {'p_type': type.value},
+        );
 
         final categories = (response as List)
-            .map((e) => CategoryModel.fromMap(e))
+            .map((e) => CategoryModel.fromMap(e as Map<String, dynamic>))
             .toList();
 
         AppLogger.logSuccess(
@@ -140,12 +138,13 @@ class CategoryRemoteDataSource {
   /// Update kategori existing.
   ///
   /// Hanya kategori non-default milik user yang bisa diupdate (RLS).
+  /// Sembunyikan/tampilkan: gunakan [toggleHidden] (bukan kolom `is_hidden` di
+  /// tabel, setelah migrasi).
   Future<DataState<CategoryModel>> updateCategory({
     required String categoryId,
     String? name,
     String? icon,
     String? color,
-    bool? isHidden,
     int? sortOrder,
   }) async {
     return SupabaseHandler.call<CategoryModel>(
@@ -159,7 +158,6 @@ class CategoryRemoteDataSource {
         if (name != null) updateData['name'] = name;
         if (icon != null) updateData['icon'] = icon;
         if (color != null) updateData['color'] = color;
-        if (isHidden != null) updateData['is_hidden'] = isHidden;
         if (sortOrder != null) updateData['sort_order'] = sortOrder;
 
         final response = await _client
@@ -220,15 +218,22 @@ class CategoryRemoteDataSource {
           colorLog: ColorLog.blue,
         );
 
-        final response = await _client
-            .rpc(
-              'toggle_category_hidden',
-              params: {'p_category_id': categoryId, 'p_is_hidden': isHidden},
-            )
-            .select()
-            .single();
-
-        final category = CategoryModel.fromMap(response);
+        final res = await _client.rpc(
+          'toggle_category_hidden',
+          params: {'p_category_id': categoryId, 'p_is_hidden': isHidden},
+        );
+        // PostgREST: SETOF satu baris sering tiba sebagai List satu elemen.
+        final Object row;
+        if (res is List && res.isNotEmpty) {
+          row = res.first;
+        } else if (res is Map) {
+          row = res;
+        } else {
+          throw Exception('toggle_category_hidden: respon tak terduga: $res');
+        }
+        final category = CategoryModel.fromMap(
+          Map<String, dynamic>.from(row as Map),
+        );
 
         AppLogger.logSuccess(
           'Category hidden toggled: ${category.name} → isHidden=$isHidden',

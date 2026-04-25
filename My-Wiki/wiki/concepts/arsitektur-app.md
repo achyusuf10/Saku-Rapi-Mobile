@@ -4,7 +4,7 @@ type: concept
 tags: [arsitektur, flutter, riverpod, supabase, hive, gorouter, 3-file-pattern, model, provider, ui]
 sources: [raw/docs/prd/01_TENTANG_SAKURAPI.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/00_SakuRapi_Coding_Rules.md, raw/docs/03_COPILOT_RULES.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-25
 ---
 
 # Arsitektur Aplikasi
@@ -293,7 +293,7 @@ Sebuah task selesai jika:
 - [[wiki/entities/transaksi|Transaksi]] — Entitas transaksi
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]] — Dokumen sumber
 - [[wiki/concepts/coding-rules|Coding Rules]] — Aturan coding dan konvensi
-- [[wiki/entities/database-schema|Database Schema]] — 15 tabel Supabase/Postgres
+- [[wiki/entities/database-schema|Database Schema]] — Skema terkini (termasuk katalog kategori global)
 - [[wiki/sources/coding-rules|Coding Rules (Sumber)]] — Ringkasan coding rules
 - [[wiki/sources/copilot-rules|Copilot Rules (Sumber)]] — Ringkasan copilot guardrails
 - [[wiki/concepts/design-system|Design System]]

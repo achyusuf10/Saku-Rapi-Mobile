@@ -1,10 +1,10 @@
 ---
 title: "AI Processing Pipeline"
 type: concept
-tags: [ai, voice, ocr, text-parser, edge-function, gemini, groq, parsing-dictionary, stt]
+tags: [ai, voice, ocr, text-parser, edge-function, gemini, vertex, parsing-dictionary, stt, quota]
 sources: [raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/19_PARSING_DICTIONARY.md, raw/docs/prd/20_EXTERNAL_API.md]
 created: 2026-04-10
-updated: 2026-04-10
+updated: 2026-04-25
 ---
 
 # AI Processing Pipeline
@@ -33,11 +33,11 @@ Semua input (voice, text, OCR) diproses oleh satu Edge Function yang sama:
 │  mode='text'  ──► Text parsing pipeline                      │
 │  mode='ocr'   ──► OCR/image parsing pipeline                 │
 │                                                               │
-│  AI Provider Chain: Gemini → Groq → Local Parser Fallback    │
+│  AI: Vertex AI Gemini (satu provider) — jika error → klien error+retry  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-> **Penting**: Edge Functions berjalan di **Deno + TypeScript**, bukan Node.js. Import menggunakan URL-based imports sesuai standar Deno.
+> **Penting**: Edge Functions berjalan di **Deno + TypeScript**, bukan Node.js. **Tidak** ada *failover* Groq/OpenRouter dan **tidak** ada *fallback* parser regex lokal; lihat [[wiki/analysis/remove-manual-parsing|Penghapusan manual parsing]].
 
 ---
 
@@ -103,81 +103,17 @@ Prefill form transaksi
 
 ---
 
-## AI Failover Chain
+## Provider AI & penanganan gagal
 
-Pipeline AI menggunakan strategi failover bertingkat untuk memaksimalkan keberhasilan parsing:
+*Saat ini* Edge Function memakai **Vertex AI (Gemini)** — satu jalur, tanpa penyedia sekunder. Jika panggilan gagal atau *timeout*, hasil kembali sebagai **error**; Flutter menampilkan *error state* + aksi **coba lagi** (bukan beralih ke Groq, bukan regex di perangkat).
 
-```
-Gemini (primary)
-    ↓ gagal/timeout
-Groq (secondary)
-    ↓ gagal/timeout
-Local Parser Fallback
-```
-
-| Provider | Peran | Catatan |
-|---|---|---|
-| **Gemini** | Provider utama | Google AI, mendukung text dan vision (OCR) |
-| **Groq** | Fallback pertama | Digunakan jika Gemini gagal atau timeout |
-| **Local Parser** | Fallback terakhir | Parsing sederhana tanpa AI, berjalan di device |
-
-Failover terjadi secara transparan — user tidak perlu tahu provider mana yang digunakan.
+- **Kuota** harian per mode (free/premium) lewat tabel/ RPC kuota di Supabase; ringkasnya: [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse: Gemini + kuota]].
 
 ---
 
-## Local Parsers (Fallback)
+## `parsing_dictionaries` (opsional)
 
-Ketika semua AI provider gagal, SakuRapi menggunakan parser lokal yang berjalan di device:
-
-### VoiceLocalParser (untuk mode text)
-
-Parser berbasis regex dan keyword matching:
-
-1. **Extract amount**: Regex untuk mendeteksi angka dan format uang Indonesia (ribu, juta, rb, jt, k)
-2. **Detect type**: Keyword matching untuk menentukan tipe transaksi (misalnya "bayar" → expense, "terima" → income)
-3. **Match category**: Dictionary-based matching untuk menentukan kategori
-
-### OcrLocalParser (untuk mode OCR)
-
-Parser untuk mengekstrak informasi dari teks OCR mentah:
-
-1. **Extract merchant**: Nama toko/merchant dari header struk
-2. **Extract total**: Jumlah total pembayaran
-3. **Extract items**: Daftar item yang dibeli (jika tersedia)
-4. **Extract date**: Tanggal transaksi dari struk
-
----
-
-## Parsing Dictionary
-
-Parsing dictionary adalah mekanisme untuk meningkatkan akurasi matching kategori berdasarkan keyword.
-
-### Penyimpanan
-
-- **Server**: Tabel `parsing_dictionaries` di Supabase
-- **Client**: Cache di **Hive** dengan masa berlaku **24 jam**
-- **Matching**: Keyword dalam format **lowercase**
-
-### Alur Penggunaan
-
-```
-App launch / cache expired (24 jam)
-        ↓
-Fetch parsing_dictionaries dari Supabase
-        ↓
-Simpan ke Hive cache
-        ↓
-Saat parsing: match keyword input (lowercase) → kategori
-```
-
-### Contoh
-
-| Keyword | Kategori |
-|---|---|
-| "grab" | Transportasi |
-| "indomaret" | Belanja |
-| "starbucks" | Makanan & Minuman |
-| "pln" | Tagihan |
+Tabel `parsing_dictionaries` mungkin masih ada di DB untuk *hint* (bukan *silent fallback* klien). **Kategori** yang tampil untuk user dan *mapping* andal berasal dari katalog (RPC) — lihat [[wiki/entities/categories|Categories]]. **Fallback lokal** berbasis kamus/regex ke **dihapus**; baca [[wiki/analysis/remove-manual-parsing|Penghapusan manual parsing]].
 
 ---
 
@@ -204,7 +140,7 @@ Saat parsing: match keyword input (lowercase) → kategori
 │    mode='text' → prompt engineering → extract structured data        │
 │    mode='ocr'  → vision model → extract receipt data                 │
 │                                                                      │
-│  Failover: Gemini → Groq → return error (client uses local parser)  │
+│  Error → response error → klien tampilkan *retry* (bukan *chain* Groq) │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -215,7 +151,7 @@ Saat parsing: match keyword input (lowercase) → kategori
 - Edge Function `ai-parse` adalah **shared** untuk semua mode input — satu endpoint, parameter `mode` yang berbeda
 - STT (Speech-to-Text) berjalan **100% lokal** di device, tidak ada audio yang dikirim ke server
 - Permission mikrofon dan kamera diminta **just-in-time** saat fitur digunakan, bukan saat app launch
-- Hasil parsing bersifat **best-effort** — jika AI tidak yakin dengan suatu field, field tersebut dikosongkan agar user mengisi sendiri
+- Hasil parsing **best-effort** — jika suatu field tidak yakin, bisa dikosongkan agar user melengkapi; kegagalan penuh = error + *retry*
 
 ---
 
@@ -225,4 +161,6 @@ Saat parsing: match keyword input (lowercase) → kategori
 - [[wiki/concepts/matrix-transaksi|Matrix Transaksi]] — Tipe transaksi yang dihasilkan AI
 - [[wiki/entities/transaksi|Transaksi]] — Entitas transaksi
 - [[wiki/concepts/arsitektur-app|Arsitektur App]] — Stack teknologi dan pola arsitektur
-- [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]] — Dokumen sumber
+- [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]] — Ringkasan PRD
+- [[wiki/analysis/remove-manual-parsing|Penghapusan manual parsing]]
+- [[wiki/analysis/refactor-ai-parse-gemini-quota|Refactor AI Parse: Gemini + kuota]]

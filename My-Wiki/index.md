@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-19
+updated: 2026-04-25
 ---
 
 # 📚 Indeks Wiki SakuRapi
@@ -37,8 +37,8 @@ updated: 2026-04-19
 - [[wiki/entities/history|History]] — Riwayat transaksi dengan filter, period, dan pagination
 - [[wiki/entities/settings|Settings]] — Pengaturan aplikasi, notifikasi, dan preferensi
 - [[wiki/entities/user-report|User Report]] — Kirim laporan/feedback dari dalam app (fire-and-forget write ke Supabase)
-- [[wiki/entities/database-schema|Database Schema]] — 17 tabel Supabase/Postgres, triggers, RPC, indexes, RLS
-- [[wiki/entities/categories|Categories]] — Sistem kategori (expense, income, system) dengan hierarki 2-level
+- [[wiki/entities/database-schema|Database Schema]] — 19 tabel (termasuk `user_category_hidden`), triggers, RPC, indexes, RLS, katalog global 2026-04
+- [[wiki/entities/categories|Categories]] — Katalog global, `user_category_hidden`, RPC, migrasi April 2026, hierarki 2-level
 - [[wiki/entities/contacts|Contacts]] — Manajemen kontak untuk hutang/piutang
 - [[wiki/entities/reports|Reports]] — Laporan keuangan (summary, pie chart, trend chart, per kategori)
 - [[wiki/entities/edge-functions|Edge Functions]] — Supabase Edge Functions (ai-parse, gold-price, bitcoin-price) berbasis Deno + TypeScript
@@ -63,9 +63,9 @@ updated: 2026-04-19
 
 <!-- Ringkasan sumber yang sudah diproses -->
 
-- [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0 — Ringkasan]] — Ringkasan komprehensif PRD v7.0 (27 file, fitur P0–P2, aturan keuangan, roadmap, keputusan final)
+- [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0 — Ringkasan]] — Ringkasan PRD v7.0: AI = Gemini/Vertex, tanpa Groq; notifikasi lokal di P1 = dihapun (2026)
 - [[wiki/sources/coding-rules|Coding Rules (Sumber)]] — Ringkasan 00_SakuRapi_Coding_Rules.md
-- [[wiki/sources/database-v6|Database v6.4 (Sumber)]] — Ringkasan 02_DATABASE.md (15 tabel, triggers, RPC, indexes)
+- [[wiki/sources/database-v6|Database v6.4 (Sumber)]] — Ringkasan sumber 02 + evolusi: 19 bagian tabel (18 hidup + §15 historis), katalog kategori 2026-04
 - [[wiki/sources/copilot-rules|Copilot Rules (Sumber)]] — Ringkasan 03_COPILOT_RULES.md (guardrails, conventions, testing)
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]] — Ringkasan 13 file redesign (S1-S12, design tokens, widget overhaul, per-module specs)
 - [[wiki/sources/plan-remove-notification|Plan: Hapus Fitur Notifikasi]] — Rencana dan dokumentasi penghapusan fitur notifikasi lokal (April 2026)

@@ -261,7 +261,7 @@ Pakai widget global saku_currency_field.dart jika butuh inputan berupa uang, kar
 
 > Dokumen ini ditujukan untuk Copilot / AI coding assistant dan developer.
 > Requirement produk ada di folder [`prd/`](prd/00_INDEX.md) (PRD dipecah per section).
-> Schema database dan constraint ada di `02_DATABASE.md`.
+> **Skema aktual:** folder `supabase/migrations/` (repo) + `My-Wiki/wiki/entities/database-schema.md` di wiki. File `02_DATABASE.md` = *baseline*; bagian kategori bisa usang (katalog global, `user_category_hidden`, drop `is_hidden` 2026-04) — lihat `My-Wiki/wiki/entities/categories.md`.
 
 **Status:** Wajib diikuti  
 **Target stack:** Flutter + Riverpod + Supabase
@@ -478,13 +478,13 @@ Copilot **dilarang**:
 Gunakan format prompt seperti ini saat meminta implementasi:
 
 ```text
-Gunakan docs/prd/ (PRD per section), docs/02_DATABASE.md, dan docs/03_COPILOT_RULES.md sebagai sumber kebenaran.
+Gunakan docs/prd/ (PRD), Supabase migrasi (repo) + My-Wiki entitas database-schema & categories, docs/02_DATABASE.md (baseline), dan docs/03_COPILOT_RULES.md sebagai sumber.
 
 Tugas:
 [jelaskan fitur spesifik]
 
 Batasan:
-- Jangan mengubah schema di luar docs.
+- Jangan mengubah skema kecuali lewat `supabase/migrations/` (dan selaras wiki entitas).
 - Gunakan Riverpod non-generator.
 - Gunakan pattern LocalDataSource -> RemoteDataSource -> Repository.
 - Semua string pakai .arb.
@@ -514,7 +514,8 @@ Sebuah task implementasi dianggap selesai jika:
 ## 12. Final Priority Rules
 
 Jika Copilot bingung atau menemukan konflik:
-1. ikuti `02_DATABASE.md` untuk schema dan constraint,
-2. ikuti `docs/prd/` untuk business intent dan flow (lihat `prd/00_INDEX.md` untuk navigasi),
-3. ikuti dokumen ini untuk cara implementasi,
-4. jangan membuat asumsi baru tanpa menandainya sebagai TODO/QUESTION.
+1. **Migrasi + wiki entitas** — `supabase/migrations/`, `My-Wiki/wiki/entities/database-schema.md` (serta `categories.md` bila kategori) mengalahkan `02_DATABASE.md` bila berbeda,
+2. `02_DATABASE.md` — *baseline* historis,
+3. `docs/prd/` — business intent (lihat `prd/00_INDEX.md`),
+4. dokumen ini — cara implementasi,
+5. jangan asumsi baru tanpa `TODO/QUESTION`.
