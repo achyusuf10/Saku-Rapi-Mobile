@@ -352,12 +352,6 @@ class OcrResultSheet extends ConsumerWidget {
     );
   }
 
-  /// Resolve wallet UUID ke nama wallet untuk display.
-  String _resolveWalletName(WidgetRef ref, String walletId) {
-    final wallets = ref.read(walletListProvider);
-    return wallets.where((w) => w.id == walletId).firstOrNull?.name ?? walletId;
-  }
-
   Widget _buildResult(BuildContext context, WidgetRef ref, OcrScanState state) {
     final colors = context.colors;
     final l10n = context.l10n;
@@ -366,6 +360,20 @@ class OcrResultSheet extends ConsumerWidget {
     // Build category lookup from user's categories
     final allCategories = ref.read(categoryControllerProvider).categories;
     final categoryMap = {for (final c in allCategories) c.id: c.name};
+
+    final hasMultipleItems = result.items.length > 1;
+    final unifiedMultiItemCategory =
+        hasMultipleItems &&
+        (result.type == 'expense' || result.type == 'income');
+    final String? rootCategoryDisplay = () {
+      if (result.categoryId != null) {
+        final n = categoryMap[result.categoryId];
+        if (n != null) return n;
+      }
+      final kw = result.categoryKeyword;
+      if (kw != null && kw.isNotEmpty) return kw;
+      return null;
+    }();
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
@@ -382,77 +390,15 @@ class OcrResultSheet extends ConsumerWidget {
 
           SizedBox(height: 12.h),
 
-          // Merchant & Date
-          if (result.merchantName != null) ...[
-            _InfoRow(
-              icon: FontAwesomeIcons.store,
-              label: l10n.ocrMerchant,
-              value: result.merchantName!,
-              colors: colors,
-            ),
-            SizedBox(height: 8.h),
-          ],
-          if (result.date != null) ...[
-            _InfoRow(
-              icon: FontAwesomeIcons.calendar,
-              label: l10n.ocrDate,
-              value: result.date!.extToFormattedString(
-                outputDateFormat: 'dd MMM yyyy, HH:mm',
-              ),
-              colors: colors,
-            ),
-            SizedBox(height: 8.h),
-          ],
+          // Ringkasan struk: tabel tanpa border (label | nilai)
+          _OcrDetailTable(
+            colors: colors,
+            rows: _ocrDetailRowsFor(ref, result, l10n, rootCategoryDisplay),
+          ),
 
-          // Transfer: wallet info
-          if (result.type == 'transfer') ...[
-            if (result.suggestedWalletId != null) ...[
-              _InfoRow(
-                icon: FontAwesomeIcons.wallet,
-                label: l10n.ocrSourceWallet,
-                value: _resolveWalletName(ref, result.suggestedWalletId!),
-                colors: colors,
-              ),
-              SizedBox(height: 8.h),
-            ],
-            if (result.destinationWalletId != null) ...[
-              _InfoRow(
-                icon: FontAwesomeIcons.arrowRight,
-                label: l10n.ocrDestWallet,
-                value: _resolveWalletName(ref, result.destinationWalletId!),
-                colors: colors,
-              ),
-              SizedBox(height: 8.h),
-            ],
-          ],
+          SizedBox(height: 12.h),
 
-          // Debt/Loan: person info
-          if ((result.type == 'debt' || result.type == 'loan') &&
-              result.withPerson != null) ...[
-            _InfoRow(
-              icon: FontAwesomeIcons.user,
-              label: l10n.ocrWithPerson,
-              value: result.withPerson!,
-              colors: colors,
-            ),
-            SizedBox(height: 8.h),
-          ],
-
-          // Payment method (non-transfer)
-          if (result.type != 'transfer' &&
-              result.suggestedWalletId != null) ...[
-            _InfoRow(
-              icon: FontAwesomeIcons.creditCard,
-              label: l10n.ocrPaymentMethod,
-              value: _resolveWalletName(ref, result.suggestedWalletId!),
-              colors: colors,
-            ),
-            SizedBox(height: 8.h),
-          ],
-
-          SizedBox(height: 8.h),
-
-          // Items section
+          // Items section (setelah semua info ringkas)
           if (result.items.isNotEmpty) ...[
             Row(
               children: [
@@ -475,9 +421,12 @@ class OcrResultSheet extends ConsumerWidget {
                 qty: e.value.qty,
                 unitPrice: e.value.unitPrice,
                 subtotal: e.value.subtotal,
-                categoryName: e.value.categoryId != null
-                    ? categoryMap[e.value.categoryId]
-                    : null,
+                categoryName:
+                    (rootCategoryDisplay != null || unifiedMultiItemCategory)
+                    ? null
+                    : (e.value.categoryId != null
+                          ? categoryMap[e.value.categoryId]
+                          : null),
               ),
             ),
           ],
@@ -732,44 +681,177 @@ class OcrResultSheet extends ConsumerWidget {
   }
 }
 
-// ───────────────── Private Widgets ─────────────────
+// ───────────────── Private widgets & helpers ─────────────────
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
+/// Satu baris ringkasan OCR: ikon + label (kolom kiri) dipisah dari nilai (kanan).
+class _OcrDetailRow {
+  const _OcrDetailRow({
     required this.icon,
     required this.label,
     required this.value,
-    required this.colors,
   });
 
   final IconData icon;
   final String label;
   final String value;
+}
+
+List<_OcrDetailRow> _ocrDetailRowsFor(
+  WidgetRef ref,
+  OcrParseResultModel result,
+  dynamic l10n,
+  String? rootCategoryDisplay,
+) {
+  String resolveWallet(String id) {
+    final wallets = ref.read(walletListProvider);
+    return wallets.where((w) => w.id == id).firstOrNull?.name ?? id;
+  }
+
+  final rows = <_OcrDetailRow>[];
+
+  if (result.merchantName != null && result.merchantName!.isNotEmpty) {
+    rows.add(
+      _OcrDetailRow(
+        icon: FontAwesomeIcons.store,
+        label: l10n.ocrMerchant as String,
+        value: result.merchantName!,
+      ),
+    );
+  }
+
+  if (result.date != null) {
+    rows.add(
+      _OcrDetailRow(
+        icon: FontAwesomeIcons.calendar,
+        label: l10n.ocrDate as String,
+        value: result.date!.extToFormattedString(
+          outputDateFormat: 'dd MMM yyyy, HH:mm',
+        ),
+      ),
+    );
+  }
+
+  if (result.type == 'transfer') {
+    if (result.suggestedWalletId != null) {
+      rows.add(
+        _OcrDetailRow(
+          icon: FontAwesomeIcons.wallet,
+          label: l10n.ocrSourceWallet as String,
+          value: resolveWallet(result.suggestedWalletId!),
+        ),
+      );
+    }
+    if (result.destinationWalletId != null) {
+      rows.add(
+        _OcrDetailRow(
+          icon: FontAwesomeIcons.arrowRight,
+          label: l10n.ocrDestWallet as String,
+          value: resolveWallet(result.destinationWalletId!),
+        ),
+      );
+    }
+  } else {
+    if ((result.type == 'debt' || result.type == 'loan') &&
+        result.withPerson != null) {
+      rows.add(
+        _OcrDetailRow(
+          icon: FontAwesomeIcons.user,
+          label: l10n.ocrWithPerson as String,
+          value: result.withPerson!,
+        ),
+      );
+    }
+    if (result.suggestedWalletId != null) {
+      rows.add(
+        _OcrDetailRow(
+          icon: FontAwesomeIcons.creditCard,
+          label: l10n.ocrPaymentMethod as String,
+          value: resolveWallet(result.suggestedWalletId!),
+        ),
+      );
+    }
+  }
+
+  // Kategori setelah pembayaran / wallet (sesuai alur baca struk)
+  if (rootCategoryDisplay != null) {
+    rows.add(
+      _OcrDetailRow(
+        icon: FontAwesomeIcons.tag,
+        label: l10n.transactionCategory as String,
+        value: rootCategoryDisplay,
+      ),
+    );
+  }
+
+  return rows;
+}
+
+/// Tabel dua kolom tanpa border: label terstruktur di kiri, nilai di kanan.
+class _OcrDetailTable extends StatelessWidget {
+  const _OcrDetailTable({required this.colors, required this.rows});
+
   final dynamic colors;
+  final List<_OcrDetailRow> rows;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        FaIcon(icon, size: 14.w, color: colors.textSecondary),
-        SizedBox(width: 10.w),
-        Text(
-          '$label: ',
-          style: TextStyleConstants.label2.copyWith(
-            color: colors.textSecondary,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(left: 2.w),
+      child: Table(
+        columnWidths: {0: FlexColumnWidth(1.05), 1: FlexColumnWidth(1.35)},
+        defaultVerticalAlignment: TableCellVerticalAlignment.top,
+        children: [
+          for (var i = 0; i < rows.length; i++)
+            TableRow(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i < rows.length - 1 ? 10.h : 0,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 2.h),
+                        child: FaIcon(
+                          rows[i].icon,
+                          size: 13.w,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Text(
+                          rows[i].label,
+                          style: TextStyleConstants.label2.copyWith(
+                            color: colors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i < rows.length - 1 ? 10.h : 0,
+                    left: 6.w,
+                  ),
+                  child: Text(
+                    rows[i].value,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

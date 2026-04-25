@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
@@ -12,17 +13,21 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// Category picker tile dengan ikon lingkaran berwarna.
 ///
 /// Menampilkan kategori yang dipilih atau placeholder jika belum dipilih.
-/// Digunakan di form transaksi tipe income/expense (single-item mode).
+/// [category] dipakai jika ada (multi-item: satu kategori parent);
+/// jika null, fallback ke field kategori pada [item] (single-item / legacy).
 class TransactionCategoryPickerTile extends StatelessWidget {
   const TransactionCategoryPickerTile({
     super.key,
     required this.type,
     required this.onTap,
     required this.iconColor,
+    this.category,
     this.item,
   });
 
   final TransactionTypeEnum type;
+  /// Kategori transaksi level parent (prioritas tampilan).
+  final CategoryModel? category;
   final TransactionItemModel? item;
   final VoidCallback onTap;
   final Color iconColor;
@@ -30,9 +35,12 @@ class TransactionCategoryPickerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final hasCategory = item?.categoryName != null;
-    final categoryColor = item?.categoryColor != null
-        ? parseHexColor(item!.categoryColor!)
+    final displayName = category?.name ?? item?.categoryName;
+    final displayIcon = category?.icon ?? item?.categoryIcon;
+    final displayColorHex = category?.color ?? item?.categoryColor;
+    final hasCategory = displayName != null;
+    final categoryColor = displayColorHex != null
+        ? parseHexColor(displayColorHex)
         : null;
     final circleColor = categoryColor ?? iconColor;
 
@@ -55,9 +63,9 @@ class TransactionCategoryPickerTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: hasCategory
+                child: hasCategory && displayIcon != null
                     ? SakuCategoryIcon(
-                        iconName: item!.categoryIcon!,
+                        iconName: displayIcon,
                         color: circleColor,
                         size: 16,
                         showBackground: false,
@@ -84,8 +92,7 @@ class TransactionCategoryPickerTile extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    item?.categoryName ??
-                        context.l10n.transactionSelectCategory,
+                    displayName ?? context.l10n.transactionSelectCategory,
                     style: TextStyleConstants.b2.copyWith(
                       color: hasCategory
                           ? colors.textPrimary

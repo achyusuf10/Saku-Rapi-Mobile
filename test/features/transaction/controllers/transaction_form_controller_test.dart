@@ -1,6 +1,14 @@
+import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
+import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
+import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class _MockSupabaseClient extends Mock implements SupabaseClient {}
 
 // ─── Helpers ───
 
@@ -285,6 +293,59 @@ void main() {
   // ══════════════════════════════════════════════════
   // TransactionItemModel edge cases
   // ══════════════════════════════════════════════════
+
+  group('TransactionFormController parent category (expense multi-item)', () {
+    late TransactionFormController ctrl;
+
+    CategoryModel expenseCat(String id) => CategoryModel(
+          id: id,
+          userId: 'u1',
+          name: 'Makan',
+          icon: 'utensils',
+          color: '#111111',
+          type: CategoryType.expense,
+        );
+
+    setUp(() {
+      final repo = TransactionRepository(
+        remoteDataSource: TransactionRemoteDataSource(
+          client: _MockSupabaseClient(),
+        ),
+      );
+      ctrl = TransactionFormController(repository: repo);
+      ctrl.setType(TransactionTypeEnum.expense);
+      ctrl.addItem();
+    });
+
+    test('setCategory applies same category to all items', () {
+      final cat = expenseCat('cat-a');
+      ctrl.setCategory(cat);
+      expect(ctrl.state.category?.id, 'cat-a');
+      for (final it in ctrl.state.items) {
+        expect(it.categoryId, 'cat-a');
+      }
+    });
+
+    test('updateItem overwrites per-line category drift with parent', () {
+      final cat = expenseCat('cat-parent');
+      ctrl.setCategory(cat);
+      ctrl.updateItem(
+        0,
+        ctrl.state.items.first.copyWith(
+          categoryId: 'other',
+          categoryName: 'X',
+        ),
+      );
+      expect(ctrl.state.items.first.categoryId, 'cat-parent');
+    });
+
+    test('addItem seeds new row with parent category when set', () {
+      ctrl.setCategory(expenseCat('cat-b'));
+      ctrl.addItem();
+      expect(ctrl.state.items.length, 2);
+      expect(ctrl.state.items.last.categoryId, 'cat-b');
+    });
+  });
 
   group('TransactionItemModel', () {
     test('default qty is 1', () {

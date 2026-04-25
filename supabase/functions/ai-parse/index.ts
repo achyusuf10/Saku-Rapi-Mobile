@@ -1,4 +1,4 @@
-/// Supabase Edge Function: ai-parse (v47)
+/// Supabase Edge Function: ai-parse (v48)
 ///
 /// Menerima teks atau gambar dan mengembalikan hasil parsing
 /// terstruktur dari AI (Vertex AI Gemini only).
@@ -12,7 +12,7 @@
 /// - Backend ID mapping: UUID → short ID (e1, i1, w1) di prompt, reverse map di response
 /// - Wallet short ID mapping: UUID → w1, w2, w3 (identik dengan kategori)
 /// - Category default fallback: ditandai asterisk (*) di prompt map
-/// - Multi-item support text/voice: jika user sebut harga per item, return items[]
+/// - Multi-item text/voice/OCR: items[] tanpa categoryId; kategori hanya root categoryId/categoryKeyword
 /// - System/User prompt split + few-shot examples
 /// - Daily quota check (via RPC) before AI call, log after success
 /// - Specific error codes: AI_TIMEOUT, AI_RATE_LIMIT, AI_AUTH_ERROR, AI_ERROR, DAILY_QUOTA_EXCEEDED
@@ -164,14 +164,11 @@ function reverseMapResponse(
     result.destinationWalletId = walletShortToUuid[result.destinationWalletId] ?? null;
   }
 
-  // Reverse map items (per-item categoryId)
+  // Items: tidak ada kategori per baris — hapus categoryId jika model lama mengembalikannya
   if (Array.isArray(result.items)) {
     result.items = (result.items as Record<string, unknown>[]).map((item) => {
       const mapped = { ...item };
-      if (typeof mapped.categoryId === 'string') {
-        const cleanId = (mapped.categoryId as string).replace('*', '');
-        mapped.categoryId = catShortToUuid[cleanId] ?? null;
-      }
+      delete mapped.categoryId;
       return mapped;
     });
   }
@@ -220,8 +217,8 @@ MULTI-ITEM RULES:
 - "items": array of line items. ONLY populate if user explicitly mentions MULTIPLE items with INDIVIDUAL prices.
 - If items is populated: "amount" = sum of all items subtotal.
 - If items is empty []: "amount" = the single total amount.
-- Each item: {"name":"<item name>","qty":<number, default 1>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}
-- Per-item categoryId follows the same rules (e-prefix for expense, i-prefix for income, null for transfer/debt/loan).
+- Each item: {"name":"<item name>","qty":<number, default 1>,"unitPrice":<number|null>,"subtotal":<number>} — NEVER include categoryId inside items.
+- For expense OR income with multiple priced lines: set root "categoryId" (e-prefix or i-prefix) and "categoryKeyword" for the whole transaction; same category applies to all line items conceptually.
 - For transfer/debt/loan: items MUST be [].
 - Do NOT split a single purchase into fake items. Only split when user clearly lists separate items with separate prices.
 
@@ -249,7 +246,7 @@ Input: "terima piutang dari Budi 100rb"
 Output: {"isTransaction":true,"amount":100000,"items":[],"categoryId":null,"categoryKeyword":"piutang","note":"penerimaan piutang","type":"loan","debtLoanKind":"loan_collection","suggestedWalletId":null,"destinationWalletId":null,"withPerson":"Budi","merchantName":null,"date":null}
 
 Input: "Beli ikan 20K, ayam 10K, sayur 5rb pakai cash"
-Output: {"isTransaction":true,"amount":35000,"items":[{"name":"Ikan","qty":1,"unitPrice":20000,"subtotal":20000,"categoryId":"e1"},{"name":"Ayam","qty":1,"unitPrice":10000,"subtotal":10000,"categoryId":"e1"},{"name":"Sayur","qty":1,"unitPrice":5000,"subtotal":5000,"categoryId":"e1"}],"categoryId":null,"categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null}
+Output: {"isTransaction":true,"amount":35000,"items":[{"name":"Ikan","qty":1,"unitPrice":20000,"subtotal":20000},{"name":"Ayam","qty":1,"unitPrice":10000,"subtotal":10000},{"name":"Sayur","qty":1,"unitPrice":5000,"subtotal":5000}],"categoryId":"e1","categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null}
 
 Return ONLY the JSON object.`;
 }
@@ -287,7 +284,7 @@ function buildOcrSystemPrompt(today: string): string {
   return `You are a financial document parser for an Indonesian personal finance app. Analyze receipt/invoice/document images and extract structured JSON.
 
 OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>,"categoryId":"<short ID|null>"}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","note":"<string|null>"}
+{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","note":"<string|null>"}
 
 CORE RULES:
 1. "isTransaction": true ONLY if image shows a financial document (receipt, invoice, transfer proof, salary slip, etc). Random photos, memes, selfies → false.
@@ -299,9 +296,9 @@ CORE RULES:
     - loan: IOUs where someone owes user, "piutang" documents (PIUTANG BARU)
     - debt_payment: proof of paying back a debt ("bayar hutang", "pelunasan", "cicilan hutang")
     - loan_collection: proof of receiving payment for a loan ("terima piutang", "penerimaan piutang", "tagihan dibayar")
-3. EXPENSE items: extract line items with name, qty (default 1), unitPrice, subtotal. Ignore tax/discount/change/subtotal summary lines. subtotal = qty × unitPrice.
-4. INCOME/TRANSFER/DEBT/LOAN/DEBT_PAYMENT/LOAN_COLLECTION: "items" must be empty array [].
-5. "categoryId": for expense items, pick best matching category short ID (e-prefix). For income top-level, pick i-prefix ID. For transfer/debt/loan/debt_payment/loan_collection → null.
+3. EXPENSE items: extract line items with name, qty (default 1), unitPrice, subtotal. Ignore tax/discount/change/subtotal summary lines. subtotal = qty × unitPrice. Do NOT put categoryId inside each item.
+4. INCOME/TRANSFER/DEBT/LOAN/DEBT_PAYMENT/LOAN_COLLECTION: "items" must be empty array [] (income category only at root categoryId).
+5. Root "categoryId": for expense with line items OR single expense, pick best e-prefix. For income, pick i-prefix. For transfer/debt/loan/debt_payment/loan_collection → null.
 6. CATEGORY FALLBACK: If no category matches well, pick the category marked with * (default). For expense use the default expense (e*), for income use the default income (i*). NEVER invent new categories — only pick from the provided list.
 7. "categoryKeyword": always provide a single lowercase keyword fallback.
 8. All amounts as plain numbers (15000 not "Rp 15.000"). Indonesian patterns: "Rp", "x", "@" for qty/unit. If amount not visible, return 0 for grandTotal.
@@ -313,7 +310,7 @@ CORE RULES:
 
 FEW-SHOT EXAMPLE (expense receipt):
 Image shows: "INDOMARET - Coca Cola 2x @8.500 = 17.000, Roti Tawar 1x @12.000 = 12.000, TOTAL: 29.000, TUNAI"
-Output: {"isTransaction":true,"type":"expense","merchantName":"INDOMARET","date":null,"grandTotal":29000,"items":[{"name":"Coca Cola","qty":2,"unitPrice":8500,"subtotal":17000,"categoryId":"e1"},{"name":"Roti Tawar","qty":1,"unitPrice":12000,"subtotal":12000,"categoryId":"e1"}],"categoryId":null,"categoryKeyword":"belanja","suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"note":null}
+Output: {"isTransaction":true,"type":"expense","merchantName":"INDOMARET","date":null,"grandTotal":29000,"items":[{"name":"Coca Cola","qty":2,"unitPrice":8500,"subtotal":17000},{"name":"Roti Tawar","qty":1,"unitPrice":12000,"subtotal":12000}],"categoryId":"e1","categoryKeyword":"belanja","suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"note":null}
 
 Return ONLY the JSON object.`;
 }

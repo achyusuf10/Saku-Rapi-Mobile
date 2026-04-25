@@ -218,6 +218,36 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   int _generateKey() => _nextItemKey++;
 
+  /// Expense/income memakai satu kategori parent untuk semua baris item.
+  bool _usesParentCategory() {
+    return state.type == TransactionTypeEnum.expense ||
+        state.type == TransactionTypeEnum.income;
+  }
+
+  /// Terapkan [category] ke setiap elemen [items] (untuk RPC / join kategori).
+  List<TransactionItemModel> _itemsWithCategoryApplied(
+    CategoryModel category,
+    List<TransactionItemModel> items,
+  ) {
+    return items
+        .map(
+          (i) => i.copyWith(
+            categoryId: category.id,
+            categoryName: category.name,
+            categoryIcon: category.icon,
+            categoryColor: category.color,
+          ),
+        )
+        .toList();
+  }
+
+  /// Sinkronkan `state.category` ke semua item (no-op jika tidak relevan).
+  void _syncCategoryToAllItems() {
+    final cat = state.category;
+    if (cat == null || !_usesParentCategory()) return;
+    state = state.copyWith(items: _itemsWithCategoryApplied(cat, state.items));
+  }
+
   // ─── Setters ───
 
   void setType(TransactionTypeEnum type) {
@@ -370,20 +400,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   }
 
   void setCategory(CategoryModel category) {
-    state = state.copyWith(category: category);
-    // Jika single item, update category di item juga
-    if (state.items.length == 1) {
-      state = state.copyWith(
-        items: [
-          state.items.first.copyWith(
-            categoryId: category.id,
-            categoryName: category.name,
-            categoryIcon: category.icon,
-            categoryColor: category.color,
-          ),
-        ],
-      );
-    }
+    final newItems = _usesParentCategory()
+        ? _itemsWithCategoryApplied(category, state.items)
+        : state.items;
+    state = state.copyWith(category: category, items: newItems);
   }
 
   // ─── Item Management ───
@@ -400,10 +420,17 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   /// Tambah item baru (switch ke multi-item mode).
   void addItem() {
-    final newItems = [
-      ...state.items,
-      TransactionItemModel(amount: 0, sortOrder: state.items.length),
-    ];
+    var newItem = TransactionItemModel(amount: 0, sortOrder: state.items.length);
+    final cat = state.category;
+    if (cat != null && _usesParentCategory()) {
+      newItem = newItem.copyWith(
+        categoryId: cat.id,
+        categoryName: cat.name,
+        categoryIcon: cat.icon,
+        categoryColor: cat.color,
+      );
+    }
+    final newItems = [...state.items, newItem];
     state = state.copyWith(
       items: newItems,
       itemKeys: [...state.itemKeys, _generateKey()],
@@ -419,7 +446,16 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     if (index < 0 || index >= state.items.length) return;
 
     // Auto-calc amount dari qty * unitPrice jika keduanya ada
-    final resolved = _resolveItemAmount(item);
+    var resolved = _resolveItemAmount(item);
+    final cat = state.category;
+    if (cat != null && _usesParentCategory()) {
+      resolved = resolved.copyWith(
+        categoryId: cat.id,
+        categoryName: cat.name,
+        categoryIcon: cat.icon,
+        categoryColor: cat.color,
+      );
+    }
 
     final newItems = [...state.items];
     newItems[index] = resolved;
@@ -439,6 +475,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       itemKeys: newKeys,
       totalAmount: total,
     );
+    _syncCategoryToAllItems();
   }
 
   /// Ubah urutan item (drag-to-reorder).
@@ -456,6 +493,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     newKeys.insert(adjustedIndex, key);
 
     state = state.copyWith(items: newItems, itemKeys: newKeys);
+    _syncCategoryToAllItems();
   }
 
   /// Prefill items dari Voice/OCR input.
@@ -467,6 +505,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     final total = _sumItems(resolved);
     final keys = List.generate(resolved.length, (_) => _generateKey());
     state = state.copyWith(items: resolved, itemKeys: keys, totalAmount: total);
+    _syncCategoryToAllItems();
   }
 
   // ─── Helpers ───
@@ -553,17 +592,9 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       destinationWallet: destinationWallet,
       category: category,
     );
-    // Jika single item dan category tersedia, sync ke item juga
-    if (category != null && state.items.length == 1) {
+    if (category != null && _usesParentCategory()) {
       state = state.copyWith(
-        items: [
-          state.items.first.copyWith(
-            categoryId: category.id,
-            categoryName: category.name,
-            categoryIcon: category.icon,
-            categoryColor: category.color,
-          ),
-        ],
+        items: _itemsWithCategoryApplied(category, state.items),
       );
     }
   }
@@ -592,6 +623,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           note: state.note,
         );
       } else {
+        _syncCategoryToAllItems();
         // Pastikan items memiliki sortOrder yang benar
         final itemsWithOrder = state.items
             .asMap()

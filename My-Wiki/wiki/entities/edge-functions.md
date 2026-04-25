@@ -4,7 +4,7 @@ type: entity
 tags: [edge-functions, supabase, backend, deno, typescript, ai, api]
 sources: [raw/docs/prd/20_EXTERNAL_API.md, raw/docs/03_COPILOT_RULES.md, raw/docs/prd/17_VOICE_INPUT.md, raw/docs/prd/18_OCR_RECEIPT.md, raw/docs/prd/15_INVESTASI.md, raw/security-audit.md]
 created: 2026-04-10
-updated: 2026-04-14
+updated: 2026-04-25
 ---
 
 ## Deskripsi
@@ -50,6 +50,8 @@ process.env.GCP_SERVICE_ACCOUNT_JSON
 - Cron jobs yang memanggil edge function **wajib** menyertakan `Authorization: Bearer <anon_key>` header
 
 ## Detail: `ai-parse`
+
+**Kontrak multi-item (v48+):** elemen `items[]` **tidak** memuat `categoryId`. Kategori transaksi hanya di root (`categoryId` / `categoryKeyword`). Edge tetap membersihkan `categoryId` di setiap item jika model mengembalikan field lama.
 
 **Request dari Flutter:**
 ```json

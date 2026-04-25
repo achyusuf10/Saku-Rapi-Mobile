@@ -1,12 +1,8 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/category/models/category_model.dart';
-import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
-import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_currency_field.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +12,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Widget baris item untuk mode multi-item pada form transaksi.
 ///
-/// Menampilkan: drag handle, nama item, qty, unit price, category picker.
+/// Menampilkan: drag handle, nama item, qty, unit price.
+/// Kategori transaksi di level parent (satu kategori untuk semua baris).
 /// Subtotal dihitung otomatis jika qty & unitPrice tersedia.
 /// Bisa dihapus kecuali baris terakhir.
 class TransactionItemRow extends StatefulWidget {
@@ -27,7 +24,6 @@ class TransactionItemRow extends StatefulWidget {
     required this.onChanged,
     required this.onRemove,
     required this.canRemove,
-    required this.categoryType,
   });
 
   final TransactionItemModel item;
@@ -35,7 +31,6 @@ class TransactionItemRow extends StatefulWidget {
   final ValueChanged<TransactionItemModel> onChanged;
   final VoidCallback onRemove;
   final bool canRemove;
-  final CategoryType categoryType;
 
   @override
   State<TransactionItemRow> createState() => _TransactionItemRowState();
@@ -218,72 +213,8 @@ class _TransactionItemRowState extends State<TransactionItemRow> {
               },
             ),
           ],
-          SizedBox(height: 10.h),
-
-          // ─── Category picker ───
-          GestureDetector(
-            onTap: _pickCategory,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                color: colors.background,
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: colors.border),
-              ),
-              child: Row(
-                children: [
-                  if (widget.item.categoryIcon != null) ...[
-                    SakuCategoryIcon(
-                      iconName: widget.item.categoryIcon!,
-                      color: parseHexColor(
-                        widget.item.categoryColor ?? '#6B7280',
-                      ),
-                      size: 16,
-                      showBackground: false,
-                    ),
-                    SizedBox(width: 8.w),
-                  ],
-                  Expanded(
-                    child: Text(
-                      widget.item.categoryName ??
-                          l10n.transactionSelectCategory,
-                      style: TextStyleConstants.b2.copyWith(
-                        color: widget.item.categoryName != null
-                            ? colors.textPrimary
-                            : colors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  FaIcon(
-                    FontAwesomeIcons.chevronRight,
-                    size: 12.w,
-                    color: colors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  Future<void> _pickCategory() async {
-    final selected = await CategoryPickerSheet.show(
-      context: context,
-      type: widget.categoryType,
-      selectedId: widget.item.categoryId,
-    );
-
-    if (selected != null) {
-      widget.onChanged(
-        widget.item.copyWith(
-          categoryId: selected.id,
-          categoryName: selected.name,
-          categoryIcon: selected.icon,
-          categoryColor: selected.color,
-        ),
-      );
-    }
   }
 }

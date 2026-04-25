@@ -18,10 +18,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 ///
 /// Menampilkan:
 /// - Raw transcript (opsional)
-/// - Tipe transaksi
-/// - Nominal / multi-item (jika items > 1)
-/// - Kategori, merchant, wallet, tanggal, catatan
-/// - Grand total + mismatch warning (multi-item)
+/// - Ringkasan transaksi dalam tabel dua kolom tanpa border (tipe, nominal,
+///   merchant, wallet, kategori, orang, tanggal, catatan)
+/// - Daftar item + total (hanya jika multi-item), di bawah ringkasan
 /// - Provider badge
 ///
 /// Dipakai bersama oleh `VoiceInputSheet` dan `TextInputSheet`.
@@ -47,6 +46,89 @@ class AiParsePreviewCard extends ConsumerWidget {
         wallets.where((w) => w.id == id).firstOrNull?.name ?? id;
 
     final hasMultipleItems = result.items.length > 1;
+    final unifiedMultiItemCategory = hasMultipleItems &&
+        (result.type == TransactionTypeEnum.expense ||
+            result.type == TransactionTypeEnum.income);
+    final hasRootCategoryDisplay = matchedCategory != null ||
+        (result.categoryKeyword != null &&
+            result.categoryKeyword!.isNotEmpty);
+
+    final metaRows = <_PreviewDetailRow>[
+      _PreviewDetailRow(
+        icon: _typeIcon(result.type),
+        iconColor: _typeColor(result.type, colors),
+        label: l10n.voicePreviewType,
+        value: _typeLabel(result.type, l10n),
+      ),
+      if (!hasMultipleItems &&
+          result.amount != null &&
+          result.amount! > 0)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.moneyBill,
+          iconColor: colors.primary,
+          label: l10n.transactionAmount,
+          value: result.amount!.toCurrency(),
+        ),
+      if (result.merchantName != null && result.merchantName!.isNotEmpty)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.store,
+          iconColor: colors.info,
+          label: l10n.transactionMerchant,
+          value: result.merchantName!,
+        ),
+      if (result.suggestedWalletId != null &&
+          result.suggestedWalletId!.isNotEmpty)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.wallet,
+          iconColor: colors.transfer,
+          label: l10n.transactionWallet,
+          value: resolveWallet(result.suggestedWalletId!),
+        ),
+      if (result.type == TransactionTypeEnum.transfer &&
+          result.destinationWalletId != null &&
+          result.destinationWalletId!.isNotEmpty)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.arrowRight,
+          iconColor: colors.transfer,
+          label: l10n.voicePreviewDestWallet,
+          value: resolveWallet(result.destinationWalletId!),
+        ),
+      if (hasRootCategoryDisplay)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.tag,
+          iconColor: colors.accent,
+          label: l10n.transactionCategory,
+          value: matchedCategory?.name ?? result.categoryKeyword!,
+          leading: matchedCategory?.toIcon(
+            size: 13,
+            showBackground: false,
+            colorOverride: colors.accent,
+          ),
+        ),
+      if (result.withPerson != null && result.withPerson!.isNotEmpty)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.userTag,
+          iconColor: colors.expense,
+          label: l10n.transactionWithPerson,
+          value: result.withPerson!,
+        ),
+      if (result.date != null)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.calendar,
+          iconColor: colors.textSecondary,
+          label: l10n.transactionDate,
+          value: result.date!.extToFormattedString(
+            outputDateFormat: 'dd MMM yyyy, HH:mm',
+          ),
+        ),
+      if (result.note != null && result.note!.isNotEmpty)
+        _PreviewDetailRow(
+          icon: FontAwesomeIcons.noteSticky,
+          iconColor: colors.textSecondary,
+          label: l10n.transactionNote,
+          value: result.note!,
+        ),
+    ];
 
     return Container(
       width: double.infinity,
@@ -81,141 +163,30 @@ class AiParsePreviewCard extends ConsumerWidget {
             SizedBox(height: 12.h),
           ],
 
-          // ── Tipe transaksi ──
-          _PreviewInfoRow(
-            icon: _typeIcon(result.type),
-            iconColor: _typeColor(result.type, colors),
-            label: l10n.voicePreviewType,
-            value: _typeLabel(result.type, l10n),
-          ),
+          // Ringkasan transaksi (tabel dua kolom tanpa border)
+          _PreviewDetailTable(colors: colors, rows: metaRows),
 
-          // ── Nominal (single item) ──
-          if (!hasMultipleItems &&
-              result.amount != null &&
-              result.amount! > 0) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.moneyBill,
-              iconColor: colors.primary,
-              label: l10n.transactionAmount,
-              value: result.amount!.toCurrency(),
-            ),
-          ],
-
-          // ── Kategori (single item) ──
-          if (!hasMultipleItems &&
-              (matchedCategory != null ||
-                  (result.categoryKeyword != null &&
-                      result.categoryKeyword!.isNotEmpty))) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.tag,
-              iconColor: colors.accent,
-              label: l10n.transactionCategory,
-              value: matchedCategory?.name ?? result.categoryKeyword!,
-              leading: matchedCategory?.toIcon(
-                size: 14,
-                showBackground: false,
-                colorOverride: colors.accent,
-              ),
-            ),
-          ],
-
-          // ── Merchant ──
-          if (result.merchantName != null &&
-              result.merchantName!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.store,
-              iconColor: colors.info,
-              label: l10n.transactionMerchant,
-              value: result.merchantName!,
-            ),
-          ],
-
-          // ── Wallet ──
-          if (result.suggestedWalletId != null &&
-              result.suggestedWalletId!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.wallet,
-              iconColor: colors.transfer,
-              label: l10n.transactionWallet,
-              value: resolveWallet(result.suggestedWalletId!),
-            ),
-          ],
-
-          // ── Destination wallet (transfer) ──
-          if (result.type == TransactionTypeEnum.transfer &&
-              result.destinationWalletId != null &&
-              result.destinationWalletId!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.arrowRight,
-              iconColor: colors.transfer,
-              label: l10n.voicePreviewDestWallet,
-              value: resolveWallet(result.destinationWalletId!),
-            ),
-          ],
-
-          // ── Nama orang (hutang/piutang) ──
-          if (result.withPerson != null && result.withPerson!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.userTag,
-              iconColor: colors.expense,
-              label: l10n.transactionWithPerson,
-              value: result.withPerson!,
-            ),
-          ],
-
-          // ── Tanggal ──
-          if (result.date != null) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.calendar,
-              iconColor: colors.textSecondary,
-              label: l10n.transactionDate,
-              value: result.date!.extToFormattedString(
-                outputDateFormat: 'dd MMM yyyy, HH:mm',
-              ),
-            ),
-          ],
-
-          // ── Catatan ──
-          if (result.note != null && result.note!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            _PreviewInfoRow(
-              icon: FontAwesomeIcons.noteSticky,
-              iconColor: colors.textSecondary,
-              label: l10n.transactionNote,
-              value: result.note!,
-            ),
-          ],
-
-          // ── Multi-item section ──
+          // Item + total hanya setelah semua ringkasan
           if (hasMultipleItems) ...[
             SizedBox(height: 14.h),
             Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
-            SizedBox(height: 14.h),
-
-            // Header "X item terdeteksi"
+            SizedBox(height: 12.h),
             Row(
               children: [
                 FaIcon(FontAwesomeIcons.list, size: 14.w, color: colors.accent),
                 SizedBox(width: 8.w),
-                Text(
-                  l10n.aiPreviewItemsHeader(result.items.length),
-                  style: TextStyleConstants.label1.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
+                Expanded(
+                  child: Text(
+                    l10n.aiPreviewItemsHeader(result.items.length),
+                    style: TextStyleConstants.label1.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
-
-            // Daftar item
+            SizedBox(height: 10.h),
             ...result.items.asMap().entries.map(
               (e) => AiItemTile(
                 index: e.key,
@@ -223,15 +194,14 @@ class AiParsePreviewCard extends ConsumerWidget {
                 qty: e.value.qty,
                 unitPrice: e.value.unitPrice,
                 subtotal: e.value.subtotal,
-                categoryName: e.value.categoryId != null
-                    ? categoryMap[e.value.categoryId]
-                    : null,
+                categoryName: unifiedMultiItemCategory || hasRootCategoryDisplay
+                    ? null
+                    : (e.value.categoryId != null
+                        ? categoryMap[e.value.categoryId]
+                        : null),
               ),
             ),
-
             SizedBox(height: 8.h),
-
-            // Grand total
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
@@ -259,8 +229,6 @@ class AiParsePreviewCard extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // Warning jika total mismatch
             if (result.amount != null &&
                 result.amount! > 0 &&
                 (result.itemsTotal - result.amount!).abs() > 1) ...[
@@ -356,9 +324,8 @@ class AiParsePreviewCard extends ConsumerWidget {
   }
 }
 
-/// Baris info dalam preview card: [icon] [label] [value].
-class _PreviewInfoRow extends StatelessWidget {
-  const _PreviewInfoRow({
+class _PreviewDetailRow {
+  const _PreviewDetailRow({
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -370,41 +337,81 @@ class _PreviewInfoRow extends StatelessWidget {
   final Color iconColor;
   final String label;
   final String value;
-
-  /// Widget custom leading (override icon + iconColor).
   final Widget? leading;
+}
+
+/// Tabel dua kolom tanpa border: label + ikon kiri, nilai kanan.
+class _PreviewDetailTable extends StatelessWidget {
+  const _PreviewDetailTable({
+    required this.colors,
+    required this.rows,
+  });
+
+  final dynamic colors;
+  final List<_PreviewDetailRow> rows;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 20.w,
-          child: leading ?? FaIcon(icon, size: 14.w, color: iconColor),
-        ),
-        SizedBox(width: 8.w),
-        SizedBox(
-          width: 80.w,
-          child: Text(
-            label,
-            style: TextStyleConstants.label2.copyWith(
-              color: colors.textSecondary,
+    return Padding(
+      padding: EdgeInsets.only(left: 2.w),
+      child: Table(
+        columnWidths: {
+          0: FlexColumnWidth(1.05),
+          1: FlexColumnWidth(1.35),
+        },
+        defaultVerticalAlignment: TableCellVerticalAlignment.top,
+        children: [
+          for (var i = 0; i < rows.length; i++)
+            TableRow(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: i < rows.length - 1 ? 10.h : 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 2.h),
+                        child: SizedBox(
+                          width: 18.w,
+                          child: rows[i].leading ??
+                              FaIcon(
+                                rows[i].icon,
+                                size: 13.w,
+                                color: rows[i].iconColor,
+                              ),
+                        ),
+                      ),
+                      SizedBox(width: 6.w),
+                      Expanded(
+                        child: Text(
+                          rows[i].label,
+                          style: TextStyleConstants.label2.copyWith(
+                            color: colors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i < rows.length - 1 ? 10.h : 0,
+                    left: 6.w,
+                  ),
+                  child: Text(
+                    rows[i].value,
+                    style: TextStyleConstants.b2.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

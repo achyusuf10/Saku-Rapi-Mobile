@@ -1,9 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
-import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
-import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_item_row.dart';
 import 'package:flutter/material.dart';
@@ -23,10 +21,6 @@ class TransactionMultiItemSection extends ConsumerWidget {
     final colors = context.colors;
     final formState = ref.watch(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
-
-    final categoryType = formState.type == TransactionTypeEnum.income
-        ? CategoryType.income
-        : CategoryType.expense;
 
     if (!formState.isMultiItem) {
       return GestureDetector(
@@ -208,7 +202,6 @@ class TransactionMultiItemSection extends ConsumerWidget {
               onChanged: (updated) => ctrl.updateItem(index, updated),
               onRemove: () => ctrl.removeItem(index),
               canRemove: formState.items.length > 1,
-              categoryType: categoryType,
             );
           },
         ),

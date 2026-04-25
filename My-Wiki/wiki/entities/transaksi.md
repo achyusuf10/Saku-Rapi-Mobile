@@ -4,7 +4,7 @@ type: entity
 tags: [transaksi, fitur, form, rpc, multi-item]
 sources: [raw/docs/prd/09_TRANSAKSI.md, raw/docs/prd/10_TRANSACTION_DETAIL.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md]
 created: 2026-04-10
-updated: 2026-04-12
+updated: 2026-04-25
 ---
 
 # Transaksi
@@ -57,6 +57,8 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 
 - Satu transaksi bisa memiliki **banyak item** (line items).
 - Aturan: **SUM(items) == total_amount** dengan toleransi **0.01** (pembulatan).
+- **Satu kategori untuk seluruh transaksi** (expense & income): kategori dipilih di level form (setelah wallet), bukan per baris. Semua baris disinkronkan ke `category_id` yang sama sebelum RPC; data lama dengan kategori berbeda per baris saat diedit disatukan ke kategori baris pertama.
+- Prefill voice/OCR multi-item: baris tanpa `categoryId` per item; kategori hanya dari field root AI (`categoryId` / `categoryKeyword`).
 - Berguna untuk mencatat belanjaan dengan rincian per item.
 
 ### Contact Picker

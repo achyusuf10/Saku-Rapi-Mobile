@@ -235,25 +235,16 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
           .toList();
       final categoryLookup = {for (final c in allCategories) c.id: c};
 
-      // ── Multi-item voice (expense only) ──
-      if (voiceResult.type == TransactionTypeEnum.expense &&
-          voiceResult.items.length > 1) {
+      // ── Multi-item voice (expense & income): baris tanpa kategori per-item ──
+      if (voiceResult.items.length > 1) {
         final txItems = voiceResult.items.asMap().entries.map((e) {
           final voiceItem = e.value;
-          final cat = voiceItem.categoryId != null
-              ? categoryLookup[voiceItem.categoryId]
-              : null;
-
           return TransactionItemModel(
             itemName: voiceItem.name,
             qty: voiceItem.qty,
             unitPrice: voiceItem.unitPrice,
             amount: voiceItem.subtotal,
             sortOrder: e.key,
-            categoryId: cat?.id,
-            categoryName: cat?.name,
-            categoryIcon: cat?.icon,
-            categoryColor: cat?.color,
           );
         }).toList();
         ctrl.prefillItems(txItems);
@@ -305,8 +296,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   /// - Set merchant name
   /// - Set date
   /// - Set total amount
-  /// - Prefill items (multi-item mode jika expense > 1 item)
-  /// - Auto-assign kategori per item dari AI
+  /// - Prefill items (multi-item jika expense > 1 baris)
+  /// - Kategori dari root OCR (categoryId/categoryKeyword), bukan per baris
   /// - Match wallet/person sesuai tipe transaksi
   /// - Balance items jika total mismatch (expense only)
   /// - Clear provider setelah dibaca
@@ -419,24 +410,16 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
             }
           }
         } else if (ocrResult.items.length > 1) {
-          // ── Multi-item → balance dulu, lalu prefill ──
+          // ── Multi-item → balance dulu, lalu prefill (kategori hanya level root) ──
           final balanced = OcrRepository.balanceResult(ocrResult);
           final txItems = balanced.items.asMap().entries.map((e) {
             final ocrItem = e.value;
-            final cat = ocrItem.categoryId != null
-                ? categoryLookup[ocrItem.categoryId]
-                : null;
-
             return TransactionItemModel(
               itemName: ocrItem.name,
               qty: ocrItem.qty,
               unitPrice: ocrItem.unitPrice,
               amount: ocrItem.subtotal,
               sortOrder: e.key,
-              categoryId: cat?.id,
-              categoryName: cat?.name,
-              categoryIcon: cat?.icon,
-              categoryColor: cat?.color,
             );
           }).toList();
           ctrl.prefillItems(txItems);
@@ -522,14 +505,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
           .firstOrNull;
     }
 
-    // ── Category (dari item pertama — single-item atau top-level) ──
+    // ── Category: baris pertama yang punya categoryId (legacy multi-kategori → satu) ──
     CategoryModel? category;
-    final firstCatId = txn.items.isNotEmpty ? txn.items.first.categoryId : null;
-    if (firstCatId != null) {
+    String? resolvedCatId;
+    for (final it in txn.items) {
+      final id = it.categoryId;
+      if (id != null && id.isNotEmpty) {
+        resolvedCatId = id;
+        break;
+      }
+    }
+    if (resolvedCatId != null) {
       category = ref
           .read(categoryControllerProvider)
           .categories
-          .where((c) => c.id == firstCatId)
+          .where((c) => c.id == resolvedCatId)
           .firstOrNull;
     }
 
@@ -766,13 +756,13 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
                     SizedBox(height: 10.h),
 
-                    // ─── Category (income/expense single-item mode) ───
+                    // ─── Category (income/expense: satu kategori untuk semua baris) ───
                     if (!formState.isSettlementMode &&
-                        !formState.isMultiItem &&
                         (formState.type == TransactionTypeEnum.income ||
                             formState.type == TransactionTypeEnum.expense)) ...[
                       TransactionCategoryPickerTile(
                         type: formState.type,
+                        category: formState.category,
                         item: formState.items.isNotEmpty
                             ? formState.items.first
                             : null,
@@ -912,9 +902,10 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
         ? CategoryType.income
         : CategoryType.expense;
 
-    final selectedId = formState.items.isNotEmpty
-        ? formState.items.first.categoryId
-        : null;
+    final selectedId = formState.category?.id ??
+        (formState.items.isNotEmpty
+            ? formState.items.first.categoryId
+            : null);
 
     final result = await CategoryPickerSheet.show(
       context: context,
