@@ -300,6 +300,7 @@
   "categoryErrorDelete": "Failed to delete category",
   "categoryEmpty": "No categories yet",
   "categorySearchIcon": "Search icon...",
+  "categorySortNone": "None",
   "categorySortNameAZ": "Name: A→Z",
   "categorySortNameZA": "Name: Z→A",
   "categorySortNewest": "Newest",

@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/legacy.dart';
 // ─────────────────────────────────────────────────────────
 
 /// Kolom urutan untuk filter kategori di UI.
-enum CategorySortField { name, createdAt }
+enum CategorySortField { none, name, createdAt }
 
 /// Arah urutan untuk filter kategori di UI.
 enum CategorySortDirection { asc, desc }

@@ -11,8 +11,8 @@ updated: 2026-04-19
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 59 |
-| Sumber diproses | 22 |
+| Total halaman | 60 |
+| Sumber diproses | 23 |
 | Entitas | 22 |
 | Konsep | 8 |
 | Analisis | 5 |
@@ -85,6 +85,7 @@ updated: 2026-04-19
 - [[wiki/sources/plan-refactor-gold-price|Plan: Refactor Gold Price ke Gemini Only]] — Hapus Groq/OpenRouter, Vertex AI Gemini 2.5 Flash saja — ✅ Implemented (April 2026)
 - [[wiki/sources/plan-remove-manual-parsing|Plan: Hapus Manual Parsing]] — Hapus regex fallback + parsing_dictionaries; AI fail → error + retry, bukan silent fallback — ✅ Implemented (April 2026)
 - [[wiki/sources/plan-ui-grouping-attachment|Plan: UI Grouping + Attachment + Transaction Detail]] — Group-by-date di BudgetDetail+ReportCategory, fix wallet/kategori alias bug, tampilkan lampiran di TransactionDetail (April 2026)
+- [[wiki/sources/plan-revamp-default-categories|Plan: Revamp Kategori Default]] — Tambah 3 parent baru (Makanan, Belanja, Hiburan), 15 children baru, fix warna duplikat income, split Sewa Rumah/KPR — ✅ Implemented (April 2026)
 
 ## 🔬 Analisis
 

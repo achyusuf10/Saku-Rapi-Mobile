@@ -71,7 +71,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   String _searchQuery = '';
 
   // Filter & sort state (persisted per type)
-  CategorySortField _sortField = CategorySortField.name;
+  CategorySortField _sortField = CategorySortField.none;
   CategorySortDirection _sortDirection = CategorySortDirection.asc;
   CategorySourceFilter _sourceFilter = CategorySourceFilter.all;
 
@@ -86,7 +86,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       final map = jsonDecode(raw) as Map<String, dynamic>;
       _sortField = CategorySortField.values.firstWhere(
         (e) => e.name == map['sort_field'],
-        orElse: () => CategorySortField.name,
+        orElse: () => CategorySortField.none,
       );
       _sortDirection = CategorySortDirection.values.firstWhere(
         (e) => e.name == map['sort_direction'],
@@ -387,7 +387,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
             },
             onReset: () {
               setState(() {
-                _sortField = CategorySortField.name;
+                _sortField = CategorySortField.none;
                 _sortDirection = CategorySortDirection.asc;
                 _sourceFilter = CategorySourceFilter.all;
               });

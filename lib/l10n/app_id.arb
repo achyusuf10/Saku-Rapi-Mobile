@@ -303,6 +303,7 @@
   "categoryErrorDelete": "Gagal menghapus kategori",
   "categoryEmpty": "Belum ada kategori",
   "categorySearchIcon": "Cari icon...",
+  "categorySortNone": "Tidak Ada",
   "categorySortNameAZ": "Nama: A→Z",
   "categorySortNameZA": "Nama: Z→A",
   "categorySortNewest": "Terbaru",

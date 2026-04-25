@@ -200,3 +200,22 @@ updated: 2026-04-19
 - **Error handling baru**: AI fail → `DataState.error` → UI error state + retry button (tidak ada silent fallback)
 - **Test**: 505 passed, 7 pre-existing failures
 - **Wiki baru**: `wiki/analysis/remove-manual-parsing.md`
+
+## [2026-04-19] ingest | Plan: Revamp Kategori Default
+
+- **Sumber diproses**: `raw/docs/plan-revamp-default-categories.md`
+- **Halaman baru dibuat**: 1
+  - `wiki/sources/plan-revamp-default-categories.md` — ringkasan plan revamp kategori: 3 parent baru, 15 children baru, fix warna, fix nama
+- **Halaman diperbarui**: 2
+  - `wiki/entities/categories.md` — tabel seed default diperbarui (10 parent expense, 36 child, 3 parent income, 9 child), tambah link ke plan source, hapus referensi `parsing_dictionaries` (sudah dihapus)
+  - `index.md` — tambah entry sumber baru, total halaman 60 (22 entitas, 8 konsep, 23 sumber, 5 analisis)
+- **Migration applied**: `revamp_default_categories` → Dev ✅ + Prod ✅
+  - UPDATE warna: Pendapatan Tambahan group `#10B981` → `#0EA5E9`, Kesehatan group `#EF4444` → `#F87171`
+  - UPDATE nama: "Pengeluaran yang tidak diketahui" → "Tidak Diketahui", "Nongkrong / Hiburan" → "Nongkrong & Sosial"
+  - INSERT 3 parent baru expense: Makanan & Minuman, Belanja & Fashion, Hiburan & Hobi
+  - INSERT 12 child untuk 3 parent baru
+  - INSERT Sewa Rumah + KPR di bawah Tagihan & Kewajiban
+  - INSERT Hewan Peliharaan di bawah Keluarga & Sosial
+  - INSERT Kesehatan Mental / Terapi di bawah Kesehatan & Kebugaran
+  - INSERT Cashback & Reward + Penjualan Barang / Aset di bawah Pendapatan Tambahan
+  - CREATE OR REPLACE FUNCTION `seed_default_categories()` — user baru mendapat 60 kategori default

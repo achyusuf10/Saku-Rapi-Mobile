@@ -32,7 +32,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
   late final TabController _tabController;
 
   // Filter & sort state
-  CategorySortField _sortField = CategorySortField.name;
+  CategorySortField _sortField = CategorySortField.none;
   CategorySortDirection _sortDirection = CategorySortDirection.asc;
   CategorySourceFilter _sourceFilter = CategorySourceFilter.all;
 
@@ -125,7 +125,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
           onSourceFilterChanged: (filter) =>
               setState(() => _sourceFilter = filter),
           onReset: () => setState(() {
-            _sortField = CategorySortField.name;
+            _sortField = CategorySortField.none;
             _sortDirection = CategorySortDirection.asc;
             _sourceFilter = CategorySourceFilter.all;
           }),
@@ -370,27 +370,26 @@ class _CategoryManagementTile extends ConsumerWidget {
                 },
               ),
 
-            // Hide/Show (not for system categories)
-            if (!category.isDefault)
-              ListTile(
-                leading: FaIcon(
-                  category.isHidden
-                      ? FontAwesomeIcons.eye
-                      : FontAwesomeIcons.eyeSlash,
-                  size: 16.w,
+            // Hide/Show
+            ListTile(
+              leading: FaIcon(
+                category.isHidden
+                    ? FontAwesomeIcons.eye
+                    : FontAwesomeIcons.eyeSlash,
+                size: 16.w,
+                color: colors.textPrimary,
+              ),
+              title: Text(
+                category.isHidden ? l10n.categoryShow : l10n.categoryHide,
+                style: TextStyleConstants.b2.copyWith(
                   color: colors.textPrimary,
                 ),
-                title: Text(
-                  category.isHidden ? l10n.categoryShow : l10n.categoryHide,
-                  style: TextStyleConstants.b2.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _toggleHidden(context, ref, category);
-                },
               ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _toggleHidden(context, ref, category);
+              },
+            ),
 
             // Delete (non-default only)
             if (!category.isDefault)

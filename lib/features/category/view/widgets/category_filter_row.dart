@@ -30,24 +30,35 @@ List<CategoryModel> applySourceFilter(
 }
 
 /// Urutkan grouped category list berdasarkan field dan arah tertentu.
+///
+/// Kategori yang hidden selalu ditempatkan di bawah, baik saat sort aktif
+/// maupun tidak aktif.
 List<CategoryModel> applyCategorySort(
   List<CategoryModel> grouped,
   CategorySortField field,
   CategorySortDirection direction,
 ) {
-  final sorted = [...grouped];
-  sorted.sort((a, b) {
-    final int cmp;
-    if (field == CategorySortField.name) {
-      cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-    } else {
-      final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      cmp = aDate.compareTo(bDate);
+  final visible = grouped.where((c) => !c.isHidden).toList();
+  final hidden = grouped.where((c) => c.isHidden).toList();
+
+  if (field != CategorySortField.none) {
+    int compare(CategoryModel a, CategoryModel b) {
+      final int cmp;
+      if (field == CategorySortField.name) {
+        cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      } else {
+        final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        cmp = aDate.compareTo(bDate);
+      }
+      return direction == CategorySortDirection.asc ? cmp : -cmp;
     }
-    return direction == CategorySortDirection.asc ? cmp : -cmp;
-  });
-  return sorted;
+
+    visible.sort(compare);
+    hidden.sort(compare);
+  }
+
+  return [...visible, ...hidden];
 }
 
 // ─────────────────────────────────────────────────────────
@@ -87,13 +98,10 @@ class CategoryFilterRow extends StatelessWidget {
   final VoidCallback onReset;
 
   bool get _isDefault =>
-      sortField == CategorySortField.name &&
-      sortDirection == CategorySortDirection.asc &&
+      sortField == CategorySortField.none &&
       sourceFilter == CategorySourceFilter.all;
 
-  bool get _isSortActive =>
-      !(sortField == CategorySortField.name &&
-          sortDirection == CategorySortDirection.asc);
+  bool get _isSortActive => sortField != CategorySortField.none;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +119,11 @@ class CategoryFilterRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.r),
             ),
             itemBuilder: (ctx) => [
+              _buildSortItem(ctx, l10n.categorySortNone, (
+                CategorySortField.none,
+                CategorySortDirection.asc,
+              )),
+              const PopupMenuDivider(height: 1),
               _buildSortItem(ctx, l10n.categorySortNameAZ, (
                 CategorySortField.name,
                 CategorySortDirection.asc,
@@ -265,6 +278,7 @@ class CategoryFilterRow extends StatelessWidget {
   }
 
   String _currentSortLabel(dynamic l10n) {
+    if (sortField == CategorySortField.none) return l10n.categorySortNone;
     if (sortField == CategorySortField.name) {
       return sortDirection == CategorySortDirection.asc
           ? l10n.categorySortNameAZ

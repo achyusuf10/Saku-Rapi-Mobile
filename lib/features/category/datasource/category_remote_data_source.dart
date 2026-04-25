@@ -206,12 +206,37 @@ class CategoryRemoteDataSource {
 
   /// Toggle visibility kategori (hide/show).
   ///
-  /// Kategori yang di-hide tidak tampil di picker form transaksi,
-  /// tapi tetap tampil di management page.
+  /// Menggunakan RPC `toggle_category_hidden` (SECURITY DEFINER) agar
+  /// kategori default (is_default = true) juga bisa di-hide per user,
+  /// tanpa melanggar RLS policy `categories_update_own`.
   Future<DataState<CategoryModel>> toggleHidden({
     required String categoryId,
     required bool isHidden,
   }) async {
-    return updateCategory(categoryId: categoryId, isHidden: isHidden);
+    return SupabaseHandler.call<CategoryModel>(
+      function: () async {
+        AppLogger.call(
+          '[Category] [CategoryRemoteDataSource] toggleHidden $categoryId → $isHidden',
+          colorLog: ColorLog.blue,
+        );
+
+        final response = await _client
+            .rpc(
+              'toggle_category_hidden',
+              params: {'p_category_id': categoryId, 'p_is_hidden': isHidden},
+            )
+            .select()
+            .single();
+
+        final category = CategoryModel.fromMap(response);
+
+        AppLogger.logSuccess(
+          'Category hidden toggled: ${category.name} → isHidden=$isHidden',
+          runtimeType: CategoryRemoteDataSource,
+        );
+
+        return category;
+      },
+    );
   }
 }

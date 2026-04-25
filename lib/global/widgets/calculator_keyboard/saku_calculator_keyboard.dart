@@ -85,16 +85,8 @@ class SakuCalculatorKeyboard extends CustomKeyboard {
                   width: double.infinity,
                   height: 2.w,
                   decoration: BoxDecoration(
-                    color: colors.textPrimary.withValues(alpha: 0.15),
+                    color: colors.textPrimary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(2.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.textPrimary.withValues(alpha: 0.06),
-                        blurRadius: 2,
-                        spreadRadius: 2,
-                        offset: Offset(0, -1.w),
-                      ),
-                    ],
                   ),
                 ),
                 SizedBox(

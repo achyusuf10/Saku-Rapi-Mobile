@@ -1454,6 +1454,12 @@ abstract class AppLocalizations {
   /// **'Cari icon...'**
   String get categorySearchIcon;
 
+  /// No description provided for @categorySortNone.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak Ada'**
+  String get categorySortNone;
+
   /// No description provided for @categorySortNameAZ.
   ///
   /// In id, this message translates to:

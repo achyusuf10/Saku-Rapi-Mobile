@@ -714,6 +714,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get categorySearchIcon => 'Cari icon...';
 
   @override
+  String get categorySortNone => 'Tidak Ada';
+
+  @override
   String get categorySortNameAZ => 'Nama: A→Z';
 
   @override

@@ -716,6 +716,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categorySearchIcon => 'Search icon...';
 
   @override
+  String get categorySortNone => 'None';
+
+  @override
   String get categorySortNameAZ => 'Name: A→Z';
 
   @override
