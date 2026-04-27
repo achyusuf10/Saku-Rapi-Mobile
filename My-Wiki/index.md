@@ -1,6 +1,6 @@
 ---
 title: "Indeks Wiki"
-updated: 2026-04-25
+updated: 2026-04-27
 ---
 
 # 📚 Indeks Wiki SakuRapi
@@ -11,8 +11,8 @@ updated: 2026-04-25
 
 | Metrik | Jumlah |
 |--------|--------|
-| Total halaman | 60 |
-| Sumber diproses | 23 |
+| Total halaman | 61 |
+| Sumber diproses | 24 |
 | Entitas | 22 |
 | Konsep | 8 |
 | Analisis | 5 |
@@ -25,7 +25,7 @@ updated: 2026-04-25
 
 - [[wiki/entities/sakurapi|SakuRapi]] — Aplikasi pencatat keuangan pribadi (Flutter + Supabase)
 - [[wiki/entities/wallet|Wallet]] — Multi-wallet CRUD, saldo read-only via DB trigger
-- [[wiki/entities/transaksi|Transaksi]] — Form 4-tab: Expense, Income, Transfer, Hutang/Piutang
+- [[wiki/entities/transaksi|Transaksi]] — Form 4-tab: Expense, Income, Transfer, Hutang/Piutang; multi transaksi manual (batch RPC, UX selaras single per entry)
 - [[wiki/entities/dashboard|Dashboard]] — Ringkasan keuangan dan visualisasi chart
 - [[wiki/entities/dashboard-charts|Dashboard Charts]] — Breakdown lengkap: Carousel, Comparison Chart, Trend Chart, Period Summary, Burn Rate insight
 - [[wiki/entities/hutang-piutang|Hutang/Piutang]] — Manajemen pinjaman dan pelunasan per kontak
@@ -86,6 +86,7 @@ updated: 2026-04-25
 - [[wiki/sources/plan-remove-manual-parsing|Plan: Hapus Manual Parsing]] — Hapus regex fallback + parsing_dictionaries; AI fail → error + retry, bukan silent fallback — ✅ Implemented (April 2026)
 - [[wiki/sources/plan-ui-grouping-attachment|Plan: UI Grouping + Attachment + Transaction Detail]] — Group-by-date di BudgetDetail+ReportCategory, fix wallet/kategori alias bug, tampilkan lampiran di TransactionDetail (April 2026)
 - [[wiki/sources/plan-revamp-default-categories|Plan: Revamp Kategori Default]] — Tambah 3 parent baru (Makanan, Belanja, Hiburan), 15 children baru, fix warna duplikat income, split Sewa Rumah/KPR — ✅ Implemented (April 2026)
+- [[wiki/sources/plan-multi-manual-transaction|Plan: Multi Transaksi Manual]] — Beberapa expense/income sekaligus (`create_transactions_batch`), max 10, pesan sukses dengan count, UX per entry = `TransactionAmountSection` + chip multi-item seperti form tunggal (April 2026)
 
 ## 🔬 Analisis
 

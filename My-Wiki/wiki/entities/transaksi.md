@@ -2,9 +2,9 @@
 title: "Transaksi"
 type: entity
 tags: [transaksi, fitur, form, rpc, multi-item]
-sources: [raw/docs/prd/09_TRANSAKSI.md, raw/docs/prd/10_TRANSACTION_DETAIL.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md]
+sources: [raw/docs/prd/09_TRANSAKSI.md, raw/docs/prd/10_TRANSACTION_DETAIL.md, raw/docs/prd/04_ATURAN_KEUANGAN.md, raw/docs/02_DATABASE.md, raw/docs/MULTI_MANUAL_TRANSACTION_PLAN.md]
 created: 2026-04-10
-updated: 2026-04-25
+updated: 2026-04-27
 ---
 
 # Transaksi
@@ -60,6 +60,18 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 - **Satu kategori untuk seluruh transaksi** (expense & income): kategori dipilih di level form (setelah wallet), bukan per baris. Semua baris disinkronkan ke `category_id` yang sama sebelum RPC; data lama dengan kategori berbeda per baris saat diedit disatukan ke kategori baris pertama.
 - Prefill voice/OCR multi-item: baris tanpa `categoryId` per item; kategori hanya dari field root AI (`categoryId` / `categoryKeyword`).
 - Berguna untuk mencatat belanjaan dengan rincian per item.
+
+### Mode multi transaksi (manual, expense & income)
+
+Hanya saat **buat** transaksi baru (bukan edit), user bisa mengaktifkan **multi transaksi**: beberapa transaksi dalam satu simpan, via RPC **`create_transactions_batch`** (atomik, batas **10** entri per batch).
+
+**Per transaksi dalam daftar** perilaku **diselaraskan dengan tab transaksi tunggal**:
+
+- Default **satu item** per baris: input nominal memakai **`TransactionAmountSection`** (bukan baris `TransactionItemRow` tunggal).
+- **Multi-item** diaktifkan dengan chip **Tambah item** pada **`TransactionMultiItemSection`**, sama seperti form tunggal; setelah ada lebih dari satu item, tampil ringkasan total + daftar baris + reorder.
+- State per entri: `ManualTransactionEntryModel` di `manualMultiEntries`; sinkron nominal satu item lewat `setManualMultiEntryTotalAmount` (setara `setTotalAmount` pada form flat).
+
+Detail teknis, checklist migrasi, dan daftar file: [[wiki/sources/plan-multi-manual-transaction|Plan: Multi Transaksi Manual]] / [[raw/docs/MULTI_MANUAL_TRANSACTION_PLAN|MULTI_MANUAL_TRANSACTION_PLAN.md]].
 
 ### Contact Picker
 
@@ -126,6 +138,7 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 
 **RPC Functions:**
 - `create_transaction_with_items(...)` → jsonb
+- `create_transactions_batch(p_transactions jsonb)` → jsonb — banyak transaksi expense/income sekaligus (max 10)
 - `update_transaction_with_items(...)` → jsonb
 - `delete_transaction(p_transaction_id)` → jsonb
 
@@ -172,3 +185,4 @@ Lihat detail manajemen di [[wiki/entities/hutang-piutang|Hutang/Piutang]].
 - [[wiki/sources/prd-sakurapi-v7|PRD SakuRapi v7.0]]
 - [[wiki/concepts/design-system|Design System]]
 - [[wiki/sources/redesign-ui-ux|Redesign UI/UX (Sumber)]]
+- [[wiki/sources/plan-multi-manual-transaction|Plan: Multi Transaksi Manual]]

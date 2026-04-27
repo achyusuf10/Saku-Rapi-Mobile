@@ -1,6 +1,6 @@
 ---
 title: "Log Wiki"
-updated: 2026-04-25
+updated: 2026-04-27
 ---
 
 # 📋 Log Wiki SakuRapi
@@ -241,3 +241,11 @@ updated: 2026-04-25
 
 - **`wiki/sources/prd-sakurapi-v7.md`** — teks AI: Vertex/Gemini saja, error + *retry*; *bullet* *pipeline*; P1: baris *Local Notifications* + penyesuaian *Budgeting*; `updated` 2026-04-25
 - **`wiki/concepts/ai-pipeline.md`** — diagram & section: singel provider, hapus Groq + *local parser*; `parsing_dictionaries` disingkat; link ke *remove manual parsing* + *refactor AI quota*
+
+## [2026-04-27] ingest | Multi transaksi manual — UX + wiki
+
+- **Raw diperbarui**: `raw/docs/MULTI_MANUAL_TRANSACTION_PLAN.md` — UX per entry selaras tab tunggal (`TransactionAmountSection` + chip multi-item), `setManualEntryTotalAmount`, batas batch 10 & pesan sukses + count, tabel referensi file Flutter, bagian testing
+- **Sumber wiki baru**: `wiki/sources/plan-multi-manual-transaction.md` — ringkasan + tautan ke raw
+- **Entitas** `wiki/entities/transaksi.md` — subsection *Mode multi transaksi (manual)*, RPC `create_transactions_batch`, `sources` + `updated`
+- **`index.md`** — statistik 61 halaman / 24 sumber; entri sumber baru; deskripsi *Transaksi* diperjelas
+- **Implementasi app (konteks)**: `TransactionManualMultiEntryCard`, `TransactionMultiItemSection`, `TransactionFormMultiManualCoordinator` + `setManualMultiEntryTotalAmount`, tes controller & widget terkait
