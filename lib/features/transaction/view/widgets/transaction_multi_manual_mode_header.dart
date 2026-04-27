@@ -26,6 +26,12 @@ class TransactionMultiManualModeHeader extends ConsumerWidget {
           children: [
             Expanded(
               child: SegmentedButton<bool>(
+                style: SegmentedButton.styleFrom(
+                  backgroundColor: colors.surfaceVariant,
+                  selectedBackgroundColor: colors.primary,
+                  side: BorderSide(color: colors.border),
+                  selectedForegroundColor: colors.onPrimary,
+                ),
                 segments: [
                   ButtonSegment<bool>(
                     value: false,
