@@ -5,21 +5,22 @@ import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart'
 import 'package:app_saku_rapi/features/voice/controllers/text_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/text_input_action_bar.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/text_input_error_panel.dart';
 import 'package:app_saku_rapi/global/widgets/ai_parse_preview_card.dart';
-import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_sheet_drag_handle.dart';
 import 'package:app_saku_rapi/global/widgets/saku_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Bottom sheet untuk text input → AI parse.
+/// Bottom sheet: user mengetik deskripsi transaksi lalu AI mem-parse ke model.
 ///
-/// Returns [VoiceParseResultModel?] saat ditutup (null jika cancel).
+/// Widget pendukung (error, tombol) dipindah ke file terpisah; perilaku sheet sama.
 class TextInputSheet extends ConsumerStatefulWidget {
   const TextInputSheet({super.key});
 
-  /// Tampilkan text input sheet.
+  /// Membuka sheet modal; hasil non-null berarti user menekan lanjut setelah sukses parse.
   static Future<VoiceParseResultModel?> show({required BuildContext context}) {
     return showModalBottomSheet<VoiceParseResultModel>(
       context: context,
@@ -43,6 +44,7 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
   @override
   void initState() {
     super.initState();
+    // Fokus keyboard setelah frame pertama agar field langsung aktif.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -61,7 +63,6 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
     final colors = context.colors;
     final l10n = context.l10n;
 
-    // Refresh quota setelah AI parse selesai (success atau error quota)
     ref.listen<TextInputState>(textInputControllerProvider, (prev, next) {
       if (prev?.status == TextInputStatus.processing &&
           (next.status == TextInputStatus.done ||
@@ -113,19 +114,10 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Drag handle ──
-            Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: colors.textSecondary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2.r),
-              ),
+            SakuSheetDragHandle(
+              color: colors.textSecondary.withValues(alpha: 0.3),
             ),
-
             SizedBox(height: 24.h),
-
-            // ── Title ──
             Text(
               l10n.textInputTitle,
               style: TextStyleConstants.h6.copyWith(
@@ -137,15 +129,9 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
               ),
               textAlign: TextAlign.center,
             ),
-
             SizedBox(height: 8.h),
-
-            // ── Quota info ──
             const AiQuotaInfoRow(mode: 'text'),
-
             SizedBox(height: 8.h),
-
-            // ── Text field ──
             if (state.status != TextInputStatus.done) ...[
               SakuTextField(
                 controller: _textController,
@@ -158,8 +144,6 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
                 maxLength: 60,
               ),
             ],
-
-            // ── Processing indicator ──
             if (state.status == TextInputStatus.processing) ...[
               SizedBox(height: 16.h),
               Row(
@@ -183,8 +167,6 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
                 ],
               ),
             ],
-
-            // ── Preview ──
             if (state.status == TextInputStatus.done &&
                 state.parseResult != null) ...[
               SizedBox(height: 16.h),
@@ -194,17 +176,12 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
                 ),
               ),
             ],
-
-            // ── Error ──
             if (state.status == TextInputStatus.error) ...[
               SizedBox(height: 16.h),
-              _TextErrorDisplay(errorMessage: state.errorMessage),
+              TextInputErrorPanel(errorMessage: state.errorMessage),
             ],
-
             SizedBox(height: 24.h),
-
-            // ── Action buttons ──
-            _TextActionButtons(
+            TextInputActionBar(
               state: state,
               onCancel: () => Navigator.maybePop(context),
               onSubmit: _submit,
@@ -220,134 +197,11 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
     );
   }
 
+  /// Mengirim teks ke controller bila tidak kosong (setelah trim).
   void _submit() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
     _focusNode.unfocus();
     ref.read(textInputControllerProvider.notifier).processText(text);
-  }
-}
-
-// ═══════════════ Sub-widgets ═══════════════
-
-/// Error display.
-class _TextErrorDisplay extends StatelessWidget {
-  const _TextErrorDisplay({required this.errorMessage});
-
-  final String? errorMessage;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-
-    final message = errorMessage == 'not_transaction'
-        ? l10n.voiceNotTransaction
-        : errorMessage == 'DAILY_QUOTA_EXCEEDED'
-        ? l10n.aiQuotaExhausted
-        : l10n.textInputError;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: colors.expense.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      child: Row(
-        children: [
-          FaIcon(
-            FontAwesomeIcons.circleExclamation,
-            size: 16.w,
-            color: colors.expense,
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyleConstants.b2.copyWith(color: colors.expense),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Action buttons.
-class _TextActionButtons extends StatelessWidget {
-  const _TextActionButtons({
-    required this.state,
-    required this.onCancel,
-    required this.onSubmit,
-    required this.onRetry,
-    required this.onDone,
-  });
-
-  final TextInputState state;
-  final VoidCallback onCancel;
-  final VoidCallback onSubmit;
-  final VoidCallback onRetry;
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-
-    return Row(
-      children: [
-        // Left: "Batalkan" (negative, outlined)
-        Expanded(
-          child: SakuButton(
-            text: l10n.confirmCancel,
-            onPressed: onCancel,
-            isOutlined: true,
-          ),
-        ),
-
-        SizedBox(width: 12.w),
-
-        // Right: main action (Analisis / loading / Coba Lagi / Lanjutkan)
-        Expanded(child: _buildActionButton(colors, l10n)),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(dynamic colors, dynamic l10n) {
-    // Processing → loading spinner
-    if (state.status == TextInputStatus.processing) {
-      return SakuButton(text: '', onPressed: null, isLoading: true);
-    }
-
-    // Error → "Coba Lagi"
-    if (state.status == TextInputStatus.error) {
-      final buttonColor = colors.info as Color;
-      return SakuButton(
-        text: l10n.retryButton,
-        onPressed: onRetry,
-        backgroundColor: buttonColor,
-        textColor: _foregroundForBackground(buttonColor),
-      );
-    }
-
-    // Done → "Lanjutkan"
-    if (state.status == TextInputStatus.done) {
-      final buttonColor = colors.success as Color;
-      return SakuButton(
-        text: l10n.voiceContinueButton,
-        onPressed: onDone,
-        backgroundColor: buttonColor,
-        textColor: _foregroundForBackground(buttonColor),
-      );
-    }
-
-    // Idle → "Analisis"
-    return SakuButton(text: l10n.textInputSubmit, onPressed: onSubmit);
-  }
-
-  Color _foregroundForBackground(Color backgroundColor) {
-    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
-    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }

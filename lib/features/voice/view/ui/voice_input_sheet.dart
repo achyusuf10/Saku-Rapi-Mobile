@@ -5,29 +5,23 @@ import 'package:app_saku_rapi/features/voice/controllers/ai_quota_provider.dart'
 import 'package:app_saku_rapi/features/voice/controllers/voice_input_controller.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/view/widgets/ai_quota_info_row.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/voice_input_action_bar.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/voice_input_error_panel.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/voice_input_mic_button.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/voice_input_status_text.dart';
+import 'package:app_saku_rapi/features/voice/view/widgets/voice_input_transcript_panel.dart';
 import 'package:app_saku_rapi/global/widgets/ai_parse_preview_card.dart';
-import 'package:app_saku_rapi/global/widgets/saku_button.dart';
+import 'package:app_saku_rapi/global/widgets/saku_sheet_drag_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// Bottom sheet untuk voice input recording.
+/// Bottom sheet rekam suara → transkrip → parse AI.
 ///
-/// Menampilkan:
-/// - Animated mic button (press & hold)
-/// - Countdown timer
-/// - Transcript display
-/// - Status messages (initializing, listening, processing, done, error)
-///
-/// Returns [VoiceParseResultModel?] saat ditutup (null jika cancel).
+/// Sub-widget dipisah ke file `voice_input_*.dart`; alur state & animasi tidak diubah.
 class VoiceInputSheet extends ConsumerStatefulWidget {
   const VoiceInputSheet({super.key});
 
-  /// Tampilkan voice input sheet.
-  ///
-  /// Returns [VoiceParseResultModel?] jika parsing berhasil,
-  /// `null` jika user cancel.
   static Future<VoiceParseResultModel?> show({required BuildContext context}) {
     return showModalBottomSheet<VoiceParseResultModel>(
       context: context,
@@ -60,7 +54,6 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Auto-start voice input saat sheet dibuka
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(voiceInputControllerProvider.notifier).startVoiceInput();
     });
@@ -78,7 +71,6 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
     final colors = context.colors;
     final l10n = context.l10n;
 
-    // Refresh quota setelah AI parse selesai (success atau error quota)
     ref.listen<VoiceInputState>(voiceInputControllerProvider, (prev, next) {
       if (prev?.status == VoiceInputStatus.processing &&
           (next.status == VoiceInputStatus.done ||
@@ -87,7 +79,6 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
       }
     });
 
-    // Control pulse animation based on state
     if (state.status == VoiceInputStatus.listening) {
       if (!_pulseController.isAnimating) _pulseController.repeat(reverse: true);
     } else {
@@ -138,38 +129,21 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Drag handle ──
-            Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: colors.textSecondary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2.r),
-              ),
+            SakuSheetDragHandle(
+              color: colors.textSecondary.withValues(alpha: 0.3),
             ),
-
             SizedBox(height: 24.h),
-
-            // ── Quota info ──
             const AiQuotaInfoRow(mode: 'voice'),
-
-            // ── Status text ──
-            _VoiceStatusText(state: state),
-
+            VoiceInputStatusText(state: state),
             SizedBox(height: 24.h),
-
-            // ── Mic button with pulse ──
-            _VoiceMicButton(
+            VoiceInputMicButton(
               state: state,
               pulseAnimation: _pulseAnimation,
               onStop: () => ref
                   .read(voiceInputControllerProvider.notifier)
                   .stopAndProcess(),
             ),
-
             SizedBox(height: 16.h),
-
-            // ── Countdown ──
             if (state.status == VoiceInputStatus.listening)
               Text(
                 l10n.voiceCountdown(state.remainingSeconds),
@@ -177,18 +151,11 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
                   color: colors.textSecondary,
                 ),
               ),
-
-            // ── Transcript display ──
             if (state.transcript.isNotEmpty &&
                 state.status != VoiceInputStatus.done) ...[
               SizedBox(height: 16.h),
-              _VoiceTranscriptDisplay(
-                transcript: state.transcript,
-                isProcessing: state.status == VoiceInputStatus.processing,
-              ),
+              VoiceInputTranscriptPanel(transcript: state.transcript),
             ],
-
-            // ── Preview hasil parsing ──
             if (state.status == VoiceInputStatus.done &&
                 state.parseResult != null) ...[
               SizedBox(height: 16.h),
@@ -198,18 +165,13 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
                 ),
               ),
             ],
-
-            // ── Error / Permission denied ──
             if (state.status == VoiceInputStatus.error ||
                 state.status == VoiceInputStatus.permissionDenied) ...[
               SizedBox(height: 16.h),
-              _VoiceErrorDisplay(state: state),
+              VoiceInputErrorPanel(state: state),
             ],
-
             SizedBox(height: 24.h),
-
-            // ── Action buttons ──
-            _VoiceActionButtons(
+            VoiceInputActionBar(
               state: state,
               onCancel: () => Navigator.maybePop(context),
               onRetry: () async {
@@ -236,301 +198,5 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet>
         ),
       ),
     );
-  }
-}
-
-// ═══════════════ Sub-widgets ═══════════════
-
-/// Status text di bagian atas sheet.
-class _VoiceStatusText extends StatelessWidget {
-  const _VoiceStatusText({required this.state});
-
-  final VoiceInputState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final colors = context.colors;
-
-    final (text, color) = switch (state.status) {
-      VoiceInputStatus.idle => (l10n.voiceTapToSpeak, colors.textSecondary),
-      VoiceInputStatus.initializing => (
-        l10n.voiceInitializing,
-        colors.textSecondary,
-      ),
-      VoiceInputStatus.listening => (l10n.voiceListening, colors.info),
-      VoiceInputStatus.processing => (l10n.voiceAnalyzingAi, colors.primary),
-      VoiceInputStatus.done => (l10n.voicePreviewTitle, colors.success),
-      VoiceInputStatus.error => (l10n.voiceError, colors.expense),
-      VoiceInputStatus.permissionDenied => (
-        l10n.voicePermissionDenied,
-        colors.expense,
-      ),
-    };
-
-    return Text(
-      text,
-      style: TextStyleConstants.h6.copyWith(color: color),
-      textAlign: TextAlign.center,
-    );
-  }
-}
-
-/// Animated mic button.
-class _VoiceMicButton extends StatelessWidget {
-  const _VoiceMicButton({
-    required this.state,
-    required this.pulseAnimation,
-    required this.onStop,
-  });
-
-  final VoiceInputState state;
-  final Animation<double> pulseAnimation;
-  final VoidCallback onStop;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    final isListening = state.status == VoiceInputStatus.listening;
-    final isProcessing = state.status == VoiceInputStatus.processing;
-
-    final bgColor = isListening
-        ? colors.expense
-        : isProcessing
-        ? colors.primary
-        : colors.info;
-    final onBgColor = _foregroundForBackground(bgColor);
-
-    final icon = isProcessing
-        ? FontAwesomeIcons.spinner
-        : isListening
-        ? FontAwesomeIcons.stop
-        : FontAwesomeIcons.microphone;
-
-    return AnimatedBuilder(
-      animation: pulseAnimation,
-      builder: (context, child) {
-        final scale = isListening ? pulseAnimation.value : 1.0;
-        return Transform.scale(
-          scale: scale,
-          child: GestureDetector(
-            onTap: isListening ? onStop : null,
-            child: Container(
-              width: 80.w,
-              height: 80.w,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: bgColor,
-                boxShadow: [
-                  if (isListening)
-                    BoxShadow(
-                      color: colors.expense.withValues(alpha: 0.25),
-                      blurRadius: 12.r,
-                      spreadRadius: 2.r,
-                    ),
-                ],
-              ),
-              child: Center(
-                child: isProcessing
-                    ? SizedBox(
-                        width: 28.w,
-                        height: 28.w,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3.w,
-                          valueColor: AlwaysStoppedAnimation(onBgColor),
-                        ),
-                      )
-                    : FaIcon(icon, size: 28.w, color: onBgColor),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Color _foregroundForBackground(Color backgroundColor) {
-    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
-    return brightness == Brightness.dark ? Colors.white : Colors.black87;
-  }
-}
-
-/// Display transkripsi suara.
-class _VoiceTranscriptDisplay extends StatelessWidget {
-  const _VoiceTranscriptDisplay({
-    required this.transcript,
-    required this.isProcessing,
-  });
-
-  final String transcript;
-  final bool isProcessing;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.voiceTranscript,
-            style: TextStyleConstants.label2.copyWith(
-              color: colors.textSecondary,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '"$transcript"',
-            style: TextStyleConstants.b1.copyWith(
-              color: colors.textPrimary,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Error display dengan CTA.
-class _VoiceErrorDisplay extends StatelessWidget {
-  const _VoiceErrorDisplay({required this.state});
-
-  final VoiceInputState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-
-    final message = state.status == VoiceInputStatus.permissionDenied
-        ? l10n.voicePermissionExplainer
-        : state.errorMessage == 'no_speech'
-        ? l10n.voiceNoSpeech
-        : state.errorMessage == 'not_transaction'
-        ? l10n.voiceNotTransaction
-        : state.errorMessage == 'DAILY_QUOTA_EXCEEDED'
-        ? l10n.aiQuotaExhausted
-        : l10n.voiceError;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: colors.expense.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      child: Row(
-        children: [
-          FaIcon(
-            FontAwesomeIcons.circleExclamation,
-            size: 16.w,
-            color: colors.expense,
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyleConstants.b2.copyWith(color: colors.expense),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Action buttons di bagian bawah sheet.
-class _VoiceActionButtons extends StatelessWidget {
-  const _VoiceActionButtons({
-    required this.state,
-    required this.onCancel,
-    required this.onRetry,
-    required this.onDone,
-    required this.onOpenSettings,
-  });
-
-  final VoiceInputState state;
-  final VoidCallback onCancel;
-  final VoidCallback onRetry;
-  final VoidCallback onDone;
-  final VoidCallback onOpenSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final l10n = context.l10n;
-
-    return Row(
-      children: [
-        // Cancel / Ulangi button (negative, outlined)
-        Expanded(
-          child: SakuButton(
-            text: state.status == VoiceInputStatus.done
-                ? l10n.voiceRetryButton
-                : l10n.confirmCancel,
-            onPressed: state.status == VoiceInputStatus.done
-                ? onRetry
-                : onCancel,
-            isOutlined: true,
-          ),
-        ),
-
-        SizedBox(width: 12.w),
-
-        // Contextual action button
-        Expanded(child: _buildActionButton(colors, l10n)),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(dynamic colors, dynamic l10n) {
-    // Permission denied → "Buka Pengaturan"
-    if (state.status == VoiceInputStatus.permissionDenied) {
-      return SakuButton(
-        text: l10n.voiceOpenSettings,
-        onPressed: onOpenSettings,
-      );
-    }
-
-    // Error → "Coba Lagi"
-    if (state.status == VoiceInputStatus.error) {
-      final buttonColor = colors.info as Color;
-      return SakuButton(
-        text: l10n.retryButton,
-        onPressed: onRetry,
-        backgroundColor: buttonColor,
-        textColor: _foregroundForBackground(buttonColor),
-      );
-    }
-
-    // Done → "Lanjutkan"
-    if (state.status == VoiceInputStatus.done) {
-      final buttonColor = colors.success as Color;
-      return SakuButton(
-        text: l10n.voiceContinueButton,
-        onPressed: onDone,
-        backgroundColor: buttonColor,
-        textColor: _foregroundForBackground(buttonColor),
-      );
-    }
-
-    // Processing/listening → disabled "Mohon tunggu..."
-    return SakuButton(text: l10n.voicePleaseWait, onPressed: null);
-  }
-
-  Color _foregroundForBackground(Color backgroundColor) {
-    final brightness = ThemeData.estimateBrightnessForColor(backgroundColor);
-    return brightness == Brightness.dark ? Colors.white : Colors.black87;
   }
 }
