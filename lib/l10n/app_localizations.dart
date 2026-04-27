@@ -608,6 +608,24 @@ abstract class AppLocalizations {
   /// **'Transaksi berhasil disimpan'**
   String get transactionSaveSuccess;
 
+  /// No description provided for @transactionSaveSuccessBatch.
+  ///
+  /// In id, this message translates to:
+  /// **'{count, plural, one{1 transaksi berhasil disimpan} other{{count} transaksi berhasil disimpan}}'**
+  String transactionSaveSuccessBatch(int count);
+
+  /// No description provided for @transactionMultiManualAtLimitBanner.
+  ///
+  /// In id, this message translates to:
+  /// **'Sudah mencapai batas maksimal {max} transaksi per simpanan. Hapus satu untuk menambah lagi.'**
+  String transactionMultiManualAtLimitBanner(int max);
+
+  /// No description provided for @transactionMultiManualMaxReached.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal {max} transaksi per simpanan. Hapus satu untuk menambah lagi.'**
+  String transactionMultiManualMaxReached(int max);
+
   /// No description provided for @transactionDeleteConfirm.
   ///
   /// In id, this message translates to:
@@ -787,6 +805,36 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Beberapa Item'**
   String get transactionMultiItemToggle;
+
+  /// No description provided for @transactionMultiManualHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Catat beberapa transaksi sekaligus. Masing-masing punya dompet, kategori, detail opsional, dan baris item sendiri. Semua disimpan bersamaan dalam satu langkah.'**
+  String get transactionMultiManualHint;
+
+  /// No description provided for @transactionMultiManualSegmentSingle.
+  ///
+  /// In id, this message translates to:
+  /// **'Satu transaksi'**
+  String get transactionMultiManualSegmentSingle;
+
+  /// No description provided for @transactionMultiManualSegmentMulti.
+  ///
+  /// In id, this message translates to:
+  /// **'Multi transaksi'**
+  String get transactionMultiManualSegmentMulti;
+
+  /// No description provided for @transactionMultiManualAddAnother.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah transaksi lain'**
+  String get transactionMultiManualAddAnother;
+
+  /// No description provided for @transactionMultiManualCardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi {index}'**
+  String transactionMultiManualCardTitle(int index);
 
   /// No description provided for @transactionNewTitle.
   ///

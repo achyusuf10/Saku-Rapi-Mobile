@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
+import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -50,6 +51,8 @@ class TransactionFormState {
     this.existingTransaction,
     this.debtLoanKind,
     this.referenceTransaction,
+    this.isMultiManualMode = false,
+    this.manualMultiEntries = const [],
   });
 
   // ─── Persisted fields ───
@@ -116,6 +119,12 @@ class TransactionFormState {
   /// Transaksi referensi untuk mode pelunasan hutang / penerimaan piutang.
   final DebtLoanTransactionModel? referenceTransaction;
 
+  /// Mode **Multi Transaksi** (hanya create + expense/income).
+  final bool isMultiManualMode;
+
+  /// Daftar transaksi saat [isMultiManualMode] aktif.
+  final List<ManualTransactionEntryModel> manualMultiEntries;
+
   // ─── Computed getters ───
 
   /// True jika form sedang dalam mode edit (bukan create baru).
@@ -139,6 +148,12 @@ class TransactionFormState {
 
   /// True jika itemsTotal cocok dengan totalAmount (toleransi ±0.01).
   bool get isTotalMatched => (itemsTotal - totalAmount).abs() < 0.01;
+
+  /// Multi-item salah satu entry manual belum cocok totalnya.
+  bool get multiManualSaveBlocked {
+    if (!isMultiManualMode) return false;
+    return manualMultiEntries.any((e) => e.isMultiItem && !e.isTotalMatched);
+  }
 
   // ─── copyWith ───
 
@@ -165,6 +180,8 @@ class TransactionFormState {
     TransactionModel? existingTransaction,
     DebtLoanKindEnum? debtLoanKind,
     DebtLoanTransactionModel? referenceTransaction,
+    bool? isMultiManualMode,
+    List<ManualTransactionEntryModel>? manualMultiEntries,
   }) {
     return TransactionFormState(
       status: status ?? this.status,
@@ -187,6 +204,8 @@ class TransactionFormState {
       existingTransaction: existingTransaction ?? this.existingTransaction,
       debtLoanKind: debtLoanKind ?? this.debtLoanKind,
       referenceTransaction: referenceTransaction ?? this.referenceTransaction,
+      isMultiManualMode: isMultiManualMode ?? this.isMultiManualMode,
+      manualMultiEntries: manualMultiEntries ?? this.manualMultiEntries,
     );
   }
 
@@ -234,6 +253,8 @@ class TransactionFormState {
       referenceTransaction: clearReferenceTransaction
           ? null
           : referenceTransaction,
+      isMultiManualMode: isMultiManualMode,
+      manualMultiEntries: manualMultiEntries,
     );
   }
 }

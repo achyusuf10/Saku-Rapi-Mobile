@@ -15,7 +15,9 @@ import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_amou
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_category_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_date_picker_tile.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_form_save_bar.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_manual_multi_entry_list.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_multi_item_section.dart';
+import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_multi_manual_mode_header.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_optional_details_section.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_transfer_arrow.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/transaction_type_tabs.dart';
@@ -143,8 +145,27 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
     final isEditing = formState.isEditing;
     final isSaving = formState.isSaving;
 
+    ref.listen<TransactionFormState>(
+      transactionFormControllerProvider,
+      (prev, next) {
+        if (prev == null) return;
+        if (prev.isMultiManualMode && !next.isMultiManualMode) {
+          _merchantController.text = next.merchantName ?? '';
+          _noteController.text = next.note ?? '';
+        }
+      },
+    );
+
     // Warna aksen mengikuti tipe transaksi aktif
     final typeColor = colorForType(formState.type, colors);
+
+    final showMultiManualChrome =
+        !isEditing &&
+        !formState.isSettlementMode &&
+        (formState.type == TransactionTypeEnum.expense ||
+            formState.type == TransactionTypeEnum.income);
+    final hideSingleMainFields =
+        showMultiManualChrome && formState.isMultiManualMode;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -232,8 +253,28 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
                       SizedBox(height: 10.h),
                     ],
 
+                    if (showMultiManualChrome) ...[
+                      const TransactionMultiManualModeHeader(),
+                      SizedBox(height: 12.h),
+                    ],
+
+                    if (showMultiManualChrome &&
+                        formState.isMultiManualMode) ...[
+                      TransactionManualMultiEntryList(
+                        typeColor: typeColor,
+                        type: formState.type,
+                        onPickWalletFor: (i) => pickWallet(
+                          isSource: true,
+                          manualMultiEntryIndex: i,
+                        ),
+                        onPickCategoryFor: (i) =>
+                            pickCategory(manualMultiEntryIndex: i),
+                        onPickAttachmentFor: pickAttachmentForMultiEntry,
+                      ),
+                    ],
+
                     // ─── Field jumlah (single-item mode) ───
-                    if (!formState.isMultiItem) ...[
+                    if (!hideSingleMainFields && !formState.isMultiItem) ...[
                       TransactionAmountSection(
                         autoFocus: _autoFocusAmount,
                         typeColor: typeColor,
@@ -263,36 +304,40 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
                       SizedBox(height: 16.h),
                     ],
 
-                    // ─── Picker dompet sumber ───
-                    SakuWalletPickerTile(
-                      label: formState.type == TransactionTypeEnum.transfer
-                          ? l10n.transactionSourceWallet
-                          : l10n.transactionWallet,
-                      selected: formState.wallet,
-                      onTap: () => pickWallet(isSource: true),
-                      iconColor: colors.primary,
-                    ),
-
-                    // ─── Dompet tujuan (transfer saja) ───
-                    if (formState.type == TransactionTypeEnum.transfer) ...[
-                      TransactionTransferArrow(
-                        color: colors.transfer,
-                        onSwap: () => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .swapWallets(),
-                      ),
+                    // ─── Picker dompet sumber / transfer ───
+                    if (!hideSingleMainFields) ...[
                       SakuWalletPickerTile(
-                        label: l10n.transactionDestWallet,
-                        selected: formState.destinationWallet,
-                        onTap: () => pickWallet(isSource: false),
-                        iconColor: colors.transfer,
+                        label: formState.type == TransactionTypeEnum.transfer
+                            ? l10n.transactionSourceWallet
+                            : l10n.transactionWallet,
+                        selected: formState.wallet,
+                        onTap: () => pickWallet(isSource: true),
+                        iconColor: colors.primary,
+                        backgroundColor: colors.surface,
+                        useBorder: true,
                       ),
+                      if (formState.type == TransactionTypeEnum.transfer) ...[
+                        TransactionTransferArrow(
+                          color: colors.transfer,
+                          onSwap: () => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .swapWallets(),
+                        ),
+                        SakuWalletPickerTile(
+                          label: l10n.transactionDestWallet,
+                          selected: formState.destinationWallet,
+                          onTap: () => pickWallet(isSource: false),
+                          iconColor: colors.transfer,
+                          backgroundColor: colors.surface,
+                          useBorder: true,
+                        ),
+                      ],
+                      SizedBox(height: 10.h),
                     ],
 
-                    SizedBox(height: 10.h),
-
                     // ─── Picker kategori (expense/income, non-settlement) ───
-                    if (!formState.isSettlementMode &&
+                    if (!hideSingleMainFields &&
+                        !formState.isSettlementMode &&
                         (formState.type == TransactionTypeEnum.income ||
                             formState.type == TransactionTypeEnum.expense)) ...[
                       TransactionCategoryPickerTile(
@@ -336,20 +381,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
                     ],
 
                     // ─── Picker tanggal ───
-                    TransactionDatePickerTile(
-                      date: formState.date,
-                      onChanged: (date) {
-                        FocusScope.of(context).unfocus();
-                        ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setDate(date);
-                      },
-                    ),
+                    if (!hideSingleMainFields)
+                      TransactionDatePickerTile(
+                        date: formState.date,
+                        onChanged: (date) {
+                          FocusScope.of(context).unfocus();
+                          ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setDate(date);
+                        },
+                      ),
 
-                    SizedBox(height: 14.h),
+                    if (!hideSingleMainFields) SizedBox(height: 14.h),
 
                     // ─── Detail opsional: merchant, note, lampiran (non-settlement) ───
-                    if (!formState.isSettlementMode)
+                    if (!hideSingleMainFields && !formState.isSettlementMode)
                       TransactionOptionalDetailsSection(
                         merchantController: _merchantController,
                         noteController: _noteController,
@@ -380,7 +426,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
                     ],
 
                     // ─── Section multi-item (expense/income, non-settlement) ───
-                    if (!formState.isSettlementMode &&
+                    if (!hideSingleMainFields &&
+                        !formState.isSettlementMode &&
                         (formState.type == TransactionTypeEnum.expense ||
                             formState.type == TransactionTypeEnum.income)) ...[
                       SizedBox(height: 16.h),

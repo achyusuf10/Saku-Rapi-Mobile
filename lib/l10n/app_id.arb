@@ -113,6 +113,30 @@
   "transactionGrandTotal": "Total",
   "transactionSave": "Simpan",
   "transactionSaveSuccess": "Transaksi berhasil disimpan",
+  "transactionSaveSuccessBatch": "{count, plural, one{1 transaksi berhasil disimpan} other{{count} transaksi berhasil disimpan}}",
+  "@transactionSaveSuccessBatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transactionMultiManualAtLimitBanner": "Sudah mencapai batas maksimal {max} transaksi per simpanan. Hapus satu untuk menambah lagi.",
+  "@transactionMultiManualAtLimitBanner": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "transactionMultiManualMaxReached": "Maksimal {max} transaksi per simpanan. Hapus satu untuk menambah lagi.",
+  "@transactionMultiManualMaxReached": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "transactionDeleteConfirm": "Hapus transaksi ini?",
   "transactionPrefilledFromVoice": "Diisi dari suara",
   "transactionPrefilledFromOcr": "Diisi dari struk",
@@ -143,6 +167,18 @@
   "transactionSelectCategory": "Pilih Kategori",
   "transactionSelectWallet": "Pilih Dompet",
   "transactionMultiItemToggle": "Beberapa Item",
+  "transactionMultiManualHint": "Catat beberapa transaksi sekaligus. Masing-masing punya dompet, kategori, detail opsional, dan baris item sendiri. Semua disimpan bersamaan dalam satu langkah.",
+  "transactionMultiManualSegmentSingle": "Satu transaksi",
+  "transactionMultiManualSegmentMulti": "Multi transaksi",
+  "transactionMultiManualAddAnother": "Tambah transaksi lain",
+  "transactionMultiManualCardTitle": "Transaksi {index}",
+  "@transactionMultiManualCardTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "transactionNewTitle": "Transaksi Baru",
   "transactionEditTitle": "Edit Transaksi",
   "transactionSettleDebt": "Lunasi Hutang",

@@ -29,7 +29,10 @@ class SakuWalletPickerTile extends StatelessWidget {
     this.iconColor,
     this.placeholder,
     this.useBorder = false,
+    this.backgroundColor,
   });
+
+  final Color? backgroundColor;
 
   /// Label di atas nama wallet (UPPERCASE).
   final String label;
@@ -64,7 +67,9 @@ class SakuWalletPickerTile extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: useBorder ? colors.surfaceVariant : colors.surface,
+          color:
+              backgroundColor ??
+              (useBorder ? colors.surfaceVariant : colors.surface),
           borderRadius: BorderRadius.circular(12.r),
           border: useBorder
               ? Border.all(

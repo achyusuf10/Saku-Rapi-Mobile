@@ -273,6 +273,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionSaveSuccess => 'Transaction saved successfully';
 
   @override
+  String transactionSaveSuccessBatch(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions saved successfully',
+      one: '1 transaction saved successfully',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transactionMultiManualAtLimitBanner(int max) {
+    return 'You have reached the maximum of $max transactions per save. Remove one to add another.';
+  }
+
+  @override
+  String transactionMultiManualMaxReached(int max) {
+    return 'Maximum $max transactions per save. Remove one to add another.';
+  }
+
+  @override
   String get transactionDeleteConfirm => 'Delete this transaction?';
 
   @override
@@ -364,6 +385,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionMultiItemToggle => 'Multiple Items';
+
+  @override
+  String get transactionMultiManualHint =>
+      'Record several transactions at once. Each has its own wallet, category, optional details, and line items. All are saved together in one step.';
+
+  @override
+  String get transactionMultiManualSegmentSingle => 'Single';
+
+  @override
+  String get transactionMultiManualSegmentMulti => 'Multi';
+
+  @override
+  String get transactionMultiManualAddAnother => 'Add another transaction';
+
+  @override
+  String transactionMultiManualCardTitle(int index) {
+    return 'Transaction $index';
+  }
 
   @override
   String get transactionNewTitle => 'New Transaction';

@@ -1,6 +1,10 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
+import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_multi_manual_coordinator.dart';
+import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
+import 'package:app_saku_rapi/features/transaction/utils/manual_multi_batch_limits.dart';
+import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
@@ -422,6 +426,144 @@ void main() {
       expect(item.unitPrice, 5000);
       expect(item.amount, 15000);
       expect(item.itemName, 'Es Teh');
+    });
+  });
+
+  group('Multi manual setManualMultiEntryTotalAmount', () {
+    late TransactionFormController ctrl;
+
+    setUp(() {
+      final repo = TransactionRepository(
+        remoteDataSource: TransactionRemoteDataSource(
+          client: _MockSupabaseClient(),
+        ),
+      );
+      ctrl = TransactionFormController(repository: repo);
+      ctrl.setType(TransactionTypeEnum.expense);
+      ctrl.initSingleItem();
+      ctrl.setMultiManualMode(true);
+    });
+
+    test('updates first item amount and total for single-item entry', () {
+      expect(ctrl.state.manualMultiEntries, hasLength(1));
+      ctrl.setManualMultiEntryTotalAmount(0, 75000);
+      final e = ctrl.state.manualMultiEntries.first;
+      expect(e.totalAmount, 75000);
+      expect(e.items, hasLength(1));
+      expect(e.items.single.amount, 75000);
+    });
+
+    test('no-op when entry has more than one item', () {
+      ctrl.addManualMultiItem(0);
+      expect(ctrl.state.manualMultiEntries.first.items, hasLength(2));
+      ctrl.setManualMultiEntryTotalAmount(0, 99999);
+      final e = ctrl.state.manualMultiEntries.first;
+      expect(e.items, hasLength(2));
+      expect(e.totalAmount, isNot(99999));
+    });
+
+    test('addManualMultiItem marks entry as multi-item (two rows)', () {
+      ctrl.setManualMultiEntryTotalAmount(0, 5000);
+      expect(ctrl.state.manualMultiEntries.first.isMultiItem, isFalse);
+      ctrl.addManualMultiItem(0);
+      final e = ctrl.state.manualMultiEntries.first;
+      expect(e.isMultiItem, isTrue);
+      expect(e.items, hasLength(2));
+    });
+  });
+
+  group('TransactionFormMultiManualCoordinator.validateBatch', () {
+    WalletModel _wallet() => const WalletModel(
+          id: 'w1',
+          userId: 'u1',
+          name: 'Dompet',
+          icon: 'wallet',
+          color: '#111',
+          balance: 0,
+          initialBalance: 0,
+          currency: 'IDR',
+          excludeFromTotal: false,
+          sortOrder: 0,
+        );
+
+    CategoryModel _category() => const CategoryModel(
+          id: 'c1',
+          userId: 'u1',
+          name: 'Makan',
+          icon: 'utensils',
+          color: '#222',
+          type: CategoryType.expense,
+        );
+
+    test('returns null for one valid expense entry', () {
+      final entry = ManualTransactionEntryModel(
+        entryKey: 0,
+        wallet: _wallet(),
+        category: _category(),
+        items: [
+          _item(amount: 10000, categoryId: 'c1'),
+        ],
+        itemKeys: const [0],
+        totalAmount: 10000,
+      );
+      final state = TransactionFormState(
+        type: TransactionTypeEnum.expense,
+        isMultiManualMode: true,
+        manualMultiEntries: [entry],
+      );
+      expect(
+        TransactionFormMultiManualCoordinator.validateBatch(
+          state,
+          TransactionTypeEnum.expense,
+        ),
+        isNull,
+      );
+    });
+
+    test('rejects more than max entries', () {
+      final many = List.generate(
+        kManualMultiBatchMaxTransactions + 1,
+        (i) => ManualTransactionEntryModel(
+          entryKey: i,
+          wallet: _wallet(),
+          category: _category(),
+          items: [_item(amount: 1, categoryId: 'c1')],
+          itemKeys: [i],
+          totalAmount: 1,
+        ),
+      );
+      final state = TransactionFormState(
+        type: TransactionTypeEnum.expense,
+        isMultiManualMode: true,
+        manualMultiEntries: many,
+      );
+      final msg = TransactionFormMultiManualCoordinator.validateBatch(
+        state,
+        TransactionTypeEnum.expense,
+      );
+      expect(msg, isNotNull);
+      expect(msg, contains('$kManualMultiBatchMaxTransactions'));
+    });
+
+    test('returns message when wallet missing', () {
+      final entry = ManualTransactionEntryModel(
+        entryKey: 0,
+        category: _category(),
+        items: [_item(amount: 100, categoryId: 'c1')],
+        itemKeys: const [0],
+        totalAmount: 100,
+      );
+      final state = TransactionFormState(
+        type: TransactionTypeEnum.expense,
+        isMultiManualMode: true,
+        manualMultiEntries: [entry],
+      );
+      final msg = TransactionFormMultiManualCoordinator.validateBatch(
+        state,
+        TransactionTypeEnum.expense,
+      );
+      expect(msg, isNotNull);
+      expect(msg, contains('dompet'));
     });
   });
 }

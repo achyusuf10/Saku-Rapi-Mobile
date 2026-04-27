@@ -27,9 +27,14 @@ class TransactionFormSaveBar extends StatelessWidget {
     final colors = context.colors;
     final l10n = context.l10n;
 
+    final singleMismatch =
+        !formState.isMultiManualMode &&
+        formState.isMultiItem &&
+        !formState.isTotalMatched;
+    final multiMismatch =
+        formState.isMultiManualMode && formState.multiManualSaveBlocked;
     final isDisabled =
-        formState.isSaving ||
-        (formState.isMultiItem && !formState.isTotalMatched);
+        formState.isSaving || singleMismatch || multiMismatch;
 
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),

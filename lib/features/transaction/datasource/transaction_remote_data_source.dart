@@ -158,6 +158,24 @@ class TransactionRemoteDataSource {
     );
   }
 
+  /// Beberapa transaksi expense/income sekaligus (satu RPC atomik).
+  Future<DataState<Map<String, dynamic>>> createTransactionsBatch(
+    List<Map<String, dynamic>> rows,
+  ) {
+    return SupabaseHandler.call<Map<String, dynamic>>(
+      function: () async {
+        AppLogger.call('$_tag createTransactionsBatch: count=${rows.length}');
+
+        final result = await _client.rpc(
+          'create_transactions_batch',
+          params: {'p_transactions': rows},
+        );
+
+        return Map<String, dynamic>.from(result as Map);
+      },
+    );
+  }
+
   // ───────────────── UPDATE (RPC) ─────────────────
 
   /// Update transaksi + items secara atomik via RPC.

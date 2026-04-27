@@ -5,6 +5,9 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/transaction/datasource/transaction_local_data_source.dart';
 import 'package:app_saku_rapi/features/transaction/datasource/transaction_remote_data_source.dart';
+import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
+import 'package:app_saku_rapi/features/transaction/utils/manual_multi_batch_limits.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 
@@ -179,6 +182,55 @@ class TransactionRepository {
       items: items,
       contactId: contactId,
     );
+  }
+
+  /// Buat banyak transaksi expense/income dalam satu RPC atomik.
+  Future<DataState<Map<String, dynamic>>> createTransactionsBatch({
+    required TransactionTypeEnum type,
+    required List<ManualTransactionEntryModel> entries,
+  }) async {
+    if (type != TransactionTypeEnum.expense &&
+        type != TransactionTypeEnum.income) {
+      return const DataState.error(
+        message: 'Batch hanya mendukung pengeluaran atau pemasukan',
+      );
+    }
+
+    if (entries.length > kManualMultiBatchMaxTransactions) {
+      return DataState.error(
+        message:
+            'Maksimal $kManualMultiBatchMaxTransactions transaksi sekaligus',
+      );
+    }
+
+    final rows = <Map<String, dynamic>>[];
+    for (final e in entries) {
+      final itemsOrdered = e.items
+          .asMap()
+          .entries
+          .map((x) => x.value.copyWith(sortOrder: x.key))
+          .toList();
+      rows.add({
+        'wallet_id': e.wallet!.id,
+        'destination_wallet_id': null,
+        'type': type.toDbValue(),
+        'total_amount': e.totalAmount,
+        'date': SakuDateUtils.formatTimestamp(e.date ?? DateTime.now()),
+        'merchant_name': e.merchantName,
+        'note': e.note,
+        'attachment_url': e.attachmentUrl,
+        'with_person': null,
+        'contact_id': null,
+        'status': null,
+        'due_date': null,
+        'is_multi_item': e.items.length > 1,
+        'reference_transaction_id': null,
+        'settlement_kind': null,
+        'items': itemsOrdered.map((i) => i.toRpcMap()).toList(),
+      });
+    }
+
+    return _remote.createTransactionsBatch(rows);
   }
 
   // ───────────────── UPDATE ─────────────────

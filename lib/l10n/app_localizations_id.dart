@@ -272,6 +272,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get transactionSaveSuccess => 'Transaksi berhasil disimpan';
 
   @override
+  String transactionSaveSuccessBatch(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transaksi berhasil disimpan',
+      one: '1 transaksi berhasil disimpan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transactionMultiManualAtLimitBanner(int max) {
+    return 'Sudah mencapai batas maksimal $max transaksi per simpanan. Hapus satu untuk menambah lagi.';
+  }
+
+  @override
+  String transactionMultiManualMaxReached(int max) {
+    return 'Maksimal $max transaksi per simpanan. Hapus satu untuk menambah lagi.';
+  }
+
+  @override
   String get transactionDeleteConfirm => 'Hapus transaksi ini?';
 
   @override
@@ -362,6 +383,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get transactionMultiItemToggle => 'Beberapa Item';
+
+  @override
+  String get transactionMultiManualHint =>
+      'Catat beberapa transaksi sekaligus. Masing-masing punya dompet, kategori, detail opsional, dan baris item sendiri. Semua disimpan bersamaan dalam satu langkah.';
+
+  @override
+  String get transactionMultiManualSegmentSingle => 'Satu transaksi';
+
+  @override
+  String get transactionMultiManualSegmentMulti => 'Multi transaksi';
+
+  @override
+  String get transactionMultiManualAddAnother => 'Tambah transaksi lain';
+
+  @override
+  String transactionMultiManualCardTitle(int index) {
+    return 'Transaksi $index';
+  }
 
   @override
   String get transactionNewTitle => 'Transaksi Baru';

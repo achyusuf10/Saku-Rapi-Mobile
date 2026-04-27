@@ -11,6 +11,7 @@ import 'package:app_saku_rapi/features/category/view/widgets/category_picker_she
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/history/controllers/history_controller.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
+import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_multi_manual_coordinator.dart';
 import 'package:app_saku_rapi/features/transaction/view/widgets/unpaid_transaction_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/services/image_upload_service.dart';
@@ -55,22 +56,30 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
   ///
   /// [isSource] = true  → picker dompet sumber (exclude dompet tujuan).
   /// [isSource] = false → picker dompet tujuan (exclude dompet sumber).
-  Future<void> pickWallet({required bool isSource}) async {
+  Future<void> pickWallet({
+    required bool isSource,
+    int? manualMultiEntryIndex,
+  }) async {
     FocusScope.of(context).unfocus();
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
     final result = await SakuWalletPickerSheet.show(
       context,
-      selectedWalletId: isSource
-          ? formState.wallet?.id
-          : formState.destinationWallet?.id,
-      // Cegah memilih dompet yang sama untuk sumber & tujuan
+      selectedWalletId: manualMultiEntryIndex != null
+          ? (manualMultiEntryIndex < formState.manualMultiEntries.length
+                ? formState.manualMultiEntries[manualMultiEntryIndex].wallet?.id
+                : null)
+          : (isSource
+                ? formState.wallet?.id
+                : formState.destinationWallet?.id),
       excludeWalletId: isSource ? null : formState.wallet?.id,
     );
 
     if (result != null) {
-      if (isSource) {
+      if (manualMultiEntryIndex != null) {
+        ctrl.setManualMultiEntryWallet(manualMultiEntryIndex, result);
+      } else if (isSource) {
         ctrl.setWallet(result);
       } else {
         ctrl.setDestinationWallet(result);
@@ -82,7 +91,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
   ///
   /// Tipe kategori (expense/income) mengikuti tipe transaksi aktif.
   /// Kategori yang sedang terpilih di-highlight sebagai selected.
-  Future<void> pickCategory() async {
+  Future<void> pickCategory({int? manualMultiEntryIndex}) async {
     FocusScope.of(context).unfocus();
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
@@ -91,10 +100,18 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         ? CategoryType.income
         : CategoryType.expense;
 
-    // Gunakan kategori yang sudah dipilih, atau fallback dari item pertama
-    final selectedId =
-        formState.category?.id ??
-        (formState.items.isNotEmpty ? formState.items.first.categoryId : null);
+    String? selectedId;
+    if (manualMultiEntryIndex != null &&
+        manualMultiEntryIndex < formState.manualMultiEntries.length) {
+      final e = formState.manualMultiEntries[manualMultiEntryIndex];
+      selectedId =
+          e.category?.id ??
+          (e.items.isNotEmpty ? e.items.first.categoryId : null);
+    } else {
+      selectedId =
+          formState.category?.id ??
+          (formState.items.isNotEmpty ? formState.items.first.categoryId : null);
+    }
 
     final result = await CategoryPickerSheet.show(
       context: context,
@@ -102,7 +119,23 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
       selectedId: selectedId,
     );
 
-    if (result != null) ctrl.setCategory(result);
+    if (result != null) {
+      if (manualMultiEntryIndex != null) {
+        ctrl.setManualMultiEntryCategory(manualMultiEntryIndex, result);
+      } else {
+        ctrl.setCategory(result);
+      }
+    }
+  }
+
+  /// Lampiran untuk satu baris mode multi transaksi.
+  Future<void> pickAttachmentForMultiEntry(int entryIndex) async {
+    FocusScope.of(context).unfocus();
+    final file = await ImageSourcePickerSheet.show(context);
+    if (file == null || !mounted) return;
+    ref
+        .read(transactionFormControllerProvider.notifier)
+        .setManualMultiEntryLocalAttachment(entryIndex, file.path);
   }
 
   /// Buka bottom sheet picker transaksi yang belum dilunasi (mode settlement).
@@ -159,9 +192,21 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
 
     final formState = ref.read(transactionFormControllerProvider);
     final l10n = context.l10n;
+    final isMultiBatchSubmit =
+        formState.isMultiManualMode && !formState.isEditing;
 
-    // ── Validasi: wallet sumber wajib ──
-    if (formState.wallet == null) {
+    // ── Mode multi transaksi (create + expense/income) ──
+    if (formState.isMultiManualMode && !formState.isEditing) {
+      final batchErr = TransactionFormMultiManualCoordinator.validateBatch(
+        formState,
+        formState.type,
+      );
+      if (batchErr != null) {
+        if (!mounted) return;
+        context.showAppAlert(batchErr, alertType: AlertTypeEnum.error);
+        return;
+      }
+    } else if (formState.wallet == null) {
       if (!mounted) return;
       context.showAppAlert(
         l10n.transactionWalletRequired,
@@ -206,19 +251,29 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     context.showLoadingOverlay();
 
     try {
-      // Upload lampiran lokal jika ada (lazy upload sebelum simpan)
-      if (formState.localAttachmentPath != null) {
+      if (formState.isMultiManualMode && !formState.isEditing) {
+        final entries = ref.read(transactionFormControllerProvider).manualMultiEntries;
+        for (var i = 0; i < entries.length; i++) {
+          final path = entries[i].localAttachmentPath;
+          if (path == null) continue;
+          final url = await _uploadLocalAttachment(path);
+          if (!mounted) return;
+          if (url != null) {
+            ref
+                .read(transactionFormControllerProvider.notifier)
+                .setManualMultiEntryAttachmentUrl(i, url);
+          }
+        }
+      } else if (formState.localAttachmentPath != null) {
         final url = await _uploadLocalAttachment(
           formState.localAttachmentPath!,
         );
         if (!mounted) return;
         if (url != null) {
-          // Update URL di state sebelum submit agar tersimpan ke DB
           ref
               .read(transactionFormControllerProvider.notifier)
               .setAttachmentUrl(url);
         }
-        // Jika upload gagal, tetap lanjut simpan tanpa lampiran
       }
 
       final result = await ref
@@ -234,10 +289,23 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         ref.read(dashboardControllerProvider.notifier).loadDashboard();
         ref.read(historyControllerProvider.notifier).loadTransactions();
 
-        context.showAppAlert(
-          l10n.transactionSaveSuccess,
-          alertType: AlertTypeEnum.success,
-        );
+        if (isMultiBatchSubmit) {
+          final payload = result.dataSuccess();
+          final n = (payload != null && payload['count'] is num)
+              ? (payload['count'] as num).toInt()
+              : 0;
+          context.showAppAlert(
+            n > 0
+                ? l10n.transactionSaveSuccessBatch(n)
+                : l10n.transactionSaveSuccess,
+            alertType: AlertTypeEnum.success,
+          );
+        } else {
+          context.showAppAlert(
+            l10n.transactionSaveSuccess,
+            alertType: AlertTypeEnum.success,
+          );
+        }
         context.pop(true);
 
         // Tampilkan interstitial ad setiap N simpan, hanya jika eligible

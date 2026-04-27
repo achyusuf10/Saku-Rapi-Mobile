@@ -113,6 +113,30 @@
   "transactionGrandTotal": "Grand Total",
   "transactionSave": "Save",
   "transactionSaveSuccess": "Transaction saved successfully",
+  "transactionSaveSuccessBatch": "{count, plural, one{1 transaction saved successfully} other{{count} transactions saved successfully}}",
+  "@transactionSaveSuccessBatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transactionMultiManualAtLimitBanner": "You have reached the maximum of {max} transactions per save. Remove one to add another.",
+  "@transactionMultiManualAtLimitBanner": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "transactionMultiManualMaxReached": "Maximum {max} transactions per save. Remove one to add another.",
+  "@transactionMultiManualMaxReached": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "transactionDeleteConfirm": "Delete this transaction?",
   "transactionPrefilledFromVoice": "Pre-filled from voice",
   "transactionPrefilledFromOcr": "Pre-filled from receipt",
@@ -143,6 +167,18 @@
   "transactionSelectCategory": "Select Category",
   "transactionSelectWallet": "Select Wallet",
   "transactionMultiItemToggle": "Multiple Items",
+  "transactionMultiManualHint": "Record several transactions at once. Each has its own wallet, category, optional details, and line items. All are saved together in one step.",
+  "transactionMultiManualSegmentSingle": "Single",
+  "transactionMultiManualSegmentMulti": "Multi",
+  "transactionMultiManualAddAnother": "Add another transaction",
+  "transactionMultiManualCardTitle": "Transaction {index}",
+  "@transactionMultiManualCardTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "transactionNewTitle": "New Transaction",
   "transactionEditTitle": "Edit Transaction",
   "transactionSettleDebt": "Settle Debt",

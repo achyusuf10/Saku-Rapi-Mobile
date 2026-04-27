@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_multi_manual_coordinator.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_state.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
@@ -113,7 +114,8 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           clearError: true,
           clearDebtLoanKind: !isDebtLoan,
           clearReferenceTransaction: true,
-        );
+        )
+        .copyWith(isMultiManualMode: false, manualMultiEntries: const []);
   }
 
   /// Set sub-kategori untuk tab Hutang/Piutang.
@@ -130,7 +132,12 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         : TransactionTypeEnum.debt;
 
     state = state
-        .copyWith(type: newType, debtLoanKind: subCat)
+        .copyWith(
+          type: newType,
+          debtLoanKind: subCat,
+          isMultiManualMode: false,
+          manualMultiEntries: const [],
+        )
         .clearFields(clearReferenceTransaction: true, clearError: true);
   }
 
@@ -218,6 +225,8 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         existingTransaction: state.existingTransaction,
         debtLoanKind: state.debtLoanKind,
         referenceTransaction: state.referenceTransaction,
+        isMultiManualMode: state.isMultiManualMode,
+        manualMultiEntries: state.manualMultiEntries,
       );
     }
   }
@@ -338,6 +347,63 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
     state = state.copyWith(items: newItems, itemKeys: newKeys);
     _syncCategoryToAllItems();
   }
+
+  // ─── Multi manual (pengeluaran / pemasukan, mode create) ───
+
+  late final TransactionFormMultiManualCoordinator _multi =
+      TransactionFormMultiManualCoordinator(
+        read: () => state,
+        write: (s) => state = s,
+        allocateItemKey: _generateKey,
+      );
+
+  void setMultiManualMode(bool enabled) => _multi.setMultiManualMode(enabled);
+
+  bool addManualMultiEntry() => _multi.addManualEntry();
+
+  void removeManualMultiEntry(int index) => _multi.removeManualEntry(index);
+
+  void setManualMultiEntryExpanded(int index, bool expanded) =>
+      _multi.setManualEntryExpanded(index, expanded);
+
+  void setManualMultiEntryWallet(int index, WalletModel wallet) =>
+      _multi.setManualEntryWallet(index, wallet);
+
+  void setManualMultiEntryCategory(int index, CategoryModel cat) =>
+      _multi.setManualEntryCategory(index, cat);
+
+  void setManualMultiEntryDate(int index, DateTime date) =>
+      _multi.setManualEntryDate(index, date);
+
+  void setManualMultiEntryTotalAmount(int index, double amount) =>
+      _multi.setManualEntryTotalAmount(index, amount);
+
+  void setManualMultiEntryMerchant(int index, String? v) =>
+      _multi.setManualEntryMerchant(index, v);
+
+  void setManualMultiEntryNote(int index, String? v) =>
+      _multi.setManualEntryNote(index, v);
+
+  void setManualMultiEntryLocalAttachment(int index, String? path) =>
+      _multi.setManualEntryLocalAttachment(index, path);
+
+  void setManualMultiEntryAttachmentUrl(int index, String? url) =>
+      _multi.setManualEntryAttachmentUrl(index, url);
+
+  void addManualMultiItem(int entryIndex) =>
+      _multi.addManualEntryItem(entryIndex);
+
+  void updateManualMultiEntryItem(
+    int entryIndex,
+    int itemIndex,
+    TransactionItemModel item,
+  ) => _multi.updateManualEntryItem(entryIndex, itemIndex, item);
+
+  void removeManualMultiEntryItem(int entryIndex, int itemIndex) =>
+      _multi.removeManualEntryItem(entryIndex, itemIndex);
+
+  void reorderManualMultiEntryItems(int entryIndex, int oldIndex, int newIndex) =>
+      _multi.reorderManualEntryItems(entryIndex, oldIndex, newIndex);
 
   /// Prefill items dari Voice/OCR input.
   ///
@@ -465,6 +531,35 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
           date: state.date,
           note: state.note,
         );
+      } else if (!state.isEditing &&
+          state.isMultiManualMode &&
+          (state.type == TransactionTypeEnum.expense ||
+              state.type == TransactionTypeEnum.income)) {
+        final err = TransactionFormMultiManualCoordinator.validateBatch(
+          state,
+          state.type,
+        );
+        if (err != null) {
+          state = state.copyWith(
+            status: TransactionFormStatus.error,
+            errorMessage: err,
+          );
+          result = DataState.error(message: err);
+        } else {
+          result = await _repository.createTransactionsBatch(
+            type: state.type,
+            entries: state.manualMultiEntries,
+          );
+          if (result.isSuccess()) {
+            state = state.copyWith(status: TransactionFormStatus.saved);
+          } else {
+            final (message, _, _, _) = result.dataError()!;
+            state = state.copyWith(
+              status: TransactionFormStatus.error,
+              errorMessage: message,
+            );
+          }
+        }
       } else {
         _syncCategoryToAllItems();
         // Pastikan items memiliki sortOrder yang benar

@@ -443,10 +443,13 @@ class _CategoryManagementTile extends ConsumerWidget {
     CategoryModel category,
   ) async {
     final l10n = context.l10n;
+    context.showLoadingOverlay();
     final result = await ref
         .read(categoryControllerProvider.notifier)
         .toggleHidden(categoryId: category.id, isHidden: !category.isHidden);
-
+    if (context.mounted) {
+      context.closeOverlay();
+    }
     if (!context.mounted) return;
 
     if (result.isSuccess()) {
