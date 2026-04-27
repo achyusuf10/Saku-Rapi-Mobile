@@ -472,6 +472,73 @@ void main() {
     });
   });
 
+  group('prefillMultiManualEntries', () {
+    late TransactionFormController ctrl;
+
+    setUp(() {
+      final repo = TransactionRepository(
+        remoteDataSource: TransactionRemoteDataSource(
+          client: _MockSupabaseClient(),
+        ),
+      );
+      ctrl = TransactionFormController(repository: repo);
+      ctrl.setType(TransactionTypeEnum.expense);
+      ctrl.initSingleItem();
+    });
+
+    test('enables multi manual and allocates fresh entry and item keys', () {
+      final w = const WalletModel(
+        id: 'w1',
+        userId: 'u1',
+        name: 'Dompet',
+        icon: 'wallet',
+        color: '#111',
+        balance: 0,
+        initialBalance: 0,
+        currency: 'IDR',
+        excludeFromTotal: false,
+        sortOrder: 0,
+      );
+      final c = const CategoryModel(
+        id: 'c1',
+        userId: 'u1',
+        name: 'Makan',
+        icon: 'utensils',
+        color: '#222',
+        type: CategoryType.expense,
+      );
+      ctrl.prefillMultiManualEntries([
+        ManualTransactionEntryModel(
+          entryKey: 999,
+          wallet: w,
+          category: c,
+          items: [
+            _item(amount: 10000, categoryId: 'c1'),
+          ],
+          itemKeys: const [111],
+          totalAmount: 10000,
+        ),
+        ManualTransactionEntryModel(
+          entryKey: 888,
+          wallet: w,
+          category: c,
+          items: [
+            _item(amount: 5000, categoryId: 'c1'),
+          ],
+          itemKeys: const [222],
+          totalAmount: 5000,
+        ),
+      ]);
+      expect(ctrl.state.isMultiManualMode, isTrue);
+      expect(ctrl.state.manualMultiEntries, hasLength(2));
+      expect(ctrl.state.manualMultiEntries.first.entryKey, isNot(999));
+      expect(ctrl.state.manualMultiEntries.first.itemKeys, isNot(contains(111)));
+      expect(ctrl.state.manualMultiEntries.first.itemKeys, hasLength(1));
+      expect(ctrl.state.manualMultiEntries.first.totalAmount, 10000);
+      expect(ctrl.state.manualMultiEntries.last.totalAmount, 5000);
+    });
+  });
+
   group('TransactionFormMultiManualCoordinator.validateBatch', () {
     WalletModel _wallet() => const WalletModel(
           id: 'w1',

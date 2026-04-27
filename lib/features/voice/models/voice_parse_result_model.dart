@@ -1,5 +1,7 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+import 'package:app_saku_rapi/features/transaction/utils/manual_multi_batch_limits.dart';
+import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 
 /// Model hasil parsing voice dari AI (Edge Function) atau local fallback.
 ///
@@ -17,7 +19,8 @@ import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 ///   "destinationWalletId": "<UUID | null>",
 ///   "withPerson": "<person name | null>",
 ///   "merchantName": "<merchant | null>",
-///   "date": "<yyyy-MM-dd | yyyy-MM-ddTHH:mm:ss | null>"
+///   "date": "<yyyy-MM-dd | yyyy-MM-ddTHH:mm:ss | null>",
+///   "transactions": [ { "amount", "items", "categoryId", "note", "merchantName" }, ... ]
 /// }
 /// ```
 class VoiceParseResultModel {
@@ -37,7 +40,29 @@ class VoiceParseResultModel {
     this.withPerson,
     this.merchantName,
     this.date,
+    this.aiTransactions,
   });
+
+  /// Beberapa transaksi dari AI (kategori berbeda). Null = format lama satu transaksi.
+  final List<AiParseTransactionSlice>? aiTransactions;
+
+  /// True jika AI mengembalikan ≥2 transaksi (preview + prefill multi manual).
+  bool get isAiMultiTransaction =>
+      aiTransactions != null && aiTransactions!.length > 1;
+
+  /// Apakah hasil punya nominal/item yang cukup untuk prefill.
+  bool get hasUsableData {
+    if (!isTransaction) return false;
+    if (isAiMultiTransaction) {
+      final txs = aiTransactions;
+      if (txs == null || txs.isEmpty) return false;
+      return txs.every((t) => t.effectiveTotal > 0);
+    }
+    if (amount != null && amount! > 0) return true;
+    if (items.length > 1 && itemsTotal > 0) return true;
+    if (items.isNotEmpty && itemsTotal > 0) return true;
+    return false;
+  }
 
   /// Apakah input user benar-benar transaksi (bukan ngawur).
   final bool isTransaction;
@@ -116,6 +141,15 @@ class VoiceParseResultModel {
         .map((e) => VoiceItemModel.fromMap(e as Map<String, dynamic>))
         .toList();
 
+    List<AiParseTransactionSlice>? aiTransactions;
+    final rawTx = data['transactions'];
+    if (rawTx is List && rawTx.length > 1) {
+      final capped = rawTx.take(kManualMultiBatchMaxTransactions);
+      aiTransactions = capped
+          .map((e) => AiParseTransactionSlice.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+
     return VoiceParseResultModel(
       isTransaction: isTransaction,
       amount: (data['amount'] as num?)?.toDouble(),
@@ -132,6 +166,7 @@ class VoiceParseResultModel {
       withPerson: data['withPerson'] as String?,
       merchantName: data['merchantName'] as String?,
       date: date,
+      aiTransactions: aiTransactions,
     );
   }
 
@@ -151,6 +186,7 @@ class VoiceParseResultModel {
     String? withPerson,
     String? merchantName,
     DateTime? date,
+    List<AiParseTransactionSlice>? aiTransactions,
   }) {
     return VoiceParseResultModel(
       isTransaction: isTransaction,
@@ -168,6 +204,7 @@ class VoiceParseResultModel {
       withPerson: withPerson,
       merchantName: merchantName,
       date: date,
+      aiTransactions: aiTransactions,
     );
   }
 
@@ -200,6 +237,29 @@ class VoiceParseResultModel {
       'withPerson': withPerson,
       'merchantName': merchantName,
       'date': SakuDateUtils.formatOptionalTimestamp(date),
+      if (aiTransactions != null)
+        'transactions': aiTransactions!
+            .map(
+              (t) => {
+                'amount': t.amount,
+                'items': t.items
+                    .map(
+                      (i) => {
+                        'name': i.name,
+                        'qty': i.qty,
+                        'unitPrice': i.unitPrice,
+                        'subtotal': i.subtotal,
+                      },
+                    )
+                    .toList(),
+                'categoryId': t.categoryId,
+                'categoryKeyword': t.categoryKeyword,
+                'note': t.note,
+                'merchantName': t.merchantName,
+                'suggestedWalletId': t.suggestedWalletId,
+              },
+            )
+            .toList(),
     };
   }
 
@@ -219,6 +279,7 @@ class VoiceParseResultModel {
     String? withPerson,
     String? merchantName,
     DateTime? date,
+    List<AiParseTransactionSlice>? aiTransactions,
   }) {
     return VoiceParseResultModel(
       isTransaction: isTransaction ?? this.isTransaction,
@@ -236,6 +297,7 @@ class VoiceParseResultModel {
       withPerson: withPerson ?? this.withPerson,
       merchantName: merchantName ?? this.merchantName,
       date: date ?? this.date,
+      aiTransactions: aiTransactions ?? this.aiTransactions,
     );
   }
 

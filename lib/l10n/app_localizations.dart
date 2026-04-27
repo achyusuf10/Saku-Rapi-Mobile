@@ -3713,6 +3713,36 @@ abstract class AppLocalizations {
   /// **'Total item ({itemsTotal}) tidak cocok dengan total ({grandTotal})'**
   String aiPreviewTotalMismatch(String itemsTotal, String grandTotal);
 
+  /// No description provided for @aiPreviewMultiTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Beberapa transaksi'**
+  String get aiPreviewMultiTitle;
+
+  /// No description provided for @aiPreviewMultiSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Akan dibuka dalam mode multi transaksi. Periksa tiap baris sebelum menyimpan.'**
+  String get aiPreviewMultiSubtitle;
+
+  /// No description provided for @aiPreviewMultiOcrAttachmentHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Foto struk dilampirkan ke transaksi pertama; kamu bisa memindahkannya jika perlu.'**
+  String get aiPreviewMultiOcrAttachmentHint;
+
+  /// No description provided for @aiPreviewMultiCombinedTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total gabungan'**
+  String get aiPreviewMultiCombinedTotal;
+
+  /// No description provided for @aiPreviewMultiTransactionN.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi {n}'**
+  String aiPreviewMultiTransactionN(int n);
+
   /// No description provided for @navInvestment.
   ///
   /// In id, this message translates to:

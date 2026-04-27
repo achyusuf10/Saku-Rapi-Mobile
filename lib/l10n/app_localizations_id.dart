@@ -1981,6 +1981,25 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get aiPreviewMultiTitle => 'Beberapa transaksi';
+
+  @override
+  String get aiPreviewMultiSubtitle =>
+      'Akan dibuka dalam mode multi transaksi. Periksa tiap baris sebelum menyimpan.';
+
+  @override
+  String get aiPreviewMultiOcrAttachmentHint =>
+      'Foto struk dilampirkan ke transaksi pertama; kamu bisa memindahkannya jika perlu.';
+
+  @override
+  String get aiPreviewMultiCombinedTotal => 'Total gabungan';
+
+  @override
+  String aiPreviewMultiTransactionN(int n) {
+    return 'Transaksi $n';
+  }
+
+  @override
   String get navInvestment => 'Investasi';
 
   @override

@@ -1,4 +1,6 @@
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+import 'package:app_saku_rapi/features/transaction/utils/manual_multi_batch_limits.dart';
+import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 
 /// Model hasil parsing OCR struk dari AI (Edge Function) atau local fallback.
 ///
@@ -38,7 +40,14 @@ class OcrParseResultModel {
     this.note,
     this.provider,
     this.rawOcrText,
+    this.aiTransactions,
   });
+
+  /// Beberapa transaksi dari AI (kategori berbeda). Null = format lama.
+  final List<AiParseTransactionSlice>? aiTransactions;
+
+  bool get isAiMultiTransaction =>
+      aiTransactions != null && aiTransactions!.length > 1;
 
   /// Apakah gambar berisi transaksi keuangan yang valid.
   final bool isTransaction;
@@ -90,9 +99,13 @@ class OcrParseResultModel {
       grandTotal != null && (itemsTotal - grandTotal!).abs() < 1;
 
   /// Apakah hasil parsing memiliki data berguna.
-  bool get hasUsableData =>
-      isTransaction &&
-      ((grandTotal != null && grandTotal! > 0) || items.isNotEmpty);
+  bool get hasUsableData {
+    if (!isTransaction) return false;
+    if (isAiMultiTransaction) {
+      return aiTransactions!.every((t) => t.effectiveTotal > 0);
+    }
+    return (grandTotal != null && grandTotal! > 0) || items.isNotEmpty;
+  }
 
   /// Parse dari response Edge Function OCR mode.
   ///
@@ -124,6 +137,15 @@ class OcrParseResultModel {
       return OcrItemModel.fromMap(itemMap);
     }).toList();
 
+    List<AiParseTransactionSlice>? aiTransactions;
+    final rawTx = data['transactions'];
+    if (rawTx is List && rawTx.length > 1) {
+      final capped = rawTx.take(kManualMultiBatchMaxTransactions);
+      aiTransactions = capped
+          .map((e) => AiParseTransactionSlice.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+
     return OcrParseResultModel(
       isTransaction: isTransaction,
       type: rawType.toLowerCase(),
@@ -139,6 +161,7 @@ class OcrParseResultModel {
       note: data['note'] as String?,
       provider: provider ?? json['provider'] as String?,
       rawOcrText: rawOcrText,
+      aiTransactions: aiTransactions,
     );
   }
 
@@ -161,6 +184,7 @@ class OcrParseResultModel {
       items: items,
       provider: 'local',
       rawOcrText: rawOcrText,
+      aiTransactions: null,
     );
   }
 
@@ -180,6 +204,29 @@ class OcrParseResultModel {
       'note': note,
       'provider': provider,
       'rawOcrText': rawOcrText,
+      if (aiTransactions != null)
+        'transactions': aiTransactions!
+            .map(
+              (t) => {
+                'amount': t.amount,
+                'items': t.items
+                    .map(
+                      (i) => {
+                        'name': i.name,
+                        'qty': i.qty,
+                        'unitPrice': i.unitPrice,
+                        'subtotal': i.subtotal,
+                      },
+                    )
+                    .toList(),
+                'categoryId': t.categoryId,
+                'categoryKeyword': t.categoryKeyword,
+                'note': t.note,
+                'merchantName': t.merchantName,
+                'suggestedWalletId': t.suggestedWalletId,
+              },
+            )
+            .toList(),
     };
   }
 
@@ -198,6 +245,7 @@ class OcrParseResultModel {
     String? note,
     String? provider,
     String? rawOcrText,
+    List<AiParseTransactionSlice>? aiTransactions,
   }) {
     return OcrParseResultModel(
       isTransaction: isTransaction ?? this.isTransaction,
@@ -214,6 +262,7 @@ class OcrParseResultModel {
       note: note ?? this.note,
       provider: provider ?? this.provider,
       rawOcrText: rawOcrText ?? this.rawOcrText,
+      aiTransactions: aiTransactions ?? this.aiTransactions,
     );
   }
 

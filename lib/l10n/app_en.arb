@@ -1235,6 +1235,18 @@
       }
     }
   },
+  "aiPreviewMultiTitle": "Multiple transactions",
+  "aiPreviewMultiSubtitle": "These will open in multi-transaction mode. Review each row before saving.",
+  "aiPreviewMultiOcrAttachmentHint": "The receipt photo attaches only to the first transaction; you can move it if needed.",
+  "aiPreviewMultiCombinedTotal": "Combined total",
+  "aiPreviewMultiTransactionN": "Transaction {n}",
+  "@aiPreviewMultiTransactionN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "colorPickerPresetTab": "Preset",
   "colorPickerWheelTab": "Custom",
   "colorPickerSelectButton": "Select This Color",

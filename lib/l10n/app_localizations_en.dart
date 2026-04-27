@@ -1984,6 +1984,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiPreviewMultiTitle => 'Multiple transactions';
+
+  @override
+  String get aiPreviewMultiSubtitle =>
+      'These will open in multi-transaction mode. Review each row before saving.';
+
+  @override
+  String get aiPreviewMultiOcrAttachmentHint =>
+      'The receipt photo attaches only to the first transaction; you can move it if needed.';
+
+  @override
+  String get aiPreviewMultiCombinedTotal => 'Combined total';
+
+  @override
+  String aiPreviewMultiTransactionN(int n) {
+    return 'Transaction $n';
+  }
+
+  @override
   String get navInvestment => 'Investment';
 
   @override

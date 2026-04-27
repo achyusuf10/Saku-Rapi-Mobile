@@ -1055,6 +1055,18 @@
       }
     }
   },
+  "aiPreviewMultiTitle": "Beberapa transaksi",
+  "aiPreviewMultiSubtitle": "Akan dibuka dalam mode multi transaksi. Periksa tiap baris sebelum menyimpan.",
+  "aiPreviewMultiOcrAttachmentHint": "Foto struk dilampirkan ke transaksi pertama; kamu bisa memindahkannya jika perlu.",
+  "aiPreviewMultiCombinedTotal": "Total gabungan",
+  "aiPreviewMultiTransactionN": "Transaksi {n}",
+  "@aiPreviewMultiTransactionN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "navInvestment": "Investasi",
   "navSettings": "Pengaturan",
   "investmentTitle": "Portofolio Investasi",

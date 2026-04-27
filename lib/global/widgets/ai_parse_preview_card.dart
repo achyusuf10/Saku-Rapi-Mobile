@@ -9,6 +9,7 @@ import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/ai_item_tile.dart';
+import 'package:app_saku_rapi/global/widgets/ai_multi_transaction_preview_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,6 +45,101 @@ class AiParsePreviewCard extends ConsumerWidget {
     final wallets = ref.read(walletListProvider);
     String resolveWallet(String id) =>
         wallets.where((w) => w.id == id).firstOrNull?.name ?? id;
+
+    if (result.isAiMultiTransaction) {
+      final metaRowsShared = <_PreviewDetailRow>[
+        _PreviewDetailRow(
+          icon: _typeIcon(result.type),
+          iconColor: _typeColor(result.type, colors),
+          label: l10n.voicePreviewType,
+          value: _typeLabel(result.type, l10n),
+        ),
+        if (result.type == TransactionTypeEnum.transfer &&
+            result.destinationWalletId != null &&
+            result.destinationWalletId!.isNotEmpty)
+          _PreviewDetailRow(
+            icon: FontAwesomeIcons.arrowRight,
+            iconColor: colors.transfer,
+            label: l10n.voicePreviewDestWallet,
+            value: resolveWallet(result.destinationWalletId!),
+          ),
+        if (result.withPerson != null && result.withPerson!.isNotEmpty)
+          _PreviewDetailRow(
+            icon: FontAwesomeIcons.userTag,
+            iconColor: colors.expense,
+            label: l10n.transactionWithPerson,
+            value: result.withPerson!,
+          ),
+        if (result.date != null)
+          _PreviewDetailRow(
+            icon: FontAwesomeIcons.calendar,
+            iconColor: colors.textSecondary,
+            label: l10n.transactionDate,
+            value: result.date!.extToFormattedString(
+              outputDateFormat: 'dd MMM yyyy, HH:mm',
+            ),
+          ),
+      ];
+
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: colors.success.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: colors.success.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (result.rawTranscript != null &&
+                result.rawTranscript!.isNotEmpty) ...[
+              Text(
+                l10n.voiceTranscript,
+                style: TextStyleConstants.label2.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                '"${result.rawTranscript}"',
+                style: TextStyleConstants.b2.copyWith(
+                  color: colors.textPrimary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
+              SizedBox(height: 12.h),
+            ],
+            _PreviewDetailTable(colors: colors, rows: metaRowsShared),
+            SizedBox(height: 14.h),
+            AiMultiTransactionPreviewList(
+              slices: result.aiTransactions!,
+              showOcrAttachmentHint: false,
+              rootSuggestedWalletId: result.suggestedWalletId,
+            ),
+            SizedBox(height: 12.h),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  result.provider ?? 'AI',
+                  style: TextStyleConstants.label3.copyWith(
+                    color: colors.primary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     final hasMultipleItems = result.items.length > 1;
     final unifiedMultiItemCategory = hasMultipleItems &&

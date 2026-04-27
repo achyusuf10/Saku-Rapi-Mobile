@@ -7,8 +7,11 @@ import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provi
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
+import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
+import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 import 'package:app_saku_rapi/features/voice/controllers/pending_voice_prefill_provider.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -65,6 +68,13 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
 
     // Clear provider agar tidak ke-apply ulang saat rebuild
     ref.read(pendingVoicePrefillProvider.notifier).state = null;
+
+    if (voiceResult.isAiMultiTransaction &&
+        (voiceResult.type == TransactionTypeEnum.expense ||
+            voiceResult.type == TransactionTypeEnum.income)) {
+      _applyVoiceAiMultiPrefill(ctrl, voiceResult);
+      return;
+    }
 
     // Set tipe transaksi
     ctrl.setType(voiceResult.type);
@@ -197,6 +207,13 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
     final ocrDebtLoanKind = _parseOcrDebtLoanKind(ocrResult.type);
     if (ocrDebtLoanKind != null) {
       ctrl.setDebtLoanKind(ocrDebtLoanKind);
+    }
+
+    if (ocrResult.isAiMultiTransaction &&
+        (type == TransactionTypeEnum.expense ||
+            type == TransactionTypeEnum.income)) {
+      _applyOcrAiMultiPrefill(ctrl, ocrResult, type);
+      return;
     }
 
     // Merchant dan catatan
@@ -339,7 +356,11 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
     if (imageFile == null) return;
 
     ref.read(pendingOcrImageFileProvider.notifier).state = null;
-    ctrl.setLocalAttachment(imageFile.path);
+    if (ctrl.isMultiManualModeActive) {
+      ctrl.setManualMultiEntryLocalAttachment(0, imageFile.path);
+    } else {
+      ctrl.setLocalAttachment(imageFile.path);
+    }
   }
 
   // ═══════════════════════════════════════════════
@@ -421,6 +442,256 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
   // ═══════════════════════════════════════════════
   //  Private Helpers
   // ═══════════════════════════════════════════════
+
+  void _applyVoiceAiMultiPrefill(
+    TransactionFormController ctrl,
+    VoiceParseResultModel voiceResult,
+  ) {
+    ctrl.setType(voiceResult.type);
+    if (voiceResult.debtLoanKind != null &&
+        voiceResult.debtLoanKind!.isNotEmpty) {
+      try {
+        final kind = DebtLoanKindEnum.fromString(voiceResult.debtLoanKind!);
+        ctrl.setDebtLoanKind(kind);
+      } catch (_) {}
+    }
+
+    final txs = voiceResult.aiTransactions!;
+    final categoryType = voiceResult.type == TransactionTypeEnum.income
+        ? CategoryType.income
+        : CategoryType.expense;
+    final allCategories = ref
+        .read(categoryControllerProvider)
+        .categories
+        .where((c) => c.type == categoryType)
+        .toList();
+    final lookup = {for (final c in allCategories) c.id: c};
+
+    final wallets = ref.read(walletListProvider);
+
+    if (voiceResult.type == TransactionTypeEnum.transfer &&
+        voiceResult.destinationWalletId != null &&
+        voiceResult.destinationWalletId!.isNotEmpty) {
+      final matched = wallets.where(
+        (w) => w.id == voiceResult.destinationWalletId,
+      );
+      if (matched.isNotEmpty) ctrl.setDestinationWallet(matched.first);
+    }
+
+    if (voiceResult.withPerson != null &&
+        voiceResult.withPerson!.isNotEmpty) {
+      ctrl.setWithPerson(voiceResult.withPerson);
+    }
+
+    final entries = <ManualTransactionEntryModel>[];
+    for (var i = 0; i < txs.length; i++) {
+      final slice = txs[i];
+      final entryWallet = _walletForAiMultiSlice(
+        slice.suggestedWalletId,
+        voiceResult.suggestedWalletId,
+        wallets,
+      );
+      final matched = _matchCategory(
+        categoryId: slice.categoryId,
+        keyword: slice.categoryKeyword,
+        allCategories: allCategories,
+        lookup: lookup,
+      );
+      final items = _withCategoryOnItems(
+        matched,
+        _transactionItemsFromAiSlice(slice),
+      );
+      final total = TransactionFormController.sumItemsForTest(items);
+      entries.add(
+        ManualTransactionEntryModel(
+          entryKey: 0,
+          wallet: entryWallet,
+          category: matched,
+          items: items,
+          itemKeys: const [0],
+          date: voiceResult.date,
+          merchantName: slice.merchantName ??
+              (i == 0 ? voiceResult.merchantName : null),
+          note: slice.note,
+          totalAmount: total,
+        ),
+      );
+    }
+
+    ctrl.prefillMultiManualEntries(entries);
+
+    for (final e in entries) {
+      if (e.wallet != null) {
+        ctrl.setWallet(e.wallet!);
+        break;
+      }
+    }
+
+    final firstMerchant = entries.first.merchantName;
+    if (firstMerchant != null && firstMerchant.isNotEmpty) {
+      ctrl.setMerchant(firstMerchant);
+      merchantController.text = firstMerchant;
+    }
+  }
+
+  void _applyOcrAiMultiPrefill(
+    TransactionFormController ctrl,
+    OcrParseResultModel ocrResult,
+    TransactionTypeEnum type,
+  ) {
+    final categoryType = type == TransactionTypeEnum.income
+        ? CategoryType.income
+        : CategoryType.expense;
+    final allCategories = ref
+        .read(categoryControllerProvider)
+        .categories
+        .where((c) => c.type == categoryType)
+        .toList();
+    final lookup = {for (final c in allCategories) c.id: c};
+
+    final wallets = ref.read(walletListProvider);
+
+    if (type == TransactionTypeEnum.transfer &&
+        ocrResult.destinationWalletId != null &&
+        ocrResult.destinationWalletId!.isNotEmpty) {
+      final matched = wallets.where(
+        (w) => w.id == ocrResult.destinationWalletId,
+      );
+      if (matched.isNotEmpty) ctrl.setDestinationWallet(matched.first);
+    }
+
+    if (ocrResult.withPerson != null && ocrResult.withPerson!.isNotEmpty) {
+      ctrl.setWithPerson(ocrResult.withPerson);
+    }
+
+    final txs = ocrResult.aiTransactions!;
+    final entries = <ManualTransactionEntryModel>[];
+    for (var i = 0; i < txs.length; i++) {
+      final slice = txs[i];
+      final entryWallet = _walletForAiMultiSlice(
+        slice.suggestedWalletId,
+        ocrResult.suggestedWalletId,
+        wallets,
+      );
+      final matched = _matchCategory(
+        categoryId: slice.categoryId,
+        keyword: slice.categoryKeyword,
+        allCategories: allCategories,
+        lookup: lookup,
+      );
+      final items = _withCategoryOnItems(
+        matched,
+        _transactionItemsFromAiSlice(slice),
+      );
+      final total = TransactionFormController.sumItemsForTest(items);
+      final note = slice.note ?? (i == 0 ? ocrResult.note : null);
+      entries.add(
+        ManualTransactionEntryModel(
+          entryKey: 0,
+          wallet: entryWallet,
+          category: matched,
+          items: items,
+          itemKeys: const [0],
+          date: ocrResult.date,
+          merchantName: slice.merchantName ??
+              (i == 0 ? ocrResult.merchantName : null),
+          note: note,
+          totalAmount: total,
+        ),
+      );
+    }
+
+    ctrl.prefillMultiManualEntries(entries);
+
+    for (final e in entries) {
+      if (e.wallet != null) {
+        ctrl.setWallet(e.wallet!);
+        break;
+      }
+    }
+
+    final firstMerchant = entries.first.merchantName;
+    if (firstMerchant != null && firstMerchant.isNotEmpty) {
+      ctrl.setMerchant(firstMerchant);
+      merchantController.text = firstMerchant;
+    }
+    final firstNote = entries.first.note;
+    if (firstNote != null && firstNote.isNotEmpty) {
+      ctrl.setNote(firstNote);
+      noteController.text = firstNote;
+    }
+  }
+
+  /// Dompet per entri multi: slice menang, lalu fallback ke dompet root AI.
+  WalletModel? _walletForAiMultiSlice(
+    String? sliceWalletId,
+    String? rootWalletId,
+    List<WalletModel> wallets,
+  ) {
+    final id = (sliceWalletId != null && sliceWalletId.isNotEmpty)
+        ? sliceWalletId
+        : rootWalletId;
+    if (id == null || id.isEmpty) return null;
+    return wallets.where((w) => w.id == id).firstOrNull;
+  }
+
+  List<TransactionItemModel> _transactionItemsFromAiSlice(
+    AiParseTransactionSlice slice,
+  ) {
+    if (slice.items.length > 1) {
+      return slice.items.asMap().entries.map((e) {
+        final li = e.value;
+        return TransactionFormController.resolveItemAmountForTest(
+          TransactionItemModel(
+            itemName: li.name,
+            qty: li.qty,
+            unitPrice: li.unitPrice,
+            amount: li.subtotal,
+            sortOrder: e.key,
+          ),
+        );
+      }).toList();
+    }
+    if (slice.items.length == 1) {
+      final li = slice.items.first;
+      final amt = li.subtotal > 0 ? li.subtotal : (slice.amount ?? 0);
+      return [
+        TransactionFormController.resolveItemAmountForTest(
+          TransactionItemModel(
+            itemName: li.name,
+            qty: li.qty,
+            unitPrice: li.unitPrice,
+            amount: amt,
+            sortOrder: 0,
+          ),
+        ),
+      ];
+    }
+    return [
+      TransactionItemModel(
+        amount: slice.amount ?? 0,
+        sortOrder: 0,
+        itemName: slice.note,
+      ),
+    ];
+  }
+
+  List<TransactionItemModel> _withCategoryOnItems(
+    CategoryModel? cat,
+    List<TransactionItemModel> items,
+  ) {
+    if (cat == null) return items;
+    return items
+        .map(
+          (i) => i.copyWith(
+            categoryId: cat.id,
+            categoryName: cat.name,
+            categoryIcon: cat.icon,
+            categoryColor: cat.color,
+          ),
+        )
+        .toList();
+  }
 
   /// Match kategori OCR level root ke kategori milik user.
   ///

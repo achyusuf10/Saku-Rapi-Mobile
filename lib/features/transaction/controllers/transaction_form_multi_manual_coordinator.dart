@@ -103,6 +103,50 @@ class TransactionFormMultiManualCoordinator {
     }
   }
 
+  /// Ganti seluruh entri multi manual (mis. prefill dari AI multi-transaksi).
+  ///
+  /// Mengalokasikan [entryKey] dan [itemKeys] baru agar stabil di UI.
+  void prefillMultiManualEntries(List<ManualTransactionEntryModel> templates) {
+    if (templates.isEmpty) return;
+    final s = read();
+    final list = <ManualTransactionEntryModel>[];
+    for (final t in templates) {
+      final keys = List.generate(t.items.length, (_) => allocateItemKey());
+      final resolvedItems =
+          t.items.map(ManualTransactionEntryModel.resolveItemAmount).toList();
+      final total = ManualTransactionEntryModel.sumItems(resolvedItems);
+      list.add(
+        ManualTransactionEntryModel(
+          entryKey: _allocEntryKey(),
+          expanded: t.expanded,
+          wallet: t.wallet,
+          category: t.category,
+          items: resolvedItems,
+          itemKeys: keys,
+          date: t.date,
+          merchantName: t.merchantName,
+          note: t.note,
+          attachmentUrl: t.attachmentUrl,
+          localAttachmentPath: t.localAttachmentPath,
+          totalAmount: total,
+        ),
+      );
+    }
+    write(
+      s.copyWith(
+        isMultiManualMode: true,
+        manualMultiEntries: list,
+        wallet: list.first.wallet,
+        category: null,
+        items: const [TransactionItemModel(amount: 0)],
+        itemKeys: [allocateItemKey()],
+        totalAmount: 0,
+        merchantName: null,
+        note: null,
+      ),
+    );
+  }
+
   /// `false` jika sudah mencapai [maxManualEntries].
   bool addManualEntry() {
     final s = read();

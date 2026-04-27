@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_mo
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_multi_manual_coordinator.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_state.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
+import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/repositories/transaction_repository.dart';
@@ -58,6 +59,9 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   int _nextItemKey = 0;
 
   int _generateKey() => _nextItemKey++;
+
+  /// Apakah batch multi transaksi manual aktif.
+  bool get isMultiManualModeActive => state.isMultiManualMode;
 
   /// Expense/income memakai satu kategori parent untuk semua baris item.
   bool _usesParentCategory() {
@@ -358,6 +362,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
       );
 
   void setMultiManualMode(bool enabled) => _multi.setMultiManualMode(enabled);
+
+  /// Prefill batch multi manual (AI multi-transaksi). Mengganti entri yang ada.
+  void prefillMultiManualEntries(List<ManualTransactionEntryModel> entries) =>
+      _multi.prefillMultiManualEntries(entries);
 
   bool addManualMultiEntry() => _multi.addManualEntry();
 

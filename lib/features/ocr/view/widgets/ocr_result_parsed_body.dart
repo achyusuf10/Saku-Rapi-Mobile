@@ -9,6 +9,7 @@ import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_detail_table.dart';
 import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_result_image_preview.dart';
 import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_result_type_badge.dart';
 import 'package:app_saku_rapi/global/widgets/ai_item_tile.dart';
+import 'package:app_saku_rapi/global/widgets/ai_multi_transaction_preview_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,6 +29,48 @@ class OcrResultParsedBody extends ConsumerWidget {
     final colors = context.colors;
     final l10n = context.l10n;
     final result = state.parseResult!;
+
+    if (result.isAiMultiTransaction) {
+      final slices = result.aiTransactions!;
+      return SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (state.imageFile != null)
+              OcrResultImagePreview(imageFile: state.imageFile!),
+            SizedBox(height: 12.h),
+            OcrResultTypeBadge(type: result.type, colors: colors, l10n: l10n),
+            SizedBox(height: 12.h),
+            AiMultiTransactionPreviewList(
+              slices: slices,
+              showOcrAttachmentHint: true,
+              rootSuggestedWalletId: result.suggestedWalletId,
+            ),
+            if (result.provider != null) ...[
+              SizedBox(height: 12.h),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    'AI: ${result.provider}',
+                    style: TextStyleConstants.caption.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(height: 16.h),
+          ],
+        ),
+      );
+    }
 
     // Peta id → nama kategori untuk chip per baris (legacy) dan nama kategori root.
     final allCategories = ref.read(categoryControllerProvider).categories;

@@ -13,6 +13,7 @@
 /// - Wallet short ID mapping: UUID → w1, w2, w3 (identik dengan kategori)
 /// - Category default fallback: ditandai asterisk (*) di prompt map
 /// - Multi-item text/voice/OCR: items[] tanpa categoryId; kategori hanya root categoryId/categoryKeyword
+/// - Multi-transaksi opsional: `transactions[]` (≥2 slice) → reverse-map categoryId per slice
 /// - System/User prompt split + few-shot examples
 /// - Daily quota check (via RPC) before AI call, log after success
 /// - Specific error codes: AI_TIMEOUT, AI_RATE_LIMIT, AI_AUTH_ERROR, AI_ERROR, DAILY_QUOTA_EXCEEDED
@@ -173,6 +174,27 @@ function reverseMapResponse(
     });
   }
 
+  if (Array.isArray(result.transactions)) {
+    result.transactions = (result.transactions as Record<string, unknown>[]).map((tx) => {
+      const mappedTx = { ...tx };
+      if (typeof mappedTx.categoryId === 'string') {
+        const cleanCatId = mappedTx.categoryId.replace(/\*/g, '');
+        mappedTx.categoryId = catShortToUuid[cleanCatId] ?? null;
+      }
+      if (Array.isArray(mappedTx.items)) {
+        mappedTx.items = (mappedTx.items as Record<string, unknown>[]).map((item) => {
+          const mappedItem = { ...item };
+          delete mappedItem.categoryId;
+          return mappedItem;
+        });
+      }
+      if (typeof mappedTx.suggestedWalletId === 'string') {
+        mappedTx.suggestedWalletId = walletShortToUuid[mappedTx.suggestedWalletId] ?? null;
+      }
+      return mappedTx;
+    });
+  }
+
   return result;
 }
 
@@ -187,8 +209,10 @@ function buildTextSystemPrompt(today: string): string {
 
   return `You are a financial transaction parser for an Indonesian personal finance app. Parse user input text (Indonesian/English) into structured JSON.
 
-OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"amount":<number>,"items":[],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>"}
+OUTPUT FORMAT — return a JSON object with these fields (include "transactions" only when rules below apply):
+{"isTransaction":<bool>,"amount":<number|null>,"items":[],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","note":"<string|null>","type":"<expense|income|transfer|debt|loan>","debtLoanKind":"<debt|loan|debt_payment|loan_collection|null>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>","transactions":[]}
+
+"transactions": use an empty array [] for a single logical transaction. Populate with 2–10 objects ONLY when MULTI-TRANSACTION rules apply. Each slice: {"amount":<number>,"items":[...same item shape as root],"categoryId":"<short|null>","categoryKeyword":"<string>","note":"<string|null>","merchantName":"<string|null>","suggestedWalletId":"<short wallet ID|null>"}. NEVER put categoryId inside items.
 
 CORE RULES:
 1. "isTransaction": true ONLY if input describes a financial event. Random words, greetings, nonsense → false, all other fields null/default.
@@ -222,6 +246,15 @@ MULTI-ITEM RULES:
 - For transfer/debt/loan: items MUST be [].
 - Do NOT split a single purchase into fake items. Only split when user clearly lists separate items with separate prices.
 
+MULTI-TRANSACTION (optional):
+- Works for BOTH expense and income when the user clearly describes 2+ SEPARATE financial events (unrelated purchases, different categories, different payment sources, or clearly independent totals) that should be saved as separate rows. Set "transactions" to an array of 2–10 slice objects.
+- Each slice uses the same "items" rules as root (usually [] with only "amount", or multiple priced lines for one slice).
+- Each slice MUST pick "categoryId" from the list with the correct prefix (e for expense, i for income). Same for "categoryKeyword".
+- WALLET PER SLICE: If the user names different payment methods per part (e.g. "pakai cash" vs "pakai Bank Jago", "gopay" vs "BCA"), each slice MUST include its own "suggestedWalletId" (w-prefix) chosen ONLY from the Wallets list — match common Indonesian phrasing (tunai/cash/debit/kartu, bank/e-wallet brand names).
+- If only ONE wallet applies to the whole input OR the same wallet for every slice: set root "suggestedWalletId" to that wallet AND set the SAME "suggestedWalletId" on EVERY slice (duplicate to all slices). Root "suggestedWalletId" should match slice[0] when they share one wallet.
+- When "transactions" length ≥ 2: set root "items" to [] and root "amount" to the sum of slice amounts (or null if unclear); root "categoryId" may be null.
+- If there is only one real transaction, keep "transactions" as [] — never invent an extra transaction.
+
 FEW-SHOT EXAMPLES:
 
 Input: "beli makan 25rb pakai gopay"
@@ -246,7 +279,13 @@ Input: "terima piutang dari Budi 100rb"
 Output: {"isTransaction":true,"amount":100000,"items":[],"categoryId":null,"categoryKeyword":"piutang","note":"penerimaan piutang","type":"loan","debtLoanKind":"loan_collection","suggestedWalletId":null,"destinationWalletId":null,"withPerson":"Budi","merchantName":null,"date":null}
 
 Input: "Beli ikan 20K, ayam 10K, sayur 5rb pakai cash"
-Output: {"isTransaction":true,"amount":35000,"items":[{"name":"Ikan","qty":1,"unitPrice":20000,"subtotal":20000},{"name":"Ayam","qty":1,"unitPrice":10000,"subtotal":10000},{"name":"Sayur","qty":1,"unitPrice":5000,"subtotal":5000}],"categoryId":"e1","categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null}
+Output: {"isTransaction":true,"amount":35000,"items":[{"name":"Ikan","qty":1,"unitPrice":20000,"subtotal":20000},{"name":"Ayam","qty":1,"unitPrice":10000,"subtotal":10000},{"name":"Sayur","qty":1,"unitPrice":5000,"subtotal":5000}],"categoryId":"e1","categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[]}
+
+Input: "warteg 15rb, isi bensin 30rb"
+Output: {"isTransaction":true,"amount":45000,"items":[],"categoryId":null,"categoryKeyword":"campuran","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"w1","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[{"amount":15000,"items":[],"categoryId":"e1","categoryKeyword":"makan","note":null,"merchantName":"warteg","suggestedWalletId":"w1"},{"amount":30000,"items":[],"categoryId":"e2","categoryKeyword":"transport","note":"bensin","merchantName":null,"suggestedWalletId":"w2"}]}
+
+Input: "Jajan 10rb pakai cash, bensin 10rb pakai Bank Jago"
+Output: {"isTransaction":true,"amount":20000,"items":[],"categoryId":null,"categoryKeyword":"campuran","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"w1","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[{"amount":10000,"items":[],"categoryId":"e1","categoryKeyword":"jajan","note":"jajan","merchantName":null,"suggestedWalletId":"w1"},{"amount":10000,"items":[],"categoryId":"e2","categoryKeyword":"transport","note":"bensin","merchantName":null,"suggestedWalletId":"w2"}]}
 
 Return ONLY the JSON object.`;
 }
@@ -283,8 +322,10 @@ function buildOcrSystemPrompt(today: string): string {
 
   return `You are a financial document parser for an Indonesian personal finance app. Analyze receipt/invoice/document images and extract structured JSON.
 
-OUTPUT FORMAT — return a JSON object with exactly these fields:
-{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","note":"<string|null>"}
+OUTPUT FORMAT — return a JSON object with these fields (include "transactions" only when optional multi-transaction rules apply):
+{"isTransaction":<bool>,"type":"<expense|income|transfer|debt|loan|debt_payment|loan_collection>","merchantName":"<string|null>","date":"<yyyy-MM-ddTHH:mm|null>","grandTotal":<number|null>,"items":[{"name":"<string>","qty":<number>,"unitPrice":<number|null>,"subtotal":<number>}],"categoryId":"<short ID|null>","categoryKeyword":"<lowercase keyword>","suggestedWalletId":"<short wallet ID|null>","destinationWalletId":"<short wallet ID|null>","withPerson":"<string|null>","note":"<string|null>","transactions":[]}
+
+Each "transactions" slice (when used): {"amount":<number|null>,"items":[...],"categoryId":"<short|null>","categoryKeyword":"<string>","note":"<string|null>","merchantName":"<string|null>","suggestedWalletId":"<short wallet ID|null>"}. Same item rules as root; NEVER categoryId inside items. When slices use different payment methods, each slice MUST have its own "suggestedWalletId"; if one wallet applies to all, duplicate that same id on every slice and set root "suggestedWalletId" to match.
 
 CORE RULES:
 1. "isTransaction": true ONLY if image shows a financial document (receipt, invoice, transfer proof, salary slip, etc). Random photos, memes, selfies → false.
@@ -307,10 +348,11 @@ CORE RULES:
 11. "withPerson": person name for debt/loan/debt_payment/loan_collection.
 12. "date": extract as yyyy-MM-ddTHH:mm. Today is ${today}. If not visible → null.
 13. "note": Descriptive name of the overall purchase or transaction. MUST NOT contain amounts, dates, wallet names, or person names. Example: "Belanja bulanan Indomaret". If no additional context beyond merchant + items, note should be null.
+14. OPTIONAL multi-transaction: If the image clearly shows two or more unrelated purchases with separate totals (rare), you MAY return "transactions" with 2+ slice objects instead of one flat "items" list. Default is always a single expense/income with root "items"/"grandTotal". When using "transactions", root "items" can be [] and root "grandTotal" should be the sum of slice amounts (the app also recomputes from slices; do not rely on grandTotal alone for split rows). Each slice may include "suggestedWalletId" when payment method differs per slice; duplicate one wallet id across all slices when a single method applies.
 
 FEW-SHOT EXAMPLE (expense receipt):
 Image shows: "INDOMARET - Coca Cola 2x @8.500 = 17.000, Roti Tawar 1x @12.000 = 12.000, TOTAL: 29.000, TUNAI"
-Output: {"isTransaction":true,"type":"expense","merchantName":"INDOMARET","date":null,"grandTotal":29000,"items":[{"name":"Coca Cola","qty":2,"unitPrice":8500,"subtotal":17000},{"name":"Roti Tawar","qty":1,"unitPrice":12000,"subtotal":12000}],"categoryId":"e1","categoryKeyword":"belanja","suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"note":null}
+Output: {"isTransaction":true,"type":"expense","merchantName":"INDOMARET","date":null,"grandTotal":29000,"items":[{"name":"Coca Cola","qty":2,"unitPrice":8500,"subtotal":17000},{"name":"Roti Tawar","qty":1,"unitPrice":12000,"subtotal":12000}],"categoryId":"e1","categoryKeyword":"belanja","suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"note":null,"transactions":[]}
 
 Return ONLY the JSON object.`;
 }
