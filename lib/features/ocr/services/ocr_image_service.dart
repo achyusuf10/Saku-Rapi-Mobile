@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
-import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/utils/function/compress_image_func.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +25,6 @@ class OcrImageService {
 
   /// Cek dan minta izin kamera.
   Future<CameraPermissionResult> requestCameraPermission() async {
-    return CameraPermissionResult.granted;
     final status = await Permission.camera.request();
     AppLogger.call('$_tag Camera permission: $status');
 
@@ -60,11 +58,15 @@ class OcrImageService {
   }
 
   /// Crop image untuk memfokuskan area struk.
+  ///
+  /// Harus memakai [context] dari widget yang membuka sheet OCR (navigator lokal).
+  /// Menggunakan root navigator global membuat route crop tertutup modal bottom sheet,
+  /// sehingga UI tetap "memuat" tanpa dialog crop terlihat.
   Future<File?> cropImage(BuildContext context, File imageFile) async {
     if (!context.mounted) return null;
 
     final result = await showAdaptiveImageCropper(
-      appContext ?? context,
+      context,
       imageProvider: FileImage(imageFile),
     );
     if (result == null) return null;

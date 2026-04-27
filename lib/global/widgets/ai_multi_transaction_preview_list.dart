@@ -62,29 +62,35 @@ class AiMultiTransactionPreviewList extends ConsumerWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FaIcon(
-              FontAwesomeIcons.layerGroup,
-              size: 16.w,
-              color: colors.accent,
+            Padding(
+              padding: EdgeInsets.only(top: 1.h),
+              child: FaIcon(
+                FontAwesomeIcons.layerGroup,
+                size: 13.w,
+                color: colors.accent.withValues(alpha: 0.9),
+              ),
             ),
-            SizedBox(width: 10.w),
+            SizedBox(width: 8.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     l10n.aiPreviewMultiTitle,
-                    style: TextStyleConstants.b1.copyWith(
+                    style: TextStyleConstants.label1.copyWith(
                       fontWeight: FontWeight.w700,
                       color: colors.textPrimary,
+                      height: 1.25,
+                      letterSpacing: -0.1,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 3.h),
                   Text(
                     l10n.aiPreviewMultiSubtitle,
-                    style: TextStyleConstants.label2.copyWith(
+                    style: TextStyleConstants.caption.copyWith(
                       color: colors.textSecondary,
-                      height: 1.35,
+                      height: 1.4,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
@@ -93,35 +99,35 @@ class AiMultiTransactionPreviewList extends ConsumerWidget {
           ],
         ),
         if (showOcrAttachmentHint) ...[
-          SizedBox(height: 10.h),
+          SizedBox(height: 8.h),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               FaIcon(
                 FontAwesomeIcons.image,
-                size: 13.w,
-                color: colors.info,
+                size: 11.w,
+                color: colors.info.withValues(alpha: 0.85),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 6.w),
               Expanded(
                 child: Text(
                   l10n.aiPreviewMultiOcrAttachmentHint,
-                  style: TextStyleConstants.caption.copyWith(
+                  style: TextStyleConstants.label3.copyWith(
                     color: colors.textSecondary,
-                    height: 1.35,
+                    height: 1.4,
                   ),
                 ),
               ),
             ],
           ),
         ],
-        SizedBox(height: 14.h),
+        SizedBox(height: 10.h),
         ...slices.asMap().entries.map((e) {
           final i = e.key;
           final slice = e.value;
           final cat = categoryLabel(slice);
           return Padding(
-            padding: EdgeInsets.only(bottom: i < slices.length - 1 ? 10.h : 0),
+            padding: EdgeInsets.only(bottom: i < slices.length - 1 ? 8.h : 0),
             child: _SliceCard(
               index: i + 1,
               slice: slice,
@@ -132,30 +138,31 @@ class AiMultiTransactionPreviewList extends ConsumerWidget {
             ),
           );
         }),
-        SizedBox(height: 12.h),
+        SizedBox(height: 8.h),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
           decoration: BoxDecoration(
-            color: colors.accent.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: colors.accent.withValues(alpha: 0.18)),
+            color: colors.accent.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: colors.accent.withValues(alpha: 0.14)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 l10n.aiPreviewMultiCombinedTotal,
-                style: TextStyleConstants.label1.copyWith(
+                style: TextStyleConstants.label2.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
+                  color: colors.textSecondary,
                 ),
               ),
               Text(
                 combined.toCurrency(),
-                style: TextStyleConstants.h7.copyWith(
+                style: TextStyleConstants.b1.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colors.accent,
+                  height: 1.2,
                 ),
               ),
             ],
@@ -187,11 +194,11 @@ class _SliceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: colors.border.withValues(alpha: 0.14)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,38 +207,42 @@ class _SliceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 26.w,
-                height: 26.w,
+                width: 22.w,
+                height: 22.w,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colors.accent.withValues(alpha: 0.12),
+                  color: colors.accent.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   '$index',
-                  style: TextStyleConstants.label1.copyWith(
+                  style: TextStyleConstants.label3.copyWith(
                     fontWeight: FontWeight.w800,
                     color: colors.accent,
+                    height: 1,
                   ),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       l10n.aiPreviewMultiTransactionN(index),
-                      style: TextStyleConstants.label2.copyWith(
+                      style: TextStyleConstants.label3.copyWith(
                         color: colors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
                       ),
                     ),
-                    SizedBox(height: 2.h),
+                    SizedBox(height: 3.h),
                     Text(
                       slice.effectiveTotal.toCurrency(),
-                      style: TextStyleConstants.h7.copyWith(
+                      style: TextStyleConstants.b1.copyWith(
                         fontWeight: FontWeight.w700,
                         color: colors.textPrimary,
+                        height: 1.15,
                       ),
                     ),
                   ],
@@ -240,21 +251,22 @@ class _SliceCard extends StatelessWidget {
             ],
           ),
           if (categoryLabel != null && categoryLabel!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: 7.h),
             Row(
               children: [
                 FaIcon(
                   FontAwesomeIcons.tag,
-                  size: 12.w,
-                  color: colors.accent,
+                  size: 10.w,
+                  color: colors.accent.withValues(alpha: 0.85),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: 5.w),
                 Expanded(
                   child: Text(
                     categoryLabel!,
-                    style: TextStyleConstants.b2.copyWith(
+                    style: TextStyleConstants.label1.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
+                      height: 1.25,
                     ),
                   ),
                 ),
@@ -262,20 +274,21 @@ class _SliceCard extends StatelessWidget {
             ),
           ],
           if (walletLabel != null && walletLabel!.isNotEmpty) ...[
-            SizedBox(height: 6.h),
+            SizedBox(height: 5.h),
             Row(
               children: [
                 FaIcon(
                   FontAwesomeIcons.wallet,
-                  size: 12.w,
-                  color: colors.transfer,
+                  size: 10.w,
+                  color: colors.transfer.withValues(alpha: 0.85),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: 5.w),
                 Expanded(
                   child: Text(
                     walletLabel!,
-                    style: TextStyleConstants.label2.copyWith(
+                    style: TextStyleConstants.label3.copyWith(
                       color: colors.textSecondary,
+                      height: 1.25,
                     ),
                   ),
                 ),
@@ -283,20 +296,21 @@ class _SliceCard extends StatelessWidget {
             ),
           ],
           if (slice.merchantName != null && slice.merchantName!.isNotEmpty) ...[
-            SizedBox(height: 6.h),
+            SizedBox(height: 5.h),
             Row(
               children: [
                 FaIcon(
                   FontAwesomeIcons.store,
-                  size: 12.w,
-                  color: colors.info,
+                  size: 10.w,
+                  color: colors.info.withValues(alpha: 0.85),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: 5.w),
                 Expanded(
                   child: Text(
                     slice.merchantName!,
-                    style: TextStyleConstants.label2.copyWith(
+                    style: TextStyleConstants.label3.copyWith(
                       color: colors.textSecondary,
+                      height: 1.25,
                     ),
                   ),
                 ),
@@ -304,39 +318,40 @@ class _SliceCard extends StatelessWidget {
             ),
           ],
           if (slice.note != null && slice.note!.isNotEmpty) ...[
-            SizedBox(height: 6.h),
+            SizedBox(height: 5.h),
             Text(
               slice.note!,
-              style: TextStyleConstants.caption.copyWith(
+              style: TextStyleConstants.label3.copyWith(
                 color: colors.textSecondary,
-                height: 1.35,
+                height: 1.4,
               ),
             ),
           ],
           if (slice.items.length > 1) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             Text(
               l10n.aiPreviewItemsHeader(slice.items.length),
               style: TextStyleConstants.label3.copyWith(
                 color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: 3.h),
             ...slice.items.take(4).map(
               (line) => Padding(
                 padding: EdgeInsets.only(top: 2.h),
                 child: Text(
                   '${line.name ?? '—'} · ${line.subtotal.toCurrency()}',
-                  style: TextStyleConstants.caption.copyWith(
+                  style: TextStyleConstants.label3.copyWith(
                     color: colors.textPrimary,
-                    height: 1.3,
+                    height: 1.35,
                   ),
                 ),
               ),
             ),
             if (slice.items.length > 4)
               Padding(
-                padding: EdgeInsets.only(top: 4.h),
+                padding: EdgeInsets.only(top: 3.h),
                 child: Text(
                   '+${slice.items.length - 4}',
                   style: TextStyleConstants.label3.copyWith(

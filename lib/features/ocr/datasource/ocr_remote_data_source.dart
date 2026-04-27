@@ -38,10 +38,12 @@ class OcrRemoteDataSource {
         final bytes = await imageFile.readAsBytes();
         final base64Image = base64Encode(bytes);
 
+        final mimeType = _mimeTypeForPath(imageFile.path);
+
         final body = <String, dynamic>{
           'mode': 'ocr',
           'image': base64Image,
-          'mimeType': 'image/jpeg',
+          'mimeType': mimeType,
           'localDate': SakuDateUtils.formatDate(DateTime.now()),
         };
         if (categories.isNotEmpty) {
@@ -69,4 +71,13 @@ class OcrRemoteDataSource {
       },
     );
   }
+}
+
+/// Hasil crop OCR adalah PNG; kompresi bisa JPG — edge function perlu mime yang benar.
+String _mimeTypeForPath(String path) {
+  final lower = path.toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  return 'image/jpeg';
 }

@@ -40,26 +40,27 @@ class OcrDetailTable extends StatelessWidget {
                 // Sel kiri: ikon + label.
                 Padding(
                   padding: EdgeInsets.only(
-                    bottom: i < rows.length - 1 ? 10.h : 0,
+                    bottom: i < rows.length - 1 ? 8.h : 0,
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(top: 2.h),
+                        padding: EdgeInsets.only(top: 1.h),
                         child: FaIcon(
                           rows[i].icon,
-                          size: 13.w,
+                          size: 11.w,
                           color: colors.textSecondary,
                         ),
                       ),
-                      SizedBox(width: 8.w),
+                      SizedBox(width: 6.w),
                       Expanded(
                         child: Text(
                           rows[i].label,
                           style: TextStyleConstants.label2.copyWith(
                             color: colors.textSecondary,
                             height: 1.35,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -69,14 +70,14 @@ class OcrDetailTable extends StatelessWidget {
                 // Sel kanan: nilai teks.
                 Padding(
                   padding: EdgeInsets.only(
-                    bottom: i < rows.length - 1 ? 10.h : 0,
-                    left: 6.w,
+                    bottom: i < rows.length - 1 ? 8.h : 0,
+                    left: 4.w,
                   ),
                   child: Text(
                     rows[i].value,
                     style: TextStyleConstants.b2.copyWith(
                       color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       height: 1.35,
                     ),
                   ),

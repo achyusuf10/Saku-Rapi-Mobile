@@ -83,11 +83,11 @@ class AiParsePreviewCard extends ConsumerWidget {
 
       return Container(
         width: double.infinity,
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: colors.success.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: colors.success.withValues(alpha: 0.2)),
+          color: colors.success.withValues(alpha: 0.045),
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: colors.success.withValues(alpha: 0.16)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,46 +96,35 @@ class AiParsePreviewCard extends ConsumerWidget {
                 result.rawTranscript!.isNotEmpty) ...[
               Text(
                 l10n.voiceTranscript,
-                style: TextStyleConstants.label2.copyWith(
+                style: TextStyleConstants.label3.copyWith(
                   color: colors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.15,
                 ),
               ),
-              SizedBox(height: 2.h),
+              SizedBox(height: 4.h),
               Text(
                 '"${result.rawTranscript}"',
                 style: TextStyleConstants.b2.copyWith(
                   color: colors.textPrimary,
                   fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w400,
+                  height: 1.45,
                 ),
               ),
-              SizedBox(height: 12.h),
-              Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
-              SizedBox(height: 12.h),
+              SizedBox(height: 10.h),
+              Divider(height: 1, color: colors.border.withValues(alpha: 0.12)),
+              SizedBox(height: 10.h),
             ],
             _PreviewDetailTable(colors: colors, rows: metaRowsShared),
-            SizedBox(height: 14.h),
+            SizedBox(height: 10.h),
             AiMultiTransactionPreviewList(
               slices: result.aiTransactions!,
               showOcrAttachmentHint: false,
               rootSuggestedWalletId: result.suggestedWalletId,
             ),
-            SizedBox(height: 12.h),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Text(
-                  result.provider ?? 'AI',
-                  style: TextStyleConstants.label3.copyWith(
-                    color: colors.primary,
-                  ),
-                ),
-              ),
-            ),
+            SizedBox(height: 8.h),
+            _AiPreviewProviderChip(colors: colors, label: result.provider ?? 'AI'),
           ],
         ),
       );
@@ -196,7 +185,7 @@ class AiParsePreviewCard extends ConsumerWidget {
           label: l10n.transactionCategory,
           value: matchedCategory?.name ?? result.categoryKeyword!,
           leading: matchedCategory?.toIcon(
-            size: 13,
+            size: 11,
             showBackground: false,
             colorOverride: colors.accent,
           ),
@@ -228,11 +217,11 @@ class AiParsePreviewCard extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: colors.success.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colors.success.withValues(alpha: 0.2)),
+        color: colors.success.withValues(alpha: 0.045),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: colors.success.withValues(alpha: 0.16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,21 +231,25 @@ class AiParsePreviewCard extends ConsumerWidget {
               result.rawTranscript!.isNotEmpty) ...[
             Text(
               l10n.voiceTranscript,
-              style: TextStyleConstants.label2.copyWith(
+              style: TextStyleConstants.label3.copyWith(
                 color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.15,
               ),
             ),
-            SizedBox(height: 2.h),
+            SizedBox(height: 4.h),
             Text(
               '"${result.rawTranscript}"',
               style: TextStyleConstants.b2.copyWith(
                 color: colors.textPrimary,
                 fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w400,
+                height: 1.45,
               ),
             ),
-            SizedBox(height: 12.h),
-            Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
+            Divider(height: 1, color: colors.border.withValues(alpha: 0.12)),
+            SizedBox(height: 10.h),
           ],
 
           // Ringkasan transaksi (tabel dua kolom tanpa border)
@@ -264,25 +257,30 @@ class AiParsePreviewCard extends ConsumerWidget {
 
           // Item + total hanya setelah semua ringkasan
           if (hasMultipleItems) ...[
-            SizedBox(height: 14.h),
-            Divider(height: 1, color: colors.border.withValues(alpha: 0.15)),
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
+            Divider(height: 1, color: colors.border.withValues(alpha: 0.12)),
+            SizedBox(height: 10.h),
             Row(
               children: [
-                FaIcon(FontAwesomeIcons.list, size: 14.w, color: colors.accent),
-                SizedBox(width: 8.w),
+                FaIcon(
+                  FontAwesomeIcons.list,
+                  size: 12.w,
+                  color: colors.accent.withValues(alpha: 0.9),
+                ),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     l10n.aiPreviewItemsHeader(result.items.length),
-                    style: TextStyleConstants.label1.copyWith(
+                    style: TextStyleConstants.label2.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
+                      height: 1.25,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 8.h),
             ...result.items.asMap().entries.map(
               (e) => AiItemTile(
                 index: e.key,
@@ -297,29 +295,30 @@ class AiParsePreviewCard extends ConsumerWidget {
                         : null),
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
               decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: colors.accent.withValues(alpha: 0.2)),
+                color: colors.accent.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(color: colors.accent.withValues(alpha: 0.14)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     l10n.aiPreviewGrandTotal,
-                    style: TextStyleConstants.b1.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
+                    style: TextStyleConstants.label2.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textSecondary,
                     ),
                   ),
                   Text(
                     result.itemsTotal.toCurrency(),
-                    style: TextStyleConstants.h7.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: TextStyleConstants.b1.copyWith(
+                      fontWeight: FontWeight.w700,
                       color: colors.accent,
+                      height: 1.2,
                     ),
                   ),
                 ],
@@ -339,7 +338,7 @@ class AiParsePreviewCard extends ConsumerWidget {
                   children: [
                     FaIcon(
                       FontAwesomeIcons.circleExclamation,
-                      size: 14.w,
+                      size: 12.w,
                       color: colors.expense,
                     ),
                     SizedBox(width: 8.w),
@@ -349,8 +348,9 @@ class AiParsePreviewCard extends ConsumerWidget {
                           result.itemsTotal.toCurrency(),
                           result.amount!.toCurrency(),
                         ),
-                        style: TextStyleConstants.caption.copyWith(
+                        style: TextStyleConstants.label3.copyWith(
                           color: colors.expense,
+                          height: 1.35,
                         ),
                       ),
                     ),
@@ -361,23 +361,8 @@ class AiParsePreviewCard extends ConsumerWidget {
           ],
 
           // ── Provider badge ──
-          SizedBox(height: 12.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6.r),
-              ),
-              child: Text(
-                result.provider ?? 'AI',
-                style: TextStyleConstants.label3.copyWith(
-                  color: colors.primary,
-                ),
-              ),
-            ),
-          ),
+          SizedBox(height: hasMultipleItems ? 8.h : 10.h),
+          _AiPreviewProviderChip(colors: colors, label: result.provider ?? 'AI'),
         ],
       ),
     );
@@ -461,29 +446,30 @@ class _PreviewDetailTable extends StatelessWidget {
             TableRow(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: i < rows.length - 1 ? 10.h : 0),
+                  padding: EdgeInsets.only(bottom: i < rows.length - 1 ? 8.h : 0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(top: 2.h),
+                        padding: EdgeInsets.only(top: 1.h),
                         child: SizedBox(
-                          width: 18.w,
+                          width: 16.w,
                           child: rows[i].leading ??
                               FaIcon(
                                 rows[i].icon,
-                                size: 13.w,
+                                size: 11.w,
                                 color: rows[i].iconColor,
                               ),
                         ),
                       ),
-                      SizedBox(width: 6.w),
+                      SizedBox(width: 5.w),
                       Expanded(
                         child: Text(
                           rows[i].label,
                           style: TextStyleConstants.label2.copyWith(
                             color: colors.textSecondary,
                             height: 1.35,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -492,14 +478,14 @@ class _PreviewDetailTable extends StatelessWidget {
                 ),
                 Padding(
                   padding: EdgeInsets.only(
-                    bottom: i < rows.length - 1 ? 10.h : 0,
-                    left: 6.w,
+                    bottom: i < rows.length - 1 ? 8.h : 0,
+                    left: 4.w,
                   ),
                   child: Text(
                     rows[i].value,
                     style: TextStyleConstants.b2.copyWith(
                       color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       height: 1.35,
                     ),
                   ),
@@ -507,6 +493,42 @@ class _PreviewDetailTable extends StatelessWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Chip kecil kanan bawah: nama provider AI (Voice / Text preview).
+class _AiPreviewProviderChip extends StatelessWidget {
+  const _AiPreviewProviderChip({
+    required this.colors,
+    required this.label,
+  });
+
+  final dynamic colors;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+        decoration: BoxDecoration(
+          color: colors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6.r),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyleConstants.label3.copyWith(
+            color: colors.primary,
+            fontWeight: FontWeight.w500,
+            height: 1.2,
+          ),
+        ),
       ),
     );
   }

@@ -42,34 +42,36 @@ class AiItemTile extends StatelessWidget {
     final colors = context.colors;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 6.h),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      margin: EdgeInsets.only(bottom: 5.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: colors.background,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: colors.border.withValues(alpha: 0.12)),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: colors.border.withValues(alpha: 0.1)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Nomor urut (badge bulat)
           Container(
-            width: 24.w,
-            height: 24.w,
+            width: 22.w,
+            height: 22.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colors.accent.withValues(alpha: 0.1),
+              color: colors.accent.withValues(alpha: 0.09),
             ),
             child: Center(
               child: Text(
                 '${index + 1}',
-                style: TextStyleConstants.caption.copyWith(
+                style: TextStyleConstants.label3.copyWith(
                   color: colors.accent,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
                 ),
               ),
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: 8.w),
 
           // Nama + detail qty + kategori badge
           Expanded(
@@ -80,35 +82,41 @@ class AiItemTile extends StatelessWidget {
                   name ?? '-',
                   style: TextStyleConstants.b2.copyWith(
                     color: colors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (qty > 1 || unitPrice != null)
-                  Text(
-                    '${qty > 1 ? '${qty.toInt()}x ' : ''}'
-                    '${unitPrice != null ? '@ ${unitPrice!.toCurrency(withPrefix: false)}' : ''}',
-                    style: TextStyleConstants.caption.copyWith(
-                      color: colors.textSecondary,
+                  Padding(
+                    padding: EdgeInsets.only(top: 2.h),
+                    child: Text(
+                      '${qty > 1 ? '${qty.toInt()}x ' : ''}'
+                      '${unitPrice != null ? '@ ${unitPrice!.toCurrency(withPrefix: false)}' : ''}',
+                      style: TextStyleConstants.label3.copyWith(
+                        color: colors.textSecondary,
+                        height: 1.25,
+                      ),
                     ),
                   ),
                 if (categoryName != null)
                   Padding(
-                    padding: EdgeInsets.only(top: 2.h),
+                    padding: EdgeInsets.only(top: 4.h),
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
+                        horizontal: 5.w,
                         vertical: 2.h,
                       ),
                       decoration: BoxDecoration(
-                        color: colors.accent.withValues(alpha: 0.08),
+                        color: colors.accent.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(4.r),
                       ),
                       child: Text(
                         categoryName!,
-                        style: TextStyleConstants.caption.copyWith(
+                        style: TextStyleConstants.label3.copyWith(
                           color: colors.accent,
-                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -120,11 +128,15 @@ class AiItemTile extends StatelessWidget {
           ),
 
           // Subtotal
-          Text(
-            subtotal.toCurrency(withPrefix: false),
-            style: TextStyleConstants.b2.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
+          Padding(
+            padding: EdgeInsets.only(left: 6.w, top: 1.h),
+            child: Text(
+              subtotal.toCurrency(withPrefix: false),
+              style: TextStyleConstants.label1.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
             ),
           ),
         ],

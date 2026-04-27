@@ -48,23 +48,8 @@ class OcrResultParsedBody extends ConsumerWidget {
               rootSuggestedWalletId: result.suggestedWalletId,
             ),
             if (result.provider != null) ...[
-              SizedBox(height: 12.h),
-              Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Text(
-                    'AI: ${result.provider}',
-                    style: TextStyleConstants.caption.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
+              SizedBox(height: 10.h),
+              _OcrAiProviderChip(colors: colors, provider: result.provider!),
             ],
             SizedBox(height: 16.h),
           ],
@@ -119,18 +104,25 @@ class OcrResultParsedBody extends ConsumerWidget {
           if (result.items.isNotEmpty) ...[
             Row(
               children: [
-                FaIcon(FontAwesomeIcons.list, size: 14.w, color: colors.accent),
-                SizedBox(width: 8.w),
-                Text(
-                  l10n.ocrItemCount(result.items.length),
-                  style: TextStyleConstants.label1.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
+                FaIcon(
+                  FontAwesomeIcons.list,
+                  size: 12.w,
+                  color: colors.accent.withValues(alpha: 0.9),
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    l10n.ocrItemCount(result.items.length),
+                    style: TextStyleConstants.label2.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                      height: 1.25,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 7.h),
             ...result.items.asMap().entries.map(
               (e) => AiItemTile(
                 index: e.key,
@@ -151,27 +143,28 @@ class OcrResultParsedBody extends ConsumerWidget {
           SizedBox(height: 12.h),
 
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
             decoration: BoxDecoration(
-              color: colors.accent.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: colors.accent.withValues(alpha: 0.2)),
+              color: colors.accent.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: colors.accent.withValues(alpha: 0.14)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   l10n.ocrGrandTotal,
-                  style: TextStyleConstants.b1.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+                  style: TextStyleConstants.label2.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
                   ),
                 ),
                 Text(
                   result.grandTotal?.toCurrency() ?? '-',
-                  style: TextStyleConstants.h7.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: TextStyleConstants.b1.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: colors.accent,
+                    height: 1.2,
                   ),
                 ),
               ],
@@ -192,7 +185,7 @@ class OcrResultParsedBody extends ConsumerWidget {
                 children: [
                   FaIcon(
                     FontAwesomeIcons.circleExclamation,
-                    size: 14.w,
+                    size: 12.w,
                     color: colors.expense,
                   ),
                   SizedBox(width: 8.w),
@@ -202,8 +195,9 @@ class OcrResultParsedBody extends ConsumerWidget {
                         result.itemsTotal.toCurrency(),
                         result.grandTotal!.toCurrency(),
                       ),
-                      style: TextStyleConstants.caption.copyWith(
+                      style: TextStyleConstants.label3.copyWith(
                         color: colors.expense,
+                        height: 1.35,
                       ),
                     ),
                   ),
@@ -213,27 +207,48 @@ class OcrResultParsedBody extends ConsumerWidget {
           ],
 
           if (result.provider != null) ...[
-            SizedBox(height: 12.h),
-            Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Text(
-                  'AI: ${result.provider}',
-                  style: TextStyleConstants.caption.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+            SizedBox(height: 10.h),
+            _OcrAiProviderChip(colors: colors, provider: result.provider!),
           ],
 
           SizedBox(height: 16.h),
         ],
+      ),
+    );
+  }
+}
+
+/// Chip provider AI — selaras dengan preview Voice/Text (kanan bawah).
+class _OcrAiProviderChip extends StatelessWidget {
+  const _OcrAiProviderChip({
+    required this.colors,
+    required this.provider,
+  });
+
+  final dynamic colors;
+  final String provider;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+        decoration: BoxDecoration(
+          color: colors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6.r),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Text(
+          'AI: $provider',
+          style: TextStyleConstants.label3.copyWith(
+            color: colors.primary,
+            fontWeight: FontWeight.w500,
+            height: 1.2,
+          ),
+        ),
       ),
     );
   }

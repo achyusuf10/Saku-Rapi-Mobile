@@ -189,7 +189,8 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-    if (context.mounted == false) {
+    if (!context.mounted) {
+      state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
     await _processImage(context, imageFile);
@@ -200,11 +201,14 @@ class OcrScanController extends StateNotifier<OcrScanState> {
     state = state.copyWith(status: OcrScanStatus.pickingImage);
 
     final imageFile = await _imageService.pickFromGallery();
+    AppLogger.call('Image picked: ${imageFile?.path}');
     if (imageFile == null) {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-    if (context.mounted == false) {
+    if (!context.mounted) {
+      state = const OcrScanState(status: OcrScanStatus.idle);
+      AppLogger.call('Context not mounted after picking image');
       return;
     }
 
@@ -244,8 +248,11 @@ class OcrScanController extends StateNotifier<OcrScanState> {
         .toList();
 
     // Wallet list untuk AI wallet matching — tunggu jika masih loading
-    final wallets = await (_walletResolver?.call() ?? Future.value(const <WalletModel>[]));
-    final walletMaps = wallets.map((w) => {'id': w.id, 'name': w.name}).toList();
+    final wallets =
+        await (_walletResolver?.call() ?? Future.value(const <WalletModel>[]));
+    final walletMaps = wallets
+        .map((w) => {'id': w.id, 'name': w.name})
+        .toList();
 
     try {
       result = await _repository.parseImage(

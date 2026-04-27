@@ -55,22 +55,23 @@ class OcrResultTypeBadge extends StatelessWidget {
 
     return Center(
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: color.withValues(alpha: 0.22)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            FaIcon(icon, size: 14.w, color: color),
-            SizedBox(width: 8.w),
+            FaIcon(icon, size: 12.w, color: color),
+            SizedBox(width: 6.w),
             Text(
               label,
-              style: TextStyleConstants.label1.copyWith(
+              style: TextStyleConstants.label2.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
+                height: 1.2,
               ),
             ),
           ],
