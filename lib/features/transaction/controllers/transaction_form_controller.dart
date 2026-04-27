@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
+import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_state.dart';
 import 'package:app_saku_rapi/features/transaction/models/contact_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
@@ -11,14 +12,24 @@ import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
-// ═══════════════ Providers ═══════════════
+// Re-export state agar file lain yang mengimport controller ini
+// tetap dapat mengakses TransactionFormState & TransactionFormStatus
+// tanpa perlu ganti path import.
+export 'transaction_form_state.dart';
 
-/// Singleton repo provider.
+// ═══════════════════════════════════════════════
+//  Providers
+// ═══════════════════════════════════════════════
+
+/// Provider singleton untuk [TransactionRepository].
 final transactionRepositoryProvider = Provider<TransactionRepository>(
   (ref) => TransactionRepository(),
 );
 
-/// Form controller provider, auto-disposed saat page ditutup.
+/// Provider controller form transaksi, auto-disposed saat halaman ditutup.
+///
+/// Gunakan `ref.watch(transactionFormControllerProvider)` untuk membaca state.
+/// Gunakan `ref.read(transactionFormControllerProvider.notifier)` untuk mutasi.
 final transactionFormControllerProvider =
     StateNotifierProvider.autoDispose<
       TransactionFormController,
@@ -29,180 +40,9 @@ final transactionFormControllerProvider =
       ),
     );
 
-// ═══════════════ State ═══════════════
-
-/// Status form transaksi.
-enum TransactionFormStatus { idle, saving, saved, error }
-
-/// Immutable state untuk form transaksi.
-///
-/// Menyimpan semua field form: type, wallet, amount, items, dsb.
-/// Controller memodifikasi via `copyWith`.
-class TransactionFormState {
-  const TransactionFormState({
-    this.status = TransactionFormStatus.idle,
-    this.type = TransactionTypeEnum.expense,
-    this.wallet,
-    this.destinationWallet,
-    this.totalAmount = 0,
-    this.date,
-    this.merchantName,
-    this.note,
-    this.attachmentUrl,
-    this.localAttachmentPath,
-    this.withPerson,
-    this.contact,
-    this.dueDate,
-    this.category,
-    this.items = const [],
-    this.itemKeys = const [],
-    this.errorMessage,
-    this.existingTransaction,
-    this.debtLoanKind,
-    this.referenceTransaction,
-  });
-
-  final TransactionFormStatus status;
-  final TransactionTypeEnum type;
-  final WalletModel? wallet;
-  final WalletModel? destinationWallet;
-  final double totalAmount;
-  final DateTime? date;
-  final String? merchantName;
-  final String? note;
-  final String? attachmentUrl;
-
-  /// Path lokal file lampiran yang belum di-upload.
-  /// Diisi saat user pilih foto; di-upload saat simpan transaksi.
-  final String? localAttachmentPath;
-
-  final String? withPerson;
-  final ContactModel? contact;
-  final DateTime? dueDate;
-  final CategoryModel? category;
-  final List<TransactionItemModel> items;
-
-  /// Stable identity keys per item untuk widget keying.
-  /// Setiap item punya key unik yang tidak berubah saat content berubah.
-  final List<int> itemKeys;
-  final String? errorMessage;
-
-  /// Jika ada, berarti mode edit.
-  final TransactionModel? existingTransaction;
-
-  /// Jenis operasi untuk tab Hutang/Piutang (debt, loan, debtPayment, loanCollection).
-  final DebtLoanKindEnum? debtLoanKind;
-
-  /// Transaksi referensi yang dipilih untuk pelunasan/penerimaan.
-  final DebtLoanTransactionModel? referenceTransaction;
-
-  bool get isEditing => existingTransaction != null;
-  bool get isSaving => status == TransactionFormStatus.saving;
-  bool get isMultiItem => items.length > 1;
-
-  /// Apakah sedang di tab Hutang/Piutang.
-  bool get isDebtLoanTab =>
-      type == TransactionTypeEnum.debt || type == TransactionTypeEnum.loan;
-
-  /// Apakah sedang mode pelunasan/penerimaan.
-  bool get isSettlementMode => debtLoanKind?.isSettlement ?? false;
-
-  /// Hitung total dari items.
-  double get itemsTotal => items.fold(0.0, (sum, i) => sum + i.amount);
-
-  /// Apakah items total cocok dengan total amount.
-  bool get isTotalMatched => (itemsTotal - totalAmount).abs() < 0.01;
-
-  TransactionFormState copyWith({
-    TransactionFormStatus? status,
-    TransactionTypeEnum? type,
-    WalletModel? wallet,
-    WalletModel? destinationWallet,
-    double? totalAmount,
-    DateTime? date,
-    String? merchantName,
-    String? note,
-    String? attachmentUrl,
-    String? localAttachmentPath,
-    String? withPerson,
-    ContactModel? contact,
-    DateTime? dueDate,
-    CategoryModel? category,
-    List<TransactionItemModel>? items,
-    List<int>? itemKeys,
-    String? errorMessage,
-    TransactionModel? existingTransaction,
-    DebtLoanKindEnum? debtLoanKind,
-    DebtLoanTransactionModel? referenceTransaction,
-  }) {
-    return TransactionFormState(
-      status: status ?? this.status,
-      type: type ?? this.type,
-      wallet: wallet ?? this.wallet,
-      destinationWallet: destinationWallet ?? this.destinationWallet,
-      totalAmount: totalAmount ?? this.totalAmount,
-      date: date ?? this.date,
-      merchantName: merchantName ?? this.merchantName,
-      note: note ?? this.note,
-      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
-      localAttachmentPath: localAttachmentPath ?? this.localAttachmentPath,
-      withPerson: withPerson ?? this.withPerson,
-      contact: contact ?? this.contact,
-      dueDate: dueDate ?? this.dueDate,
-      category: category ?? this.category,
-      items: items ?? this.items,
-      itemKeys: itemKeys ?? this.itemKeys,
-      errorMessage: errorMessage ?? this.errorMessage,
-      existingTransaction: existingTransaction ?? this.existingTransaction,
-      debtLoanKind: debtLoanKind ?? this.debtLoanKind,
-      referenceTransaction: referenceTransaction ?? this.referenceTransaction,
-    );
-  }
-
-  /// Create fresh copy with nullable fields explicitly cleared.
-  TransactionFormState clearFields({
-    bool clearDestWallet = false,
-    bool clearWithPerson = false,
-    bool clearContact = false,
-    bool clearDueDate = false,
-    bool clearCategory = false,
-    bool clearMerchant = false,
-    bool clearNote = false,
-    bool clearAttachment = false,
-    bool clearError = false,
-    bool clearDebtLoanKind = false,
-    bool clearReferenceTransaction = false,
-  }) {
-    return TransactionFormState(
-      status: status,
-      type: type,
-      wallet: wallet,
-      destinationWallet: clearDestWallet ? null : destinationWallet,
-      totalAmount: totalAmount,
-      date: date,
-      merchantName: clearMerchant ? null : merchantName,
-      note: clearNote ? null : note,
-      attachmentUrl: clearAttachment ? null : attachmentUrl,
-      localAttachmentPath: clearAttachment ? null : localAttachmentPath,
-      withPerson: clearWithPerson ? null : withPerson,
-      contact: clearContact ? null : contact,
-      dueDate: clearDueDate ? null : dueDate,
-      category: clearCategory ? null : category,
-      items: clearCategory
-          ? items.map((item) => item.clearCategory()).toList()
-          : items,
-      itemKeys: itemKeys,
-      errorMessage: clearError ? null : errorMessage,
-      existingTransaction: existingTransaction,
-      debtLoanKind: clearDebtLoanKind ? null : debtLoanKind,
-      referenceTransaction: clearReferenceTransaction
-          ? null
-          : referenceTransaction,
-    );
-  }
-}
-
-// ═══════════════ Controller ═══════════════
+// ═══════════════════════════════════════════════
+//  Controller
+// ═══════════════════════════════════════════════
 
 /// Controller form transaksi.
 ///
@@ -420,7 +260,10 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   /// Tambah item baru (switch ke multi-item mode).
   void addItem() {
-    var newItem = TransactionItemModel(amount: 0, sortOrder: state.items.length);
+    var newItem = TransactionItemModel(
+      amount: 0,
+      sortOrder: state.items.length,
+    );
     final cat = state.category;
     if (cat != null && _usesParentCategory()) {
       newItem = newItem.copyWith(
