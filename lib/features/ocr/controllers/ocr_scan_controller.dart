@@ -36,6 +36,16 @@ Future<List<WalletModel>> _resolveWallets(Ref ref) async {
   return const [];
 }
 
+/// Navigator yang membungkus sheet OCR (bukan root GoRouter).
+///
+/// Setelah [ImagePicker] tertutup, [BuildContext] dari tombol di dalam sheet
+/// sering `mounted == false` meski sheet masih terbuka; [NavigatorState] tetap
+/// valid untuk crop / route di atas sheet yang sama.
+NavigatorState? _ocrHostNavigator(BuildContext context) {
+  return Navigator.maybeOf(context, rootNavigator: false) ??
+      Navigator.maybeOf(context, rootNavigator: true);
+}
+
 // ═══════════════ Providers ═══════════════
 
 /// Singleton provider untuk [OcrRepository].
@@ -181,7 +191,18 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       return;
     }
 
+    if (!context.mounted) {
+      state = const OcrScanState(status: OcrScanStatus.idle);
+      return;
+    }
+
     state = state.copyWith(status: OcrScanStatus.pickingImage);
+
+    final nav = _ocrHostNavigator(context);
+    if (nav == null) {
+      state = const OcrScanState(status: OcrScanStatus.idle);
+      return;
+    }
 
     final imageFile = await _imageService.pickFromCamera();
     if (imageFile == null) {
@@ -189,30 +210,34 @@ class OcrScanController extends StateNotifier<OcrScanState> {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-    if (!context.mounted) {
+    if (!nav.mounted) {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-    await _processImage(context, imageFile);
+    await _processImage(nav.context, imageFile);
   }
 
   /// Mulai flow OCR dari galeri.
   Future<void> startFromGallery(BuildContext context) async {
     state = state.copyWith(status: OcrScanStatus.pickingImage);
 
+    final nav = _ocrHostNavigator(context);
+    if (nav == null) {
+      state = const OcrScanState(status: OcrScanStatus.idle);
+      return;
+    }
+
     final imageFile = await _imageService.pickFromGallery();
-    AppLogger.call('Image picked: ${imageFile?.path}');
     if (imageFile == null) {
       state = const OcrScanState(status: OcrScanStatus.idle);
       return;
     }
-    if (!context.mounted) {
+    if (!nav.mounted) {
       state = const OcrScanState(status: OcrScanStatus.idle);
-      AppLogger.call('Context not mounted after picking image');
       return;
     }
 
-    await _processImage(context, imageFile);
+    await _processImage(nav.context, imageFile);
   }
 
   /// Proses gambar: crop → compress → AI Vision parse.
