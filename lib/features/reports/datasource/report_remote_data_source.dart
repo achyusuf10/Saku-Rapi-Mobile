@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -107,7 +108,7 @@ class ReportRemoteDataSource {
               transaction_items(
                 amount,
                 category_id,
-                categories(name, icon, color, parent_id)
+                categories(name, icon, color, background_color, parent_id)
               )
             ''')
             .eq('user_id', _userId)
@@ -143,6 +144,9 @@ class ReportRemoteDataSource {
                 categoryName: cat?['name'] as String? ?? '-',
                 categoryIcon: cat?['icon'] as String? ?? 'circle-question',
                 categoryColor: cat?['color'] as String? ?? '#6B7280',
+                categoryBackgroundColor:
+                    cat?['background_color'] as String? ??
+                        kSakuDefaultIconBackgroundHex,
                 parentId: cat?['parent_id'] as String?,
                 amount: amount,
                 count: 1,
@@ -158,6 +162,7 @@ class ReportRemoteDataSource {
                 categoryName: a.categoryName,
                 categoryIcon: a.categoryIcon,
                 categoryColor: a.categoryColor,
+                categoryBackgroundColor: a.categoryBackgroundColor,
                 amount: a.amount,
                 parentId: a.parentId,
                 transactionCount: a.count,
@@ -256,6 +261,7 @@ class _CategoryAgg {
     required this.categoryName,
     required this.categoryIcon,
     required this.categoryColor,
+    required this.categoryBackgroundColor,
     this.parentId,
     required this.amount,
     required this.count,
@@ -265,6 +271,7 @@ class _CategoryAgg {
   final String categoryName;
   final String categoryIcon;
   final String categoryColor;
+  final String categoryBackgroundColor;
   final String? parentId;
   double amount;
   int count;

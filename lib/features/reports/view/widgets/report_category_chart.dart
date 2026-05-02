@@ -76,9 +76,10 @@ class _CategoryRow extends StatelessWidget {
           SakuCategoryIcon(
             iconName: category.categoryIcon,
             color: catColor,
+            backgroundFill: parseHexColor(category.categoryBackgroundColor),
             size: 36,
             iconSize: 16,
-            borderRadius: 10,
+            circular: true,
           ),
           SizedBox(width: 10.w),
           // Name + progress bar

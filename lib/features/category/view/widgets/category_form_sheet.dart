@@ -58,6 +58,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
   late String _selectedIcon;
   late String _selectedColor;
+  late String _selectedBackgroundColor;
   String? _selectedParentId;
   bool _isSaving = false;
 
@@ -70,6 +71,8 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     _nameController = TextEditingController(text: edit?.name ?? '');
     _selectedIcon = edit?.icon ?? 'tag';
     _selectedColor = edit?.color ?? '#6B7280';
+    _selectedBackgroundColor =
+        edit?.backgroundColor ?? kSakuDefaultIconBackgroundHex;
     _selectedParentId = edit?.parentId;
   }
 
@@ -140,6 +143,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                   child: SakuCategoryIcon(
                     iconName: _selectedIcon,
                     color: parseHexColor(_selectedColor),
+                    backgroundFill: parseHexColor(_selectedBackgroundColor),
                     size: 56,
                     iconSize: 24,
                     borderRadius: 16,
@@ -162,24 +166,24 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Icon & Color pickers (row)
+                // Icon, icon color & background pickers
                 Row(
                   children: [
-                    // Icon picker
                     Expanded(
                       child: _PickerTile(
                         label: l10n.categoryIconPicker,
                         child: SakuCategoryIcon(
                           iconName: _selectedIcon,
                           color: parseHexColor(_selectedColor),
-                          size: 18,
-                          showBackground: false,
+                          backgroundFill: parseHexColor(_selectedBackgroundColor),
+                          size: 28,
+                          iconSize: 12,
+                          borderRadius: 8,
                         ),
                         onTap: () => _pickIcon(context),
                       ),
                     ),
-                    SizedBox(width: 12.w),
-                    // Color picker
+                    SizedBox(width: 8.w),
                     Expanded(
                       child: _PickerTile(
                         label: l10n.categoryColorPicker,
@@ -196,6 +200,22 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                           ),
                         ),
                         onTap: () => _pickColor(context),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: _PickerTile(
+                        label: l10n.walletBackground,
+                        child: SizedBox(
+                          width: 24.w,
+                          height: 24.w,
+                          child: ClipOval(
+                            child: ColoredBox(
+                              color: parseHexColor(_selectedBackgroundColor),
+                            ),
+                          ),
+                        ),
+                        onTap: () => _pickBackgroundColor(context),
                       ),
                     ),
                   ],
@@ -277,6 +297,17 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     }
   }
 
+  Future<void> _pickBackgroundColor(BuildContext context) async {
+    final color = await SakuColorPickerSheet.show(
+      context: appContext ?? context,
+      selectedColor: _selectedBackgroundColor,
+      customTabSupportsTransparency: true,
+    );
+    if (color != null) {
+      setState(() => _selectedBackgroundColor = color);
+    }
+  }
+
   Future<void> _save(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -294,6 +325,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
               name: name,
               icon: _selectedIcon,
               color: _selectedColor,
+              backgroundColor: _selectedBackgroundColor,
             );
 
         if (!context.mounted) return;
@@ -315,6 +347,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
               name: name,
               icon: _selectedIcon,
               color: _selectedColor,
+              backgroundColor: _selectedBackgroundColor,
               type: widget.type,
               parentId: _selectedParentId,
             );

@@ -85,8 +85,10 @@ class SakuWalletFilterButton extends ConsumerWidget {
                     color: selectedWalletId == wallet.id
                         ? colors.primary
                         : parseHexColor(wallet.color),
+                    backgroundFill: parseHexColor(wallet.backgroundColor),
                     size: 14,
-                    showBackground: false,
+                    showBackground: true,
+                    borderRadius: 4,
                   ),
                   label: wallet.name,
                   isSelected: selectedWalletId == wallet.id,
@@ -124,8 +126,15 @@ class SakuWalletFilterButton extends ConsumerWidget {
                                   ?.color ??
                               '#6B7280',
                         ),
+                        backgroundFill: parseHexColor(
+                          wallets
+                                  .where((w) => w.id == selectedWalletId)
+                                  .firstOrNull
+                                  ?.backgroundColor ??
+                              WalletModel.defaultBackgroundColorHex,
+                        ),
                         size: 16,
-                        showBackground: false,
+                        borderRadius: 5,
                       ),
                 4.horizontalSpace,
                 Text(

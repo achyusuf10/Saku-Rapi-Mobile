@@ -48,6 +48,7 @@
   "walletBalanceRequired": "Balance is required",
   "walletIcon": "Icon",
   "walletColor": "Color",
+  "walletBackground": "Background",
   "walletExcludeFromTotal": "Exclude from Total",
   "walletExcludeHint": "This wallet's balance is not included in total",
   "walletSave": "Save",

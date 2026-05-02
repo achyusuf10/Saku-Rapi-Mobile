@@ -12,7 +12,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// 1. **Hue ring** — lingkaran luar untuk memilih hue (0°–360°)
 /// 2. **SV area** — kotak di dalam ring untuk saturation (horizontal)
 ///    dan value/brightness (vertikal)
-/// 3. **Hex input** — text field untuk input hex manual
+/// 3. **Hex input** — text field untuk input hex manual (6 digit `RRGGBB`, atau
+///    jika `isSupportTransparent`: 8 digit `AARRGGBB` format Flutter / `Color`).
 ///
 /// ```dart
 /// SakuColorWheelPicker(
@@ -27,6 +28,7 @@ class SakuColorWheelPicker extends StatefulWidget {
     required this.onColorChanged,
     this.size,
     this.ringWidth = 24,
+    this.isSupportTransparent = false,
   });
 
   /// Warna saat ini.
@@ -40,6 +42,10 @@ class SakuColorWheelPicker extends StatefulWidget {
 
   /// Lebar ring hue.
   final double ringWidth;
+
+  /// Jika true: slider alpha di kanan wheel, hex 8 digit (AARRGGBB), preview pakai checkerboard.
+  /// Default false: perilaku lama (RGB 6 digit, warna opak).
+  final bool isSupportTransparent;
 
   @override
   State<SakuColorWheelPicker> createState() => _SakuColorWheelPickerState();
@@ -55,11 +61,16 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
   bool _isInternalUpdate = false;
   _DragTarget _activeDrag = _DragTarget.none;
 
+  HSVColor _normalizeHsv(HSVColor hsv) {
+    if (widget.isSupportTransparent) return hsv;
+    return hsv.withAlpha(1.0);
+  }
+
   @override
   void initState() {
     super.initState();
-    _hsv = HSVColor.fromColor(widget.color);
-    _hexController = TextEditingController(text: _colorToHex(widget.color));
+    _hsv = _normalizeHsv(HSVColor.fromColor(widget.color));
+    _hexController = TextEditingController(text: _colorToHex(_hsv.toColor()));
     _hexFocusNode = FocusNode();
     _hexFocusNode.addListener(_onFocusChange);
   }
@@ -67,18 +78,23 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
   @override
   void didUpdateWidget(covariant SakuColorWheelPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.color != widget.color) {
-      if (_isInternalUpdate) {
-        // Perubahan dari gesture/hex internal — _hsv sudah benar.
-        // Skip konversi Color→HSV karena akan kehilangan hue
-        // saat value/saturation mendekati 0.
-        _isInternalUpdate = false;
-      } else {
-        // Perubahan dari luar (preset, parent reset)
-        _hsv = HSVColor.fromColor(widget.color);
+    final colorChanged = oldWidget.color != widget.color;
+    final modeChanged =
+        oldWidget.isSupportTransparent != widget.isSupportTransparent;
+
+    if (colorChanged || modeChanged) {
+      if (colorChanged) {
+        if (_isInternalUpdate) {
+          // Perubahan dari gesture/hex internal — _hsv sudah benar.
+          _isInternalUpdate = false;
+        } else {
+          _hsv = _normalizeHsv(HSVColor.fromColor(widget.color));
+        }
+      } else if (modeChanged) {
+        _hsv = _normalizeHsv(_hsv);
       }
       if (!_isEditingHex) {
-        _hexController.text = _colorToHex(widget.color);
+        _hexController.text = _colorToHex(_hsv.toColor());
       }
     }
   }
@@ -100,22 +116,64 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
   }
 
   void _updateColor(HSVColor hsv) {
+    final next = _normalizeHsv(hsv);
     _isInternalUpdate = true;
-    setState(() => _hsv = hsv);
-    _hexController.text = _colorToHex(hsv.toColor());
-    widget.onColorChanged(hsv.toColor());
+    setState(() => _hsv = next);
+    _hexController.text = _colorToHex(next.toColor());
+    widget.onColorChanged(next.toColor());
+  }
+
+  void _onHexChanged(String text) {
+    if (!widget.isSupportTransparent) return;
+    final hex = text.replaceFirst('#', '').trim();
+    Color? parsed;
+    if (hex.length == 6 && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
+      parsed = Color(int.parse('FF$hex', radix: 16));
+    } else if (hex.length == 8 && RegExp(r'^[0-9a-fA-F]{8}$').hasMatch(hex)) {
+      parsed = Color(int.parse(hex, radix: 16));
+    }
+    if (parsed == null) return;
+    final next = HSVColor.fromColor(parsed);
+    _isInternalUpdate = true;
+    setState(() => _hsv = next);
+    widget.onColorChanged(next.toColor());
   }
 
   void _onHexSubmitted(String text) {
     _isEditingHex = false;
     final hex = text.replaceFirst('#', '').trim();
-    if (hex.length == 6 && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
-      final color = Color(int.parse('FF$hex', radix: 16));
-      final hsv = HSVColor.fromColor(color);
-      _updateColor(hsv);
+    Color? parsed;
+
+    if (widget.isSupportTransparent) {
+      if (hex.length == 6 && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
+        parsed = Color(int.parse('FF$hex', radix: 16));
+      } else if (hex.length == 8 && RegExp(r'^[0-9a-fA-F]{8}$').hasMatch(hex)) {
+        parsed = Color(int.parse(hex, radix: 16));
+      }
+    } else if (hex.length == 6 && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
+      parsed = Color(int.parse('FF$hex', radix: 16));
+    }
+
+    if (parsed != null) {
+      _updateColor(HSVColor.fromColor(parsed));
     } else {
       _hexController.text = _colorToHex(_hsv.toColor());
     }
+  }
+
+  String _colorToHex(Color color) {
+    final a = (color.a * 255.0).round().clamp(0, 255);
+    final r = (color.r * 255.0).round().clamp(0, 255);
+    final g = (color.g * 255.0).round().clamp(0, 255);
+    final b = (color.b * 255.0).round().clamp(0, 255);
+    final rgb =
+        '${r.toRadixString(16).padLeft(2, '0')}'
+                '${g.toRadixString(16).padLeft(2, '0')}'
+                '${b.toRadixString(16).padLeft(2, '0')}'
+            .toUpperCase();
+    if (!widget.isSupportTransparent) return rgb;
+    final aa = a.toRadixString(16).padLeft(2, '0').toUpperCase();
+    return '$aa$rgb';
   }
 
   // ───────── Gesture Routing ─────────
@@ -196,8 +254,15 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
         // Hue Ring + SV Area — single gesture handler
         LayoutBuilder(
           builder: (context, constraints) {
-            final wheelSize = widget.size ?? constraints.maxWidth;
-            return GestureDetector(
+            const sliderReserve = 34.0;
+            const gap = 8.0;
+            final maxW = constraints.maxWidth;
+            final availableForWheel = widget.isSupportTransparent
+                ? (maxW - sliderReserve - gap)
+                : maxW;
+            final wheelSize = widget.size ?? max(48.0, availableForWheel);
+
+            final wheel = GestureDetector(
               onPanStart: (d) =>
                   _onGestureStart(d.localPosition, Size(wheelSize, wheelSize)),
               onPanUpdate: (d) =>
@@ -218,6 +283,24 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
                 ),
               ),
             );
+
+            if (!widget.isSupportTransparent) return wheel;
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                wheel,
+                SizedBox(width: gap.w),
+                _VerticalAlphaStrip(
+                  hsv: _hsv,
+                  height: wheelSize,
+                  width: max(22.0, (sliderReserve - 6).w).clamp(22.0, 40.0),
+                  borderColor: colors.border,
+                  onAlphaChanged: (v) => _updateColor(_hsv.withAlpha(v)),
+                ),
+              ],
+            );
           },
         ),
 
@@ -226,13 +309,38 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
         // Preview + Hex Input
         Row(
           children: [
-            Container(
+            SizedBox(
               width: 40.w,
               height: 40.w,
-              decoration: BoxDecoration(
-                color: _hsv.toColor(),
-                shape: BoxShape.circle,
-                border: Border.all(color: colors.border, width: 2),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipOval(
+                    child: widget.isSupportTransparent
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              CustomPaint(
+                                painter: _CheckerboardPainter(
+                                  light: const Color(0xFFF0F0F0),
+                                  dark: const Color(0xFFD8D8D8),
+                                  cell: 2.25,
+                                ),
+                              ),
+                              ColoredBox(color: _hsv.toColor()),
+                            ],
+                          )
+                        : ColoredBox(color: _hsv.toColor()),
+                  ),
+                  IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: colors.border, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(width: 10.w),
@@ -240,11 +348,12 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
               child: SakuTextField(
                 controller: _hexController,
                 focusNode: _hexFocusNode,
-                hint: 'FF5733',
-                maxLength: 6,
+                hint: widget.isSupportTransparent ? 'AARRGGBB' : 'FF5733',
+                maxLength: widget.isSupportTransparent ? 8 : 6,
                 showCounter: false,
                 textCapitalization: TextCapitalization.characters,
                 textInputAction: TextInputAction.done,
+                onChanged: widget.isSupportTransparent ? _onHexChanged : null,
                 onSubmitted: _onHexSubmitted,
                 prefixIcon: Text(
                   '#',
@@ -262,6 +371,130 @@ class _SakuColorWheelPickerState extends State<SakuColorWheelPicker> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Strip alpha seperti editor gambar: checkerboard + gradien warna (atas opak, bawah transparan).
+class _VerticalAlphaStrip extends StatelessWidget {
+  const _VerticalAlphaStrip({
+    required this.hsv,
+    required this.height,
+    required this.width,
+    required this.onAlphaChanged,
+    required this.borderColor,
+  });
+
+  final HSVColor hsv;
+  final double height;
+  final double width;
+  final ValueChanged<double> onAlphaChanged;
+  final Color borderColor;
+
+  static const double _thumbH = 14;
+  static const double _trackInsetTop = 8;
+  static const double _trackInsetBottom = 8;
+
+  void _commitAlphaFromLocalY(double dy) {
+    final trackLen = height - _trackInsetTop - _trackInsetBottom;
+    if (trackLen <= 0) return;
+    final t = 1.0 - ((dy - _trackInsetTop) / trackLen).clamp(0.0, 1.0);
+    onAlphaChanged(t);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final opaque = hsv.withAlpha(1.0).toColor();
+    final a = hsv.alpha.clamp(0.0, 1.0);
+    final trackLen = height - _trackInsetTop - _trackInsetBottom;
+    final thumbCenterY = _trackInsetTop + (1.0 - a) * trackLen;
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (d) => _commitAlphaFromLocalY(d.localPosition.dy),
+        onVerticalDragStart: (d) => _commitAlphaFromLocalY(d.localPosition.dy),
+        onVerticalDragUpdate: (d) => _commitAlphaFromLocalY(d.localPosition.dy),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 2,
+              right: 2,
+              top: _trackInsetTop,
+              bottom: _trackInsetBottom,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CustomPaint(
+                      painter: _CheckerboardPainter(
+                        light: const Color(0xFFE8E8E8),
+                        dark: const Color(0xFFCFCFCF),
+                        cell: 5,
+                      ),
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [opaque, opaque.withAlpha(0)],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 2,
+              right: 2,
+              top: _trackInsetTop,
+              bottom: _trackInsetBottom,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: thumbCenterY - _thumbH / 2,
+              height: _thumbH,
+              child: Center(
+                child: Container(
+                  width: width,
+                  height: 10,
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: const Color(0xFF757575),
+                      width: 1.2,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x59000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -385,14 +618,35 @@ class _WheelPainter extends CustomPainter {
       old.hsv != hsv || old.ringWidth != ringWidth;
 }
 
-// ───────────────── Helpers ─────────────────
+// ───────────────── Checkerboard (preview transparency) ─────────────────
 
-String _colorToHex(Color color) {
-  final r = (color.r * 255.0).round().clamp(0, 255);
-  final g = (color.g * 255.0).round().clamp(0, 255);
-  final b = (color.b * 255.0).round().clamp(0, 255);
-  return '${r.toRadixString(16).padLeft(2, '0')}'
-          '${g.toRadixString(16).padLeft(2, '0')}'
-          '${b.toRadixString(16).padLeft(2, '0')}'
-      .toUpperCase();
+class _CheckerboardPainter extends CustomPainter {
+  _CheckerboardPainter({
+    required this.light,
+    required this.dark,
+    required this.cell,
+  });
+
+  final Color light;
+  final Color dark;
+  final double cell;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cols = (size.width / cell).ceil() + 1;
+    final rows = (size.height / cell).ceil() + 1;
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        final rect = Rect.fromLTWH(col * cell, row * cell, cell, cell);
+        final paint = Paint()..color = (row + col).isEven ? light : dark;
+        canvas.drawRect(rect, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CheckerboardPainter oldDelegate) =>
+      oldDelegate.light != light ||
+      oldDelegate.dark != dark ||
+      oldDelegate.cell != cell;
 }

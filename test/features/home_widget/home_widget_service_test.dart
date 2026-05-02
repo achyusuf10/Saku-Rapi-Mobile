@@ -22,6 +22,7 @@ WalletModel _wallet({
     name: name,
     icon: icon,
     color: color,
+    backgroundColor: WalletModel.defaultBackgroundColorHex,
     balance: balance,
     initialBalance: 0,
     currency: 'IDR',
@@ -77,6 +78,7 @@ void main() {
                 'balance': w.balance,
                 'icon': w.icon,
                 'color': w.color,
+                'backgroundColor': w.backgroundColor,
                 'excludeFromTotal': w.excludeFromTotal,
                 'sortOrder': w.sortOrder,
               },
@@ -92,6 +94,7 @@ void main() {
         expect(decoded[0]['balance'], 2500000);
         expect(decoded[0]['icon'], '💳');
         expect(decoded[0]['color'], '#CA8A04');
+        expect(decoded[0]['backgroundColor'], WalletModel.defaultBackgroundColorHex);
         expect(decoded[0]['excludeFromTotal'], true);
         expect(decoded[0]['sortOrder'], 2);
       });
@@ -111,6 +114,7 @@ void main() {
                 'balance': w.balance,
                 'icon': w.icon,
                 'color': w.color,
+                'backgroundColor': w.backgroundColor,
                 'excludeFromTotal': w.excludeFromTotal,
                 'sortOrder': w.sortOrder,
               },

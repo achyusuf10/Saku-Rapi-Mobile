@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
+
 /// Argument navigasi untuk halaman transaksi per kategori dari Report.
 class ReportCategoryTransactionsArgument {
   const ReportCategoryTransactionsArgument({
@@ -5,6 +7,7 @@ class ReportCategoryTransactionsArgument {
     required this.categoryName,
     required this.categoryIcon,
     required this.categoryColor,
+    this.categoryBackgroundColor = kSakuDefaultIconBackgroundHex,
     required this.startDate,
     required this.endDate,
     required this.type,
@@ -15,6 +18,7 @@ class ReportCategoryTransactionsArgument {
   final String categoryName;
   final String categoryIcon;
   final String categoryColor;
+  final String categoryBackgroundColor;
   final DateTime startDate;
   final DateTime endDate;
 

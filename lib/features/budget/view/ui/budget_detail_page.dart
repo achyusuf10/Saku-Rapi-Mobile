@@ -98,9 +98,10 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
         SakuCategoryIcon(
           iconName: _budget.category?.icon ?? 'circleQuestion',
           color: parseHexColor(_budget.category?.color ?? '#6B7280'),
+          backgroundFill: parseHexColor(_budget.category?.backgroundColor),
           size: 52,
           iconSize: 22,
-          borderRadius: 14,
+          circular: true,
         ),
         SizedBox(width: 16.w),
         Expanded(

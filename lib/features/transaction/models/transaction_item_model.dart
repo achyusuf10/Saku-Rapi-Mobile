@@ -18,6 +18,7 @@ class TransactionItemModel {
     this.categoryName,
     this.categoryIcon,
     this.categoryColor,
+    this.categoryBackgroundColor,
   });
 
   final String? id;
@@ -36,6 +37,7 @@ class TransactionItemModel {
   final String? categoryName;
   final String? categoryIcon;
   final String? categoryColor;
+  final String? categoryBackgroundColor;
 
   // ───────────────── Factory ─────────────────
 
@@ -45,10 +47,12 @@ class TransactionItemModel {
     String? catName;
     String? catIcon;
     String? catColor;
+    String? catBackground;
     if (catData is Map<String, dynamic>) {
       catName = catData['name'] as String?;
       catIcon = catData['icon'] as String?;
       catColor = catData['color'] as String?;
+      catBackground = catData['background_color'] as String?;
     }
 
     return TransactionItemModel(
@@ -66,6 +70,7 @@ class TransactionItemModel {
       categoryName: catName,
       categoryIcon: catIcon,
       categoryColor: catColor,
+      categoryBackgroundColor: catBackground,
     );
   }
 
@@ -114,6 +119,7 @@ class TransactionItemModel {
     String? categoryName,
     String? categoryIcon,
     String? categoryColor,
+    String? categoryBackgroundColor,
   }) {
     return TransactionItemModel(
       id: id ?? this.id,
@@ -128,6 +134,8 @@ class TransactionItemModel {
       categoryName: categoryName ?? this.categoryName,
       categoryIcon: categoryIcon ?? this.categoryIcon,
       categoryColor: categoryColor ?? this.categoryColor,
+      categoryBackgroundColor:
+          categoryBackgroundColor ?? this.categoryBackgroundColor,
     );
   }
 
@@ -146,6 +154,7 @@ class TransactionItemModel {
       categoryName: null,
       categoryIcon: null,
       categoryColor: null,
+      categoryBackgroundColor: null,
     );
   }
 

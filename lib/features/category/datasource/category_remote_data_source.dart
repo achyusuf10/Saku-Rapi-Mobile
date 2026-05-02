@@ -92,6 +92,7 @@ class CategoryRemoteDataSource {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required CategoryType type,
     String? parentId,
   }) async {
@@ -112,6 +113,7 @@ class CategoryRemoteDataSource {
           'name': name,
           'icon': icon,
           'color': color,
+          'background_color': backgroundColor,
           'type': type.value,
           'parent_id': parentId,
           'is_default': false,
@@ -145,6 +147,7 @@ class CategoryRemoteDataSource {
     String? name,
     String? icon,
     String? color,
+    String? backgroundColor,
     int? sortOrder,
   }) async {
     return SupabaseHandler.call<CategoryModel>(
@@ -158,6 +161,9 @@ class CategoryRemoteDataSource {
         if (name != null) updateData['name'] = name;
         if (icon != null) updateData['icon'] = icon;
         if (color != null) updateData['color'] = color;
+        if (backgroundColor != null) {
+          updateData['background_color'] = backgroundColor;
+        }
         if (sortOrder != null) updateData['sort_order'] = sortOrder;
 
         final response = await _client

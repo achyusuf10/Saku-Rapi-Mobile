@@ -80,6 +80,7 @@ class _ReportCategoryTransactionsPageState
     final l10n = context.l10n;
     final arg = widget.argument;
     final catColor = parseHexColor(arg.categoryColor);
+    final catBg = parseHexColor(arg.categoryBackgroundColor);
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -87,22 +88,13 @@ class _ReportCategoryTransactionsPageState
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 28.w,
-              height: 28.w,
-              decoration: BoxDecoration(
-                color: catColor.withValues(alpha: 0.12),
-                border: Border.all(color: context.colors.border),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: SakuCategoryIcon(
-                  iconName: arg.categoryIcon,
-                  color: catColor,
-                  size: 13,
-                  showBackground: false,
-                ),
-              ),
+            SakuCategoryIcon(
+              iconName: arg.categoryIcon,
+              color: catColor,
+              backgroundFill: catBg,
+              size: 28,
+              iconSize: 13,
+              circular: true,
             ),
             SizedBox(width: 8.w),
             Flexible(

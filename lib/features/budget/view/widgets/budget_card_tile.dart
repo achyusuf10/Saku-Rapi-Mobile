@@ -53,9 +53,10 @@ class BudgetCardTile extends StatelessWidget {
                 SakuCategoryIcon(
                   iconName: budget.category?.icon ?? 'circleQuestion',
                   color: parseHexColor(budget.category?.color ?? '#6B7280'),
+                  backgroundFill: parseHexColor(budget.category?.backgroundColor),
                   size: 42,
                   iconSize: 18,
-                  borderRadius: 12,
+                  circular: true,
                 ),
                 SizedBox(width: 12.w),
 

@@ -21,7 +21,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Bottom sheet form untuk menambah atau mengedit wallet.
 ///
 /// Menampilkan form: nama, saldo awal (hanya saat create),
-/// icon picker, color picker, exclude_from_total toggle.
+/// icon picker, color & background pickers, exclude_from_total toggle.
 class WalletFormSheet extends ConsumerStatefulWidget {
   const WalletFormSheet({super.key, this.editWallet});
 
@@ -50,6 +50,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
 
   late String _selectedIcon;
   late String _selectedColor;
+  late String _selectedBackgroundColor;
   late bool _excludeFromTotal;
   double _initialBalance = 0;
   bool _isSaving = false;
@@ -66,6 +67,8 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
     );
     _selectedIcon = w?.icon ?? 'wallet';
     _selectedColor = w?.color ?? SakuColorPickerSheet.availableColors.first;
+    _selectedBackgroundColor =
+        w?.backgroundColor ?? WalletModel.defaultBackgroundColorHex;
     _excludeFromTotal = w?.excludeFromTotal ?? false;
     _initialBalance = w?.initialBalance ?? 0;
   }
@@ -159,14 +162,17 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                         label: l10n.walletIcon,
                         child: SakuCategoryIcon(
                           iconName: _selectedIcon,
-                          color: colors.textPrimary,
-                          size: 20,
-                          showBackground: false,
+                          color: parseHexColor(_selectedColor),
+                          backgroundFill:
+                              parseHexColor(_selectedBackgroundColor),
+                          size: 28,
+                          iconSize: 12,
+                          borderRadius: 8,
                         ),
                         onTap: () => _pickIcon(context),
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: 8.w),
                     Expanded(
                       child: _PickerTile(
                         label: l10n.walletColor,
@@ -183,6 +189,22 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
                           ),
                         ),
                         onTap: () => _pickColor(context),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: _PickerTile(
+                        label: l10n.walletBackground,
+                        child: SizedBox(
+                          width: 24.w,
+                          height: 24.w,
+                          child: ClipOval(
+                            child: ColoredBox(
+                              color: parseHexColor(_selectedBackgroundColor),
+                            ),
+                          ),
+                        ),
+                        onTap: () => _pickBackgroundColor(context),
                       ),
                     ),
                   ],
@@ -271,6 +293,17 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
     }
   }
 
+  Future<void> _pickBackgroundColor(BuildContext context) async {
+    final result = await SakuColorPickerSheet.show(
+      context: appContext ?? context,
+      selectedColor: _selectedBackgroundColor,
+      customTabSupportsTransparency: true,
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedBackgroundColor = result);
+    }
+  }
+
   Future<void> _save(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -287,6 +320,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
               name: name,
               icon: _selectedIcon,
               color: _selectedColor,
+              backgroundColor: _selectedBackgroundColor,
               excludeFromTotal: _excludeFromTotal,
             );
 
@@ -311,6 +345,7 @@ class _WalletFormSheetState extends ConsumerState<WalletFormSheet> {
               name: name,
               icon: _selectedIcon,
               color: _selectedColor,
+              backgroundColor: _selectedBackgroundColor,
               initialBalance: _initialBalance,
               excludeFromTotal: _excludeFromTotal,
             );

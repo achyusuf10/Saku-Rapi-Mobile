@@ -15,6 +15,7 @@ WalletModel _wallet({
     name: name,
     icon: 'wallet',
     color: '#10B981',
+    backgroundColor: WalletModel.defaultBackgroundColorHex,
     balance: balance,
     initialBalance: balance,
     currency: 'IDR',
@@ -92,6 +93,25 @@ void main() {
       expect(wallet.initialBalance, 500000.0);
       expect(wallet.excludeFromTotal, false);
       expect(wallet.sortOrder, 1);
+      expect(wallet.backgroundColor, WalletModel.defaultBackgroundColorHex);
+    });
+
+    test('fromMap uses explicit background_color', () {
+      final map = {
+        'id': 'abc-123',
+        'user_id': 'user-1',
+        'name': 'BCA',
+        'icon': 'wallet',
+        'color': '#10B981',
+        'background_color': '#FF0000',
+        'balance': 0,
+        'initial_balance': 0,
+        'currency': 'IDR',
+        'exclude_from_total': false,
+        'sort_order': 0,
+      };
+      final wallet = WalletModel.fromMap(map);
+      expect(wallet.backgroundColor, '#FF0000');
     });
 
     test('toInsertMap sets balance = initialBalance', () {
@@ -100,6 +120,7 @@ void main() {
 
       expect(map['balance'], 250000.0);
       expect(map['initial_balance'], 250000.0);
+      expect(map['background_color'], WalletModel.defaultBackgroundColorHex);
       expect(map.containsKey('id'), false);
     });
 
@@ -110,6 +131,7 @@ void main() {
       expect(map.containsKey('balance'), false);
       expect(map.containsKey('initial_balance'), false);
       expect(map.containsKey('name'), true);
+      expect(map['background_color'], WalletModel.defaultBackgroundColorHex);
     });
 
     test('copyWith creates modified copy', () {

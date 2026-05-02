@@ -111,6 +111,7 @@ class CategoryRepository {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required CategoryType type,
     String? parentId,
     List<CategoryModel>? existingCategories,
@@ -146,6 +147,7 @@ class CategoryRepository {
       name: name,
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       type: type,
       parentId: parentId,
     );
@@ -164,6 +166,7 @@ class CategoryRepository {
     String? name,
     String? icon,
     String? color,
+    String? backgroundColor,
     int? sortOrder,
   }) async {
     final result = await _remoteDataSource.updateCategory(
@@ -171,6 +174,7 @@ class CategoryRepository {
       name: name,
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       sortOrder: sortOrder,
     );
 

@@ -2,9 +2,11 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/services/home_widget_service.dart';
 import 'package:app_saku_rapi/core/themes/app_colors.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
+import 'package:app_saku_rapi/features/wallet/repositories/wallet_repository.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_adjust_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_card_tile.dart';
 import 'package:app_saku_rapi/features/wallet/view/widgets/wallet_form_sheet.dart';
@@ -119,11 +121,24 @@ class _WalletPageState extends ConsumerState<WalletPage> {
           if (included.isNotEmpty) ...[
             _SectionHeader(title: l10n.walletIncludedSection),
             SizedBox(height: 8.h),
-            ...included.map(
-              (wallet) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: _buildWalletTile(wallet),
-              ),
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: included.length,
+              onReorder: (oldIndex, newIndex) =>
+                  _onIncludedReorder(oldIndex, newIndex, included),
+              itemBuilder: (context, index) {
+                final wallet = included[index];
+                return ReorderableDelayedDragStartListener(
+                  index: index,
+                  key: ValueKey(wallet.id),
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 8.h),
+                    child: _buildWalletTile(wallet),
+                  ),
+                );
+              },
             ),
           ],
 
@@ -142,6 +157,25 @@ class _WalletPageState extends ConsumerState<WalletPage> {
         ],
       ),
     );
+  }
+
+  void _onIncludedReorder(
+    int oldIndex,
+    int newIndex,
+    List<WalletModel> included,
+  ) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    final ordered = List<WalletModel>.from(included);
+    final item = ordered.removeAt(oldIndex);
+    ordered.insert(newIndex, item);
+    final repo = ref.read(walletRepositoryProvider);
+    repo.saveIncludedWalletDisplayOrder(ordered.map((w) => w.id).toList());
+    final merged = WalletRepository.mergeWalletsWithLocalIncludedOrder(
+      ref.read(walletControllerProvider).wallets,
+      repo.getIncludedWalletDisplayOrder(),
+    );
+    HomeWidgetService.syncWalletData(merged);
+    ref.read(walletIncludedOrderRevisionProvider.notifier).state++;
   }
 
   Widget _buildWalletTile(WalletModel wallet) {

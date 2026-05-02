@@ -107,9 +107,10 @@ class _BudgetRow extends StatelessWidget {
                 SakuCategoryIcon(
                   iconName: budget.category?.icon ?? 'circleQuestion',
                   color: parseHexColor(budget.category?.color ?? '#6B7280'),
+                  backgroundFill: parseHexColor(budget.category?.backgroundColor),
                   size: isParent ? 42 : 34,
                   iconSize: isParent ? 18 : 14,
-                  borderRadius: isParent ? 12 : 10,
+                  circular: true,
                 ),
                 SizedBox(width: 12.w),
 

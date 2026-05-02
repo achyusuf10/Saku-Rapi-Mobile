@@ -473,6 +473,7 @@ class _PeriodChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FilterChip(
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: Text(
         label,
         style: TextStyleConstants.label1.copyWith(

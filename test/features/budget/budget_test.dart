@@ -447,6 +447,7 @@ void main() {
         name: 'Cash',
         icon: 'wallet',
         color: '#33FF57',
+        backgroundColor: WalletModel.defaultBackgroundColorHex,
         balance: 1000000,
         initialBalance: 1000000,
         currency: 'IDR',

@@ -81,6 +81,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
             categoryName: category.name,
             categoryIcon: category.icon,
             categoryColor: category.color,
+            categoryBackgroundColor: category.backgroundColor,
           ),
         )
         .toList();
@@ -284,6 +285,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         categoryName: cat.name,
         categoryIcon: cat.icon,
         categoryColor: cat.color,
+        categoryBackgroundColor: cat.backgroundColor,
       );
     }
     final newItems = [...state.items, newItem];
@@ -310,6 +312,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
         categoryName: cat.name,
         categoryIcon: cat.icon,
         categoryColor: cat.color,
+        categoryBackgroundColor: cat.backgroundColor,
       );
     }
 

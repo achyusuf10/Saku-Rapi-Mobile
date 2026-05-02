@@ -98,6 +98,7 @@ void main() {
           name: 'Dompet',
           icon: 'wallet',
           color: '#111',
+          backgroundColor: WalletModel.defaultBackgroundColorHex,
           balance: 0,
           initialBalance: 0,
           currency: 'IDR',

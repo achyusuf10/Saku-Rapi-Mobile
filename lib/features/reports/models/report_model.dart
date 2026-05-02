@@ -6,6 +6,8 @@
 /// - [ReportDailyTrendModel]: tren harian untuk chart
 library;
 
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
+
 /// Ringkasan income vs expense untuk satu periode.
 class ReportPeriodSummaryModel {
   const ReportPeriodSummaryModel({
@@ -52,6 +54,7 @@ class ReportCategoryBreakdownModel {
     required this.categoryName,
     required this.categoryIcon,
     required this.categoryColor,
+    this.categoryBackgroundColor = kSakuDefaultIconBackgroundHex,
     required this.amount,
     this.parentId,
     this.transactionCount = 0,
@@ -62,6 +65,7 @@ class ReportCategoryBreakdownModel {
   final String categoryName;
   final String categoryIcon;
   final String categoryColor;
+  final String categoryBackgroundColor;
   final double amount;
   final String? parentId;
   final int transactionCount;
@@ -78,6 +82,9 @@ class ReportCategoryBreakdownModel {
       categoryName: map['category_name'] as String? ?? '-',
       categoryIcon: map['category_icon'] as String? ?? 'circle-question',
       categoryColor: map['category_color'] as String? ?? '#6B7280',
+      categoryBackgroundColor:
+          map['category_background_color'] as String? ??
+              kSakuDefaultIconBackgroundHex,
       amount: _toDouble(map['amount']),
       parentId: map['parent_id'] as String?,
       transactionCount: (map['tx_count'] as int?) ?? 0,
@@ -89,6 +96,7 @@ class ReportCategoryBreakdownModel {
     String? categoryName,
     String? categoryIcon,
     String? categoryColor,
+    String? categoryBackgroundColor,
     double? amount,
     String? parentId,
     int? transactionCount,
@@ -99,6 +107,8 @@ class ReportCategoryBreakdownModel {
       categoryName: categoryName ?? this.categoryName,
       categoryIcon: categoryIcon ?? this.categoryIcon,
       categoryColor: categoryColor ?? this.categoryColor,
+      categoryBackgroundColor:
+          categoryBackgroundColor ?? this.categoryBackgroundColor,
       amount: amount ?? this.amount,
       parentId: parentId ?? this.parentId,
       transactionCount: transactionCount ?? this.transactionCount,

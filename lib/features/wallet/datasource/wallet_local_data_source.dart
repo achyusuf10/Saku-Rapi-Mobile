@@ -8,6 +8,7 @@ import 'package:app_saku_rapi/utils/services/hive_services.dart';
 class WalletLocalDataSource {
   static const _tag = '[Wallet] [WalletLocalDataSource]';
   static const _cacheKey = 'cached_wallets';
+  static const _includedDisplayOrderKey = 'wallet_included_display_order';
 
   /// Simpan daftar wallet ke cache lokal.
   void cacheWallets(List<WalletModel> wallets) {
@@ -33,5 +34,32 @@ class WalletLocalDataSource {
   void clearWalletCache() {
     AppLogger.call('$_tag clearWalletCache');
     HiveService.delete(_cacheKey);
+  }
+
+  /// Urutan tampilan dompet "termasuk total" (hanya ID), persisten lokal.
+  /// Tidak ikut dihapus oleh [clearWalletCache] — preferensi per perangkat.
+  List<String> getIncludedWalletDisplayOrder() {
+    final raw = HiveService.get<String>(key: _includedDisplayOrderKey);
+    if (raw == null || raw.isEmpty) return const [];
+
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((e) => e.toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  void setIncludedWalletDisplayOrder(List<String> orderedWalletIds) {
+    AppLogger.call(
+      '$_tag setIncludedWalletDisplayOrder: ${orderedWalletIds.length} ids',
+    );
+    HiveService.set<String>(
+      key: _includedDisplayOrderKey,
+      data: jsonEncode(orderedWalletIds),
+    );
   }
 }

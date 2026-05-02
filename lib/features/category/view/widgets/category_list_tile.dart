@@ -97,7 +97,7 @@ class CategoryParentListTile extends StatelessWidget {
                     category.toIcon(
                       size: 42,
                       iconSize: 18,
-                      borderRadius: 11,
+                      circular: true,
                       useGradient: true,
                       colorOverride: category.isHidden
                           ? colors.textSecondary.withValues(alpha: 0.5)
@@ -294,7 +294,7 @@ class CategoryChildListTile extends StatelessWidget {
               category.toIcon(
                 size: 36,
                 iconSize: 14,
-                borderRadius: 8,
+                circular: true,
                 colorOverride: isEffectivelyHidden
                     ? colors.textSecondary.withValues(alpha: 0.5)
                     : null,

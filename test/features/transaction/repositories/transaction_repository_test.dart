@@ -58,6 +58,7 @@ WalletModel _wallet({
   name: name,
   icon: 'wallet',
   color: '#10B981',
+  backgroundColor: WalletModel.defaultBackgroundColorHex,
   balance: balance,
   initialBalance: balance,
   currency: 'IDR',

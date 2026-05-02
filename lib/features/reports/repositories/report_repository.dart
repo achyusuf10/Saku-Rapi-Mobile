@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/reports/datasource/report_remote_data_source.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 
@@ -92,6 +93,7 @@ class ReportRepository {
         categoryName: appContext?.l10n.reportOthersCategory ?? 'Lainnya',
         categoryIcon: 'ellipsis',
         categoryColor: '#9CA3AF',
+        categoryBackgroundColor: kSakuDefaultIconBackgroundHex,
         amount: restAmount,
         transactionCount: restCount,
         otherItems: rest,

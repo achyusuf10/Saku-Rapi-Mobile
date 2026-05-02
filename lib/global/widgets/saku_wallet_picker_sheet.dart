@@ -178,7 +178,7 @@ class SakuWalletPickerSheet extends ConsumerWidget {
                 walletState.status == WalletStatus.initial)
               const _WalletPickerShimmer()
             else
-              _buildWalletList(context, walletState.wallets),
+              _buildWalletList(context, ref.watch(walletListProvider)),
           ],
         ),
       ),
@@ -430,6 +430,7 @@ class _WalletPickerItem extends StatelessWidget {
             SakuCategoryIcon(
               iconName: wallet.icon,
               color: parseHexColor(wallet.color),
+              backgroundFill: parseHexColor(wallet.backgroundColor),
               size: 38,
               iconSize: 16,
               borderRadius: 10,

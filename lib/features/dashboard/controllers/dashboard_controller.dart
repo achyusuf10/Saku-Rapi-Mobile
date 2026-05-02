@@ -27,10 +27,10 @@ final dashboardControllerProvider =
       return DashboardController(repository, ref);
     });
 
-/// Provider computed: wallet included in total (reuses wallet state).
+/// Provider computed: semua wallet dengan urutan tampilan yang sama seperti
+/// [walletListProvider] (picker, filter, wallet page).
 final dashboardWalletsProvider = Provider<List<WalletModel>>((ref) {
-  final walletState = ref.watch(walletControllerProvider);
-  return walletState.wallets;
+  return ref.watch(walletListProvider);
 });
 
 /// Provider computed: total balance excluding `exclude_from_total` wallets.

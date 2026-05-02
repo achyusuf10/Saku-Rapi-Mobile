@@ -129,35 +129,55 @@ class AppColorScheme extends ThemeExtension<AppColorScheme> {
 
   /// Skema warna untuk **Dark Mode**.
   static const dark = AppColorScheme(
+    // ─────────────────────────────────────────────────────────────
+    // Brand & Accent Colors
+    // ─────────────────────────────────────────────────────────────
     primary: Color(
       0xFF34D399,
-    ), // Emerald 400 (Hijau terang agar 'pop up' di layar gelap)
-    primaryLight: Color(0xFF064E3B), // Emerald 900
-    primaryDark: Color(0xFFECFDF5), // Emerald 50
-    accent: Color(0xFFEAB308), // Yellow 500
-    background: Color(0xFF0F172A), // Slate 900
-    surface: Color(0xFF1E293B), // Slate 800
-    surfaceVariant: Color(0xFF334155), // Slate 700
-    border: Color(0xFF334155), // Slate 700
-    textPrimary: Color(0xFFF1F5F9), // Slate 100
-    textSecondary: Color(0xFF94A3B8), // Slate 400
-    // Semantic Colors
-    income: Color(0xFF6EE7B7), // Emerald 300
-    expense: Color(0xFFF87171),
-    transfer: Color(0xFF60A5FA),
-    debt: Color(0xFFFB923C),
-    loan: Color(0xFFC084FC),
-    warning: Color(0xFFEAB308),
-    error: Color(0xFFF87171),
+    ), // Emerald 400 (Hijau terang agar 'pop up' elegan)
+    primaryLight: Color(
+      0xFF064E3B,
+    ), // Emerald 900 (Hijau gelap untuk latar chip/badge)
+    primaryDark: Color(
+      0xFF6EE7B7,
+    ), // Emerald 300 (Hijau lebih terang untuk highlight)
+    accent: Color(
+      0xFFD4AF37,
+    ), // Premium Gold (Aksen mewah yang sangat cocok dengan hijau)
+    // ─────────────────────────────────────────────────────────────
+    // Background & Surfaces (Netral Grey / Charcoal - BUKAN biru/Slate)
+    // ─────────────────────────────────────────────────────────────
+    background: Color(
+      0xFF171717,
+    ), // Neutral 900 (Abu-abu gelap murni yang elegan)
+    surface: Color(
+      0xFF262626,
+    ), // Neutral 800 (Warna card/container agar terlihat menonjol)
+    surfaceVariant: Color(0xFF404040), // Neutral 700 (Warna input field)
+    border: Color(0xFF525252), // Neutral 600 (Garis pembatas yang soft)
+    // ─────────────────────────────────────────────────────────────
+    // Typography
+    // ─────────────────────────────────────────────────────────────
+    textPrimary: Color(
+      0xFFF5F5F5,
+    ), // Neutral 100 (Putih abu-abu agar nyaman di mata)
+    textSecondary: Color(0xFFA3A3A3), // Neutral 400 (Abu-abu sekunder)
     onPrimary: Color(
       0xFF022C22,
-    ), // Emerald 950 (Teks gelap/hitam di atas primary hijau terang)
-    success: Color(0xFF6EE7B7),
-    info: Color(0xFF60A5FA),
-  );
-  // ─────────────────────────────────────────────────────────────
-  // ThemeExtension overrides
-  // ─────────────────────────────────────────────────────────────
+    ), // Emerald 950 (Teks gelap di atas tombol primary hijau)
+    // ─────────────────────────────────────────────────────────────
+    // Semantic Colors
+    // ─────────────────────────────────────────────────────────────
+    income: Color(0xFF10B981), // Emerald 500
+    expense: Color(0xFFFB7185), // Rose 400 (Merah premium)
+    transfer: Color(0xFF60A5FA), // Blue 400
+    debt: Color(0xFFFB923C), // Orange 400
+    loan: Color(0xFFC084FC), // Purple 400
+    warning: Color(0xFFFBBF24), // Amber 400
+    error: Color(0xFFFB7185), // Rose 400
+    success: Color(0xFF34D399), // Emerald 400
+    info: Color(0xFF60A5FA), // Blue 400
+  ); // ─────────────────────────────────────────────────────────────
 
   @override
   AppColorScheme copyWith({

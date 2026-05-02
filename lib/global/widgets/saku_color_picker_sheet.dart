@@ -20,10 +20,17 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// );
 /// ```
 class SakuColorPickerSheet extends StatefulWidget {
-  const SakuColorPickerSheet({super.key, this.selectedColor});
+  const SakuColorPickerSheet({
+    super.key,
+    this.selectedColor,
+    this.customTabSupportsTransparency = false,
+  });
 
   /// Hex color yang sedang dipilih (untuk highlight).
   final String? selectedColor;
+
+  /// Tab **Kustom** (color wheel): dukung alpha + hex 8 digit.
+  final bool customTabSupportsTransparency;
 
   /// Daftar warna preset yang tersedia.
   static const List<String> availableColors = [
@@ -64,13 +71,17 @@ class SakuColorPickerSheet extends StatefulWidget {
     required BuildContext context,
     String? selectedColor,
     String? title,
+    bool customTabSupportsTransparency = false,
   }) {
     return showModalBottomSheet<String>(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => SakuColorPickerSheet(selectedColor: selectedColor),
+      builder: (_) => SakuColorPickerSheet(
+        selectedColor: selectedColor,
+        customTabSupportsTransparency: customTabSupportsTransparency,
+      ),
     );
   }
 
@@ -162,19 +173,28 @@ class _SakuColorPickerSheetState extends State<SakuColorPickerSheet> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SakuColorWheelPicker(
                       size: 1.sh / 4.2,
                       ringWidth: 18.w,
                       color: _wheelColor,
+                      isSupportTransparent:
+                          widget.customTabSupportsTransparency,
                       onColorChanged: (c) => setState(() => _wheelColor = c),
                     ),
                     SizedBox(height: 12.h),
                     SakuButton(
                       text: l10n.colorPickerSelectButton,
-                      onPressed: () =>
-                          Navigator.pop(context, _colorToHex(_wheelColor)),
+                      onPressed: () => Navigator.pop(
+                        context,
+                        _colorToHex(
+                          _wheelColor,
+                          includeAlpha:
+                              widget.customTabSupportsTransparency,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -300,15 +320,22 @@ Color _parseColor(String hexColor) {
   if (hex.length == 6) {
     return Color(int.parse('FF$hex', radix: 16));
   }
+  if (hex.length == 8) {
+    final v = int.tryParse(hex, radix: 16);
+    if (v != null) return Color(v);
+  }
   return const Color(0xFF6B7280);
 }
 
-String _colorToHex(Color color) {
+String _colorToHex(Color color, {required bool includeAlpha}) {
   final r = (color.r * 255.0).round().clamp(0, 255);
   final g = (color.g * 255.0).round().clamp(0, 255);
   final b = (color.b * 255.0).round().clamp(0, 255);
-  return '#${r.toRadixString(16).padLeft(2, '0')}'
-          '${g.toRadixString(16).padLeft(2, '0')}'
-          '${b.toRadixString(16).padLeft(2, '0')}'
-      .toUpperCase();
+  final rgb = '${r.toRadixString(16).padLeft(2, '0')}'
+      '${g.toRadixString(16).padLeft(2, '0')}'
+      '${b.toRadixString(16).padLeft(2, '0')}';
+  if (!includeAlpha) return '#$rgb'.toUpperCase();
+  final a = (color.a * 255.0).round().clamp(0, 255);
+  final aa = a.toRadixString(16).padLeft(2, '0');
+  return '#$aa$rgb'.toUpperCase();
 }

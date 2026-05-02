@@ -100,6 +100,7 @@ class SakuWalletPickerTile extends StatelessWidget {
               SakuCategoryIcon(
                 iconName: selected!.icon,
                 color: parseHexColor(selected!.color),
+                backgroundFill: parseHexColor(selected!.backgroundColor),
                 size: 42,
                 iconSize: 18,
                 borderRadius: 12,

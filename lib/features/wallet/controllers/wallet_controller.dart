@@ -12,6 +12,9 @@ final walletRepositoryProvider = Provider<WalletRepository>((ref) {
   return WalletRepository();
 });
 
+/// Counter untuk memaksa rebuild daftar wallet setelah urutan lokal berubah.
+final walletIncludedOrderRevisionProvider = StateProvider<int>((ref) => 0);
+
 /// Provider utama untuk [WalletController] — mengelola state wallet list.
 final walletControllerProvider =
     StateNotifierProvider<WalletController, WalletState>((ref) {
@@ -26,22 +29,32 @@ final walletTotalBalanceProvider = Provider<double>((ref) {
   return WalletRepository.calculateTotalBalance(state.wallets);
 });
 
-/// Provider computed: wallet yang termasuk dalam total.
-final includedWalletsProvider = Provider<List<WalletModel>>((ref) {
-  final state = ref.watch(walletControllerProvider);
-  return state.wallets.where((w) => !w.excludeFromTotal).toList();
-});
-
-/// Provider computed: wallet yang dikecualikan dari total.
-final excludedWalletsProvider = Provider<List<WalletModel>>((ref) {
-  final state = ref.watch(walletControllerProvider);
-  return state.wallets.where((w) => w.excludeFromTotal).toList();
-});
-
-/// Provider computed: semua wallet sebagai flat list (untuk picker).
+/// Provider computed: semua wallet dengan urutan tampilan (included mengikuti
+/// preferensi lokal, excluded di akhir). Dipakai picker, filter, form, dll.
 final walletListProvider = Provider<List<WalletModel>>((ref) {
+  ref.watch(walletIncludedOrderRevisionProvider);
   final state = ref.watch(walletControllerProvider);
-  return state.wallets;
+  final repo = ref.watch(walletRepositoryProvider);
+  if (state.status != WalletStatus.loaded || state.wallets.isEmpty) {
+    return state.wallets;
+  }
+  return WalletRepository.mergeWalletsWithLocalIncludedOrder(
+    state.wallets,
+    repo.getIncludedWalletDisplayOrder(),
+  );
+});
+
+/// Provider computed: wallet yang termasuk dalam total (sudah ter-urut).
+final includedWalletsProvider = Provider<List<WalletModel>>((ref) {
+  return ref
+      .watch(walletListProvider)
+      .where((w) => !w.excludeFromTotal)
+      .toList();
+});
+
+/// Provider computed: wallet yang dikecualikan dari total (sudah ter-urut).
+final excludedWalletsProvider = Provider<List<WalletModel>>((ref) {
+  return ref.watch(walletListProvider).where((w) => w.excludeFromTotal).toList();
 });
 
 // ───────────────── State ─────────────────
@@ -87,7 +100,11 @@ class WalletController extends StateNotifier<WalletState> {
   void _applyWallets(List<WalletModel> wallets) {
     state = state.copyWith(status: WalletStatus.loaded, wallets: wallets);
     _repository.cacheWalletList(wallets);
-    HomeWidgetService.syncWalletData(wallets);
+    final forDisplay = WalletRepository.mergeWalletsWithLocalIncludedOrder(
+      wallets,
+      _repository.getIncludedWalletDisplayOrder(),
+    );
+    HomeWidgetService.syncWalletData(forDisplay);
   }
 
   // ───────────────── LOAD ─────────────────
@@ -104,7 +121,11 @@ class WalletController extends StateNotifier<WalletState> {
         status: WalletStatus.loaded,
         wallets: wallets,
       );
-      HomeWidgetService.syncWalletData(wallets);
+      final forDisplay = WalletRepository.mergeWalletsWithLocalIncludedOrder(
+        wallets,
+        _repository.getIncludedWalletDisplayOrder(),
+      );
+      HomeWidgetService.syncWalletData(forDisplay);
     } else {
       final (message, _, _, _) = result.dataError()!;
       state = state.copyWith(status: WalletStatus.error, errorMessage: message);
@@ -119,6 +140,7 @@ class WalletController extends StateNotifier<WalletState> {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required double initialBalance,
     bool excludeFromTotal = false,
   }) async {
@@ -129,6 +151,7 @@ class WalletController extends StateNotifier<WalletState> {
       name: name,
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       initialBalance: initialBalance,
       excludeFromTotal: excludeFromTotal,
       sortOrder: sortOrder,
@@ -149,6 +172,7 @@ class WalletController extends StateNotifier<WalletState> {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required bool excludeFromTotal,
   }) async {
     final existing = state.wallets.where((w) => w.id == walletId).firstOrNull;
@@ -161,6 +185,7 @@ class WalletController extends StateNotifier<WalletState> {
       name: name,
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       excludeFromTotal: excludeFromTotal,
       sortOrder: existing.sortOrder,
       existing: existing,

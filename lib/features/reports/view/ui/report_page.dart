@@ -324,6 +324,7 @@ class _ReportCategorySectionState
         categoryName: cat.categoryName,
         categoryIcon: cat.categoryIcon,
         categoryColor: cat.categoryColor,
+        categoryBackgroundColor: cat.categoryBackgroundColor,
         startDate: start,
         endDate: end,
         type: type,

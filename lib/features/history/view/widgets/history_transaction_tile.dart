@@ -63,16 +63,8 @@ class HistoryTransactionTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
           child: Row(
             children: [
-              // ─── Category Icon ───
-              Container(
-                width: 42.w,
-                height: 42.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: typeColor.withValues(alpha: 0.1),
-                ),
-                child: Center(child: _buildIcon(transaction, typeColor)),
-              ),
+              // ─── Category / type icon (satu lingkaran; tidak kotak di dalam ring) ───
+              _buildLeadingIcon(context, transaction, typeColor),
               SizedBox(width: 12.w),
 
               // ─── Category Name + Note ───
@@ -244,13 +236,20 @@ class HistoryTransactionTile extends StatelessWidget {
         tx.type == TransactionTypeEnum.debt;
   }
 
-  Widget _buildIcon(TransactionModel tx, Color fallbackColor) {
+  Widget _buildLeadingIcon(
+    BuildContext context,
+    TransactionModel tx,
+    Color typeColor,
+  ) {
+    final glyphColor = _resolveIconColor(tx, context.colors);
     if (tx.categoryIcon != null) {
       return SakuCategoryIcon(
         iconName: tx.categoryIcon!,
-        color: fallbackColor,
-        size: 16,
-        showBackground: false,
+        color: glyphColor,
+        backgroundFill: parseHexColor(tx.categoryBackgroundColor),
+        size: 42,
+        iconSize: 17,
+        circular: true,
       );
     }
     final iconData = switch (tx.type) {
@@ -262,7 +261,17 @@ class HistoryTransactionTile extends StatelessWidget {
       TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
       TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
     };
-    return FaIcon(iconData, size: 16.w, color: fallbackColor);
+    return Container(
+      width: 42.w,
+      height: 42.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: typeColor.withValues(alpha: 0.1),
+      ),
+      child: Center(
+        child: FaIcon(iconData, size: 16.w, color: typeColor),
+      ),
+    );
   }
 
   /// Warna icon: prioritaskan categoryColor, fallback ke warna tipe transaksi.

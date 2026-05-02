@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
 /// Model data kategori dari tabel `public.categories` (plus `is_hidden` hasil
@@ -14,6 +15,7 @@ class CategoryModel {
     required this.name,
     required this.icon,
     required this.color,
+    this.backgroundColor = kSakuDefaultIconBackgroundHex,
     required this.type,
     this.parentId,
     this.isDefault = false,
@@ -38,6 +40,9 @@ class CategoryModel {
 
   /// Hex color string (misal: '#F59E0B').
   final String color;
+
+  /// Warna latar area icon (`background_color` di Supabase).
+  final String backgroundColor;
 
   /// Tipe kategori: income, expense, atau system.
   final CategoryType type;
@@ -77,6 +82,8 @@ class CategoryModel {
       name: map['name'] as String,
       icon: map['icon'] as String,
       color: map['color'] as String,
+      backgroundColor:
+          (map['background_color'] as String?) ?? kSakuDefaultIconBackgroundHex,
       type: CategoryType.fromString(map['type'] as String),
       parentId: map['parent_id'] as String?,
       isDefault: map['is_default'] as bool? ?? false,
@@ -107,6 +114,7 @@ class CategoryModel {
       'name': name,
       'icon': icon,
       'color': color,
+      'background_color': backgroundColor,
       'type': type.value,
       'parent_id': parentId,
       'is_default': isDefault,
@@ -132,6 +140,7 @@ class CategoryModel {
     String? name,
     String? icon,
     String? color,
+    String? backgroundColor,
     CategoryType? type,
     String? parentId,
     bool? isDefault,
@@ -147,6 +156,7 @@ class CategoryModel {
       name: name ?? this.name,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
       type: type ?? this.type,
       parentId: parentId ?? this.parentId,
       isDefault: isDefault ?? this.isDefault,

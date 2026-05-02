@@ -53,6 +53,7 @@ class WalletCardTile extends StatelessWidget {
                 SakuCategoryIcon(
                   iconName: wallet.icon,
                   color: parseHexColor(wallet.color),
+                  backgroundFill: parseHexColor(wallet.backgroundColor),
                   size: 42,
                   iconSize: 18,
                   borderRadius: 12,

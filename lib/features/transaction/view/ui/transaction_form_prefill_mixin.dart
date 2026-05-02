@@ -688,6 +688,7 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
             categoryName: cat.name,
             categoryIcon: cat.icon,
             categoryColor: cat.color,
+            categoryBackgroundColor: cat.backgroundColor,
           ),
         )
         .toList();

@@ -48,6 +48,7 @@
   "walletBalanceRequired": "Saldo tidak boleh kosong",
   "walletIcon": "Ikon",
   "walletColor": "Warna",
+  "walletBackground": "Latar",
   "walletExcludeFromTotal": "Kecualikan dari Total",
   "walletExcludeHint": "Saldo dompet ini tidak dihitung ke total",
   "walletSave": "Simpan",

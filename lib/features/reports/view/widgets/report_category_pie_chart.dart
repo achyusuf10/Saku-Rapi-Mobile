@@ -96,9 +96,10 @@ class ReportCategoryPieChart extends StatelessWidget {
                     SakuCategoryIcon(
                       iconName: cat.categoryIcon,
                       color: catColor,
+                      backgroundFill: parseHexColor(cat.categoryBackgroundColor),
                       size: 18,
                       iconSize: 9,
-                      borderRadius: 4,
+                      circular: true,
                     ),
                     SizedBox(width: 3.w),
                     Text(

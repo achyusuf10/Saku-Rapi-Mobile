@@ -7,7 +7,6 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/controllers/settlement_history_controller.dart';
 import 'package:app_saku_rapi/features/debt_loan/models/debt_loan_transaction_model.dart';
@@ -127,6 +126,28 @@ class TransactionDetailPage extends ConsumerWidget {
                   ),
                 ],
 
+                if (transaction.items.length > 1) ...[
+                  Divider(
+                    height: 1,
+                    color: colors.border.withValues(alpha: 0.5),
+                  ),
+                  _DetailSection(
+                    label: l10n.transactionCategory,
+                    value: transaction.items.first.categoryName ?? '-',
+                    icon: FontAwesomeIcons.layerGroup,
+                    leading: transaction.items.first.categoryIcon != null
+                        ? SakuCategoryIcon(
+                            iconName: transaction.items.first.categoryIcon!,
+                            color: colors.textSecondary,
+                            showBackground: false,
+                            size: 26,
+                            iconSize: 11,
+                            circular: true,
+                          )
+                        : null,
+                  ),
+                ],
+
                 Divider(height: 1, color: colors.border.withValues(alpha: 0.5)),
                 _DetailSection(
                   label: l10n.transactionDate,
@@ -197,12 +218,11 @@ class TransactionDetailPage extends ConsumerWidget {
                     leading: transaction.items.first.categoryIcon != null
                         ? SakuCategoryIcon(
                             iconName: transaction.items.first.categoryIcon!,
-                            color: parseHexColor(
-                              transaction.items.first.categoryColor ??
-                                  '#6B7280',
-                            ),
-                            size: 14,
+                            color: colors.textSecondary,
                             showBackground: false,
+                            size: 26,
+                            iconSize: 11,
+                            circular: true,
                           )
                         : null,
                   ),
@@ -610,54 +630,36 @@ class _ItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-
-    final iconColor = item.categoryColor != null
-        ? parseHexColor(item.categoryColor!)
-        : colors.textSecondary;
+    final label = item.itemName ?? item.categoryName ?? '-';
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (item.categoryIcon != null)
-            SakuCategoryIcon(
-              iconName: item.categoryIcon!,
-              color: iconColor,
-              size: 14,
-              showBackground: false,
-            )
-          else
-            FaIcon(
-              FontAwesomeIcons.layerGroup,
-              size: 14.w,
-              color: colors.textSecondary,
-            ),
-          SizedBox(width: 12.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.itemName ?? item.categoryName ?? '-',
-                  style: TextStyleConstants.b2.copyWith(
-                    color: colors.textPrimary,
-                  ),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyleConstants.b2.copyWith(
+                  color: colors.textPrimary,
                 ),
-                if (item.categoryName != null && item.itemName != null)
-                  Text(
-                    item.categoryName!,
-                    style: TextStyleConstants.label2.copyWith(
+                children: [
+                  TextSpan(text: label),
+                  TextSpan(
+                    text: ' -- ',
+                    style: TextStyleConstants.b2.copyWith(
                       color: colors.textSecondary,
                     ),
                   ),
-              ],
-            ),
-          ),
-          Text(
-            item.amount.toCurrency(),
-            style: TextStyleConstants.b2.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
+                  TextSpan(
+                    text: item.amount.toCurrency(),
+                    style: TextStyleConstants.b2.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -1051,4 +1053,3 @@ class _AttachmentSection extends StatelessWidget {
     showSakuImagePreview(context, networkUrl: url, heroTag: url);
   }
 }
-

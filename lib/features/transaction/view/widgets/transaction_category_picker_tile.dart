@@ -44,6 +44,8 @@ class TransactionCategoryPickerTile extends StatelessWidget {
         : null;
     final circleColor = categoryColor ?? iconColor;
 
+    final displayBgHex = category?.backgroundColor ?? item?.categoryBackgroundColor;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -55,24 +57,22 @@ class TransactionCategoryPickerTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
+            SizedBox(
               width: 40.w,
               height: 40.w,
-              decoration: BoxDecoration(
-                color: circleColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
               child: Center(
                 child: hasCategory && displayIcon != null
                     ? SakuCategoryIcon(
                         iconName: displayIcon,
                         color: circleColor,
-                        size: 16,
-                        showBackground: false,
+                        backgroundFill: parseHexColor(displayBgHex),
+                        size: 36,
+                        iconSize: 15,
+                        circular: true,
                       )
                     : FaIcon(
                         FontAwesomeIcons.layerGroup,
-                        size: 16.w,
+                        size: 20.w,
                         color: circleColor,
                       ),
               ),

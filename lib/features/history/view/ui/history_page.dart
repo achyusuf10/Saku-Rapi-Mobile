@@ -614,7 +614,30 @@ class _GroupHeader extends StatelessWidget {
         if (isByCategory && firstTransaction != null) ...[
           Builder(
             builder: (_) {
-              final iconColor = _resolveIconColor(firstTransaction!, colors);
+              final tx = firstTransaction!;
+              final iconColor = _resolveIconColor(tx, colors);
+              if (tx.categoryIcon != null) {
+                return SakuCategoryIcon(
+                  iconName: tx.categoryIcon!,
+                  color: iconColor,
+                  backgroundFill: parseHexColor(tx.categoryBackgroundColor),
+                  size: 36,
+                  iconSize: 14,
+                  circular: true,
+                );
+              }
+              final iconData = switch (tx.type) {
+                TransactionTypeEnum.income => FontAwesomeIcons.arrowTrendUp,
+                TransactionTypeEnum.expense => FontAwesomeIcons.arrowTrendDown,
+                TransactionTypeEnum.transfer =>
+                  FontAwesomeIcons.arrowRightArrowLeft,
+                TransactionTypeEnum.debt => FontAwesomeIcons.handHoldingDollar,
+                TransactionTypeEnum.loan => FontAwesomeIcons.handHoldingHand,
+                TransactionTypeEnum.adjustment =>
+                  FontAwesomeIcons.scaleBalanced,
+                TransactionTypeEnum.transferToAsset =>
+                  FontAwesomeIcons.chartLine,
+              };
               return Container(
                 width: 36.w,
                 height: 36.w,
@@ -623,7 +646,7 @@ class _GroupHeader extends StatelessWidget {
                   color: iconColor.withValues(alpha: 0.1),
                 ),
                 child: Center(
-                  child: _buildTxIcon(firstTransaction!, iconColor),
+                  child: FaIcon(iconData, size: 14.w, color: iconColor),
                 ),
               );
             },
@@ -660,27 +683,6 @@ class _GroupHeader extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildTxIcon(TransactionModel tx, Color fallbackColor) {
-    if (tx.categoryIcon != null) {
-      return SakuCategoryIcon(
-        iconName: tx.categoryIcon!,
-        color: fallbackColor,
-        size: 14,
-        showBackground: false,
-      );
-    }
-    final iconData = switch (tx.type) {
-      TransactionTypeEnum.income => FontAwesomeIcons.arrowTrendUp,
-      TransactionTypeEnum.expense => FontAwesomeIcons.arrowTrendDown,
-      TransactionTypeEnum.transfer => FontAwesomeIcons.arrowRightArrowLeft,
-      TransactionTypeEnum.debt => FontAwesomeIcons.handHoldingDollar,
-      TransactionTypeEnum.loan => FontAwesomeIcons.handHoldingHand,
-      TransactionTypeEnum.adjustment => FontAwesomeIcons.scaleBalanced,
-      TransactionTypeEnum.transferToAsset => FontAwesomeIcons.chartLine,
-    };
-    return FaIcon(iconData, size: 14.w, color: fallbackColor);
   }
 
   Color _resolveIconColor(TransactionModel tx, dynamic colors) {

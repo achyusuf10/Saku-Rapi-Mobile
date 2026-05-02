@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 
 /// Model data untuk wallet/dompet.
@@ -12,6 +13,7 @@ class WalletModel {
     required this.name,
     required this.icon,
     required this.color,
+    required this.backgroundColor,
     required this.balance,
     required this.initialBalance,
     required this.currency,
@@ -21,11 +23,17 @@ class WalletModel {
     this.updatedAt,
   });
 
+  /// Default hex untuk latar icon (abu-abu netral), selaras dengan DB default.
+  static const defaultBackgroundColorHex = kSakuDefaultIconBackgroundHex;
+
   final String id;
   final String userId;
   final String name;
   final String icon;
   final String color;
+
+  /// Warna latar area icon (`background_color` di Supabase).
+  final String backgroundColor;
 
   /// Saldo terkini — hanya berubah lewat trigger `update_wallet_balance`.
   final double balance;
@@ -52,6 +60,8 @@ class WalletModel {
       name: map['name'] as String,
       icon: map['icon'] as String,
       color: map['color'] as String,
+      backgroundColor:
+          (map['background_color'] as String?) ?? defaultBackgroundColorHex,
       balance: _toDouble(map['balance']),
       initialBalance: _toDouble(map['initial_balance']),
       currency: (map['currency'] as String?) ?? 'IDR',
@@ -79,6 +89,7 @@ class WalletModel {
       'name': name,
       'icon': icon,
       'color': color,
+      'background_color': backgroundColor,
       'balance': initialBalance,
       'initial_balance': initialBalance,
       'currency': currency,
@@ -93,6 +104,7 @@ class WalletModel {
       'name': name,
       'icon': icon,
       'color': color,
+      'background_color': backgroundColor,
       'exclude_from_total': excludeFromTotal,
       'sort_order': sortOrder,
     };
@@ -106,6 +118,7 @@ class WalletModel {
       'name': name,
       'icon': icon,
       'color': color,
+      'background_color': backgroundColor,
       'balance': balance,
       'initial_balance': initialBalance,
       'currency': currency,
@@ -122,6 +135,7 @@ class WalletModel {
     String? name,
     String? icon,
     String? color,
+    String? backgroundColor,
     double? balance,
     double? initialBalance,
     String? currency,
@@ -136,6 +150,7 @@ class WalletModel {
       name: name ?? this.name,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
       balance: balance ?? this.balance,
       initialBalance: initialBalance ?? this.initialBalance,
       currency: currency ?? this.currency,

@@ -27,6 +27,7 @@ class HomeWidgetService {
               'balance': w.balance,
               'icon': w.icon,
               'color': w.color,
+              'backgroundColor': w.backgroundColor,
               'excludeFromTotal': w.excludeFromTotal,
               'sortOrder': w.sortOrder,
             },

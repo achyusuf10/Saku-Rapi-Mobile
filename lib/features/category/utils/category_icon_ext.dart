@@ -16,14 +16,19 @@ extension CategoryModelIconExt on CategoryModel {
   /// Membuat [SakuCategoryIcon] dari CategoryModel ini.
   ///
   /// [colorOverride] — override warna dari model (misal: saat isHidden).
+  /// [backgroundFillOverride] — override latar (misal: preview form).
   SakuCategoryIcon toIcon({
     double size = 38,
     double? iconSize,
     double? borderRadius,
     bool showBackground = true,
     bool useGradient = false,
+    bool circular = false,
     Color? colorOverride,
+    Color? backgroundFillOverride,
   }) {
+    final bg =
+        backgroundFillOverride ?? parseHexColor(backgroundColor);
     return SakuCategoryIcon(
       iconName: icon,
       color: colorOverride ?? parseHexColor(color),
@@ -32,6 +37,8 @@ extension CategoryModelIconExt on CategoryModel {
       borderRadius: borderRadius,
       showBackground: showBackground,
       useGradient: useGradient,
+      backgroundFill: showBackground ? bg : null,
+      circular: circular,
     );
   }
 }

@@ -35,6 +35,7 @@ class TransactionModel {
     this.categoryName,
     this.categoryIcon,
     this.categoryColor,
+    this.categoryBackgroundColor,
     // Contact (hutang/piutang)
     this.contactId,
     this.contactName,
@@ -69,6 +70,7 @@ class TransactionModel {
   final String? categoryName;
   final String? categoryIcon;
   final String? categoryColor;
+  final String? categoryBackgroundColor;
 
   // ─── Contact joined fields (hutang/piutang) ───
   final String? contactId;
@@ -134,6 +136,8 @@ class TransactionModel {
       categoryName: items.isNotEmpty ? items.first.categoryName : null,
       categoryIcon: items.isNotEmpty ? items.first.categoryIcon : null,
       categoryColor: items.isNotEmpty ? items.first.categoryColor : null,
+      categoryBackgroundColor:
+          items.isNotEmpty ? items.first.categoryBackgroundColor : null,
       // Contact joined from contacts table
       contactId: _nestedString(map['contacts'], 'id'),
       contactName: _nestedString(map['contacts'], 'name'),
@@ -212,6 +216,7 @@ class TransactionModel {
     String? categoryName,
     String? categoryIcon,
     String? categoryColor,
+    String? categoryBackgroundColor,
     String? contactId,
     String? contactName,
     String? contactPhone,
@@ -243,6 +248,8 @@ class TransactionModel {
       categoryName: categoryName ?? this.categoryName,
       categoryIcon: categoryIcon ?? this.categoryIcon,
       categoryColor: categoryColor ?? this.categoryColor,
+      categoryBackgroundColor:
+          categoryBackgroundColor ?? this.categoryBackgroundColor,
       contactId: contactId ?? this.contactId,
       contactName: contactName ?? this.contactName,
       contactPhone: contactPhone ?? this.contactPhone,

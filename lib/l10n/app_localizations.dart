@@ -344,6 +344,12 @@ abstract class AppLocalizations {
   /// **'Warna'**
   String get walletColor;
 
+  /// No description provided for @walletBackground.
+  ///
+  /// In id, this message translates to:
+  /// **'Latar'**
+  String get walletBackground;
+
   /// No description provided for @walletExcludeFromTotal.
   ///
   /// In id, this message translates to:

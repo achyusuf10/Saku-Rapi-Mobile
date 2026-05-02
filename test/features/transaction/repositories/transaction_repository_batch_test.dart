@@ -19,6 +19,7 @@ void main() {
       name: 'A',
       icon: 'i',
       color: '#000',
+      backgroundColor: WalletModel.defaultBackgroundColorHex,
       balance: 0,
       initialBalance: 0,
       currency: 'IDR',

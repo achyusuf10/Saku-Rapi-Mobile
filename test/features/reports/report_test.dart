@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/reports/controllers/report_controller.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:app_saku_rapi/features/reports/repositories/report_repository.dart';
@@ -102,6 +103,10 @@ void main() {
       expect(model.categoryName, 'Transport');
       expect(model.categoryIcon, 'car');
       expect(model.categoryColor, '#3B82F6');
+      expect(
+        model.categoryBackgroundColor,
+        kSakuDefaultIconBackgroundHex,
+      );
       expect(model.amount, 150000);
       expect(model.parentId, 'parent-1');
       expect(model.transactionCount, 3);
@@ -114,6 +119,10 @@ void main() {
       expect(model.categoryName, '-');
       expect(model.categoryIcon, 'circle-question');
       expect(model.categoryColor, '#6B7280');
+      expect(
+        model.categoryBackgroundColor,
+        kSakuDefaultIconBackgroundHex,
+      );
       expect(model.amount, 0.0);
       expect(model.parentId, isNull);
       expect(model.transactionCount, 0);

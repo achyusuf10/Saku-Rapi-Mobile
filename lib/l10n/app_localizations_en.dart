@@ -134,6 +134,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletColor => 'Color';
 
   @override
+  String get walletBackground => 'Background';
+
+  @override
   String get walletExcludeFromTotal => 'Exclude from Total';
 
   @override

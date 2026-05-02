@@ -56,6 +56,7 @@ class WalletRepository {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required double initialBalance,
     bool excludeFromTotal = false,
     int sortOrder = 0,
@@ -96,6 +97,7 @@ class WalletRepository {
       name: name.trim(),
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       balance: initialBalance,
       initialBalance: initialBalance,
       currency: 'IDR',
@@ -118,6 +120,7 @@ class WalletRepository {
     required String name,
     required String icon,
     required String color,
+    required String backgroundColor,
     required bool excludeFromTotal,
     required int sortOrder,
     required WalletModel existing,
@@ -145,6 +148,7 @@ class WalletRepository {
       name: name.trim(),
       icon: icon,
       color: color,
+      backgroundColor: backgroundColor,
       excludeFromTotal: excludeFromTotal,
       sortOrder: sortOrder,
     );
@@ -220,6 +224,58 @@ class WalletRepository {
   /// Simpan list wallet langsung ke cache lokal (tanpa fetch remote).
   void cacheWalletList(List<WalletModel> wallets) {
     _local.cacheWallets(wallets);
+  }
+
+  List<String> getIncludedWalletDisplayOrder() {
+    return _local.getIncludedWalletDisplayOrder();
+  }
+
+  void saveIncludedWalletDisplayOrder(List<String> orderedIncludedWalletIds) {
+    _local.setIncludedWalletDisplayOrder(orderedIncludedWalletIds);
+  }
+
+  /// Gabungkan daftar wallet: yang `excludeFromTotal == false` mengikuti
+  /// [savedIncludedOrderIds] (by id, id yang tidak ada di list di-skip),
+  /// sisanya di akhir diurut [sortOrder] lalu nama. Wallet excluded tetap
+  /// di bagian akhir, diurut [sortOrder] lalu nama.
+  static List<WalletModel> mergeWalletsWithLocalIncludedOrder(
+    List<WalletModel> wallets,
+    List<String> savedIncludedOrderIds,
+  ) {
+    if (wallets.isEmpty) return wallets;
+
+    final byId = {for (final w in wallets) w.id: w};
+    final included = wallets.where((w) => !w.excludeFromTotal).toList();
+    final excluded = wallets.where((w) => w.excludeFromTotal).toList();
+
+    final includedIdSet = included.map((w) => w.id).toSet();
+    final orderedIncluded = <WalletModel>[];
+    final seen = <String>{};
+
+    for (final id in savedIncludedOrderIds) {
+      if (!includedIdSet.contains(id) || seen.contains(id)) continue;
+      final w = byId[id];
+      if (w != null) {
+        orderedIncluded.add(w);
+        seen.add(id);
+      }
+    }
+
+    final remainder = included.where((w) => !seen.contains(w.id)).toList()
+      ..sort((a, b) {
+        final c = a.sortOrder.compareTo(b.sortOrder);
+        if (c != 0) return c;
+        return a.name.compareTo(b.name);
+      });
+    orderedIncluded.addAll(remainder);
+
+    excluded.sort((a, b) {
+      final c = a.sortOrder.compareTo(b.sortOrder);
+      if (c != 0) return c;
+      return a.name.compareTo(b.name);
+    });
+
+    return [...orderedIncluded, ...excluded];
   }
 
   // ───────────────── PRIVATE ─────────────────

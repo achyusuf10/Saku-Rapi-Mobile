@@ -42,7 +42,7 @@ class DashboardRemoteDataSource {
               destination_wallet:wallets!transactions_destination_wallet_id_fkey(name),
               transaction_items(
                 *,
-                categories(name, icon, color)
+                categories(name, icon, color, background_color)
               )
             ''')
             .eq('user_id', _userId)
