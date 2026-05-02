@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/history/datasource/history_remote_data_source.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_grouped_list.dart';
 import 'package:app_saku_rapi/features/reports/models/report_category_transactions_argument.dart';
@@ -98,7 +99,14 @@ class _ReportCategoryTransactionsPageState
             ),
             SizedBox(width: 8.w),
             Flexible(
-              child: Text(arg.categoryName, overflow: TextOverflow.ellipsis),
+              child: Text(
+                resolvedCategoryDisplayName(
+                  l10n: l10n,
+                  rawName: arg.categoryName,
+                  ownership: arg.categoryOwnership,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
@@ -41,7 +42,9 @@ class AiParsePreviewCard extends ConsumerWidget {
     final matchedCategory = result.categoryId != null
         ? allCategories.where((c) => c.id == result.categoryId).firstOrNull
         : null;
-    final categoryMap = {for (final c in allCategories) c.id: c.name};
+    final categoryMap = {
+      for (final c in allCategories) c.id: c.displayTitle(l10n),
+    };
     final wallets = ref.read(walletListProvider);
     String resolveWallet(String id) =>
         wallets.where((w) => w.id == id).firstOrNull?.name ?? id;
@@ -124,19 +127,23 @@ class AiParsePreviewCard extends ConsumerWidget {
               rootSuggestedWalletId: result.suggestedWalletId,
             ),
             SizedBox(height: 8.h),
-            _AiPreviewProviderChip(colors: colors, label: result.provider ?? 'AI'),
+            _AiPreviewProviderChip(
+              colors: colors,
+              label: result.provider ?? 'AI',
+            ),
           ],
         ),
       );
     }
 
     final hasMultipleItems = result.items.length > 1;
-    final unifiedMultiItemCategory = hasMultipleItems &&
+    final unifiedMultiItemCategory =
+        hasMultipleItems &&
         (result.type == TransactionTypeEnum.expense ||
             result.type == TransactionTypeEnum.income);
-    final hasRootCategoryDisplay = matchedCategory != null ||
-        (result.categoryKeyword != null &&
-            result.categoryKeyword!.isNotEmpty);
+    final hasRootCategoryDisplay =
+        matchedCategory != null ||
+        (result.categoryKeyword != null && result.categoryKeyword!.isNotEmpty);
 
     final metaRows = <_PreviewDetailRow>[
       _PreviewDetailRow(
@@ -145,9 +152,7 @@ class AiParsePreviewCard extends ConsumerWidget {
         label: l10n.voicePreviewType,
         value: _typeLabel(result.type, l10n),
       ),
-      if (!hasMultipleItems &&
-          result.amount != null &&
-          result.amount! > 0)
+      if (!hasMultipleItems && result.amount != null && result.amount! > 0)
         _PreviewDetailRow(
           icon: FontAwesomeIcons.moneyBill,
           iconColor: colors.primary,
@@ -291,8 +296,8 @@ class AiParsePreviewCard extends ConsumerWidget {
                 categoryName: unifiedMultiItemCategory || hasRootCategoryDisplay
                     ? null
                     : (e.value.categoryId != null
-                        ? categoryMap[e.value.categoryId]
-                        : null),
+                          ? categoryMap[e.value.categoryId]
+                          : null),
               ),
             ),
             SizedBox(height: 6.h),
@@ -301,7 +306,9 @@ class AiParsePreviewCard extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: colors.accent.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: colors.accent.withValues(alpha: 0.14)),
+                border: Border.all(
+                  color: colors.accent.withValues(alpha: 0.14),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,7 +369,10 @@ class AiParsePreviewCard extends ConsumerWidget {
 
           // ── Provider badge ──
           SizedBox(height: hasMultipleItems ? 8.h : 10.h),
-          _AiPreviewProviderChip(colors: colors, label: result.provider ?? 'AI'),
+          _AiPreviewProviderChip(
+            colors: colors,
+            label: result.provider ?? 'AI',
+          ),
         ],
       ),
     );
@@ -423,10 +433,7 @@ class _PreviewDetailRow {
 
 /// Tabel dua kolom tanpa border: label + ikon kiri, nilai kanan.
 class _PreviewDetailTable extends StatelessWidget {
-  const _PreviewDetailTable({
-    required this.colors,
-    required this.rows,
-  });
+  const _PreviewDetailTable({required this.colors, required this.rows});
 
   final dynamic colors;
   final List<_PreviewDetailRow> rows;
@@ -436,17 +443,16 @@ class _PreviewDetailTable extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: 2.w),
       child: Table(
-        columnWidths: {
-          0: FlexColumnWidth(1.05),
-          1: FlexColumnWidth(1.35),
-        },
+        columnWidths: {0: FlexColumnWidth(1.05), 1: FlexColumnWidth(1.35)},
         defaultVerticalAlignment: TableCellVerticalAlignment.top,
         children: [
           for (var i = 0; i < rows.length; i++)
             TableRow(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: i < rows.length - 1 ? 8.h : 0),
+                  padding: EdgeInsets.only(
+                    bottom: i < rows.length - 1 ? 8.h : 0,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -454,7 +460,8 @@ class _PreviewDetailTable extends StatelessWidget {
                         padding: EdgeInsets.only(top: 1.h),
                         child: SizedBox(
                           width: 16.w,
-                          child: rows[i].leading ??
+                          child:
+                              rows[i].leading ??
                               FaIcon(
                                 rows[i].icon,
                                 size: 11.w,
@@ -500,10 +507,7 @@ class _PreviewDetailTable extends StatelessWidget {
 
 /// Chip kecil kanan bawah: nama provider AI (Voice / Text preview).
 class _AiPreviewProviderChip extends StatelessWidget {
-  const _AiPreviewProviderChip({
-    required this.colors,
-    required this.label,
-  });
+  const _AiPreviewProviderChip({required this.colors, required this.label});
 
   final dynamic colors;
   final String label;
@@ -517,9 +521,7 @@ class _AiPreviewProviderChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6.r),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.12),
-          ),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.12)),
         ),
         child: Text(
           label,

@@ -6,6 +6,7 @@ import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/global/widgets/saku_button.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
@@ -245,7 +246,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                               SizedBox(width: 8.w),
                               Flexible(
                                 child: Text(
-                                  p.name,
+                                  p.displayTitle(l10n),
                                   style: TextStyleConstants.b2,
                                   overflow: TextOverflow.ellipsis,
                                 ),

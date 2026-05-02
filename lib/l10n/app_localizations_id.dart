@@ -2967,6 +2967,195 @@ class AppLocalizationsId extends AppLocalizations {
   String get exportPdfDashboardSectionTitle => 'Dashboard & ringkasan harian';
 
   @override
+  String get catalogAdjustmentBalance => 'Penyesuaian Saldo';
+
+  @override
+  String get catalogTransferToAsset => 'Transfer ke Aset';
+
+  @override
+  String get catalogFoodDrinks => 'Makanan & Minuman';
+
+  @override
+  String get catalogCoffeeBeverages => 'Kopi & Minuman';
+
+  @override
+  String get catalogDeliveryTakeout => 'Delivery / Pesan Antar';
+
+  @override
+  String get catalogRestaurantCafe => 'Restoran & Kafe';
+
+  @override
+  String get catalogSnacksTreats => 'Jajan & Camilan';
+
+  @override
+  String get catalogHouseholdNeeds => 'Kebutuhan Rumah Tangga';
+
+  @override
+  String get catalogGroceriesPantry => 'Belanja Dapur / Bahan Makanan';
+
+  @override
+  String get catalogHomeSupplies => 'Perlengkapan Rumah';
+
+  @override
+  String get catalogDiningOutCasual => 'Makan di Luar / Jajan';
+
+  @override
+  String get catalogHealthFitness => 'Kesehatan & Kebugaran';
+
+  @override
+  String get catalogSportsGym => 'Olahraga / Gym';
+
+  @override
+  String get catalogSupplementsNutrition => 'Suplemen & Nutrisi';
+
+  @override
+  String get catalogMedicalDoctorMeds => 'Medis / Dokter / Obat';
+
+  @override
+  String get catalogMentalHealthTherapy => 'Kesehatan Mental / Terapi';
+
+  @override
+  String get catalogTransportation => 'Transportasi';
+
+  @override
+  String get catalogFuel => 'Bensin';
+
+  @override
+  String get catalogTolls => 'Tol';
+
+  @override
+  String get catalogParking => 'Parkir';
+
+  @override
+  String get catalogPublicTransit => 'Transportasi Umum';
+
+  @override
+  String get catalogRideHailing => 'Ojol';
+
+  @override
+  String get catalogVehicleService => 'Servis Kendaraan';
+
+  @override
+  String get catalogBillsObligations => 'Tagihan & Kewajiban';
+
+  @override
+  String get catalogElectricityWater => 'Listrik & Air';
+
+  @override
+  String get catalogInternetMobile => 'Internet & Pulsa';
+
+  @override
+  String get catalogInstallmentsInsurance => 'Cicilan / Asuransi';
+
+  @override
+  String get catalogHomeRent => 'Sewa Rumah';
+
+  @override
+  String get catalogMortgage => 'KPR';
+
+  @override
+  String get catalogTechEducation => 'Teknologi & Edukasi';
+
+  @override
+  String get catalogDigitalSubscriptions => 'Langganan Digital';
+
+  @override
+  String get catalogCourses => 'Kursus';
+
+  @override
+  String get catalogBooks => 'Buku';
+
+  @override
+  String get catalogServersHosting => 'Server & Hosting';
+
+  @override
+  String get catalogFamilySocial => 'Keluarga & Sosial';
+
+  @override
+  String get catalogPartnerHouseholdNeeds => 'Kebutuhan Pasangan';
+
+  @override
+  String get catalogEventsDonations => 'Kondangan / Donasi';
+
+  @override
+  String get catalogHangoutsSocial => 'Nongkrong & Sosial';
+
+  @override
+  String get catalogPets => 'Hewan Peliharaan';
+
+  @override
+  String get catalogMiscOthers => 'Lain-lain';
+
+  @override
+  String get catalogFeesTaxRounding => 'Biaya Admin / Pajak / Selisih';
+
+  @override
+  String get catalogUnexpectedExpense => 'Pengeluaran Tak Terduga';
+
+  @override
+  String get catalogUnknown => 'Tidak Diketahui';
+
+  @override
+  String get catalogShoppingFashion => 'Belanja & Fashion';
+
+  @override
+  String get catalogClothingAccessories => 'Pakaian & Aksesori';
+
+  @override
+  String get catalogShoesBags => 'Sepatu & Tas';
+
+  @override
+  String get catalogCosmeticsSkincare => 'Kosmetik & Skincare';
+
+  @override
+  String get catalogSalonPersonalCare => 'Salon & Perawatan Diri';
+
+  @override
+  String get catalogEntertainmentHobbies => 'Hiburan & Hobi';
+
+  @override
+  String get catalogMoviesConcerts => 'Bioskop & Konser';
+
+  @override
+  String get catalogGamesGaming => 'Game & Gaming';
+
+  @override
+  String get catalogHobbiesCollecting => 'Hobi & Koleksi';
+
+  @override
+  String get catalogTravelLeisure => 'Liburan & Wisata';
+
+  @override
+  String get catalogSalaryPrimaryIncome => 'Gaji & Pendapatan Utama';
+
+  @override
+  String get catalogMonthlySalary => 'Gaji Bulanan';
+
+  @override
+  String get catalogBonusHolidayPay => 'Bonus / THR';
+
+  @override
+  String get catalogAdditionalIncome => 'Pendapatan Tambahan';
+
+  @override
+  String get catalogFreelanceSideJobs => 'Pekerjaan Sampingan / Freelance';
+
+  @override
+  String get catalogInvestmentDividends => 'Hasil Investasi / Dividen';
+
+  @override
+  String get catalogWithdrawalsRedemptions => 'Pencairan Dana';
+
+  @override
+  String get catalogCashbackRewards => 'Cashback & Reward';
+
+  @override
+  String get catalogSalesGoodsAssets => 'Penjualan Barang / Aset';
+
+  @override
+  String get catalogGiftsReceived => 'Hadiah / Pemberian';
+
+  @override
   String get exitWithoutSavingTitle => 'Keluar tanpa menyimpan?';
 
   @override

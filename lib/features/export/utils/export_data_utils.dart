@@ -1,6 +1,8 @@
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 /// Utilitas murni untuk agregasi dan teks export Excel (dapat diuji unit).
@@ -8,7 +10,10 @@ final class ExportDataUtils {
   ExportDataUtils._();
 
   /// Gabungan nama kategori unik dari item, urut [TransactionItemModel.sortOrder].
-  static String combinedCategoryNames(TransactionModel t) {
+  static String combinedCategoryNames(
+    TransactionModel t, {
+    AppLocalizations? l10n,
+  }) {
     if (t.items.isEmpty) return '-';
     final sorted = List<TransactionItemModel>.from(t.items)
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
@@ -17,7 +22,16 @@ final class ExportDataUtils {
     for (final e in sorted) {
       final n = e.categoryName?.trim();
       if (n == null || n.isEmpty) continue;
-      if (seen.add(n)) ordered.add(n);
+      if (!seen.add(n)) continue;
+      ordered.add(
+        l10n != null
+            ? resolvedCategoryDisplayName(
+                l10n: l10n,
+                rawName: n,
+                ownership: e.categoryOwnership,
+              )
+            : n,
+      );
     }
     if (ordered.isEmpty) return '-';
     return ordered.join('; ');
@@ -86,16 +100,10 @@ final class ExportDataUtils {
       final cur = map[day] ?? (income: 0.0, expense: 0.0);
       switch (t.type) {
         case TransactionTypeEnum.income:
-          map[day] = (
-            income: cur.income + t.totalAmount,
-            expense: cur.expense,
-          );
+          map[day] = (income: cur.income + t.totalAmount, expense: cur.expense);
           break;
         case TransactionTypeEnum.expense:
-          map[day] = (
-            income: cur.income,
-            expense: cur.expense + t.totalAmount,
-          );
+          map[day] = (income: cur.income, expense: cur.expense + t.totalAmount);
           break;
         default:
           break;

@@ -636,7 +636,7 @@ final class ExportPdfService {
       row.cells[2].value = t.type == TransactionTypeEnum.income
           ? l10n.transactionIncome
           : l10n.transactionExpense;
-      row.cells[3].value = ExportDataUtils.combinedCategoryNames(t);
+      row.cells[3].value = ExportDataUtils.combinedCategoryNames(t, l10n: l10n);
       row.cells[4].value = ExportDataUtils.combinedNoteForRow(
         t,
         localeName: localeName,

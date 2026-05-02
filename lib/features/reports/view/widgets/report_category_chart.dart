@@ -1,9 +1,12 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
+import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -27,6 +30,8 @@ class ReportCategoryChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (categories.isEmpty) return SizedBox(height: 100.h);
 
+    final l10n = context.l10n;
+
     return Column(
       children: [
         for (int i = 0; i < categories.length; i++) ...[
@@ -34,6 +39,7 @@ class ReportCategoryChart extends StatelessWidget {
           _CategoryRow(
             category: categories[i],
             total: total,
+            l10n: l10n,
             isExpanded: categories[i].categoryId == '__others__'
                 ? isOthersExpanded
                 : false,
@@ -51,18 +57,21 @@ class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.category,
     required this.total,
+    required this.l10n,
     this.onTap,
     this.isExpanded = false,
   });
 
   final ReportCategoryBreakdownModel category;
   final double total;
+  final AppLocalizations l10n;
   final VoidCallback? onTap;
   final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = context.l10n;
     final ratio = category.ratioOf(total);
     final percent = (ratio * 100).toStringAsFixed(1);
     final catColor = parseHexColor(category.categoryColor);
@@ -91,7 +100,11 @@ class _CategoryRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        category.categoryName,
+                        resolvedCategoryDisplayName(
+                          l10n: l10n,
+                          rawName: category.categoryName,
+                          ownership: category.categoryOwnership,
+                        ),
                         style: TextStyleConstants.label2.copyWith(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.w500,

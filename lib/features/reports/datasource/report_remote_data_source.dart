@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -108,7 +109,7 @@ class ReportRemoteDataSource {
               transaction_items(
                 amount,
                 category_id,
-                categories(name, icon, color, background_color, parent_id)
+                categories(name, icon, color, background_color, parent_id, user_id)
               )
             ''')
             .eq('user_id', _userId)
@@ -135,6 +136,8 @@ class ReportRemoteDataSource {
             final amount = _toDouble(item['amount']);
             final cat = item['categories'] as Map<String, dynamic>?;
 
+            final ownership = categoryOwnershipFromJoinedRow(cat);
+
             if (aggMap.containsKey(catId)) {
               aggMap[catId]!.amount += amount;
               aggMap[catId]!.count += 1;
@@ -146,8 +149,9 @@ class ReportRemoteDataSource {
                 categoryColor: cat?['color'] as String? ?? '#6B7280',
                 categoryBackgroundColor:
                     cat?['background_color'] as String? ??
-                        kSakuDefaultIconBackgroundHex,
+                    kSakuDefaultIconBackgroundHex,
                 parentId: cat?['parent_id'] as String?,
+                categoryOwnership: ownership,
                 amount: amount,
                 count: 1,
               );
@@ -166,6 +170,7 @@ class ReportRemoteDataSource {
                 amount: a.amount,
                 parentId: a.parentId,
                 transactionCount: a.count,
+                categoryOwnership: a.categoryOwnership,
               ),
             )
             .toList();
@@ -263,6 +268,7 @@ class _CategoryAgg {
     required this.categoryColor,
     required this.categoryBackgroundColor,
     this.parentId,
+    required this.categoryOwnership,
     required this.amount,
     required this.count,
   });
@@ -273,6 +279,7 @@ class _CategoryAgg {
   final String categoryColor;
   final String categoryBackgroundColor;
   final String? parentId;
+  final CategoryOwnership categoryOwnership;
   double amount;
   int count;
 }

@@ -17,6 +17,7 @@ import 'package:app_saku_rapi/features/history/controllers/history_controller.da
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/wallet/controllers/wallet_controller.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/saku_image_preview_dialog.dart';
@@ -133,7 +134,16 @@ class TransactionDetailPage extends ConsumerWidget {
                   ),
                   _DetailSection(
                     label: l10n.transactionCategory,
-                    value: transaction.items.first.categoryName ?? '-',
+                    value: () {
+                      final i = transaction.items.first;
+                      final n = i.categoryName;
+                      if (n == null) return '-';
+                      return resolvedCategoryDisplayName(
+                        l10n: l10n,
+                        rawName: n,
+                        ownership: i.categoryOwnership,
+                      );
+                    }(),
                     icon: FontAwesomeIcons.layerGroup,
                     leading: transaction.items.first.categoryIcon != null
                         ? SakuCategoryIcon(
@@ -213,7 +223,16 @@ class TransactionDetailPage extends ConsumerWidget {
                   ),
                   _DetailSection(
                     label: l10n.transactionCategory,
-                    value: transaction.items.first.categoryName ?? '-',
+                    value: () {
+                      final i = transaction.items.first;
+                      final n = i.categoryName;
+                      if (n == null) return '-';
+                      return resolvedCategoryDisplayName(
+                        l10n: l10n,
+                        rawName: n,
+                        ownership: i.categoryOwnership,
+                      );
+                    }(),
                     icon: FontAwesomeIcons.layerGroup,
                     leading: transaction.items.first.categoryIcon != null
                         ? SakuCategoryIcon(
@@ -630,7 +649,16 @@ class _ItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final label = item.itemName ?? item.categoryName ?? '-';
+    final l10n = context.l10n;
+    final rawCat = item.categoryName;
+    final label = item.itemName ??
+        (rawCat != null
+            ? resolvedCategoryDisplayName(
+                l10n: l10n,
+                rawName: rawCat,
+                ownership: item.categoryOwnership,
+              )
+            : '-');
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6.h),

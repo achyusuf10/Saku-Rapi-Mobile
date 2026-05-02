@@ -5,6 +5,7 @@ import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/saku_date_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:app_saku_rapi/features/category/view/widgets/category_picker_sheet.dart';
 import 'package:app_saku_rapi/features/wallet/models/wallet_model.dart';
@@ -330,7 +331,9 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
               iconSize: 16,
               borderRadius: 10,
             ),
-            title: _pickedCategory?.name ?? l10n.budgetFormCategorySelect,
+            title:
+                _pickedCategory?.displayTitle(l10n) ??
+                l10n.budgetFormCategorySelect,
             titleColor: _pickedCategory != null
                 ? colors.textPrimary
                 : colors.textSecondary,

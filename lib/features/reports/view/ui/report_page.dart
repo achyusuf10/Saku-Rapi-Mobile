@@ -14,6 +14,7 @@ import 'package:app_saku_rapi/features/reports/view/widgets/report_category_pie_
 import 'package:app_saku_rapi/features/reports/view/widgets/report_shimmer.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_summary_card.dart';
 import 'package:app_saku_rapi/features/reports/view/widgets/report_trend_chart.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/global/widgets/saku_card.dart';
 import 'package:app_saku_rapi/global/widgets/saku_empty_state.dart';
 import 'package:app_saku_rapi/global/widgets/saku_error_state.dart';
@@ -21,6 +22,7 @@ import 'package:app_saku_rapi/global/widgets/saku_loading_indicator.dart';
 import 'package:app_saku_rapi/global/widgets/saku_period_selector.dart';
 import 'package:app_saku_rapi/global/widgets/saku_sub_period_tabs.dart';
 import 'package:app_saku_rapi/global/widgets/saku_wallet_filter_button.dart';
+import 'package:app_saku_rapi/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -329,6 +331,7 @@ class _ReportCategorySectionState
         endDate: end,
         type: type,
         walletId: state.walletId,
+        categoryOwnership: cat.categoryOwnership,
       ),
     );
   }
@@ -598,7 +601,7 @@ class _ReportInsightSection extends ConsumerWidget {
   }
 
   List<_InsightData> _buildInsights({
-    required dynamic l10n,
+    required AppLocalizations l10n,
     required dynamic colors,
     required ReportPeriodSummaryModel summary,
     required ReportPeriodSummaryModel previousSummary,
@@ -635,7 +638,7 @@ class _ReportInsightSection extends ConsumerWidget {
   }
 
   _InsightData? _ratioInsight(
-    dynamic l10n,
+    AppLocalizations l10n,
     dynamic colors,
     ReportPeriodSummaryModel summary,
   ) {
@@ -682,7 +685,7 @@ class _ReportInsightSection extends ConsumerWidget {
   }
 
   _InsightData? _trendInsight(
-    dynamic l10n,
+    AppLocalizations l10n,
     dynamic colors,
     ReportPeriodSummaryModel summary,
     ReportPeriodSummaryModel previousSummary,
@@ -732,7 +735,11 @@ class _ReportInsightSection extends ConsumerWidget {
           message: l10n.reportInsightTrendUpBig(
             absDiff,
             absPercent,
-            categories.first.categoryName,
+            resolvedCategoryDisplayName(
+              l10n: l10n,
+              rawName: categories.first.categoryName,
+              ownership: categories.first.categoryOwnership,
+            ),
           ),
         );
       }
@@ -745,7 +752,7 @@ class _ReportInsightSection extends ConsumerWidget {
   }
 
   _InsightData? _categoryInsight(
-    dynamic l10n,
+    AppLocalizations l10n,
     dynamic colors,
     List<ReportCategoryBreakdownModel> categories,
     ReportPeriodSummaryModel summary,
@@ -764,7 +771,11 @@ class _ReportInsightSection extends ConsumerWidget {
       icon: FontAwesomeIcons.chartPie,
       color: colors.warning as Color,
       message: l10n.reportInsightCategoryDominant(
-        top.categoryName,
+        resolvedCategoryDisplayName(
+          l10n: l10n,
+          rawName: top.categoryName,
+          ownership: top.categoryOwnership,
+        ),
         percentStr,
         amountStr,
       ),
@@ -772,7 +783,7 @@ class _ReportInsightSection extends ConsumerWidget {
   }
 
   _InsightData? _peakDayInsight(
-    dynamic l10n,
+    AppLocalizations l10n,
     dynamic colors,
     List<ReportDailyTrendModel> dailyTrend,
     ReportPeriodSummaryModel summary,

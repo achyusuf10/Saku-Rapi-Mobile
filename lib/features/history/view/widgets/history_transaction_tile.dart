@@ -6,6 +6,8 @@ import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/history/models/history_models.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
@@ -193,7 +195,16 @@ class HistoryTransactionTile extends StatelessWidget {
 
   String _titleForTransaction(TransactionModel tx, BuildContext context) {
     final l10n = context.l10n;
-    if (tx.categoryName != null) return tx.categoryName!;
+    if (tx.categoryName != null) {
+      final ownership = tx.items.isNotEmpty
+          ? tx.items.first.categoryOwnership
+          : CategoryOwnership.unknown;
+      return resolvedCategoryDisplayName(
+        l10n: l10n,
+        rawName: tx.categoryName!,
+        ownership: ownership,
+      );
+    }
     if (tx.merchantName != null) return tx.merchantName!;
 
     final person = tx.withPerson;

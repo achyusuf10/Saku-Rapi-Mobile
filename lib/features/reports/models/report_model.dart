@@ -7,6 +7,7 @@
 library;
 
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
 
 /// Ringkasan income vs expense untuk satu periode.
 class ReportPeriodSummaryModel {
@@ -59,6 +60,7 @@ class ReportCategoryBreakdownModel {
     this.parentId,
     this.transactionCount = 0,
     this.otherItems = const [],
+    this.categoryOwnership = CategoryOwnership.unknown,
   });
 
   final String categoryId;
@@ -69,6 +71,9 @@ class ReportCategoryBreakdownModel {
   final double amount;
   final String? parentId;
   final int transactionCount;
+
+  /// Dari join `categories.user_id` — untuk nama tampilan terlokalisasi.
+  final CategoryOwnership categoryOwnership;
 
   /// Isi dari bucket "Lainnya". Hanya terisi jika [categoryId] == '__others__'.
   final List<ReportCategoryBreakdownModel> otherItems;
@@ -88,6 +93,7 @@ class ReportCategoryBreakdownModel {
       amount: _toDouble(map['amount']),
       parentId: map['parent_id'] as String?,
       transactionCount: (map['tx_count'] as int?) ?? 0,
+      categoryOwnership: CategoryOwnership.unknown,
     );
   }
 
@@ -101,6 +107,7 @@ class ReportCategoryBreakdownModel {
     String? parentId,
     int? transactionCount,
     List<ReportCategoryBreakdownModel>? otherItems,
+    CategoryOwnership? categoryOwnership,
   }) {
     return ReportCategoryBreakdownModel(
       categoryId: categoryId ?? this.categoryId,
@@ -113,6 +120,7 @@ class ReportCategoryBreakdownModel {
       parentId: parentId ?? this.parentId,
       transactionCount: transactionCount ?? this.transactionCount,
       otherItems: otherItems ?? this.otherItems,
+      categoryOwnership: categoryOwnership ?? this.categoryOwnership,
     );
   }
 }

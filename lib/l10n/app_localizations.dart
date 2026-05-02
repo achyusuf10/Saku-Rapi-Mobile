@@ -5515,6 +5515,384 @@ abstract class AppLocalizations {
   /// **'Dashboard & ringkasan harian'**
   String get exportPdfDashboardSectionTitle;
 
+  /// No description provided for @catalogAdjustmentBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Penyesuaian Saldo'**
+  String get catalogAdjustmentBalance;
+
+  /// No description provided for @catalogTransferToAsset.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer ke Aset'**
+  String get catalogTransferToAsset;
+
+  /// No description provided for @catalogFoodDrinks.
+  ///
+  /// In id, this message translates to:
+  /// **'Makanan & Minuman'**
+  String get catalogFoodDrinks;
+
+  /// No description provided for @catalogCoffeeBeverages.
+  ///
+  /// In id, this message translates to:
+  /// **'Kopi & Minuman'**
+  String get catalogCoffeeBeverages;
+
+  /// No description provided for @catalogDeliveryTakeout.
+  ///
+  /// In id, this message translates to:
+  /// **'Delivery / Pesan Antar'**
+  String get catalogDeliveryTakeout;
+
+  /// No description provided for @catalogRestaurantCafe.
+  ///
+  /// In id, this message translates to:
+  /// **'Restoran & Kafe'**
+  String get catalogRestaurantCafe;
+
+  /// No description provided for @catalogSnacksTreats.
+  ///
+  /// In id, this message translates to:
+  /// **'Jajan & Camilan'**
+  String get catalogSnacksTreats;
+
+  /// No description provided for @catalogHouseholdNeeds.
+  ///
+  /// In id, this message translates to:
+  /// **'Kebutuhan Rumah Tangga'**
+  String get catalogHouseholdNeeds;
+
+  /// No description provided for @catalogGroceriesPantry.
+  ///
+  /// In id, this message translates to:
+  /// **'Belanja Dapur / Bahan Makanan'**
+  String get catalogGroceriesPantry;
+
+  /// No description provided for @catalogHomeSupplies.
+  ///
+  /// In id, this message translates to:
+  /// **'Perlengkapan Rumah'**
+  String get catalogHomeSupplies;
+
+  /// No description provided for @catalogDiningOutCasual.
+  ///
+  /// In id, this message translates to:
+  /// **'Makan di Luar / Jajan'**
+  String get catalogDiningOutCasual;
+
+  /// No description provided for @catalogHealthFitness.
+  ///
+  /// In id, this message translates to:
+  /// **'Kesehatan & Kebugaran'**
+  String get catalogHealthFitness;
+
+  /// No description provided for @catalogSportsGym.
+  ///
+  /// In id, this message translates to:
+  /// **'Olahraga / Gym'**
+  String get catalogSportsGym;
+
+  /// No description provided for @catalogSupplementsNutrition.
+  ///
+  /// In id, this message translates to:
+  /// **'Suplemen & Nutrisi'**
+  String get catalogSupplementsNutrition;
+
+  /// No description provided for @catalogMedicalDoctorMeds.
+  ///
+  /// In id, this message translates to:
+  /// **'Medis / Dokter / Obat'**
+  String get catalogMedicalDoctorMeds;
+
+  /// No description provided for @catalogMentalHealthTherapy.
+  ///
+  /// In id, this message translates to:
+  /// **'Kesehatan Mental / Terapi'**
+  String get catalogMentalHealthTherapy;
+
+  /// No description provided for @catalogTransportation.
+  ///
+  /// In id, this message translates to:
+  /// **'Transportasi'**
+  String get catalogTransportation;
+
+  /// No description provided for @catalogFuel.
+  ///
+  /// In id, this message translates to:
+  /// **'Bensin'**
+  String get catalogFuel;
+
+  /// No description provided for @catalogTolls.
+  ///
+  /// In id, this message translates to:
+  /// **'Tol'**
+  String get catalogTolls;
+
+  /// No description provided for @catalogParking.
+  ///
+  /// In id, this message translates to:
+  /// **'Parkir'**
+  String get catalogParking;
+
+  /// No description provided for @catalogPublicTransit.
+  ///
+  /// In id, this message translates to:
+  /// **'Transportasi Umum'**
+  String get catalogPublicTransit;
+
+  /// No description provided for @catalogRideHailing.
+  ///
+  /// In id, this message translates to:
+  /// **'Ojol'**
+  String get catalogRideHailing;
+
+  /// No description provided for @catalogVehicleService.
+  ///
+  /// In id, this message translates to:
+  /// **'Servis Kendaraan'**
+  String get catalogVehicleService;
+
+  /// No description provided for @catalogBillsObligations.
+  ///
+  /// In id, this message translates to:
+  /// **'Tagihan & Kewajiban'**
+  String get catalogBillsObligations;
+
+  /// No description provided for @catalogElectricityWater.
+  ///
+  /// In id, this message translates to:
+  /// **'Listrik & Air'**
+  String get catalogElectricityWater;
+
+  /// No description provided for @catalogInternetMobile.
+  ///
+  /// In id, this message translates to:
+  /// **'Internet & Pulsa'**
+  String get catalogInternetMobile;
+
+  /// No description provided for @catalogInstallmentsInsurance.
+  ///
+  /// In id, this message translates to:
+  /// **'Cicilan / Asuransi'**
+  String get catalogInstallmentsInsurance;
+
+  /// No description provided for @catalogHomeRent.
+  ///
+  /// In id, this message translates to:
+  /// **'Sewa Rumah'**
+  String get catalogHomeRent;
+
+  /// No description provided for @catalogMortgage.
+  ///
+  /// In id, this message translates to:
+  /// **'KPR'**
+  String get catalogMortgage;
+
+  /// No description provided for @catalogTechEducation.
+  ///
+  /// In id, this message translates to:
+  /// **'Teknologi & Edukasi'**
+  String get catalogTechEducation;
+
+  /// No description provided for @catalogDigitalSubscriptions.
+  ///
+  /// In id, this message translates to:
+  /// **'Langganan Digital'**
+  String get catalogDigitalSubscriptions;
+
+  /// No description provided for @catalogCourses.
+  ///
+  /// In id, this message translates to:
+  /// **'Kursus'**
+  String get catalogCourses;
+
+  /// No description provided for @catalogBooks.
+  ///
+  /// In id, this message translates to:
+  /// **'Buku'**
+  String get catalogBooks;
+
+  /// No description provided for @catalogServersHosting.
+  ///
+  /// In id, this message translates to:
+  /// **'Server & Hosting'**
+  String get catalogServersHosting;
+
+  /// No description provided for @catalogFamilySocial.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluarga & Sosial'**
+  String get catalogFamilySocial;
+
+  /// No description provided for @catalogPartnerHouseholdNeeds.
+  ///
+  /// In id, this message translates to:
+  /// **'Kebutuhan Pasangan'**
+  String get catalogPartnerHouseholdNeeds;
+
+  /// No description provided for @catalogEventsDonations.
+  ///
+  /// In id, this message translates to:
+  /// **'Kondangan / Donasi'**
+  String get catalogEventsDonations;
+
+  /// No description provided for @catalogHangoutsSocial.
+  ///
+  /// In id, this message translates to:
+  /// **'Nongkrong & Sosial'**
+  String get catalogHangoutsSocial;
+
+  /// No description provided for @catalogPets.
+  ///
+  /// In id, this message translates to:
+  /// **'Hewan Peliharaan'**
+  String get catalogPets;
+
+  /// No description provided for @catalogMiscOthers.
+  ///
+  /// In id, this message translates to:
+  /// **'Lain-lain'**
+  String get catalogMiscOthers;
+
+  /// No description provided for @catalogFeesTaxRounding.
+  ///
+  /// In id, this message translates to:
+  /// **'Biaya Admin / Pajak / Selisih'**
+  String get catalogFeesTaxRounding;
+
+  /// No description provided for @catalogUnexpectedExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran Tak Terduga'**
+  String get catalogUnexpectedExpense;
+
+  /// No description provided for @catalogUnknown.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak Diketahui'**
+  String get catalogUnknown;
+
+  /// No description provided for @catalogShoppingFashion.
+  ///
+  /// In id, this message translates to:
+  /// **'Belanja & Fashion'**
+  String get catalogShoppingFashion;
+
+  /// No description provided for @catalogClothingAccessories.
+  ///
+  /// In id, this message translates to:
+  /// **'Pakaian & Aksesori'**
+  String get catalogClothingAccessories;
+
+  /// No description provided for @catalogShoesBags.
+  ///
+  /// In id, this message translates to:
+  /// **'Sepatu & Tas'**
+  String get catalogShoesBags;
+
+  /// No description provided for @catalogCosmeticsSkincare.
+  ///
+  /// In id, this message translates to:
+  /// **'Kosmetik & Skincare'**
+  String get catalogCosmeticsSkincare;
+
+  /// No description provided for @catalogSalonPersonalCare.
+  ///
+  /// In id, this message translates to:
+  /// **'Salon & Perawatan Diri'**
+  String get catalogSalonPersonalCare;
+
+  /// No description provided for @catalogEntertainmentHobbies.
+  ///
+  /// In id, this message translates to:
+  /// **'Hiburan & Hobi'**
+  String get catalogEntertainmentHobbies;
+
+  /// No description provided for @catalogMoviesConcerts.
+  ///
+  /// In id, this message translates to:
+  /// **'Bioskop & Konser'**
+  String get catalogMoviesConcerts;
+
+  /// No description provided for @catalogGamesGaming.
+  ///
+  /// In id, this message translates to:
+  /// **'Game & Gaming'**
+  String get catalogGamesGaming;
+
+  /// No description provided for @catalogHobbiesCollecting.
+  ///
+  /// In id, this message translates to:
+  /// **'Hobi & Koleksi'**
+  String get catalogHobbiesCollecting;
+
+  /// No description provided for @catalogTravelLeisure.
+  ///
+  /// In id, this message translates to:
+  /// **'Liburan & Wisata'**
+  String get catalogTravelLeisure;
+
+  /// No description provided for @catalogSalaryPrimaryIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Gaji & Pendapatan Utama'**
+  String get catalogSalaryPrimaryIncome;
+
+  /// No description provided for @catalogMonthlySalary.
+  ///
+  /// In id, this message translates to:
+  /// **'Gaji Bulanan'**
+  String get catalogMonthlySalary;
+
+  /// No description provided for @catalogBonusHolidayPay.
+  ///
+  /// In id, this message translates to:
+  /// **'Bonus / THR'**
+  String get catalogBonusHolidayPay;
+
+  /// No description provided for @catalogAdditionalIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pendapatan Tambahan'**
+  String get catalogAdditionalIncome;
+
+  /// No description provided for @catalogFreelanceSideJobs.
+  ///
+  /// In id, this message translates to:
+  /// **'Pekerjaan Sampingan / Freelance'**
+  String get catalogFreelanceSideJobs;
+
+  /// No description provided for @catalogInvestmentDividends.
+  ///
+  /// In id, this message translates to:
+  /// **'Hasil Investasi / Dividen'**
+  String get catalogInvestmentDividends;
+
+  /// No description provided for @catalogWithdrawalsRedemptions.
+  ///
+  /// In id, this message translates to:
+  /// **'Pencairan Dana'**
+  String get catalogWithdrawalsRedemptions;
+
+  /// No description provided for @catalogCashbackRewards.
+  ///
+  /// In id, this message translates to:
+  /// **'Cashback & Reward'**
+  String get catalogCashbackRewards;
+
+  /// No description provided for @catalogSalesGoodsAssets.
+  ///
+  /// In id, this message translates to:
+  /// **'Penjualan Barang / Aset'**
+  String get catalogSalesGoodsAssets;
+
+  /// No description provided for @catalogGiftsReceived.
+  ///
+  /// In id, this message translates to:
+  /// **'Hadiah / Pemberian'**
+  String get catalogGiftsReceived;
+
   /// No description provided for @exitWithoutSavingTitle.
   ///
   /// In id, this message translates to:

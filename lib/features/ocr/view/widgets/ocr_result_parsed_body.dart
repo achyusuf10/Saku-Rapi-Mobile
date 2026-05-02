@@ -3,6 +3,7 @@ import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/ocr_scan_controller.dart';
 import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_detail_rows_builder.dart';
 import 'package:app_saku_rapi/features/ocr/view/widgets/ocr_detail_table.dart';
@@ -59,7 +60,9 @@ class OcrResultParsedBody extends ConsumerWidget {
 
     // Peta id → nama kategori untuk chip per baris (legacy) dan nama kategori root.
     final allCategories = ref.read(categoryControllerProvider).categories;
-    final categoryMap = {for (final c in allCategories) c.id: c.name};
+    final categoryMap = {
+      for (final c in allCategories) c.id: c.displayTitle(l10n),
+    };
 
     final hasMultipleItems = result.items.length > 1;
     final unifiedMultiItemCategory =

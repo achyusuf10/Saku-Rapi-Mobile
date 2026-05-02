@@ -2965,6 +2965,195 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportPdfDashboardSectionTitle => 'Dashboard & daily summary';
 
   @override
+  String get catalogAdjustmentBalance => 'Balance adjustment';
+
+  @override
+  String get catalogTransferToAsset => 'Transfer to asset';
+
+  @override
+  String get catalogFoodDrinks => 'Food & drinks';
+
+  @override
+  String get catalogCoffeeBeverages => 'Coffee & beverages';
+
+  @override
+  String get catalogDeliveryTakeout => 'Delivery / takeout';
+
+  @override
+  String get catalogRestaurantCafe => 'Restaurants & cafés';
+
+  @override
+  String get catalogSnacksTreats => 'Snacks & treats';
+
+  @override
+  String get catalogHouseholdNeeds => 'Household needs';
+
+  @override
+  String get catalogGroceriesPantry => 'Groceries / pantry';
+
+  @override
+  String get catalogHomeSupplies => 'Household supplies';
+
+  @override
+  String get catalogDiningOutCasual => 'Dining out / casual meals';
+
+  @override
+  String get catalogHealthFitness => 'Health & fitness';
+
+  @override
+  String get catalogSportsGym => 'Sports / gym';
+
+  @override
+  String get catalogSupplementsNutrition => 'Supplements & nutrition';
+
+  @override
+  String get catalogMedicalDoctorMeds => 'Medical / doctor / medicine';
+
+  @override
+  String get catalogMentalHealthTherapy => 'Mental health / therapy';
+
+  @override
+  String get catalogTransportation => 'Transportation';
+
+  @override
+  String get catalogFuel => 'Fuel';
+
+  @override
+  String get catalogTolls => 'Tolls';
+
+  @override
+  String get catalogParking => 'Parking';
+
+  @override
+  String get catalogPublicTransit => 'Public transportation';
+
+  @override
+  String get catalogRideHailing => 'Ride-hailing';
+
+  @override
+  String get catalogVehicleService => 'Vehicle service & repairs';
+
+  @override
+  String get catalogBillsObligations => 'Bills & obligations';
+
+  @override
+  String get catalogElectricityWater => 'Electricity & water';
+
+  @override
+  String get catalogInternetMobile => 'Internet & mobile credit';
+
+  @override
+  String get catalogInstallmentsInsurance => 'Installments / insurance';
+
+  @override
+  String get catalogHomeRent => 'Rent (housing)';
+
+  @override
+  String get catalogMortgage => 'Mortgage';
+
+  @override
+  String get catalogTechEducation => 'Technology & education';
+
+  @override
+  String get catalogDigitalSubscriptions => 'Digital subscriptions';
+
+  @override
+  String get catalogCourses => 'Courses';
+
+  @override
+  String get catalogBooks => 'Books';
+
+  @override
+  String get catalogServersHosting => 'Servers & hosting';
+
+  @override
+  String get catalogFamilySocial => 'Family & social';
+
+  @override
+  String get catalogPartnerHouseholdNeeds => 'Partner & household needs';
+
+  @override
+  String get catalogEventsDonations => 'Gifts & donations (events)';
+
+  @override
+  String get catalogHangoutsSocial => 'Hangouts & social';
+
+  @override
+  String get catalogPets => 'Pets';
+
+  @override
+  String get catalogMiscOthers => 'Others';
+
+  @override
+  String get catalogFeesTaxRounding => 'Fees / taxes / rounding';
+
+  @override
+  String get catalogUnexpectedExpense => 'Unexpected expenses';
+
+  @override
+  String get catalogUnknown => 'Unknown';
+
+  @override
+  String get catalogShoppingFashion => 'Shopping & fashion';
+
+  @override
+  String get catalogClothingAccessories => 'Clothing & accessories';
+
+  @override
+  String get catalogShoesBags => 'Shoes & bags';
+
+  @override
+  String get catalogCosmeticsSkincare => 'Cosmetics & skincare';
+
+  @override
+  String get catalogSalonPersonalCare => 'Salon & personal care';
+
+  @override
+  String get catalogEntertainmentHobbies => 'Entertainment & hobbies';
+
+  @override
+  String get catalogMoviesConcerts => 'Movies & concerts';
+
+  @override
+  String get catalogGamesGaming => 'Games & gaming';
+
+  @override
+  String get catalogHobbiesCollecting => 'Hobbies & collecting';
+
+  @override
+  String get catalogTravelLeisure => 'Travel & leisure';
+
+  @override
+  String get catalogSalaryPrimaryIncome => 'Salary & primary income';
+
+  @override
+  String get catalogMonthlySalary => 'Monthly salary';
+
+  @override
+  String get catalogBonusHolidayPay => 'Bonus / holiday allowance (THR)';
+
+  @override
+  String get catalogAdditionalIncome => 'Additional income';
+
+  @override
+  String get catalogFreelanceSideJobs => 'Side jobs / freelance';
+
+  @override
+  String get catalogInvestmentDividends => 'Investment returns / dividends';
+
+  @override
+  String get catalogWithdrawalsRedemptions => 'Withdrawals / redemptions';
+
+  @override
+  String get catalogCashbackRewards => 'Cashback & rewards';
+
+  @override
+  String get catalogSalesGoodsAssets => 'Sales of goods / assets';
+
+  @override
+  String get catalogGiftsReceived => 'Gifts / money received';
+
+  @override
   String get exitWithoutSavingTitle => 'Exit without saving?';
 
   @override

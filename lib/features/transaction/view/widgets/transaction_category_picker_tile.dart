@@ -3,7 +3,9 @@ import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +37,20 @@ class TransactionCategoryPickerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final displayName = category?.name ?? item?.categoryName;
+    final l10n = context.l10n;
+    final rawName = category?.name ?? item?.categoryName;
+    final CategoryOwnership ownership = category != null
+        ? (category!.userId == null
+            ? CategoryOwnership.global
+            : CategoryOwnership.user)
+        : (item?.categoryOwnership ?? CategoryOwnership.unknown);
+    final displayName = rawName != null
+        ? resolvedCategoryDisplayName(
+            l10n: l10n,
+            rawName: rawName,
+            ownership: ownership,
+          )
+        : null;
     final displayIcon = category?.icon ?? item?.categoryIcon;
     final displayColorHex = category?.color ?? item?.categoryColor;
     final hasCategory = displayName != null;

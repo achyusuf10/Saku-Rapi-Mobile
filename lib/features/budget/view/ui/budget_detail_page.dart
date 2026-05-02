@@ -2,13 +2,14 @@ import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
 import 'package:app_saku_rapi/core/extensions/date_time_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/router/app_router.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/controllers/budget_controller.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/history/view/widgets/transaction_date_grouped_list.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:app_saku_rapi/global/widgets/shimmer_widget.dart';
@@ -92,6 +93,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
   Widget _buildHeader(BuildContext context) {
     final colors = context.colors;
+    final l10n = context.l10n;
 
     return Row(
       children: [
@@ -109,7 +111,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _budget.category?.name ?? '-',
+                _budget.category?.displayTitle(l10n) ?? '-',
                 style: TextStyleConstants.h6.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colors.textPrimary,
@@ -480,7 +482,9 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     final l10n = context.l10n;
     final confirmed = await context.showConfirmDialog(
       title: l10n.budgetDeleteConfirmTitle,
-      message: l10n.budgetDeleteConfirmMessage(_budget.category?.name ?? '-'),
+      message: l10n.budgetDeleteConfirmMessage(
+        _budget.category?.displayTitle(l10n) ?? '-',
+      ),
       confirmLabel: l10n.budgetDeleteConfirmTitle,
       cancelLabel: l10n.budgetCancel,
     );

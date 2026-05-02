@@ -1,7 +1,9 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/features/category/utils/category_icon_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -53,6 +55,7 @@ class CategoryParentListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = context.l10n;
     final hasChildren = category.children.isNotEmpty;
     final categoryColor = parseHexColor(category.color);
 
@@ -111,7 +114,7 @@ class CategoryParentListTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            category.name,
+                            category.displayTitle(l10n),
                             style: TextStyleConstants.b2.copyWith(
                               fontWeight: isSelected
                                   ? FontWeight.w600
@@ -268,6 +271,7 @@ class CategoryChildListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = context.l10n;
     final categoryColor = parseHexColor(category.color);
     // Dimmed jika hidden sendiri ATAU parent-nya hidden
     final isEffectivelyHidden = category.isHidden || isParentHidden;
@@ -304,7 +308,7 @@ class CategoryChildListTile extends StatelessWidget {
               // Name
               Expanded(
                 child: Text(
-                  category.name,
+                  category.displayTitle(l10n),
                   style: TextStyleConstants.caption.copyWith(
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected

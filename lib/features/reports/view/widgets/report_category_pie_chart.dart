@@ -1,5 +1,7 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/features/category/utils/category_catalog_localizations.dart';
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/reports/models/report_model.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
@@ -23,6 +25,7 @@ class ReportCategoryPieChart extends StatelessWidget {
     if (categories.isEmpty) return SizedBox(height: 100.h);
 
     final colors = context.colors;
+    final l10n = context.l10n;
 
     return SizedBox(
       height: 280.h,
@@ -37,6 +40,11 @@ class ReportCategoryPieChart extends StatelessWidget {
           builder: (data, point, series, pointIdx, seriesIdx) {
             final cat = data as ReportCategoryBreakdownModel;
             final catColor = parseHexColor(cat.categoryColor);
+            final displayName = resolvedCategoryDisplayName(
+              l10n: l10n,
+              rawName: cat.categoryName,
+              ownership: cat.categoryOwnership,
+            );
             final percent = total > 0
                 ? (cat.amount / total * 100).toStringAsFixed(1)
                 : '0.0';
@@ -55,7 +63,7 @@ class ReportCategoryPieChart extends StatelessWidget {
                   ),
                   SizedBox(width: 6.w),
                   Text(
-                    '${cat.categoryName} · $percent%',
+                    '$displayName · $percent%',
                     style: TextStyleConstants.label2.copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -69,7 +77,7 @@ class ReportCategoryPieChart extends StatelessWidget {
         series: <CircularSeries<ReportCategoryBreakdownModel, String>>[
           DoughnutSeries<ReportCategoryBreakdownModel, String>(
             dataSource: categories,
-            xValueMapper: (cat, _) => cat.categoryName,
+            xValueMapper: (cat, _) => cat.categoryId,
             yValueMapper: (cat, _) => cat.amount,
             pointColorMapper: (cat, _) => parseHexColor(cat.categoryColor),
             innerRadius: '50%',

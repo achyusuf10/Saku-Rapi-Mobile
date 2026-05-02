@@ -195,7 +195,7 @@ final class ExportExcelService {
       }
 
       final catCell = sheet.getRangeByIndex(r, 4);
-      catCell.setText(ExportDataUtils.combinedCategoryNames(t));
+      catCell.setText(ExportDataUtils.combinedCategoryNames(t, l10n: l10n));
       catCell.cellStyle.wrapText = true;
       catCell.cellStyle.vAlign = VAlignType.top;
 

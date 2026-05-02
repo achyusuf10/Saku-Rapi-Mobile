@@ -1,10 +1,11 @@
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
-import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/core/extensions/double_ext.dart';
 import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
+import 'package:app_saku_rapi/core/utils/color_utils.dart';
 import 'package:app_saku_rapi/features/budget/models/budget_model.dart';
 import 'package:app_saku_rapi/features/budget/view/widgets/budget_progress_bar.dart';
+import 'package:app_saku_rapi/features/category/utils/category_display_name.dart';
 import 'package:app_saku_rapi/global/widgets/saku_category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -107,7 +108,9 @@ class _BudgetRow extends StatelessWidget {
                 SakuCategoryIcon(
                   iconName: budget.category?.icon ?? 'circleQuestion',
                   color: parseHexColor(budget.category?.color ?? '#6B7280'),
-                  backgroundFill: parseHexColor(budget.category?.backgroundColor),
+                  backgroundFill: parseHexColor(
+                    budget.category?.backgroundColor,
+                  ),
                   size: isParent ? 42 : 34,
                   iconSize: isParent ? 18 : 14,
                   circular: true,
@@ -120,7 +123,7 @@ class _BudgetRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        budget.category?.name ?? '-',
+                        budget.category?.displayTitle(l10n) ?? '-',
                         style:
                             (isParent
                                     ? TextStyleConstants.b1

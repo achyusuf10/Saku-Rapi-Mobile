@@ -1,3 +1,5 @@
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
+
 /// Model data untuk item/detail dalam satu transaksi.
 ///
 /// Merepresentasikan satu record dari tabel `public.transaction_items`.
@@ -19,6 +21,7 @@ class TransactionItemModel {
     this.categoryIcon,
     this.categoryColor,
     this.categoryBackgroundColor,
+    this.categoryOwnership = CategoryOwnership.unknown,
   });
 
   final String? id;
@@ -39,6 +42,9 @@ class TransactionItemModel {
   final String? categoryColor;
   final String? categoryBackgroundColor;
 
+  /// Kepemilikan kategori hasil join — menentukan apakah nama boleh dilokalkan.
+  final CategoryOwnership categoryOwnership;
+
   // ───────────────── Factory ─────────────────
 
   factory TransactionItemModel.fromMap(Map<String, dynamic> map) {
@@ -48,11 +54,13 @@ class TransactionItemModel {
     String? catIcon;
     String? catColor;
     String? catBackground;
+    CategoryOwnership ownership = CategoryOwnership.unknown;
     if (catData is Map<String, dynamic>) {
       catName = catData['name'] as String?;
       catIcon = catData['icon'] as String?;
       catColor = catData['color'] as String?;
       catBackground = catData['background_color'] as String?;
+      ownership = categoryOwnershipFromJoinedRow(catData);
     }
 
     return TransactionItemModel(
@@ -71,6 +79,7 @@ class TransactionItemModel {
       categoryIcon: catIcon,
       categoryColor: catColor,
       categoryBackgroundColor: catBackground,
+      categoryOwnership: ownership,
     );
   }
 
@@ -120,6 +129,7 @@ class TransactionItemModel {
     String? categoryIcon,
     String? categoryColor,
     String? categoryBackgroundColor,
+    CategoryOwnership? categoryOwnership,
   }) {
     return TransactionItemModel(
       id: id ?? this.id,
@@ -136,6 +146,7 @@ class TransactionItemModel {
       categoryColor: categoryColor ?? this.categoryColor,
       categoryBackgroundColor:
           categoryBackgroundColor ?? this.categoryBackgroundColor,
+      categoryOwnership: categoryOwnership ?? this.categoryOwnership,
     );
   }
 
@@ -155,6 +166,7 @@ class TransactionItemModel {
       categoryIcon: null,
       categoryColor: null,
       categoryBackgroundColor: null,
+      categoryOwnership: CategoryOwnership.unknown,
     );
   }
 

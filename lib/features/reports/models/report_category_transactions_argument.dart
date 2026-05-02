@@ -1,4 +1,5 @@
 import 'package:app_saku_rapi/core/utils/color_utils.dart';
+import 'package:app_saku_rapi/features/category/models/category_ownership.dart';
 
 /// Argument navigasi untuk halaman transaksi per kategori dari Report.
 class ReportCategoryTransactionsArgument {
@@ -12,6 +13,7 @@ class ReportCategoryTransactionsArgument {
     required this.endDate,
     required this.type,
     this.walletId,
+    this.categoryOwnership = CategoryOwnership.unknown,
   });
 
   final String categoryId;
@@ -25,4 +27,6 @@ class ReportCategoryTransactionsArgument {
   /// 'expense' atau 'income'.
   final String type;
   final String? walletId;
+
+  final CategoryOwnership categoryOwnership;
 }
