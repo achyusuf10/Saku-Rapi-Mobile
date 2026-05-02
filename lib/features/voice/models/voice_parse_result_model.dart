@@ -10,7 +10,7 @@ import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 /// {
 ///   "isTransaction": true,
 ///   "amount": <number | null>,
-///   "items": [...],
+///   "items": [ { "name", "qty", "unitPrice", "subtotal" } ],  // subtotal negatif = diskon/potongan
 ///   "categoryId": "<UUID | null>",
 ///   "categoryKeyword": "<single keyword>",
 ///   "note": "<descriptive text | null>",
@@ -345,9 +345,10 @@ class VoiceItemModel {
     final qty = _toDouble(map['qty']) > 0 ? _toDouble(map['qty']) : 1.0;
     final unitPrice = _toDoubleOrNull(map['unitPrice']);
 
-    // Subtotal: prioritas 'subtotal', fallback hitung dari qty * unitPrice
-    double subtotal = _toDouble(map['subtotal']);
-    if (subtotal <= 0 && unitPrice != null && unitPrice > 0) {
+    final hasSubtotalKey = map.containsKey('subtotal') && map['subtotal'] != null;
+    double subtotal = hasSubtotalKey ? _toDouble(map['subtotal']) : _toDouble(map['amount']);
+
+    if (subtotal == 0 && unitPrice != null && qty != 0) {
       subtotal = qty * unitPrice;
     }
 

@@ -1,5 +1,7 @@
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 import 'package:app_saku_rapi/features/voice/models/voice_parse_result_model.dart';
+import 'package:app_saku_rapi/global/models/ai_parse_line_item.dart';
+import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -51,6 +53,75 @@ void main() {
       });
       expect(m.isAiMultiTransaction, isFalse);
       expect(m.aiTransactions, isNull);
+    });
+  });
+
+  group('Discount line items (negative amounts)', () {
+    test('VoiceItemModel preserves negative subtotal from JSON', () {
+      final item = VoiceItemModel.fromMap({
+        'name': 'Diskon',
+        'qty': 1,
+        'unitPrice': -5000,
+        'subtotal': -5000,
+      });
+      expect(item.subtotal, -5000);
+      expect(item.unitPrice, -5000);
+    });
+
+    test('OcrItemModel preserves negative subtotal when only amount field set', () {
+      final item = OcrItemModel.fromMap({
+        'name': 'Diskon member',
+        'qty': 1,
+        'amount': -5000,
+      });
+      expect(item.subtotal, -5000);
+    });
+
+    test('AiParseTransactionSlice.effectiveTotal sums discounts', () {
+      final slice = AiParseTransactionSlice.fromMap({
+        'amount': 99999,
+        'items': [
+          {'name': 'Latte', 'qty': 1, 'unitPrice': 35000, 'subtotal': 35000},
+          {'name': 'Diskon', 'qty': 1, 'unitPrice': -5000, 'subtotal': -5000},
+        ],
+      });
+      expect(slice.effectiveTotal, 30000);
+    });
+
+    test('AiParseLineItem.fromMap supports negative subtotal', () {
+      final line = AiParseLineItem.fromMap({
+        'name': 'Potongan',
+        'qty': 1,
+        'subtotal': -12000,
+      });
+      expect(line.subtotal, -12000);
+    });
+
+    test('VoiceParseResultModel includes discount in itemsTotal', () {
+      final m = VoiceParseResultModel.fromEdgeFunctionMap({
+        'data': {
+          'isTransaction': true,
+          'type': 'expense',
+          'amount': 450000,
+          'items': [
+            {
+              'name': 'Sepatu',
+              'qty': 1,
+              'unitPrice': 500000,
+              'subtotal': 500000,
+            },
+            {
+              'name': 'Diskon',
+              'qty': 1,
+              'unitPrice': -50000,
+              'subtotal': -50000,
+            },
+          ],
+          'categoryKeyword': 'belanja',
+        },
+      });
+      expect(m.itemsTotal, 450000);
+      expect(m.hasUsableData, isTrue);
     });
   });
 

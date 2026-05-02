@@ -130,6 +130,20 @@ void main() {
       final resolved = TransactionFormController.resolveItemAmountForTest(item);
       expect(resolved.amount, 0.0);
     });
+
+    test('derives unitPrice when AI sends unitPrice 0 but amount is non-zero', () {
+      final item = _item(qty: 1, unitPrice: 0, amount: -12500);
+      final resolved = TransactionFormController.resolveItemAmountForTest(item);
+      expect(resolved.amount, -12500.0);
+      expect(resolved.unitPrice, -12500.0);
+    });
+
+    test('derives unitPrice when unitPrice null and discount line amount negative', () {
+      final item = _item(qty: 2, unitPrice: null, amount: -6000);
+      final resolved = TransactionFormController.resolveItemAmountForTest(item);
+      expect(resolved.amount, -6000.0);
+      expect(resolved.unitPrice, -3000.0);
+    });
   });
 
   // ══════════════════════════════════════════════════
@@ -348,6 +362,52 @@ void main() {
       ctrl.addItem();
       expect(ctrl.state.items.length, 2);
       expect(ctrl.state.items.last.categoryId, 'cat-b');
+    });
+  });
+
+  group('TransactionItemModel.balanceItemsAgainstAuthoritativeTotal', () {
+    test('adds Item lainnya when sum < authoritative total', () {
+      final items = [
+        _item(amount: 30000, sortOrder: 0),
+        _item(amount: 20000, sortOrder: 1),
+      ];
+      final out = TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+        items: items,
+        authoritativeTotal: 60000,
+        positiveDiffLabel: 'Item lainnya',
+        negativeDiffLabel: 'Diskon/potongan',
+      );
+      expect(out.length, 3);
+      expect(out.last.amount, 10000);
+      expect(out.last.unitPrice, 10000);
+      expect(out.last.itemName, 'Item lainnya');
+      expect(out.last.qty, 1);
+    });
+
+    test('adds Diskon/potongan when sum > authoritative total', () {
+      final items = [_item(amount: 50000, sortOrder: 0)];
+      final out = TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+        items: items,
+        authoritativeTotal: 45000,
+        positiveDiffLabel: 'Item lainnya',
+        negativeDiffLabel: 'Diskon/potongan',
+      );
+      expect(out.length, 2);
+      expect(out.last.amount, -5000);
+      expect(out.last.unitPrice, -5000);
+      expect(out.last.itemName, 'Diskon/potongan');
+    });
+
+    test('no-op when within tolerance', () {
+      final items = [_item(amount: 10000)];
+      final out = TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+        items: items,
+        authoritativeTotal: 10000.5,
+        positiveDiffLabel: 'Item lainnya',
+        negativeDiffLabel: 'Diskon/potongan',
+        tolerance: 1.0,
+      );
+      expect(out.length, 1);
     });
   });
 

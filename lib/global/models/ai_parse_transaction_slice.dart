@@ -22,10 +22,11 @@ class AiParseTransactionSlice {
   /// Dompet untuk slice ini (multi transaksi). Null → pakai dompet root AI.
   final String? suggestedWalletId;
 
-  /// Total untuk slice: jumlah subtotal item, atau [amount] jika tidak ada item.
+  /// Total untuk slice: jumlah subtotal item (termasuk diskon negatif), atau [amount] jika tidak ada item.
   double get effectiveTotal {
-    final fromItems = items.fold<double>(0, (s, i) => s + i.subtotal);
-    if (fromItems > 0) return fromItems;
+    if (items.isNotEmpty) {
+      return items.fold<double>(0, (s, i) => s + i.subtotal);
+    }
     return amount ?? 0;
   }
 

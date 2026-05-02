@@ -160,6 +160,52 @@ class TransactionItemModel {
 
   // ───────────────── Helpers ─────────────────
 
+  /// Selaraskan [qty], [unitPrice], dan [amount] untuk input form & prefill AI/OCR.
+  ///
+  /// - Jika harga satuan ada dan tidak nol: `amount = qty × unitPrice`.
+  /// - Jika harga satuan null atau 0 tetapi subtotal ([amount]) tidak nol — pola umum
+  ///   baris diskon dari AI (`unitPrice: 0`) — turunkan `unitPrice = amount / qty`
+  ///   supaya kolom tidak kosong dan amount tidak tertimpa nol.
+  static TransactionItemModel resolveLineAmount(TransactionItemModel item) {
+    final up = item.unitPrice;
+    final q = item.qty;
+
+    if (up != null && q > 0 && up != 0) {
+      return item.copyWith(amount: q * up);
+    }
+    if (q > 0 && item.amount != 0 && (up == null || up == 0)) {
+      return item.copyWith(unitPrice: item.amount / q);
+    }
+    return item;
+  }
+
+  /// Jika `sum(items.amount) ≠ authoritativeTotal`, tambahkan satu baris penyesuaian:
+  /// selisih positif → [positiveDiffLabel], selisih negatif → [negativeDiffLabel].
+  ///
+  /// Baris tambahan: qty 1, unitPrice = diff, amount = diff (selaras dengan AI Parse).
+  static List<TransactionItemModel> balanceItemsAgainstAuthoritativeTotal({
+    required List<TransactionItemModel> items,
+    required double authoritativeTotal,
+    required String positiveDiffLabel,
+    required String negativeDiffLabel,
+    double tolerance = 1.0,
+  }) {
+    if (items.isEmpty) return items;
+    final sum = items.fold<double>(0, (s, i) => s + i.amount);
+    final diff = authoritativeTotal - sum;
+    if (diff.abs() < tolerance) return items;
+
+    final maxOrder = items.map((i) => i.sortOrder).reduce((a, b) => a > b ? a : b);
+    final row = TransactionItemModel(
+      itemName: diff > 0 ? positiveDiffLabel : negativeDiffLabel,
+      qty: 1,
+      unitPrice: diff,
+      amount: diff,
+      sortOrder: maxOrder + 1,
+    );
+    return [...items, row];
+  }
+
   static double _toDouble(dynamic value) {
     if (value == null) return 0.0;
     if (value is double) return value;

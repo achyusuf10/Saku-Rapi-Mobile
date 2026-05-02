@@ -145,16 +145,16 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
     final isEditing = formState.isEditing;
     final isSaving = formState.isSaving;
 
-    ref.listen<TransactionFormState>(
-      transactionFormControllerProvider,
-      (prev, next) {
-        if (prev == null) return;
-        if (prev.isMultiManualMode && !next.isMultiManualMode) {
-          _merchantController.text = next.merchantName ?? '';
-          _noteController.text = next.note ?? '';
-        }
-      },
-    );
+    ref.listen<TransactionFormState>(transactionFormControllerProvider, (
+      prev,
+      next,
+    ) {
+      if (prev == null) return;
+      if (prev.isMultiManualMode && !next.isMultiManualMode) {
+        _merchantController.text = next.merchantName ?? '';
+        _noteController.text = next.note ?? '';
+      }
+    });
 
     // Warna aksen mengikuti tipe transaksi aktif
     final typeColor = colorForType(formState.type, colors);
@@ -167,284 +167,319 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
     final hideSingleMainFields =
         showMultiManualChrome && formState.isMultiManualMode;
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: colors.background,
-        body: Form(
-          key: _formKey,
-          child: CustomScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              // ─── AppBar ───
-              SliverAppBar(
-                pinned: true,
-                backgroundColor: colors.surface,
-                foregroundColor: colors.textPrimary,
-                elevation: 0,
-                scrolledUnderElevation: 0.5,
-                leading: IconButton(
-                  icon: FaIcon(FontAwesomeIcons.arrowLeft, size: 18.w),
-                  onPressed: () => context.pop(),
-                ),
-                title: Text(
-                  isEditing
-                      ? l10n.transactionEditTitle
-                      : l10n.transactionNewTitle,
-                  style: TextStyleConstants.h7.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        var res = await context.showConfirmDialog(
+          title: 'Keluar tanpa menyimpan?',
+          message:
+              'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.',
+        );
+        if (context.mounted) {
+          if (res == true) {
+            context.pop();
+          }
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: colors.background,
+          body: Form(
+            key: _formKey,
+            child: CustomScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                // ─── AppBar ───
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: colors.surface,
+                  foregroundColor: colors.textPrimary,
+                  elevation: 0,
+                  scrolledUnderElevation: 0.5,
+                  leading: IconButton(
+                    icon: FaIcon(FontAwesomeIcons.arrowLeft, size: 18.w),
+                    onPressed: () async {
+                      var res = await context.showConfirmDialog(
+                        title: 'Keluar tanpa menyimpan?',
+                        message:
+                            'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.',
+                      );
+                      if (context.mounted) {
+                        if (res == true) {
+                          context.pop();
+                        }
+                      }
+                    },
                   ),
-                ),
-                centerTitle: false,
-                actions: isEditing
-                    ? [
-                        // Tombol hapus hanya muncul di mode edit
-                        IconButton(
-                          icon: FaIcon(
-                            FontAwesomeIcons.trashCan,
-                            size: 16.w,
-                            color: colors.expense,
-                          ),
-                          onPressed: isSaving ? null : onConfirmDelete,
-                        ),
-                      ]
-                    : null,
-              ),
-
-              // ─── Tab tipe transaksi (hanya pada mode create) ───
-              if (!isEditing)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
-                    child: TransactionTypeTabs(
-                      selected: formState.type,
-                      onChanged: (t) => ref
-                          .read(transactionFormControllerProvider.notifier)
-                          .setType(t),
+                  title: Text(
+                    isEditing
+                        ? l10n.transactionEditTitle
+                        : l10n.transactionNewTitle,
+                    style: TextStyleConstants.h7.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colors.textPrimary,
                     ),
                   ),
+                  centerTitle: false,
+                  actions: isEditing
+                      ? [
+                          // Tombol hapus hanya muncul di mode edit
+                          IconButton(
+                            icon: FaIcon(
+                              FontAwesomeIcons.trashCan,
+                              size: 16.w,
+                              color: colors.expense,
+                            ),
+                            onPressed: isSaving ? null : onConfirmDelete,
+                          ),
+                        ]
+                      : null,
                 ),
 
-              // ─── Body form ───
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 120.h),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // ─── Selector sub-tipe Hutang/Piutang ───
-                    if (formState.isDebtLoanTab && !isEditing) ...[
-                      DebtLoanKindSelector(
-                        selected:
-                            formState.debtLoanKind ?? DebtLoanKindEnum.debt,
-                        onChanged: (kind) => ref
+                // ─── Tab tipe transaksi (hanya pada mode create) ───
+                if (!isEditing)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+                      child: TransactionTypeTabs(
+                        selected: formState.type,
+                        onChanged: (t) => ref
                             .read(transactionFormControllerProvider.notifier)
-                            .setDebtLoanKind(kind),
+                            .setType(t),
                       ),
-                      SizedBox(height: 16.h),
-                    ],
+                    ),
+                  ),
 
-                    // ─── Picker transaksi referensi (mode settlement) ───
-                    if (formState.isSettlementMode && !isEditing) ...[
-                      DebtLoanTransactionPickerTile(
-                        selected: formState.referenceTransaction,
-                        iconColor: typeColor,
-                        onTap: () => pickReferenceTransaction(formState),
-                      ),
-                      SizedBox(height: 10.h),
-                    ],
-
-                    if (showMultiManualChrome) ...[
-                      const TransactionMultiManualModeHeader(),
-                      SizedBox(height: 12.h),
-                    ],
-
-                    if (showMultiManualChrome &&
-                        formState.isMultiManualMode) ...[
-                      TransactionManualMultiEntryList(
-                        typeColor: typeColor,
-                        type: formState.type,
-                        onPickWalletFor: (i) => pickWallet(
-                          isSource: true,
-                          manualMultiEntryIndex: i,
+                // ─── Body form ───
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 120.h),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // ─── Selector sub-tipe Hutang/Piutang ───
+                      if (formState.isDebtLoanTab && !isEditing) ...[
+                        DebtLoanKindSelector(
+                          selected:
+                              formState.debtLoanKind ?? DebtLoanKindEnum.debt,
+                          onChanged: (kind) => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setDebtLoanKind(kind),
                         ),
-                        onPickCategoryFor: (i) =>
-                            pickCategory(manualMultiEntryIndex: i),
-                        onPickAttachmentFor: pickAttachmentForMultiEntry,
-                      ),
-                    ],
+                        SizedBox(height: 16.h),
+                      ],
 
-                    // ─── Field jumlah (single-item mode) ───
-                    if (!hideSingleMainFields && !formState.isMultiItem) ...[
-                      TransactionAmountSection(
-                        autoFocus: _autoFocusAmount,
-                        typeColor: typeColor,
-                        initialValue: formState.totalAmount > 0
-                            ? formState.totalAmount
-                            : null,
-                        onChanged: (val) => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setTotalAmount(val),
-                      ),
-                      // Hint sisa hutang/piutang saat mode settlement
-                      if (formState.isSettlementMode &&
-                          formState.referenceTransaction != null)
-                        Padding(
-                          padding: EdgeInsets.only(top: 4.h, left: 4.w),
-                          child: Text(
-                            l10n.debtLoanFormRemainingAmount(
-                              formState.referenceTransaction!.remaining
-                                  .toCurrency(),
-                            ),
-                            style: TextStyleConstants.caption.copyWith(
-                              color: typeColor,
-                              fontWeight: FontWeight.w500,
+                      // ─── Picker transaksi referensi (mode settlement) ───
+                      if (formState.isSettlementMode && !isEditing) ...[
+                        DebtLoanTransactionPickerTile(
+                          selected: formState.referenceTransaction,
+                          iconColor: typeColor,
+                          onTap: () => pickReferenceTransaction(formState),
+                        ),
+                        SizedBox(height: 10.h),
+                      ],
+
+                      if (showMultiManualChrome) ...[
+                        const TransactionMultiManualModeHeader(),
+                        SizedBox(height: 12.h),
+                      ],
+
+                      if (showMultiManualChrome &&
+                          formState.isMultiManualMode) ...[
+                        TransactionManualMultiEntryList(
+                          typeColor: typeColor,
+                          type: formState.type,
+                          onPickWalletFor: (i) => pickWallet(
+                            isSource: true,
+                            manualMultiEntryIndex: i,
+                          ),
+                          onPickCategoryFor: (i) =>
+                              pickCategory(manualMultiEntryIndex: i),
+                          onPickAttachmentFor: pickAttachmentForMultiEntry,
+                        ),
+                      ],
+
+                      // ─── Field jumlah (single-item mode) ───
+                      if (!hideSingleMainFields && !formState.isMultiItem) ...[
+                        TransactionAmountSection(
+                          autoFocus: _autoFocusAmount,
+                          typeColor: typeColor,
+                          initialValue: formState.totalAmount > 0
+                              ? formState.totalAmount
+                              : null,
+                          onChanged: (val) => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setTotalAmount(val),
+                        ),
+                        // Hint sisa hutang/piutang saat mode settlement
+                        if (formState.isSettlementMode &&
+                            formState.referenceTransaction != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                            child: Text(
+                              l10n.debtLoanFormRemainingAmount(
+                                formState.referenceTransaction!.remaining
+                                    .toCurrency(),
+                              ),
+                              style: TextStyleConstants.caption.copyWith(
+                                color: typeColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                      SizedBox(height: 16.h),
-                    ],
+                        SizedBox(height: 16.h),
+                      ],
 
-                    // ─── Picker dompet sumber / transfer ───
-                    if (!hideSingleMainFields) ...[
-                      SakuWalletPickerTile(
-                        label: formState.type == TransactionTypeEnum.transfer
-                            ? l10n.transactionSourceWallet
-                            : l10n.transactionWallet,
-                        selected: formState.wallet,
-                        onTap: () => pickWallet(isSource: true),
-                        iconColor: colors.primary,
-                        backgroundColor: colors.surface,
-                        useBorder: true,
-                      ),
-                      if (formState.type == TransactionTypeEnum.transfer) ...[
-                        TransactionTransferArrow(
-                          color: colors.transfer,
-                          onSwap: () => ref
-                              .read(transactionFormControllerProvider.notifier)
-                              .swapWallets(),
-                        ),
+                      // ─── Picker dompet sumber / transfer ───
+                      if (!hideSingleMainFields) ...[
                         SakuWalletPickerTile(
-                          label: l10n.transactionDestWallet,
-                          selected: formState.destinationWallet,
-                          onTap: () => pickWallet(isSource: false),
-                          iconColor: colors.transfer,
+                          label: formState.type == TransactionTypeEnum.transfer
+                              ? l10n.transactionSourceWallet
+                              : l10n.transactionWallet,
+                          selected: formState.wallet,
+                          onTap: () => pickWallet(isSource: true),
+                          iconColor: colors.primary,
                           backgroundColor: colors.surface,
                           useBorder: true,
                         ),
+                        if (formState.type == TransactionTypeEnum.transfer) ...[
+                          TransactionTransferArrow(
+                            color: colors.transfer,
+                            onSwap: () => ref
+                                .read(
+                                  transactionFormControllerProvider.notifier,
+                                )
+                                .swapWallets(),
+                          ),
+                          SakuWalletPickerTile(
+                            label: l10n.transactionDestWallet,
+                            selected: formState.destinationWallet,
+                            onTap: () => pickWallet(isSource: false),
+                            iconColor: colors.transfer,
+                            backgroundColor: colors.surface,
+                            useBorder: true,
+                          ),
+                        ],
+                        SizedBox(height: 10.h),
                       ],
-                      SizedBox(height: 10.h),
-                    ],
 
-                    // ─── Picker kategori (expense/income, non-settlement) ───
-                    if (!hideSingleMainFields &&
-                        !formState.isSettlementMode &&
-                        (formState.type == TransactionTypeEnum.income ||
-                            formState.type == TransactionTypeEnum.expense)) ...[
-                      TransactionCategoryPickerTile(
-                        type: formState.type,
-                        category: formState.category,
-                        item: formState.items.isNotEmpty
-                            ? formState.items.first
-                            : null,
-                        onTap: pickCategory,
-                        iconColor: typeColor,
-                      ),
-                      SizedBox(height: 10.h),
-                    ],
+                      // ─── Picker kategori (expense/income, non-settlement) ───
+                      if (!hideSingleMainFields &&
+                          !formState.isSettlementMode &&
+                          (formState.type == TransactionTypeEnum.income ||
+                              formState.type ==
+                                  TransactionTypeEnum.expense)) ...[
+                        TransactionCategoryPickerTile(
+                          type: formState.type,
+                          category: formState.category,
+                          item: formState.items.isNotEmpty
+                              ? formState.items.first
+                              : null,
+                          onTap: pickCategory,
+                          iconColor: typeColor,
+                        ),
+                        SizedBox(height: 10.h),
+                      ],
 
-                    // ─── Picker kontak (hutang/piutang, non-settlement) ───
-                    if (formState.type.requiresWithPerson &&
-                        !formState.isSettlementMode) ...[
-                      ContactPickerTile(
-                        selected: formState.contact,
-                        iconColor: typeColor,
-                        onTap: () async {
-                          final contact = await ContactPickerSheet.show(
-                            context,
-                          );
-                          if (contact != null && mounted) {
+                      // ─── Picker kontak (hutang/piutang, non-settlement) ───
+                      if (formState.type.requiresWithPerson &&
+                          !formState.isSettlementMode) ...[
+                        ContactPickerTile(
+                          selected: formState.contact,
+                          iconColor: typeColor,
+                          onTap: () async {
+                            final contact = await ContactPickerSheet.show(
+                              context,
+                            );
+                            if (contact != null && mounted) {
+                              ref
+                                  .read(
+                                    transactionFormControllerProvider.notifier,
+                                  )
+                                  .setContact(contact);
+                            }
+                          },
+                          onClear: () {
+                            FocusScope.of(context).unfocus();
                             ref
                                 .read(
                                   transactionFormControllerProvider.notifier,
                                 )
-                                .setContact(contact);
-                          }
-                        },
-                        onClear: () {
-                          FocusScope.of(context).unfocus();
-                          ref
+                                .setContact(null);
+                          },
+                        ),
+                        SizedBox(height: 10.h),
+                      ],
+
+                      // ─── Picker tanggal ───
+                      if (!hideSingleMainFields)
+                        TransactionDatePickerTile(
+                          date: formState.date,
+                          onChanged: (date) {
+                            FocusScope.of(context).unfocus();
+                            ref
+                                .read(
+                                  transactionFormControllerProvider.notifier,
+                                )
+                                .setDate(date);
+                          },
+                        ),
+
+                      if (!hideSingleMainFields) SizedBox(height: 14.h),
+
+                      // ─── Detail opsional: merchant, note, lampiran (non-settlement) ───
+                      if (!hideSingleMainFields && !formState.isSettlementMode)
+                        TransactionOptionalDetailsSection(
+                          merchantController: _merchantController,
+                          noteController: _noteController,
+                          attachmentUrl: formState.attachmentUrl,
+                          localAttachmentPath: formState.localAttachmentPath,
+                          onMerchantChanged: (val) => ref
                               .read(transactionFormControllerProvider.notifier)
-                              .setContact(null);
-                        },
-                      ),
-                      SizedBox(height: 10.h),
-                    ],
-
-                    // ─── Picker tanggal ───
-                    if (!hideSingleMainFields)
-                      TransactionDatePickerTile(
-                        date: formState.date,
-                        onChanged: (date) {
-                          FocusScope.of(context).unfocus();
-                          ref
+                              .setMerchant(val.isEmpty ? null : val),
+                          onNoteChanged: (val) => ref
                               .read(transactionFormControllerProvider.notifier)
-                              .setDate(date);
-                        },
-                      ),
+                              .setNote(val.isEmpty ? null : val),
+                          onPickAttachment: pickAttachment,
+                          onRemoveAttachment: () => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setLocalAttachment(null),
+                        ),
 
-                    if (!hideSingleMainFields) SizedBox(height: 14.h),
+                      // ─── Field catatan ringkas (mode settlement) ───
+                      if (formState.isSettlementMode) ...[
+                        SizedBox(height: 6.h),
+                        SakuTextField(
+                          controller: _noteController,
+                          hint: l10n.debtLoanSettlementNote,
+                          onChanged: (val) => ref
+                              .read(transactionFormControllerProvider.notifier)
+                              .setNote(val.isEmpty ? null : val),
+                        ),
+                      ],
 
-                    // ─── Detail opsional: merchant, note, lampiran (non-settlement) ───
-                    if (!hideSingleMainFields && !formState.isSettlementMode)
-                      TransactionOptionalDetailsSection(
-                        merchantController: _merchantController,
-                        noteController: _noteController,
-                        attachmentUrl: formState.attachmentUrl,
-                        localAttachmentPath: formState.localAttachmentPath,
-                        onMerchantChanged: (val) => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setMerchant(val.isEmpty ? null : val),
-                        onNoteChanged: (val) => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setNote(val.isEmpty ? null : val),
-                        onPickAttachment: pickAttachment,
-                        onRemoveAttachment: () => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setLocalAttachment(null),
-                      ),
-
-                    // ─── Field catatan ringkas (mode settlement) ───
-                    if (formState.isSettlementMode) ...[
-                      SizedBox(height: 6.h),
-                      SakuTextField(
-                        controller: _noteController,
-                        hint: l10n.debtLoanSettlementNote,
-                        onChanged: (val) => ref
-                            .read(transactionFormControllerProvider.notifier)
-                            .setNote(val.isEmpty ? null : val),
-                      ),
-                    ],
-
-                    // ─── Section multi-item (expense/income, non-settlement) ───
-                    if (!hideSingleMainFields &&
-                        !formState.isSettlementMode &&
-                        (formState.type == TransactionTypeEnum.expense ||
-                            formState.type == TransactionTypeEnum.income)) ...[
-                      SizedBox(height: 16.h),
-                      const TransactionMultiItemSection(),
-                    ],
-                  ]),
+                      // ─── Section multi-item (expense/income, non-settlement) ───
+                      if (!hideSingleMainFields &&
+                          !formState.isSettlementMode &&
+                          (formState.type == TransactionTypeEnum.expense ||
+                              formState.type ==
+                                  TransactionTypeEnum.income)) ...[
+                        SizedBox(height: 16.h),
+                        const TransactionMultiItemSection(),
+                      ],
+                    ]),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        // ─── Tombol simpan (sticky di bawah) ───
-        bottomNavigationBar: TransactionFormSaveBar(
-          formState: formState,
-          onSave: onSave,
-          typeColor: typeColor,
+          // ─── Tombol simpan (sticky di bawah) ───
+          bottomNavigationBar: TransactionFormSaveBar(
+            formState: formState,
+            onSave: onSave,
+            typeColor: typeColor,
+          ),
         ),
       ),
     );

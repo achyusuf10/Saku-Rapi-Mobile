@@ -106,10 +106,7 @@ class ManualTransactionEntryModel {
   }
 
   static TransactionItemModel resolveItemAmount(TransactionItemModel item) {
-    if (item.unitPrice != null && item.qty > 0) {
-      return item.copyWith(amount: item.qty * item.unitPrice!);
-    }
-    return item;
+    return TransactionItemModel.resolveLineAmount(item);
   }
 
   static double sumItems(List<TransactionItemModel> items) {

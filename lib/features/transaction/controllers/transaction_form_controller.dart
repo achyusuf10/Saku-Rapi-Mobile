@@ -419,12 +419,57 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
   /// Prefill items dari Voice/OCR input.
   ///
   /// Mengganti seluruh items dan auto-recalc total.
-  void prefillItems(List<TransactionItemModel> items) {
+  ///
+  /// Jika [authoritativeTotal] dan kedua label penyesuaian diisi dan jumlah item
+  /// belum sama dengan total tersebut, ditambah satu baris "Item lainnya" atau
+  /// "Diskon/potongan" (pakai string dari caller / l10n).
+  void prefillItems(
+    List<TransactionItemModel> items, {
+    double? authoritativeTotal,
+    String? balancePositiveLabel,
+    String? balanceNegativeLabel,
+  }) {
     if (items.isEmpty) return;
-    final resolved = items.map(_resolveItemAmount).toList();
+    var list = [...items];
+    if (authoritativeTotal != null &&
+        balancePositiveLabel != null &&
+        balanceNegativeLabel != null) {
+      list = TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+        items: list,
+        authoritativeTotal: authoritativeTotal,
+        positiveDiffLabel: balancePositiveLabel,
+        negativeDiffLabel: balanceNegativeLabel,
+      );
+    }
+    final resolved = list.map(_resolveItemAmount).toList();
     final total = _sumItems(resolved);
     final keys = List.generate(resolved.length, (_) => _generateKey());
     state = state.copyWith(items: resolved, itemKeys: keys, totalAmount: total);
+    _syncCategoryToAllItems();
+  }
+
+  /// Selaraskan item yang sudah ada di form dengan total otoritatif (mis. grand total AI).
+  ///
+  /// Hanya untuk kasus multi-item yang sama dengan logika [prefillItems].
+  void reconcileItemsAgainstAuthoritativeTotal({
+    required double authoritativeTotal,
+    required String balancePositiveLabel,
+    required String balanceNegativeLabel,
+  }) {
+    if (state.items.isEmpty) return;
+    final merged = TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+      items: state.items,
+      authoritativeTotal: authoritativeTotal,
+      positiveDiffLabel: balancePositiveLabel,
+      negativeDiffLabel: balanceNegativeLabel,
+    );
+    final resolved = merged.map(_resolveItemAmount).toList();
+    final keys = List.generate(resolved.length, (_) => _generateKey());
+    state = state.copyWith(
+      items: resolved,
+      itemKeys: keys,
+      totalAmount: _sumItems(resolved),
+    );
     _syncCategoryToAllItems();
   }
 
@@ -432,11 +477,7 @@ class TransactionFormController extends StateNotifier<TransactionFormState> {
 
   /// Hitung amount dari qty * unitPrice jika keduanya tersedia.
   static TransactionItemModel _resolveItemAmount(TransactionItemModel item) {
-    if (item.unitPrice != null && item.qty > 0) {
-      final computed = item.qty * item.unitPrice!;
-      return item.copyWith(amount: computed);
-    }
-    return item;
+    return TransactionItemModel.resolveLineAmount(item);
   }
 
   /// Sum amount dari semua items.

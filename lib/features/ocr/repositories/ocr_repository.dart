@@ -1,8 +1,6 @@
 import 'dart:io';
 
-import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
-import 'package:app_saku_rapi/core/router/app_router.dart';
 import 'package:app_saku_rapi/features/ocr/datasource/ocr_remote_data_source.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 
@@ -10,8 +8,10 @@ import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
 ///
 /// Pipeline:
 /// 1. Kirim gambar ke Vision AI (Gemini)
-/// 2. Jika AI gagal → lempar exception ke controller (tampilkan error)
-/// 3. Balancing items vs grand total
+/// 2. Jika AI gagal → lempar exception ke controller (tampilkan error + retry)
+///
+/// Selisih jumlah item vs grand total struk tidak dikoreksi otomatis di sini;
+/// mismatch hanya ditampilkan sebagai peringatan di preview hasil scan.
 class OcrRepository {
   OcrRepository({OcrRemoteDataSource? remoteDataSource})
     : _remoteDataSource = remoteDataSource ?? OcrRemoteDataSource();
@@ -48,33 +48,5 @@ class OcrRepository {
     final errorMsg = aiResult.dataError()?.toString() ?? 'AI_BUSY';
     AppLogger.call('$_tag AI failed: $errorMsg');
     throw Exception(errorMsg);
-  }
-
-  /// Balancing: jika total items != grandTotal, tambahkan item selisih.
-  ///
-  /// Hanya berlaku untuk expense type (yang punya items).
-  /// Ini sesuai PRD edge case: subtotal dan total tidak sinkron.
-  /// Return [OcrParseResultModel] yang sudah balanced.
-  static OcrParseResultModel balanceResult(OcrParseResultModel result) {
-    // Hanya balance untuk expense yang punya items
-    if (result.type != 'expense') return result;
-    if (result.grandTotal == null || result.grandTotal! <= 0) return result;
-    if (result.items.isEmpty) return result;
-
-    final diff = result.grandTotal! - result.itemsTotal;
-    if (diff.abs() < 1) return result; // Already balanced
-
-    // Jika selisih > 0, berarti ada item yang tidak terdeteksi
-    // Jika selisih < 0, berarti items sum > total (mungkin ada diskon)
-    // Tambahkan item selisih agar total match
-    final balanceItem = OcrItemModel(
-      name: diff > 0
-          ? (appContext?.l10n.ocrBalanceItem ?? 'Item lainnya')
-          : (appContext?.l10n.ocrDiscountItem ?? 'Diskon/potongan'),
-      qty: 1,
-      subtotal: diff,
-    );
-
-    return result.copyWith(items: [...result.items, balanceItem]);
   }
 }

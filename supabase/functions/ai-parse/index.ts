@@ -1,4 +1,4 @@
-/// Supabase Edge Function: ai-parse (v48)
+/// Supabase Edge Function: ai-parse (v51)
 ///
 /// Menerima teks atau gambar dan mengembalikan hasil parsing
 /// terstruktur dari AI (Vertex AI Gemini only).
@@ -12,9 +12,11 @@
 /// - Backend ID mapping: UUID → short ID (e1, i1, w1) di prompt, reverse map di response
 /// - Wallet short ID mapping: UUID → w1, w2, w3 (identik dengan kategori)
 /// - Category default fallback: ditandai asterisk (*) di prompt map
-/// - Multi-item text/voice/OCR: items[] tanpa categoryId; kategori hanya root categoryId/categoryKeyword
-/// - Multi-transaksi opsional: `transactions[]` (≥2 slice) → reverse-map categoryId per slice
-/// - System/User prompt split + few-shot examples
+/// - Multi-item text/voice/OCR: items[] tanpa categoryId; diskon sebagai baris negatif; kategori hanya root categoryId/categoryKeyword
+/// - Item vs total reconciliation: if sum(items.subtotal) ≠ authoritative total, append
+///   "Item lainnya" (diff > 0) or "Diskon/potongan" (diff < 0) with qty 1 and signed amounts
+/// - System/User prompt split + few-shot examples + strict JSON instructions
+/// - Client-side JSON repair (fence strip, outer object extract, comments, trailing commas, smart quotes)
 /// - Daily quota check (via RPC) before AI call, log after success
 /// - Specific error codes: AI_TIMEOUT, AI_RATE_LIMIT, AI_AUTH_ERROR, AI_ERROR, DAILY_QUOTA_EXCEEDED
 
@@ -238,13 +240,16 @@ CORE RULES:
 12. "note": Descriptive name of the item or service being transacted. MUST contain the item/service description (e.g. "Beli Degan", "Makan siang di Warteg", "Bayar listrik"). MUST NOT contain: amount/angka, date/tanggal, wallet name, person name — these belong in their own fields. If the input is just a category keyword with amount (e.g. "makan 25rb"), note should be null.
 
 MULTI-ITEM RULES:
-- "items": array of line items. ONLY populate if user explicitly mentions MULTIPLE items with INDIVIDUAL prices.
-- If items is populated: "amount" = sum of all items subtotal.
+- "items": array of line items when there are MULTIPLE priced lines OR when ANY discount/potongan applies (exception below).
+- If items is populated: "amount" MUST equal the sum of every items[].subtotal (goods positive + discounts NEGATIVE).
 - If items is empty []: "amount" = the single total amount.
 - Each item: {"name":"<item name>","qty":<number, default 1>,"unitPrice":<number|null>,"subtotal":<number>} — NEVER include categoryId inside items.
-- For expense OR income with multiple priced lines: set root "categoryId" (e-prefix or i-prefix) and "categoryKeyword" for the whole transaction; same category applies to all line items conceptually.
+- DISCOUNT / POTONGAN / PROMO / VOUCHER / CASHBACK: when the user or receipt implies a monetary deduction, add EXTRA item rows with NEGATIVE "unitPrice" and NEGATIVE "subtotal" (qty usually 1). Name clearly (e.g. "Diskon promo", "Potongan member"). Put discount lines AFTER the product line(s) they apply to (or follow receipt order).
+- ONE product WITH discount → ALWAYS use items with ≥2 rows: first row positive (goods), following rows negative (discounts). Never silently merge discount into a lower positive unit price if the user/receipt states diskon/potongan as its own concept.
+- Multiple products: same rule — each discount is its own negative line (usually after its goods or at end per receipt).
+- For expense OR income with multiple priced lines OR discount lines: set root "categoryId" (e-prefix or i-prefix) and "categoryKeyword" for the whole transaction; same category applies to all line items conceptually.
 - For transfer/debt/loan: items MUST be [].
-- Do NOT split a single purchase into fake items. Only split when user clearly lists separate items with separate prices.
+- Do NOT split into fake duplicate goods lines. Split only for real separate SKUs/prices OR mandatory discount rows per rules above.
 
 MULTI-TRANSACTION (optional):
 - Works for BOTH expense and income when the user clearly describes 2+ SEPARATE financial events (unrelated purchases, different categories, different payment sources, or clearly independent totals) that should be saved as separate rows. Set "transactions" to an array of 2–10 slice objects.
@@ -281,11 +286,16 @@ Output: {"isTransaction":true,"amount":100000,"items":[],"categoryId":null,"cate
 Input: "Beli ikan 20K, ayam 10K, sayur 5rb pakai cash"
 Output: {"isTransaction":true,"amount":35000,"items":[{"name":"Ikan","qty":1,"unitPrice":20000,"subtotal":20000},{"name":"Ayam","qty":1,"unitPrice":10000,"subtotal":10000},{"name":"Sayur","qty":1,"unitPrice":5000,"subtotal":5000}],"categoryId":"e1","categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[]}
 
+Input: "beli sepatu 500rb dapat diskon 50rb"
+Output: {"isTransaction":true,"amount":450000,"items":[{"name":"Sepatu","qty":1,"unitPrice":500000,"subtotal":500000},{"name":"Diskon","qty":1,"unitPrice":-50000,"subtotal":-50000}],"categoryId":"e1","categoryKeyword":"belanja","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":null,"destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[]}
+
 Input: "warteg 15rb, isi bensin 30rb"
 Output: {"isTransaction":true,"amount":45000,"items":[],"categoryId":null,"categoryKeyword":"campuran","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"w1","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[{"amount":15000,"items":[],"categoryId":"e1","categoryKeyword":"makan","note":null,"merchantName":"warteg","suggestedWalletId":"w1"},{"amount":30000,"items":[],"categoryId":"e2","categoryKeyword":"transport","note":"bensin","merchantName":null,"suggestedWalletId":"w2"}]}
 
 Input: "Jajan 10rb pakai cash, bensin 10rb pakai Bank Jago"
 Output: {"isTransaction":true,"amount":20000,"items":[],"categoryId":null,"categoryKeyword":"campuran","note":null,"type":"expense","debtLoanKind":null,"suggestedWalletId":"w1","destinationWalletId":null,"withPerson":null,"merchantName":null,"date":null,"transactions":[{"amount":10000,"items":[],"categoryId":"e1","categoryKeyword":"jajan","note":"jajan","merchantName":null,"suggestedWalletId":"w1"},{"amount":10000,"items":[],"categoryId":"e2","categoryKeyword":"transport","note":"bensin","merchantName":null,"suggestedWalletId":"w2"}]}
+
+STRICT JSON — Your entire reply MUST be one valid JSON object for JSON.parse: double quotes on every property name and string value, no trailing commas, no // or /* */ comments, no NaN/Infinity, no unquoted keys, no text before { or after }.
 
 Return ONLY the JSON object.`;
 }
@@ -337,7 +347,7 @@ CORE RULES:
     - loan: IOUs where someone owes user, "piutang" documents (PIUTANG BARU)
     - debt_payment: proof of paying back a debt ("bayar hutang", "pelunasan", "cicilan hutang")
     - loan_collection: proof of receiving payment for a loan ("terima piutang", "penerimaan piutang", "tagihan dibayar")
-3. EXPENSE items: extract line items with name, qty (default 1), unitPrice, subtotal. Ignore tax/discount/change/subtotal summary lines. subtotal = qty × unitPrice. Do NOT put categoryId inside each item.
+3. EXPENSE items: extract PRODUCT lines with positive subtotals (name, qty default 1, unitPrice, subtotal). When the receipt shows DISCOUNT / DISKON / POTONGAN / PROMO / CASHBACK / voucher / markdown as separate rows OR as amounts that reduce what is paid, add those as EXTRA items with NEGATIVE unitPrice and NEGATIVE subtotal (qty usually 1). Name clearly (e.g. copy receipt label). Ignore ONLY non-monetary fluff, pure tax-ID lines with no amount, and "kembalian/change" rows. If qty × unitPrice matches subtotal for goods, keep it; discount rows must still be negative lines so grandTotal equals sum(items.subtotal). Do NOT put categoryId inside each item.
 4. INCOME/TRANSFER/DEBT/LOAN/DEBT_PAYMENT/LOAN_COLLECTION: "items" must be empty array [] (income category only at root categoryId).
 5. Root "categoryId": for expense with line items OR single expense, pick best e-prefix. For income, pick i-prefix. For transfer/debt/loan/debt_payment/loan_collection → null.
 6. CATEGORY FALLBACK: If no category matches well, pick the category marked with * (default). For expense use the default expense (e*), for income use the default income (i*). NEVER invent new categories — only pick from the provided list.
@@ -353,6 +363,12 @@ CORE RULES:
 FEW-SHOT EXAMPLE (expense receipt):
 Image shows: "INDOMARET - Coca Cola 2x @8.500 = 17.000, Roti Tawar 1x @12.000 = 12.000, TOTAL: 29.000, TUNAI"
 Output: {"isTransaction":true,"type":"expense","merchantName":"INDOMARET","date":null,"grandTotal":29000,"items":[{"name":"Coca Cola","qty":2,"unitPrice":8500,"subtotal":17000},{"name":"Roti Tawar","qty":1,"unitPrice":12000,"subtotal":12000}],"categoryId":"e1","categoryKeyword":"belanja","suggestedWalletId":"<matching wallet ID or null>","destinationWalletId":null,"withPerson":null,"note":null,"transactions":[]}
+
+FEW-SHOT EXAMPLE (receipt with discount):
+Image shows: "KOPI KETEMU - Latte 1x @35.000 = 35.000, Diskon member -5.000, TOTAL 30.000"
+Output: {"isTransaction":true,"type":"expense","merchantName":"KOPI KETEMU","date":null,"grandTotal":30000,"items":[{"name":"Latte","qty":1,"unitPrice":35000,"subtotal":35000},{"name":"Diskon member","qty":1,"unitPrice":-5000,"subtotal":-5000}],"categoryId":"e1","categoryKeyword":"makan","suggestedWalletId":null,"destinationWalletId":null,"withPerson":null,"note":null,"transactions":[]}
+
+STRICT JSON — Your entire reply MUST be one valid JSON object for JSON.parse: double quotes on every property name and string value, no trailing commas, no // or /* */ comments, no NaN/Infinity, no unquoted keys, no text before { or after }.
 
 Return ONLY the JSON object.`;
 }
@@ -392,10 +408,185 @@ function buildOcrUserPrompt(
 // ─────────────────────────────────────────────────────
 
 function sanitizeJson(raw: string): string {
-  let cleaned = raw.trim();
+  let cleaned = raw.trim().replace(/^\uFEFF/, '');
   cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, '');
   cleaned = cleaned.replace(/\n?```\s*$/i, '');
   return cleaned.trim();
+}
+
+/// Kurung kurawal luar pertama dengan penghitungan depth yang menghormati string JSON.
+function extractFirstJsonObject(text: string): string {
+  const start = text.indexOf('{');
+  if (start === -1) return text.trim();
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = start; i < text.length; i++) {
+    const c = text[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+
+    if (inString) {
+      if (c === '\\') escape = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+
+    if (c === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+
+  return text.slice(start).trim();
+}
+
+/// Hapus // dan /* */ di luar string JSON (Gemini kadang menyisipkan komentar tidak valid).
+function stripCStyleComments(input: string): string {
+  let out = '';
+  let i = 0;
+  let inString = false;
+  let escape = false;
+
+  while (i < input.length) {
+    const c = input[i];
+    const n = input[i + 1];
+
+    if (!inString) {
+      if (c === '/' && n === '/') {
+        i += 2;
+        while (i < input.length && input[i] !== '\n' && input[i] !== '\r') i++;
+        continue;
+      }
+      if (c === '/' && n === '*') {
+        i += 2;
+        while (i < input.length - 1 && !(input[i] === '*' && input[i + 1] === '/')) i++;
+        i += 2;
+        continue;
+      }
+    }
+
+    if (escape) {
+      out += c;
+      escape = false;
+      i++;
+      continue;
+    }
+
+    if (inString) {
+      out += c;
+      if (c === '\\') escape = true;
+      else if (c === '"') inString = false;
+      i++;
+      continue;
+    }
+
+    if (c === '"') {
+      inString = true;
+      out += c;
+      i++;
+      continue;
+    }
+
+    out += c;
+    i++;
+  }
+
+  return out;
+}
+
+/// Hapus koma sebelum } atau ] (menormalisasi keluaran model yang sering invalid).
+function removeTrailingCommas(json: string): string {
+  let prev = '';
+  let cur = json;
+  let guard = 0;
+  while (prev !== cur && guard < 32) {
+    prev = cur;
+    cur = cur.replace(/,(\s*[}\]])/g, '$1');
+    guard++;
+  }
+  return cur;
+}
+
+/// Rapatkan koma ganda akibat edit.
+function collapseDuplicateCommas(json: string): string {
+  let prev = '';
+  let cur = json;
+  let guard = 0;
+  while (prev !== cur && guard < 32) {
+    prev = cur;
+    cur = cur.replace(/,\s*,+/g, ',');
+    guard++;
+  }
+  return cur;
+}
+
+/// Ganti "smart quotes" umum ke ASCII double quote.
+function normalizeSmartQuotes(s: string): string {
+  return s.replace(/\u201c|\u201d|\u00ab|\u00bb/g, '"').replace(/\u2018|\u2019/g, "'");
+}
+
+/// Perbaikan ringan: 'key': → "key": (hanya pola nama properti).
+function relaxSingleQuotedKeys(json: string): string {
+  return json.replace(/'([^'\n\r\\]*?)'\s*:/g, (_, key: string) => {
+    const escaped = key.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `"${escaped}":`;
+  });
+}
+
+/// Parse teks dari Gemini dengan beberapa tahap perbaikan sebelum gagal ke caller.
+function parseModelJson(rawText: string): unknown {
+  if (!rawText?.trim()) {
+    throw new Error('AI returned empty response text');
+  }
+
+  const baseExtract = extractFirstJsonObject(sanitizeJson(rawText));
+  const roots = [baseExtract];
+  const smartNormalized = normalizeSmartQuotes(baseExtract);
+  if (smartNormalized !== baseExtract) roots.push(smartNormalized);
+
+  const errors: string[] = [];
+  const seen = new Set<string>();
+
+  for (const base of roots) {
+    const candidates: string[] = [];
+    const withCommentsStripped = collapseDuplicateCommas(
+      removeTrailingCommas(stripCStyleComments(base)),
+    );
+    const commasOnly = collapseDuplicateCommas(removeTrailingCommas(base));
+
+    candidates.push(withCommentsStripped, commasOnly);
+
+    const sq1 = relaxSingleQuotedKeys(withCommentsStripped);
+    const sq2 = relaxSingleQuotedKeys(commasOnly);
+    if (sq1 !== withCommentsStripped) candidates.push(sq1);
+    if (sq2 !== commasOnly) candidates.push(sq2);
+
+    for (const json of candidates) {
+      if (seen.has(json)) continue;
+      seen.add(json);
+      try {
+        return JSON.parse(json);
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : String(e));
+      }
+    }
+  }
+
+  throw new Error(
+    `AI_JSON_PARSE: ${errors.slice(0, 8).join(' | ')} snippet=${baseExtract.slice(0, 360)}`,
+  );
 }
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -611,7 +802,7 @@ async function callVertexGenerateContent({
 
     const json = (await res.json()) as Record<string, unknown>;
     const rawText = extractResponseText(json);
-    return { data: JSON.parse(sanitizeJson(rawText)), provider: model };
+    return { data: parseModelJson(rawText), provider: model };
   } finally {
     clearTimeout(timeout);
   }
@@ -676,6 +867,79 @@ function classifyError(err: unknown): { code: string; message: string; status: n
     return { code: 'AI_AUTH_ERROR', message: 'AI service authentication error.', status: 502 };
   }
   return { code: 'AI_ERROR', message: `AI processing failed: ${errMsg}`, status: 503 };
+}
+
+// ─────────────────────────────────────────────────────
+// Item total reconciliation (match Flutter prefill / transaction form)
+// ─────────────────────────────────────────────────────
+
+function aiParseToNum(v: unknown): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function sumItemSubtotals(items: unknown[]): number {
+  let s = 0;
+  for (const row of items) {
+    if (!row || typeof row !== 'object') continue;
+    const o = row as Record<string, unknown>;
+    const sub = aiParseToNum(o.subtotal) ?? aiParseToNum(o.amount) ?? 0;
+    s += sub;
+  }
+  return s;
+}
+
+// OCR: grandTotal menang atas amount. Text/voice: amount menang atas grandTotal.
+function pickAuthoritativeTotal(container: Record<string, unknown>, mode: string): number | null {
+  const gt = aiParseToNum(container.grandTotal);
+  const am = aiParseToNum(container.amount);
+  if (mode === 'ocr') {
+    if (gt !== null) return gt;
+    if (am !== null) return am;
+  } else {
+    if (am !== null) return am;
+    if (gt !== null) return gt;
+  }
+  return null;
+}
+
+function balanceItemsContainer(container: Record<string, unknown>, mode: string): void {
+  const rawType = String(container.type ?? '').toLowerCase();
+  if (rawType !== 'expense' && rawType !== 'income') return;
+
+  const items = container.items;
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  const authoritative = pickAuthoritativeTotal(container, mode);
+  if (authoritative === null) return;
+
+  const sum = sumItemSubtotals(items);
+  const diff = authoritative - sum;
+  if (Math.abs(diff) < 1) return;
+
+  const name = diff > 0 ? 'Item lainnya' : 'Diskon/potongan';
+  (items as Record<string, unknown>[]).push({
+    name,
+    qty: 1,
+    unitPrice: diff,
+    subtotal: diff,
+  });
+}
+
+function balanceAiParsePayload(data: Record<string, unknown>, mode: string): void {
+  balanceItemsContainer(data, mode);
+
+  const txs = data.transactions;
+  if (!Array.isArray(txs)) return;
+  for (const tx of txs) {
+    if (tx && typeof tx === 'object') {
+      balanceItemsContainer(tx as Record<string, unknown>, mode);
+    }
+  }
 }
 
 const corsHeaders = {
@@ -874,6 +1138,8 @@ Deno.serve(async (req) => {
       catMapping,
       walletMapping,
     );
+
+    balanceAiParsePayload(mappedData as Record<string, unknown>, mode);
 
     return new Response(
       JSON.stringify({

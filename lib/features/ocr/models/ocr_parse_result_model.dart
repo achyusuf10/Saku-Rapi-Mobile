@@ -15,7 +15,7 @@ import 'package:app_saku_rapi/global/models/ai_parse_transaction_slice.dart';
 ///   "merchantName": "<string | null>",
 ///   "date": "<yyyy-MM-dd | yyyy-MM-ddTHH:mm:ss | null>",
 ///   "grandTotal": <number | null>,
-///   "items": [...],
+///   "items": [ { "name", "qty", "unitPrice", "subtotal", "amount?" } ],  // diskon: unitPrice & subtotal negatif
 ///   "categoryId": "<UUID | null>",
 ///   "categoryKeyword": "<string | null>",
 ///   "suggestedWalletId": "<UUID | null>",
@@ -313,13 +313,10 @@ class OcrItemModel {
     final qty = _toDouble(map['qty']) > 0 ? _toDouble(map['qty']) : 1.0;
     final unitPrice = _toDoubleOrNull(map['unitPrice']);
 
-    // Subtotal: prioritas 'subtotal', fallback 'amount'
-    double subtotal = _toDouble(map['subtotal']);
-    if (subtotal <= 0) {
-      subtotal = _toDouble(map['amount']);
-    }
-    // Jika subtotal masih 0 tapi ada qty * unitPrice, hitung
-    if (subtotal <= 0 && unitPrice != null && unitPrice > 0) {
+    final hasSubtotalKey = map.containsKey('subtotal') && map['subtotal'] != null;
+    double subtotal = hasSubtotalKey ? _toDouble(map['subtotal']) : _toDouble(map['amount']);
+
+    if (subtotal == 0 && unitPrice != null && qty != 0) {
       subtotal = qty * unitPrice;
     }
 

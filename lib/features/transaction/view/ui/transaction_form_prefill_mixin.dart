@@ -1,11 +1,11 @@
 import 'package:app_saku_rapi/core/enums/debt_loan_kind_enum.dart';
 import 'package:app_saku_rapi/core/enums/transaction_type_enum.dart';
+import 'package:app_saku_rapi/core/extensions/localization_context_ext.dart';
 import 'package:app_saku_rapi/features/category/controllers/category_controller.dart';
 import 'package:app_saku_rapi/features/category/models/category_model.dart';
 import 'package:app_saku_rapi/features/home_widget/home_widget_deep_link_handler.dart';
 import 'package:app_saku_rapi/features/ocr/controllers/pending_ocr_prefill_provider.dart';
 import 'package:app_saku_rapi/features/ocr/models/ocr_parse_result_model.dart';
-import 'package:app_saku_rapi/features/ocr/repositories/ocr_repository.dart';
 import 'package:app_saku_rapi/features/transaction/controllers/transaction_form_controller.dart';
 import 'package:app_saku_rapi/features/transaction/models/manual_transaction_entry_model.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_item_model.dart';
@@ -54,13 +54,15 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
   /// Membaca [pendingVoicePrefillProvider]. Jika ada data:
   /// - Set type (expense/income/transfer/debt/loan)
   /// - Set debtLoanKind (debt/loan/debt_payment/loan_collection)
-  /// - Set total amount (dari items total jika multi-item)
+  /// - Set total amount (hanya jika tidak ada baris item; jika ada item,
+  ///   total mengikuti hasil prefill + selaras dengan field `amount` AI)
   /// - Set note (prefer note > rawTranscript)
   /// - Set date dan merchant
   /// - Set wallet / destination wallet (match by UUID dari AI)
   /// - Set withPerson (debt/loan)
   /// - Set category (lookup via categoryId → fallback categoryKeyword)
-  /// - Prefill items jika expense/income > 1 item
+  /// - Prefill items expense/income bila ada baris dari AI; selaraskan ke `amount`
+  ///   bila sum(subtotal) ≠ amount (Item lainnya / Diskon/potongan)
   /// - Clear provider setelah dibaca agar tidak ke-apply ulang
   void applyVoicePrefill(TransactionFormController ctrl) {
     final voiceResult = ref.read(pendingVoicePrefillProvider);
@@ -88,14 +90,6 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
       } catch (_) {
         // Unknown kind → abaikan, pakai default dari setType
       }
-    }
-
-    // Gunakan itemsTotal jika multi-item, fallback ke amount top-level
-    final effectiveAmount = voiceResult.items.length > 1
-        ? voiceResult.itemsTotal
-        : voiceResult.amount;
-    if (effectiveAmount != null && effectiveAmount > 0) {
-      ctrl.setTotalAmount(effectiveAmount);
     }
 
     // Prefer note AI daripada raw transcript
@@ -152,8 +146,10 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
           .toList();
       final categoryLookup = {for (final c in allCategories) c.id: c};
 
-      // Multi-item voice: bangun TransactionItemModel per baris AI
-      if (voiceResult.items.length > 1) {
+      final l10n = context.l10n;
+
+      // Ada baris item AI → prefill multi (+ selaraskan ke voice amount jika ada)
+      if (voiceResult.items.isNotEmpty) {
         final txItems = voiceResult.items.asMap().entries.map((e) {
           final voiceItem = e.value;
           return TransactionItemModel(
@@ -164,7 +160,17 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
             sortOrder: e.key,
           );
         }).toList();
-        ctrl.prefillItems(txItems);
+        ctrl.prefillItems(
+          txItems,
+          authoritativeTotal: voiceResult.amount,
+          balancePositiveLabel: l10n.ocrBalanceItem,
+          balanceNegativeLabel: l10n.ocrDiscountItem,
+        );
+      } else {
+        final effectiveAmount = voiceResult.amount;
+        if (effectiveAmount != null && effectiveAmount > 0) {
+          ctrl.setTotalAmount(effectiveAmount);
+        }
       }
 
       // Match kategori level root (categoryId prioritas, keyword fallback)
@@ -189,8 +195,8 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
   /// - Set debtLoanKind jika settlement (debt_payment/loan_collection)
   /// - Set merchant name, date, note
   /// - Set wallet/destination wallet/person by UUID
-  /// - Prefill items (multi-item jika expense > 1 baris)
-  /// - Balance items jika total mismatch (expense multi-item)
+  /// - Prefill expense: selaraskan [items] ke grand total struk bila beda (baris
+  ///   Item lainnya / Diskon/potongan), konsisten dengan AI Parse
   /// - Match kategori root dari categoryId/categoryKeyword
   /// - Clear provider setelah dibaca
   void applyOcrPrefill(TransactionFormController ctrl) {
@@ -287,25 +293,24 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
 
   /// Terapkan items OCR untuk tipe expense.
   ///
-  /// - Single item → single-item mode (gunakan grandTotal jika ada)
-  /// - Multi-item  → balance dulu via [OcrRepository.balanceResult], lalu prefill
-  /// - Tidak ada items tapi ada grandTotal → set totalAmount saja
+  /// - Ada baris item → prefill + selaraskan ke [grandTotal] bila ada (diff ≠ 0)
+  /// - Tidak ada items → gunakan grandTotal sebagai total tunggal
   void _applyOcrExpenseItems(
     TransactionFormController ctrl,
     OcrParseResultModel ocrResult,
     Map<String, CategoryModel> categoryLookup,
   ) {
+    final l10n = context.l10n;
+
+    if (ocrResult.items.isEmpty) {
+      if (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0) {
+        ctrl.setTotalAmount(ocrResult.grandTotal!);
+      }
+      return;
+    }
+
     if (ocrResult.items.length == 1) {
-      // ── Single item: cek SEBELUM balance agar 1-item receipt tidak berubah jadi multi-item ──
       final item = ocrResult.items.first;
-
-      // Pakai grandTotal jika ada (lebih akurat, sudah termasuk tax/tip)
-      final amount = (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0)
-          ? ocrResult.grandTotal!
-          : item.subtotal;
-      if (amount > 0) ctrl.setTotalAmount(amount);
-
-      // Gabungkan nama item + note AI sebagai catatan
       final parts = <String>[];
       if (item.name != null && item.name!.isNotEmpty) parts.add(item.name!);
       if (ocrResult.note != null && ocrResult.note!.isNotEmpty) {
@@ -316,30 +321,29 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
         ctrl.setNote(combinedNote);
         noteController.text = combinedNote;
       }
-
-      // Kategori dari item jika AI berhasil mengklasifikasikan per baris
       if (item.categoryId != null) {
         final cat = categoryLookup[item.categoryId];
         if (cat != null) ctrl.setCategory(cat);
       }
-    } else if (ocrResult.items.length > 1) {
-      // ── Multi-item: balance total dulu, lalu prefill ──
-      final balanced = OcrRepository.balanceResult(ocrResult);
-      final txItems = balanced.items.asMap().entries.map((e) {
-        final ocrItem = e.value;
-        return TransactionItemModel(
-          itemName: ocrItem.name,
-          qty: ocrItem.qty,
-          unitPrice: ocrItem.unitPrice,
-          amount: ocrItem.subtotal,
-          sortOrder: e.key,
-        );
-      }).toList();
-      ctrl.prefillItems(txItems);
-    } else if (ocrResult.grandTotal != null && ocrResult.grandTotal! > 0) {
-      // Tidak ada items tapi ada total → single-item mode
-      ctrl.setTotalAmount(ocrResult.grandTotal!);
     }
+
+    final txItems = ocrResult.items.asMap().entries.map((e) {
+      final ocrItem = e.value;
+      return TransactionItemModel(
+        itemName: ocrItem.name,
+        qty: ocrItem.qty,
+        unitPrice: ocrItem.unitPrice,
+        amount: ocrItem.subtotal,
+        sortOrder: e.key,
+      );
+    }).toList();
+
+    ctrl.prefillItems(
+      txItems,
+      authoritativeTotal: ocrResult.grandTotal,
+      balancePositiveLabel: l10n.ocrBalanceItem,
+      balanceNegativeLabel: l10n.ocrDiscountItem,
+    );
   }
 
   // ═══════════════════════════════════════════════
@@ -483,6 +487,8 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
       ctrl.setWithPerson(voiceResult.withPerson);
     }
 
+    final l10n = context.l10n;
+
     final entries = <ManualTransactionEntryModel>[];
     for (var i = 0; i < txs.length; i++) {
       final slice = txs[i];
@@ -499,7 +505,11 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
       );
       final items = _withCategoryOnItems(
         matched,
-        _transactionItemsFromAiSlice(slice),
+        _transactionItemsFromAiSlice(
+          slice,
+          balancePositiveLabel: l10n.ocrBalanceItem,
+          balanceNegativeLabel: l10n.ocrDiscountItem,
+        ),
       );
       final total = TransactionFormController.sumItemsForTest(items);
       entries.add(
@@ -565,6 +575,7 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
     }
 
     final txs = ocrResult.aiTransactions!;
+    final l10n = context.l10n;
     final entries = <ManualTransactionEntryModel>[];
     for (var i = 0; i < txs.length; i++) {
       final slice = txs[i];
@@ -581,7 +592,11 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
       );
       final items = _withCategoryOnItems(
         matched,
-        _transactionItemsFromAiSlice(slice),
+        _transactionItemsFromAiSlice(
+          slice,
+          balancePositiveLabel: l10n.ocrBalanceItem,
+          balanceNegativeLabel: l10n.ocrDiscountItem,
+        ),
       );
       final total = TransactionFormController.sumItemsForTest(items);
       final note = slice.note ?? (i == 0 ? ocrResult.note : null);
@@ -636,10 +651,14 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
   }
 
   List<TransactionItemModel> _transactionItemsFromAiSlice(
-    AiParseTransactionSlice slice,
-  ) {
+    AiParseTransactionSlice slice, {
+    required String balancePositiveLabel,
+    required String balanceNegativeLabel,
+  }) {
+    late List<TransactionItemModel> built;
+
     if (slice.items.length > 1) {
-      return slice.items.asMap().entries.map((e) {
+      built = slice.items.asMap().entries.map((e) {
         final li = e.value;
         return TransactionFormController.resolveItemAmountForTest(
           TransactionItemModel(
@@ -651,11 +670,10 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
           ),
         );
       }).toList();
-    }
-    if (slice.items.length == 1) {
+    } else if (slice.items.length == 1) {
       final li = slice.items.first;
-      final amt = li.subtotal > 0 ? li.subtotal : (slice.amount ?? 0);
-      return [
+      final amt = li.subtotal != 0 ? li.subtotal : (slice.amount ?? 0);
+      built = [
         TransactionFormController.resolveItemAmountForTest(
           TransactionItemModel(
             itemName: li.name,
@@ -666,14 +684,26 @@ mixin TransactionFormPrefillMixin on ConsumerState<TransactionFormPage> {
           ),
         ),
       ];
+    } else {
+      built = [
+        TransactionItemModel(
+          amount: slice.amount ?? 0,
+          sortOrder: 0,
+          itemName: slice.note,
+        ),
+      ];
     }
-    return [
-      TransactionItemModel(
-        amount: slice.amount ?? 0,
-        sortOrder: 0,
-        itemName: slice.note,
-      ),
-    ];
+
+    final auth = slice.amount;
+    if (auth != null && slice.items.isNotEmpty) {
+      return TransactionItemModel.balanceItemsAgainstAuthoritativeTotal(
+        items: built,
+        authoritativeTotal: auth,
+        positiveDiffLabel: balancePositiveLabel,
+        negativeDiffLabel: balanceNegativeLabel,
+      );
+    }
+    return built;
   }
 
   List<TransactionItemModel> _withCategoryOnItems(

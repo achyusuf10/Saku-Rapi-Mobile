@@ -24,38 +24,62 @@ import 'package:go_router/go_router.dart';
 
 import 'transaction_form_page.dart';
 
-// ═══════════════════════════════════════════════
-//  TransactionFormActionsMixin
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+//  TransactionFormActionsMixin — ringkasan
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mixin ini memisahkan **aksi pengguna** dari halaman form utama agar
+// [transaction_form_page.dart] tidak membengkak dengan sheet, dialog, dan alur simpan.
+//
+// Pola umum di setiap aksi:
+// - Tutup keyboard ([FocusScope.unfocus]) agar sheet tidak tertutup fokus aneh.
+// - Baca [transactionFormControllerProvider] untuk state / notifier untuk mutasi.
+// - Setelah async ([show]), cek [mounted] sebelum memanggil [setState] implisit lewat provider/context.
+//
+// ═══════════════════════════════════════════════════════════════════════════
 
-/// Mixin yang menangani seluruh aksi pengguna pada form transaksi.
+/// Mixin untuk semua **callback UI** pada form transaksi (picker, simpan, hapus).
 ///
-/// Di-mix ke [_TransactionFormPageState] agar kelas utama tetap
-/// fokus pada [build] dan lifecycle — bukan logika bisnis UI.
+/// **Di-mix ke:** [_TransactionFormPageState] (`transaction_form_page.dart`).
 ///
-/// Aksi yang tersedia (dipakai sebagai callback di [build]):
-/// - [pickWallet]               — buka picker dompet sumber / tujuan
-/// - [pickCategory]             — buka picker kategori
-/// - [pickReferenceTransaction] — buka picker transaksi referensi (settlement)
-/// - [pickAttachment]           — pilih gambar lampiran dari kamera/galeri
-/// - [onSave]                   — validasi + submit form
-/// - [onConfirmDelete]          — konfirmasi + hapus transaksi
-/// - [colorForType]             — mapping tipe → warna tema
+/// **Tanggung jawab:**
+/// - Membuka bottom sheet (dompet, kategori, lampiran, referensi pelunasan).
+/// - Menyimpan transaksi: validasi berlapis → upload lampiran → [submit] → refresh data → navigasi balik.
+/// - Menghapus transaksi (mode edit) dengan konfirmasi.
+/// - Helper warna tipe transaksi untuk konsistensi tampilan.
+///
+/// **Yang sengaja TIDAK ada di sini:** pembangunan widget [build], prefill dari OCR/suara,
+/// dan logika murni bisnis di [TransactionFormController] — hanya jembatan antara UI dan controller.
+///
+/// **Callbacks yang dipasang dari [build] halaman:**
+/// - [pickWallet], [pickCategory], [pickReferenceTransaction], [pickAttachment],
+///   [pickAttachmentForMultiEntry]
+/// - [onSave], [onConfirmDelete]
+/// - [colorForType]
 mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
-  // ─── Abstract getters ───
-  // Harus diimplementasikan oleh class yang menggunakan mixin ini.
+  // ─────────────────────────────────────────────
+  // Getter abstrak — diisi oleh [TransactionFormPage]
+  // ─────────────────────────────────────────────
 
-  /// GlobalKey form untuk memanggil [FormState.validate].
+  /// Kunci form untuk memanggil validasi [FormState.validate] sebelum simpan.
   GlobalKey<FormState> get formKey;
 
   // ═══════════════════════════════════════════════
-  //  Picker Actions
+  //  Aksi picker (bottom sheet)
   // ═══════════════════════════════════════════════
 
-  /// Buka bottom sheet picker dompet.
+  /// Membuka pemilih dompet (bottom sheet).
   ///
-  /// [isSource] = true  → picker dompet sumber (exclude dompet tujuan).
-  /// [isSource] = false → picker dompet tujuan (exclude dompet sumber).
+  /// **Mode form tunggal:**
+  /// - [isSource] = `true`  → dompet **sumber** pembayaran / potong saldo.
+  /// - [isSource] = `false` → dompet **tujuan** (transfer); picker akan mengExclude dompet sumber agar tidak dobel.
+  ///
+  /// **Mode multi transaksi manual** ([manualMultiEntryIndex] tidak null):
+  /// - Mengisi dompet untuk **satu baris entri** batch saja (indeks ke [manualMultiEntries]).
+  /// - [isSource] diabaikan untuk exclusion pola yang sama; yang penting ID dompet terpilih per entri.
+  ///
+  /// Setelah user memilih, notifier controller di-update ([setWallet], [setDestinationWallet],
+  /// atau [setManualMultiEntryWallet]).
   Future<void> pickWallet({
     required bool isSource,
     int? manualMultiEntryIndex,
@@ -64,15 +88,15 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     final formState = ref.read(transactionFormControllerProvider);
     final ctrl = ref.read(transactionFormControllerProvider.notifier);
 
+    // Wallet yang ditampilkan sebagai terpilih di sheet: bedakan batch vs form biasa.
     final result = await SakuWalletPickerSheet.show(
       context,
       selectedWalletId: manualMultiEntryIndex != null
           ? (manualMultiEntryIndex < formState.manualMultiEntries.length
                 ? formState.manualMultiEntries[manualMultiEntryIndex].wallet?.id
                 : null)
-          : (isSource
-                ? formState.wallet?.id
-                : formState.destinationWallet?.id),
+          : (isSource ? formState.wallet?.id : formState.destinationWallet?.id),
+      // Transfer: jangan pilih dompet tujuan yang sama dengan sumber.
       excludeWalletId: isSource ? null : formState.wallet?.id,
     );
 
@@ -87,10 +111,13 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     }
   }
 
-  /// Buka bottom sheet picker kategori.
+  /// Membuka pemilih kategori (bottom sheet).
   ///
-  /// Tipe kategori (expense/income) mengikuti tipe transaksi aktif.
-  /// Kategori yang sedang terpilih di-highlight sebagai selected.
+  /// Daftar kategori difilter **expense vs income** mengikuti [TransactionFormState.type].
+  /// Untuk entri batch ([manualMultiEntryIndex]), kategori yang di-highlight di sheet diambil dari
+  /// entri tersebut (fallback ke [categoryId] pada item pertama jika entri punya multi-item).
+  ///
+  /// Hasil memanggil [setCategory] (form tunggal) atau [setManualMultiEntryCategory] (batch).
   Future<void> pickCategory({int? manualMultiEntryIndex}) async {
     FocusScope.of(context).unfocus();
     final formState = ref.read(transactionFormControllerProvider);
@@ -100,6 +127,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         ? CategoryType.income
         : CategoryType.expense;
 
+    // Tentukan ID kategori untuk highlight — prioritas: entri batch → form tunggal → item pertama.
     String? selectedId;
     if (manualMultiEntryIndex != null &&
         manualMultiEntryIndex < formState.manualMultiEntries.length) {
@@ -110,7 +138,9 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     } else {
       selectedId =
           formState.category?.id ??
-          (formState.items.isNotEmpty ? formState.items.first.categoryId : null);
+          (formState.items.isNotEmpty
+              ? formState.items.first.categoryId
+              : null);
     }
 
     final result = await CategoryPickerSheet.show(
@@ -128,7 +158,9 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     }
   }
 
-  /// Lampiran untuk satu baris mode multi transaksi.
+  /// Memilih gambar lampiran untuk **satu entri** dalam mode multi transaksi manual.
+  ///
+  /// File disimpan sebagai path lokal di state entri; upload ke storage baru pada [onSave].
   Future<void> pickAttachmentForMultiEntry(int entryIndex) async {
     FocusScope.of(context).unfocus();
     final file = await ImageSourcePickerSheet.show(context);
@@ -138,10 +170,12 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         .setManualMultiEntryLocalAttachment(entryIndex, file.path);
   }
 
-  /// Buka bottom sheet picker transaksi yang belum dilunasi (mode settlement).
+  /// Memilih transaksi **referensi** untuk mode pelunasan hutang / penerimaan piutang.
   ///
-  /// Hanya aktif jika [TransactionFormState.isSettlementMode] = true.
-  /// Tipe transaksi yang ditampilkan mengikuti [DebtLoanKindEnum.referenceType].
+  /// Hanya relevan jika form dalam mode settlement ([DebtLoanKindEnum.isSettlement]).
+  /// Sheet menampilkan daftar transaksi unpaid sesuai [referenceType] (hutang vs piutang).
+  ///
+  /// Guard di awal: tanpa [debtLoanKind] settlement → tidak membuka sheet (invalid state).
   Future<void> pickReferenceTransaction(TransactionFormState formState) async {
     FocusScope.of(context).unfocus();
     final subCat = formState.debtLoanKind;
@@ -160,9 +194,9 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     }
   }
 
-  /// Pilih gambar lampiran dari kamera atau galeri.
+  /// Memilih lampiran gambar untuk form transaksi **tunggal** (bukan batch).
   ///
-  /// Gambar disimpan sebagai local path — upload dilakukan lazy saat simpan.
+  /// Path lokal disimpan di controller; URL publik diisi setelah [ImageUploadService] pada simpan.
   Future<void> pickAttachment() async {
     FocusScope.of(context).unfocus();
     final file = await ImageSourcePickerSheet.show(context);
@@ -174,19 +208,22 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
   }
 
   // ═══════════════════════════════════════════════
-  //  Save Action
+  //  Simpan — alur validasi & submit
   // ═══════════════════════════════════════════════
 
-  /// Validasi form lalu submit ke backend via controller.
+  /// Menyimpan transaksi: validasi bertingkat, upload lampiran, submit, refresh, pop.
   ///
-  /// Urutan proses:
-  /// 1. Validasi form widget ([FormState.validate])
-  /// 2. Validasi UI (wallet wajib, dest wallet wajib untuk transfer)
-  /// 3. Validasi settlement (referensi wajib, amount ≤ sisa)
-  /// 4. Upload lampiran lokal jika ada
-  /// 5. Submit via [TransactionFormController.submit]
-  /// 6. Refresh wallet/dashboard/history lalu pop halaman
-  /// 7. Tampilkan interstitial ad jika eligible
+  /// **Urutan singkat:**
+  /// 1. Validasi widget form ([formKey] → fields TextFormField dll.).
+  /// 2. Validasi konteks: dompet wajib (kecuali batch yang divalidasi terpisah), transfer butuh tujuan,
+  ///    settlement butuh referensi dan nominal ≤ sisa.
+  /// 3. [showLoadingOverlay] — blok UI selama IO jaringan.
+  /// 4. Upload lampiran (batch: loop per entri yang punya path lokal; tunggal: satu file).
+  /// 5. [TransactionFormController.submit] — RPC / REST sesuai mode (edit, batch, tunggal, settlement).
+  /// 6. Tutup overlay; sukses → refresh [wallet], [dashboard], [history], snackbar, [pop(true)].
+  /// 7. Interstitial iklan (opsional) jika user eligible — tidak menghalangi navigasi sukses.
+  ///
+  /// **finally:** selalu coba [closeOverlay] agar loading tidak nyangkut setelah error.
   Future<void> onSave() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -195,7 +232,8 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     final isMultiBatchSubmit =
         formState.isMultiManualMode && !formState.isEditing;
 
-    // ── Mode multi transaksi (create + expense/income) ──
+    // ── Batch create (beberapa transaksi sekaligus, expense/income) ──
+    // Dompet/kategori per baris divalidasi di coordinator — pesan error sudah terlokalisasi.
     if (formState.isMultiManualMode && !formState.isEditing) {
       final batchErr = TransactionFormMultiManualCoordinator.validateBatch(
         formState,
@@ -207,6 +245,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         return;
       }
     } else if (formState.wallet == null) {
+      // Form tunggal / edit: dompet sumber wajib.
       if (!mounted) return;
       context.showAppAlert(
         l10n.transactionWalletRequired,
@@ -215,7 +254,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
       return;
     }
 
-    // ── Validasi: wallet tujuan wajib untuk transfer ──
+    // ── Transfer: dompet tujuan wajib berbeda dari sumber (exclude sudah di picker). ──
     if (formState.type == TransactionTypeEnum.transfer &&
         formState.destinationWallet == null) {
       if (!mounted) return;
@@ -226,7 +265,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
       return;
     }
 
-    // ── Validasi khusus settlement ──
+    // ── Pelunasan hutang / penerimaan piutang: referensi + tidak boleh melebihi sisa ──
     if (formState.isSettlementMode) {
       if (formState.referenceTransaction == null) {
         if (!mounted) return;
@@ -251,8 +290,11 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
     context.showLoadingOverlay();
 
     try {
+      // Upload lampiran batch dulu (setiap entri bisa punya file sendiri).
       if (formState.isMultiManualMode && !formState.isEditing) {
-        final entries = ref.read(transactionFormControllerProvider).manualMultiEntries;
+        final entries = ref
+            .read(transactionFormControllerProvider)
+            .manualMultiEntries;
         for (var i = 0; i < entries.length; i++) {
           final path = entries[i].localAttachmentPath;
           if (path == null) continue;
@@ -265,6 +307,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
           }
         }
       } else if (formState.localAttachmentPath != null) {
+        // Satu lampiran untuk form tunggal.
         final url = await _uploadLocalAttachment(
           formState.localAttachmentPath!,
         );
@@ -284,11 +327,12 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
       context.closeOverlay();
 
       if (result.isSuccess()) {
-        // Refresh semua data yang terpengaruh oleh transaksi baru/edit
+        // Sinkronkan layar lain yang menampilkan saldo / riwayat / ringkasan.
         ref.read(walletControllerProvider.notifier).loadWallets();
         ref.read(dashboardControllerProvider.notifier).loadDashboard();
         ref.read(historyControllerProvider.notifier).loadTransactions();
 
+        // Batch: tampilkan jumlah baris tersimpan jika backend mengembalikan count.
         if (isMultiBatchSubmit) {
           final payload = result.dataSuccess();
           final n = (payload != null && payload['count'] is num)
@@ -308,7 +352,7 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         }
         context.pop(true);
 
-        // Tampilkan interstitial ad setiap N simpan, hanya jika eligible
+        // Iklan interstitial: tidak mem-block navigasi; dipanggil setelah pop.
         if (ref.read(adsEligibleProvider)) {
           await AdsService.instance.incrementAndMaybeShowInterstitial(context);
         }
@@ -317,18 +361,21 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
         context.showAppAlert(message, alertType: AlertTypeEnum.error);
       }
     } finally {
-      // Pastikan overlay selalu ditutup meski terjadi error
+      // Jaga-jaga bila exception atau early return sebelum close di atas.
       if (mounted) context.closeOverlay();
     }
   }
 
   // ═══════════════════════════════════════════════
-  //  Delete Action
+  //  Hapus transaksi (mode edit)
   // ═══════════════════════════════════════════════
 
-  /// Tampilkan dialog konfirmasi lalu hapus transaksi (mode edit saja).
+  /// Menghapus transaksi yang sedang diedit setelah dialog konfirmasi.
   ///
-  /// Setelah hapus berhasil: refresh wallet/dashboard/history dan pop halaman.
+  /// Memanggil [TransactionFormController.delete]. Sukses → sama seperti simpan:
+  /// refresh provider terkait, snackbar, [pop(true)]. Gagal → pesan error, tetap di halaman.
+  ///
+  /// **finally:** tutup overlay loading agar tidak tertinggal.
   Future<void> onConfirmDelete() async {
     if (!mounted) return;
     final l10n = context.l10n;
@@ -371,13 +418,14 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
   }
 
   // ═══════════════════════════════════════════════
-  //  Upload Helper
+  //  Helper upload lampiran
   // ═══════════════════════════════════════════════
 
-  /// Kompres gambar lalu upload ke Supabase Storage.
+  /// Mengompres gambar dari disk lalu mengunggahnya via [ImageUploadService].
   ///
-  /// Mengembalikan URL publik jika berhasil, atau null jika gagal.
-  /// Dipanggil dari [onSave] sebelum submit transaksi ke DB.
+  /// Dipanggil **hanya dari [onSave]** — tidak memblok UI pembukaan form.
+  /// Mengembalikan URL publik untuk disimpan ke state sebelum [submit], atau `null` jika kompresi/upload gagal
+  /// (submit tetap bisa dipanggil tanpa URL jika controller mengizinkan — perilaku detail ada di controller).
   Future<String?> _uploadLocalAttachment(String localPath) async {
     final compressed = await CompressImageFunc.call(filePath: localPath);
     if (compressed == null) return null;
@@ -393,12 +441,12 @@ mixin TransactionFormActionsMixin on ConsumerState<TransactionFormPage> {
   }
 
   // ═══════════════════════════════════════════════
-  //  UI Helper
+  //  Helper warna UI
   // ═══════════════════════════════════════════════
 
-  /// Kembalikan warna tema yang sesuai untuk tipe transaksi yang diberikan.
+  /// Memetakan [TransactionTypeEnum] ke warna semantik di [AppColorScheme].
   ///
-  /// Digunakan di [build] untuk konsistensi warna tombol, ikon, dan aksen.
+  /// Dipakai di header / FAB / chip agar expense selalu “merah keluar”, income “hijau masuk”, dll.
   Color colorForType(TransactionTypeEnum type, AppColorScheme colors) {
     return switch (type) {
       TransactionTypeEnum.expense => colors.expense,

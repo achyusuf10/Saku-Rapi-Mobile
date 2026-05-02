@@ -95,7 +95,9 @@ class AiItemTile extends StatelessWidget {
                       '${qty > 1 ? '${qty.toInt()}x ' : ''}'
                       '${unitPrice != null ? '@ ${unitPrice!.toCurrency(withPrefix: false)}' : ''}',
                       style: TextStyleConstants.label3.copyWith(
-                        color: colors.textSecondary,
+                        color: unitPrice != null && unitPrice! < 0
+                            ? colors.expense.withValues(alpha: 0.9)
+                            : colors.textSecondary,
                         height: 1.25,
                       ),
                     ),
@@ -133,7 +135,7 @@ class AiItemTile extends StatelessWidget {
             child: Text(
               subtotal.toCurrency(withPrefix: false),
               style: TextStyleConstants.label1.copyWith(
-                color: colors.textPrimary,
+                color: subtotal < 0 ? colors.expense : colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 height: 1.2,
               ),
