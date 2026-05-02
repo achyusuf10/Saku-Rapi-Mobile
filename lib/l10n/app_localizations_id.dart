@@ -2716,4 +2716,250 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get noMoreData => 'Data kamu cukup sampai sini nih..';
+
+  @override
+  String get exportImportTitle => 'Import & Export';
+
+  @override
+  String get exportTabExport => 'Export';
+
+  @override
+  String get exportTabImport => 'Import';
+
+  @override
+  String get exportImportComingTitle => 'Segera hadir';
+
+  @override
+  String get exportImportComingBody =>
+      'Impor data ke SakuRapi akan tersedia di pembaruan berikutnya.';
+
+  @override
+  String get exportFormatLabel => 'Format file';
+
+  @override
+  String get exportFormatExcel => 'Excel (.xlsx)';
+
+  @override
+  String get exportFormatPdf => 'PDF';
+
+  @override
+  String get exportFormatCsv => 'CSV';
+
+  @override
+  String get exportSoonShort => 'Segera hadir';
+
+  @override
+  String get exportPeriodLabel => 'Periode laporan';
+
+  @override
+  String get exportSelectPeriod => 'Pilih periode';
+
+  @override
+  String get exportPeriodThisMonth => 'Bulan ini';
+
+  @override
+  String get exportPeriodLastMonth => 'Bulan lalu';
+
+  @override
+  String get exportPeriodThisQuarter => 'Quartal ini';
+
+  @override
+  String get exportPeriodThisYear => 'Tahun ini';
+
+  @override
+  String get exportPeriodCustom => 'Kustom';
+
+  @override
+  String get exportSelectCustomRange => 'Pilih rentang tanggal kustom';
+
+  @override
+  String get exportTapCustomToPickRange =>
+      'Ketuk \"Kustom\", lalu pilih rentang tanggal.';
+
+  @override
+  String get exportScopeAlwaysIncluded =>
+      'Pemasukan & pengeluaran (selalu disertakan)';
+
+  @override
+  String get exportIncludeDebt => 'Sertakan Hutang & Piutang';
+
+  @override
+  String get exportIncludeTransfer => 'Sertakan transfer antar dompet';
+
+  @override
+  String get exportDashboardNote =>
+      'Ringkasan di lembar Dashboard hanya memakai pemasukan dan pengeluaran periode. Transfer tidak ikut dihitung di sana.';
+
+  @override
+  String get exportBuildButton => 'Buat laporan Excel';
+
+  @override
+  String get exportProgressMessage =>
+      'Mohon tunggu, data kamu sedang diproses…';
+
+  @override
+  String get exportCancel => 'Batalkan';
+
+  @override
+  String get exportStopAndBuild => 'Hentikan dan buat sekarang';
+
+  @override
+  String get exportSuccessTitle => 'Laporan siap';
+
+  @override
+  String get exportOpenFile => 'Buka file';
+
+  @override
+  String get exportShareFile => 'Bagikan';
+
+  @override
+  String get exportClose => 'Tutup';
+
+  @override
+  String get exportErrorGeneric => 'Gagal membuat laporan. Coba lagi.';
+
+  @override
+  String get exportPartialWarning =>
+      'Beberapa data periode mungkin belum terambil. File ini dibuat dari data yang sudah tersedia.';
+
+  @override
+  String exportSavedPath(String path) {
+    return 'Disimpan ke: $path';
+  }
+
+  @override
+  String get exportReportBrandTitle => 'Laporan Keuangan SakuRapi';
+
+  @override
+  String get exportSheetDashboard => 'Dashboard';
+
+  @override
+  String get exportSheetTransactions => 'Data Transaksi';
+
+  @override
+  String get exportSheetCategoryAnalysis => 'Analisis Kategori';
+
+  @override
+  String get exportSheetDebt => 'Hutang Piutang';
+
+  @override
+  String get exportSheetTransfer => 'Transfer';
+
+  @override
+  String get exportSummaryIncomeBox => 'Total Pemasukan';
+
+  @override
+  String get exportSummaryExpenseBox => 'Total Pengeluaran';
+
+  @override
+  String get exportSummaryBalanceBox => 'Saldo Akhir';
+
+  @override
+  String get exportDebtUnpaidTotalTitle => 'Total Hutang yang Belum Dibayar';
+
+  @override
+  String get exportReceivableUnpaidTotalTitle =>
+      'Total Piutang yang Belum Dibayar';
+
+  @override
+  String get exportColNo => 'No';
+
+  @override
+  String get exportColDate => 'Tanggal';
+
+  @override
+  String get exportColType => 'Tipe';
+
+  @override
+  String get exportColCategory => 'Kategori';
+
+  @override
+  String get exportColNote => 'Catatan';
+
+  @override
+  String get exportColWallet => 'Dompet';
+
+  @override
+  String get exportColAmount => 'Nominal';
+
+  @override
+  String get exportColPerson => 'Nama Orang';
+
+  @override
+  String get exportColDueDate => 'Jatuh Tempo';
+
+  @override
+  String get exportColStatus => 'Status';
+
+  @override
+  String get exportColWalletSource => 'Dompet Asal';
+
+  @override
+  String get exportColWalletDest => 'Dompet Tujuan';
+
+  @override
+  String get exportAnalysisCategory => 'Nama Kategori';
+
+  @override
+  String get exportAnalysisTotal => 'Total Nominal';
+
+  @override
+  String get exportAnalysisPercent => 'Persentase (%)';
+
+  @override
+  String get exportDailySummaryTitle => 'Ringkasan harian (grafik)';
+
+  @override
+  String get exportDailyDate => 'Tanggal';
+
+  @override
+  String get exportDailyIncome => 'Pemasukan';
+
+  @override
+  String get exportDailyExpense => 'Pengeluaran';
+
+  @override
+  String get exportChartCategoryTitle => 'Porsi pengeluaran per kategori';
+
+  @override
+  String get exportChartCategoryOthers => 'Lain-lain';
+
+  @override
+  String get exportChartBarTitle => 'Pemasukan vs pengeluaran harian';
+
+  @override
+  String get exportStatusLunas => 'Lunas';
+
+  @override
+  String get exportStatusBelumLunas => 'Belum Lunas';
+
+  @override
+  String exportPeriodExcelLabel(String range) {
+    return 'Periode: $range';
+  }
+
+  @override
+  String get exportPartialIncompleteNote =>
+      'Catatan: export sebagian — data periode mungkin tidak lengkap.';
+
+  @override
+  String get exportBuildButtonPdf => 'Buat laporan PDF';
+
+  @override
+  String get exportTocTitle => 'Daftar isi';
+
+  @override
+  String get exportCoverAppBrand => 'SakuRapi';
+
+  @override
+  String get exportCoverGeneratedLabel => 'Dibuat:';
+
+  @override
+  String get exportPdfDailyTableSectionTitle => 'Ringkasan harian';
+
+  @override
+  String get exportChartDailyTrendTitle => 'Tren harian';
+
+  @override
+  String get exportPdfDashboardSectionTitle => 'Dashboard & ringkasan harian';
 }

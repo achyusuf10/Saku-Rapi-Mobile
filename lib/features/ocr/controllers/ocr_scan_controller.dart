@@ -177,19 +177,19 @@ class OcrScanController extends StateNotifier<OcrScanState> {
   /// Mulai flow OCR dari kamera.
   Future<void> startFromCamera(BuildContext context) async {
     // Check permission
-    final perm = await _imageService.requestCameraPermission();
-    if (perm == CameraPermissionResult.denied) {
-      state = const OcrScanState(status: OcrScanStatus.permissionDenied);
+    // final perm = await _imageService.requestCameraPermission();
+    // if (perm == CameraPermissionResult.denied) {
+    //   state = const OcrScanState(status: OcrScanStatus.permissionDenied);
 
-      return;
-    }
-    if (perm == CameraPermissionResult.permanentlyDenied) {
-      state = const OcrScanState(
-        status: OcrScanStatus.permissionDenied,
-        isPermanentlyDenied: true,
-      );
-      return;
-    }
+    //   return;
+    // }
+    // if (perm == CameraPermissionResult.permanentlyDenied) {
+    //   state = const OcrScanState(
+    //     status: OcrScanStatus.permissionDenied,
+    //     isPermanentlyDenied: true,
+    //   );
+    //   return;
+    // }
 
     if (!context.mounted) {
       state = const OcrScanState(status: OcrScanStatus.idle);

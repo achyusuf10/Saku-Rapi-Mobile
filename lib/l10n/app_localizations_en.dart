@@ -2716,4 +2716,248 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMoreData => 'You\'ve reached the end of the list...';
+
+  @override
+  String get exportImportTitle => 'Import & Export';
+
+  @override
+  String get exportTabExport => 'Export';
+
+  @override
+  String get exportTabImport => 'Import';
+
+  @override
+  String get exportImportComingTitle => 'Coming soon';
+
+  @override
+  String get exportImportComingBody =>
+      'Importing data into SakuRapi will be available in a future update.';
+
+  @override
+  String get exportFormatLabel => 'File format';
+
+  @override
+  String get exportFormatExcel => 'Excel (.xlsx)';
+
+  @override
+  String get exportFormatPdf => 'PDF';
+
+  @override
+  String get exportFormatCsv => 'CSV';
+
+  @override
+  String get exportSoonShort => 'Coming soon';
+
+  @override
+  String get exportPeriodLabel => 'Report period';
+
+  @override
+  String get exportSelectPeriod => 'Select period';
+
+  @override
+  String get exportPeriodThisMonth => 'This month';
+
+  @override
+  String get exportPeriodLastMonth => 'Last month';
+
+  @override
+  String get exportPeriodThisQuarter => 'This quarter';
+
+  @override
+  String get exportPeriodThisYear => 'This year';
+
+  @override
+  String get exportPeriodCustom => 'Custom';
+
+  @override
+  String get exportSelectCustomRange => 'Choose a custom date range';
+
+  @override
+  String get exportTapCustomToPickRange =>
+      'Tap \"Custom\", then pick a date range.';
+
+  @override
+  String get exportScopeAlwaysIncluded => 'Income & expense (always included)';
+
+  @override
+  String get exportIncludeDebt => 'Include debt & receivables';
+
+  @override
+  String get exportIncludeTransfer => 'Include wallet-to-wallet transfers';
+
+  @override
+  String get exportDashboardNote =>
+      'Dashboard summary uses only income and expense for the period. Transfers are not included.';
+
+  @override
+  String get exportBuildButton => 'Build Excel report';
+
+  @override
+  String get exportProgressMessage =>
+      'Please wait, your data is being processed…';
+
+  @override
+  String get exportCancel => 'Cancel';
+
+  @override
+  String get exportStopAndBuild => 'Stop and build now';
+
+  @override
+  String get exportSuccessTitle => 'Report ready';
+
+  @override
+  String get exportOpenFile => 'Open file';
+
+  @override
+  String get exportShareFile => 'Share';
+
+  @override
+  String get exportClose => 'Close';
+
+  @override
+  String get exportErrorGeneric => 'Could not create the report. Try again.';
+
+  @override
+  String get exportPartialWarning =>
+      'Some period data may not have been loaded. This file contains only the data retrieved so far.';
+
+  @override
+  String exportSavedPath(String path) {
+    return 'Saved to: $path';
+  }
+
+  @override
+  String get exportReportBrandTitle => 'SakuRapi Financial Report';
+
+  @override
+  String get exportSheetDashboard => 'Dashboard';
+
+  @override
+  String get exportSheetTransactions => 'Transactions';
+
+  @override
+  String get exportSheetCategoryAnalysis => 'Category analysis';
+
+  @override
+  String get exportSheetDebt => 'Debt & receivables';
+
+  @override
+  String get exportSheetTransfer => 'Transfers';
+
+  @override
+  String get exportSummaryIncomeBox => 'Total income';
+
+  @override
+  String get exportSummaryExpenseBox => 'Total expense';
+
+  @override
+  String get exportSummaryBalanceBox => 'End balance';
+
+  @override
+  String get exportDebtUnpaidTotalTitle => 'Total unpaid debt';
+
+  @override
+  String get exportReceivableUnpaidTotalTitle => 'Total unpaid receivables';
+
+  @override
+  String get exportColNo => 'No';
+
+  @override
+  String get exportColDate => 'Date';
+
+  @override
+  String get exportColType => 'Type';
+
+  @override
+  String get exportColCategory => 'Category';
+
+  @override
+  String get exportColNote => 'Note';
+
+  @override
+  String get exportColWallet => 'Wallet';
+
+  @override
+  String get exportColAmount => 'Amount';
+
+  @override
+  String get exportColPerson => 'Person';
+
+  @override
+  String get exportColDueDate => 'Due date';
+
+  @override
+  String get exportColStatus => 'Status';
+
+  @override
+  String get exportColWalletSource => 'Source wallet';
+
+  @override
+  String get exportColWalletDest => 'Destination wallet';
+
+  @override
+  String get exportAnalysisCategory => 'Category';
+
+  @override
+  String get exportAnalysisTotal => 'Total amount';
+
+  @override
+  String get exportAnalysisPercent => 'Percent (%)';
+
+  @override
+  String get exportDailySummaryTitle => 'Daily summary (chart)';
+
+  @override
+  String get exportDailyDate => 'Date';
+
+  @override
+  String get exportDailyIncome => 'Income';
+
+  @override
+  String get exportDailyExpense => 'Expense';
+
+  @override
+  String get exportChartCategoryTitle => 'Expense share by category';
+
+  @override
+  String get exportChartCategoryOthers => 'Others';
+
+  @override
+  String get exportChartBarTitle => 'Daily income vs expense';
+
+  @override
+  String get exportStatusLunas => 'Paid';
+
+  @override
+  String get exportStatusBelumLunas => 'Unpaid';
+
+  @override
+  String exportPeriodExcelLabel(String range) {
+    return 'Period: $range';
+  }
+
+  @override
+  String get exportPartialIncompleteNote =>
+      'Note: partial export — period data may be incomplete.';
+
+  @override
+  String get exportBuildButtonPdf => 'Build PDF report';
+
+  @override
+  String get exportTocTitle => 'Table of contents';
+
+  @override
+  String get exportCoverAppBrand => 'SakuRapi';
+
+  @override
+  String get exportCoverGeneratedLabel => 'Generated:';
+
+  @override
+  String get exportPdfDailyTableSectionTitle => 'Daily summary';
+
+  @override
+  String get exportChartDailyTrendTitle => 'Daily trend';
+
+  @override
+  String get exportPdfDashboardSectionTitle => 'Dashboard & daily summary';
 }

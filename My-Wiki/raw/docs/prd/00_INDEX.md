@@ -83,7 +83,12 @@
 |---|---|---|
 | 26 | [Keputusan Final](26_KEPUTUSAN_FINAL.md) | 7 keputusan yang tidak boleh dilanggar |
 
+### BAGIAN XI — SUPLEMEN FITUR (POST v7)
+| # | Dokumen | Deskripsi |
+|---|---|---|
+| 27 | [Export / Import — Laporan Excel (MVP)](27_EXPORT_EXCEL_LAPORAN.md) | Opsional hutang (global) & transfer (periode); Dashboard hanya pemasukan/pengeluaran; Excel Syncfusion, chunk, batal & partial |
+
 ---
 
 *Dokumen ini adalah sumber kebenaran utama untuk requirement produk SakuRapi.*  
-*Last updated: 2026-03-31 — PRD v7.0*
+*Last updated: 2026-04-29 — PRD v7.0 + suplemen #27 Export Excel*

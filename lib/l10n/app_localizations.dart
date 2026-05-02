@@ -5040,6 +5040,474 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Data kamu cukup sampai sini nih..'**
   String get noMoreData;
+
+  /// No description provided for @exportImportTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Import & Export'**
+  String get exportImportTitle;
+
+  /// No description provided for @exportTabExport.
+  ///
+  /// In id, this message translates to:
+  /// **'Export'**
+  String get exportTabExport;
+
+  /// No description provided for @exportTabImport.
+  ///
+  /// In id, this message translates to:
+  /// **'Import'**
+  String get exportTabImport;
+
+  /// No description provided for @exportImportComingTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Segera hadir'**
+  String get exportImportComingTitle;
+
+  /// No description provided for @exportImportComingBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Impor data ke SakuRapi akan tersedia di pembaruan berikutnya.'**
+  String get exportImportComingBody;
+
+  /// No description provided for @exportFormatLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Format file'**
+  String get exportFormatLabel;
+
+  /// No description provided for @exportFormatExcel.
+  ///
+  /// In id, this message translates to:
+  /// **'Excel (.xlsx)'**
+  String get exportFormatExcel;
+
+  /// No description provided for @exportFormatPdf.
+  ///
+  /// In id, this message translates to:
+  /// **'PDF'**
+  String get exportFormatPdf;
+
+  /// No description provided for @exportFormatCsv.
+  ///
+  /// In id, this message translates to:
+  /// **'CSV'**
+  String get exportFormatCsv;
+
+  /// No description provided for @exportSoonShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Segera hadir'**
+  String get exportSoonShort;
+
+  /// No description provided for @exportPeriodLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Periode laporan'**
+  String get exportPeriodLabel;
+
+  /// No description provided for @exportSelectPeriod.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih periode'**
+  String get exportSelectPeriod;
+
+  /// No description provided for @exportPeriodThisMonth.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan ini'**
+  String get exportPeriodThisMonth;
+
+  /// No description provided for @exportPeriodLastMonth.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan lalu'**
+  String get exportPeriodLastMonth;
+
+  /// No description provided for @exportPeriodThisQuarter.
+  ///
+  /// In id, this message translates to:
+  /// **'Quartal ini'**
+  String get exportPeriodThisQuarter;
+
+  /// No description provided for @exportPeriodThisYear.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahun ini'**
+  String get exportPeriodThisYear;
+
+  /// No description provided for @exportPeriodCustom.
+  ///
+  /// In id, this message translates to:
+  /// **'Kustom'**
+  String get exportPeriodCustom;
+
+  /// No description provided for @exportSelectCustomRange.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih rentang tanggal kustom'**
+  String get exportSelectCustomRange;
+
+  /// No description provided for @exportTapCustomToPickRange.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketuk \"Kustom\", lalu pilih rentang tanggal.'**
+  String get exportTapCustomToPickRange;
+
+  /// No description provided for @exportScopeAlwaysIncluded.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan & pengeluaran (selalu disertakan)'**
+  String get exportScopeAlwaysIncluded;
+
+  /// No description provided for @exportIncludeDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Sertakan Hutang & Piutang'**
+  String get exportIncludeDebt;
+
+  /// No description provided for @exportIncludeTransfer.
+  ///
+  /// In id, this message translates to:
+  /// **'Sertakan transfer antar dompet'**
+  String get exportIncludeTransfer;
+
+  /// No description provided for @exportDashboardNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan di lembar Dashboard hanya memakai pemasukan dan pengeluaran periode. Transfer tidak ikut dihitung di sana.'**
+  String get exportDashboardNote;
+
+  /// No description provided for @exportBuildButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat laporan Excel'**
+  String get exportBuildButton;
+
+  /// No description provided for @exportProgressMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Mohon tunggu, data kamu sedang diproses…'**
+  String get exportProgressMessage;
+
+  /// No description provided for @exportCancel.
+  ///
+  /// In id, this message translates to:
+  /// **'Batalkan'**
+  String get exportCancel;
+
+  /// No description provided for @exportStopAndBuild.
+  ///
+  /// In id, this message translates to:
+  /// **'Hentikan dan buat sekarang'**
+  String get exportStopAndBuild;
+
+  /// No description provided for @exportSuccessTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan siap'**
+  String get exportSuccessTitle;
+
+  /// No description provided for @exportOpenFile.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka file'**
+  String get exportOpenFile;
+
+  /// No description provided for @exportShareFile.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagikan'**
+  String get exportShareFile;
+
+  /// No description provided for @exportClose.
+  ///
+  /// In id, this message translates to:
+  /// **'Tutup'**
+  String get exportClose;
+
+  /// No description provided for @exportErrorGeneric.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal membuat laporan. Coba lagi.'**
+  String get exportErrorGeneric;
+
+  /// No description provided for @exportPartialWarning.
+  ///
+  /// In id, this message translates to:
+  /// **'Beberapa data periode mungkin belum terambil. File ini dibuat dari data yang sudah tersedia.'**
+  String get exportPartialWarning;
+
+  /// No description provided for @exportSavedPath.
+  ///
+  /// In id, this message translates to:
+  /// **'Disimpan ke: {path}'**
+  String exportSavedPath(String path);
+
+  /// No description provided for @exportReportBrandTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Keuangan SakuRapi'**
+  String get exportReportBrandTitle;
+
+  /// No description provided for @exportSheetDashboard.
+  ///
+  /// In id, this message translates to:
+  /// **'Dashboard'**
+  String get exportSheetDashboard;
+
+  /// No description provided for @exportSheetTransactions.
+  ///
+  /// In id, this message translates to:
+  /// **'Data Transaksi'**
+  String get exportSheetTransactions;
+
+  /// No description provided for @exportSheetCategoryAnalysis.
+  ///
+  /// In id, this message translates to:
+  /// **'Analisis Kategori'**
+  String get exportSheetCategoryAnalysis;
+
+  /// No description provided for @exportSheetDebt.
+  ///
+  /// In id, this message translates to:
+  /// **'Hutang Piutang'**
+  String get exportSheetDebt;
+
+  /// No description provided for @exportSheetTransfer.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer'**
+  String get exportSheetTransfer;
+
+  /// No description provided for @exportSummaryIncomeBox.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Pemasukan'**
+  String get exportSummaryIncomeBox;
+
+  /// No description provided for @exportSummaryExpenseBox.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Pengeluaran'**
+  String get exportSummaryExpenseBox;
+
+  /// No description provided for @exportSummaryBalanceBox.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo Akhir'**
+  String get exportSummaryBalanceBox;
+
+  /// No description provided for @exportDebtUnpaidTotalTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Hutang yang Belum Dibayar'**
+  String get exportDebtUnpaidTotalTitle;
+
+  /// No description provided for @exportReceivableUnpaidTotalTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Piutang yang Belum Dibayar'**
+  String get exportReceivableUnpaidTotalTitle;
+
+  /// No description provided for @exportColNo.
+  ///
+  /// In id, this message translates to:
+  /// **'No'**
+  String get exportColNo;
+
+  /// No description provided for @exportColDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal'**
+  String get exportColDate;
+
+  /// No description provided for @exportColType.
+  ///
+  /// In id, this message translates to:
+  /// **'Tipe'**
+  String get exportColType;
+
+  /// No description provided for @exportColCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori'**
+  String get exportColCategory;
+
+  /// No description provided for @exportColNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan'**
+  String get exportColNote;
+
+  /// No description provided for @exportColWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet'**
+  String get exportColWallet;
+
+  /// No description provided for @exportColAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal'**
+  String get exportColAmount;
+
+  /// No description provided for @exportColPerson.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Orang'**
+  String get exportColPerson;
+
+  /// No description provided for @exportColDueDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Jatuh Tempo'**
+  String get exportColDueDate;
+
+  /// No description provided for @exportColStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get exportColStatus;
+
+  /// No description provided for @exportColWalletSource.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Asal'**
+  String get exportColWalletSource;
+
+  /// No description provided for @exportColWalletDest.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Tujuan'**
+  String get exportColWalletDest;
+
+  /// No description provided for @exportAnalysisCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Kategori'**
+  String get exportAnalysisCategory;
+
+  /// No description provided for @exportAnalysisTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Nominal'**
+  String get exportAnalysisTotal;
+
+  /// No description provided for @exportAnalysisPercent.
+  ///
+  /// In id, this message translates to:
+  /// **'Persentase (%)'**
+  String get exportAnalysisPercent;
+
+  /// No description provided for @exportDailySummaryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan harian (grafik)'**
+  String get exportDailySummaryTitle;
+
+  /// No description provided for @exportDailyDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal'**
+  String get exportDailyDate;
+
+  /// No description provided for @exportDailyIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan'**
+  String get exportDailyIncome;
+
+  /// No description provided for @exportDailyExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran'**
+  String get exportDailyExpense;
+
+  /// No description provided for @exportChartCategoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Porsi pengeluaran per kategori'**
+  String get exportChartCategoryTitle;
+
+  /// No description provided for @exportChartCategoryOthers.
+  ///
+  /// In id, this message translates to:
+  /// **'Lain-lain'**
+  String get exportChartCategoryOthers;
+
+  /// No description provided for @exportChartBarTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan vs pengeluaran harian'**
+  String get exportChartBarTitle;
+
+  /// No description provided for @exportStatusLunas.
+  ///
+  /// In id, this message translates to:
+  /// **'Lunas'**
+  String get exportStatusLunas;
+
+  /// No description provided for @exportStatusBelumLunas.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Lunas'**
+  String get exportStatusBelumLunas;
+
+  /// No description provided for @exportPeriodExcelLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Periode: {range}'**
+  String exportPeriodExcelLabel(String range);
+
+  /// No description provided for @exportPartialIncompleteNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan: export sebagian — data periode mungkin tidak lengkap.'**
+  String get exportPartialIncompleteNote;
+
+  /// No description provided for @exportBuildButtonPdf.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat laporan PDF'**
+  String get exportBuildButtonPdf;
+
+  /// No description provided for @exportTocTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar isi'**
+  String get exportTocTitle;
+
+  /// No description provided for @exportCoverAppBrand.
+  ///
+  /// In id, this message translates to:
+  /// **'SakuRapi'**
+  String get exportCoverAppBrand;
+
+  /// No description provided for @exportCoverGeneratedLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Dibuat:'**
+  String get exportCoverGeneratedLabel;
+
+  /// No description provided for @exportPdfDailyTableSectionTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan harian'**
+  String get exportPdfDailyTableSectionTitle;
+
+  /// No description provided for @exportChartDailyTrendTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tren harian'**
+  String get exportChartDailyTrendTitle;
+
+  /// No description provided for @exportPdfDashboardSectionTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Dashboard & ringkasan harian'**
+  String get exportPdfDashboardSectionTitle;
 }
 
 class _AppLocalizationsDelegate

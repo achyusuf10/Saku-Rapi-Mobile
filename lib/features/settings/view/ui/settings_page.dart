@@ -20,7 +20,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 /// 1. Profil header (avatar, nama, email)
 /// 2. Akun — Kategori
 /// 3. Preferensi — Tema, Bahasa
-/// 4. Data — Export/Import (coming soon)
+/// 4. Data — Export/Import
 /// 5. Lainnya — App version, Logout
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -109,9 +109,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               SettingsTile(
                 icon: FontAwesomeIcons.fileExport,
                 label: l10n.profileExportImport,
-                subtitle: l10n.profileComingSoon,
-                onTap: null,
-                trailing: _comingSoonBadge(colors),
+                onTap: () => context.push(AppRouter.importExport),
               ),
             ],
           ),
@@ -151,23 +149,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   // ───────── Helpers ─────────
-
-  Widget _comingSoonBadge(dynamic colors) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: (colors.warning as Color).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6.r),
-      ),
-      child: Text(
-        context.l10n.profileComingSoon,
-        style: TextStyleConstants.label3.copyWith(
-          color: colors.warning as Color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 
   String _themeModeLabel(ThemeMode mode, dynamic l10n) {
     return switch (mode) {

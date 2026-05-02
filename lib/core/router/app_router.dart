@@ -24,6 +24,7 @@ import 'package:app_saku_rapi/features/reports/models/report_category_transactio
 import 'package:app_saku_rapi/features/reports/models/report_page_argument.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_category_transactions_page.dart';
 import 'package:app_saku_rapi/features/reports/view/ui/report_page.dart';
+import 'package:app_saku_rapi/features/export/view/ui/import_export_page.dart';
 import 'package:app_saku_rapi/features/settings/view/ui/settings_page.dart';
 import 'package:app_saku_rapi/features/transaction/models/transaction_model.dart';
 import 'package:app_saku_rapi/features/transaction/view/ui/transaction_detail_page.dart';
@@ -94,6 +95,7 @@ class AppRouter {
   static const String debtLoanPerson = '/debt-loan/person';
   static const String settlementHistory = '/debt-loan/settlement-history';
   static const String sendReport = '/settings/send-report';
+  static const String importExport = '/settings/import-export';
 
   // ───────────────── Shell Keys ─────────────────
 
@@ -332,6 +334,11 @@ class AppRouter {
           path: sendReport,
           parentNavigatorKey: navigatorKey,
           builder: (context, state) => const SendReportPage(),
+        ),
+        GoRoute(
+          path: importExport,
+          parentNavigatorKey: navigatorKey,
+          builder: (context, state) => const ImportExportPage(),
         ),
       ],
     );
