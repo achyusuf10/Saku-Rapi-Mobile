@@ -2965,4 +2965,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exportPdfDashboardSectionTitle => 'Dashboard & ringkasan harian';
+
+  @override
+  String get exitWithoutSavingTitle => 'Keluar tanpa menyimpan?';
+
+  @override
+  String get exitWithoutSavingMessage =>
+      'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.';
 }

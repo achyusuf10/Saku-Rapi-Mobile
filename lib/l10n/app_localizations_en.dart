@@ -2963,4 +2963,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportPdfDashboardSectionTitle => 'Dashboard & daily summary';
+
+  @override
+  String get exitWithoutSavingTitle => 'Exit without saving?';
+
+  @override
+  String get exitWithoutSavingMessage =>
+      'Are you sure you want to exit? Unsaved changes will be lost.';
 }

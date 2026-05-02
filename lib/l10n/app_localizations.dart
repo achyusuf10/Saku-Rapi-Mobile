@@ -5514,6 +5514,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Dashboard & ringkasan harian'**
   String get exportPdfDashboardSectionTitle;
+
+  /// No description provided for @exitWithoutSavingTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar tanpa menyimpan?'**
+  String get exitWithoutSavingTitle;
+
+  /// No description provided for @exitWithoutSavingMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.'**
+  String get exitWithoutSavingMessage;
 }
 
 class _AppLocalizationsDelegate

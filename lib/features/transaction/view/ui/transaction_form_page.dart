@@ -172,9 +172,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         var res = await context.showConfirmDialog(
-          title: 'Keluar tanpa menyimpan?',
-          message:
-              'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.',
+          title: l10n.exitWithoutSavingTitle,
+          message: l10n.exitWithoutSavingMessage,
         );
         if (context.mounted) {
           if (res == true) {
@@ -202,9 +201,8 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage>
                     icon: FaIcon(FontAwesomeIcons.arrowLeft, size: 18.w),
                     onPressed: () async {
                       var res = await context.showConfirmDialog(
-                        title: 'Keluar tanpa menyimpan?',
-                        message:
-                            'Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang.',
+                        title: l10n.exitWithoutSavingTitle,
+                        message: l10n.exitWithoutSavingMessage,
                       );
                       if (context.mounted) {
                         if (res == true) {

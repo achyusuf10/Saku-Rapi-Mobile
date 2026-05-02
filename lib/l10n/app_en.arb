@@ -1382,5 +1382,7 @@
   "exportCoverGeneratedLabel": "Generated:",
   "exportPdfDailyTableSectionTitle": "Daily summary",
   "exportChartDailyTrendTitle": "Daily trend",
-  "exportPdfDashboardSectionTitle": "Dashboard & daily summary"
+  "exportPdfDashboardSectionTitle": "Dashboard & daily summary",
+  "exitWithoutSavingTitle": "Exit without saving?",
+  "exitWithoutSavingMessage": "Are you sure you want to exit? Unsaved changes will be lost."
 }

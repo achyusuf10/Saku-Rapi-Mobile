@@ -1569,5 +1569,7 @@
   "exportCoverGeneratedLabel": "Dibuat:",
   "exportPdfDailyTableSectionTitle": "Ringkasan harian",
   "exportChartDailyTrendTitle": "Tren harian",
-  "exportPdfDashboardSectionTitle": "Dashboard & ringkasan harian"
+  "exportPdfDashboardSectionTitle": "Dashboard & ringkasan harian",
+  "exitWithoutSavingTitle": "Keluar tanpa menyimpan?",
+  "exitWithoutSavingMessage": "Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang."
 }
