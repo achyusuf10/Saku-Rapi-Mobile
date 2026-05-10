@@ -26,6 +26,14 @@
   "loginErrorGeneric": "Gagal masuk. Silakan coba lagi.",
   "loginTitle": "Selamat Datang di SakuRapi",
   "loginSecurityNote": "Data kamu aman & terenkripsi",
+  "loginAccountCooldownDays": "Akun Anda sedang masa tunggu penghapusan. Silakan coba lagi dalam {daysRemaining} hari.",
+  "@loginAccountCooldownDays": {
+    "placeholders": {
+      "daysRemaining": {
+        "type": "int"
+      }
+    }
+  },
   "logoutConfirm": "Yakin ingin keluar?",
   "logoutButton": "Keluar",
   "walletTitle": "Dompet Saya",
@@ -988,6 +996,20 @@
     }
   },
   "profileDebtLoan": "Hutang & Piutang",
+  "profileDeleteAccount": "Hapus Akun",
+  "deleteAccountScreenTitle": "Hapus akun",
+  "deleteAccountIntroTitle": "Apa yang terjadi",
+  "deleteAccountBulletSoftDelete": "Akun Anda akan ditandai terhapus.",
+  "deleteAccountBulletCooldown": "Anda tidak dapat masuk aplikasi selama 30 hari sejak penandaan hapus.",
+  "deleteAccountBulletReactivate": "Setelah 30 hari Anda dapat masuk lagi; penanda hapus akan dihapus otomatis.",
+  "deleteAccountButton": "Hapus akun saya",
+  "deleteAccountConfirmTitle": "Konfirmasi hapus akun",
+  "deleteAccountConfirmMessage": "Tindakan ini memberi penanda penghapusan pada akun. Ketik SAYA MENGERTI untuk mengaktifkan tombol hapus.",
+  "deleteAccountConfirmHint": "Ketik SAYA MENGERTI di sini",
+  "deleteAccountConfirmCancel": "Batal",
+  "deleteAccountConfirmProceed": "Hapus akun",
+  "deleteAccountUnderstandPhraseExact": "SAYA MENGERTI",
+  "deleteAccountSuccessSignedOut": "Akun ditandai terhapus. Anda telah keluar dari aplikasi.",
   "debtLoanFormSubCategory": "Kategori",
   "debtLoanFormPickTransaction": "Pilih Transaksi",
   "debtLoanFormNoUnpaidDebt": "Tidak ada hutang yang belum lunas",

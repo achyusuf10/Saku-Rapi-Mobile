@@ -87,6 +87,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginSecurityNote => 'Your data is safe & encrypted';
 
   @override
+  String loginAccountCooldownDays(int daysRemaining) {
+    return 'This account is in a deletion waiting period. Please try again in $daysRemaining days.';
+  }
+
+  @override
   String get logoutConfirm => 'Are you sure you want to sign out?';
 
   @override
@@ -1881,6 +1886,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDebtLoan => 'Debt & Loan';
+
+  @override
+  String get profileDeleteAccount => 'Delete Account';
+
+  @override
+  String get deleteAccountScreenTitle => 'Delete account';
+
+  @override
+  String get deleteAccountIntroTitle => 'What happens next';
+
+  @override
+  String get deleteAccountBulletSoftDelete =>
+      'Your account will be marked as deleted.';
+
+  @override
+  String get deleteAccountBulletCooldown =>
+      'You won\'t be able to sign in for 30 days from the deletion time.';
+
+  @override
+  String get deleteAccountBulletReactivate =>
+      'After 30 days you can sign in again; the deleted flag will be cleared automatically.';
+
+  @override
+  String get deleteAccountButton => 'Delete my account';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Confirm deletion';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'This action applies a deletion marker to your account. Type SAYA MENGERTI to enable the deletion button.';
+
+  @override
+  String get deleteAccountConfirmHint => 'Type SAYA MENGERTI here';
+
+  @override
+  String get deleteAccountConfirmCancel => 'Cancel';
+
+  @override
+  String get deleteAccountConfirmProceed => 'Delete account';
+
+  @override
+  String get deleteAccountUnderstandPhraseExact => 'SAYA MENGERTI';
+
+  @override
+  String get deleteAccountSuccessSignedOut =>
+      'Account marked deleted. You have been signed out.';
 
   @override
   String get debtLoanFormSubCategory => 'Category';

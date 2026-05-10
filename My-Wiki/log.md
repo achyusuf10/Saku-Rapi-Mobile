@@ -249,3 +249,7 @@ updated: 2026-04-27
 - **Entitas** `wiki/entities/transaksi.md` — subsection *Mode multi transaksi (manual)*, RPC `create_transactions_batch`, `sources` + `updated`
 - **`index.md`** — statistik 61 halaman / 24 sumber; entri sumber baru; deskripsi *Transaksi* diperjelas
 - **Implementasi app (konteks)**: `TransactionManualMultiEntryCard`, `TransactionMultiItemSection`, `TransactionFormMultiManualCoordinator` + `setManualMultiEntryTotalAmount`, tes controller & widget terkait
+
+## [2026-05-10] ingest | Draft — Delete Account (soft delete + cooldown login)
+
+- **Raw baru**: [`raw/docs/DRAFT_DELETE_ACCOUNT.md`](raw/docs/DRAFT_DELETE_ACCOUNT.md) — UX Settings → halaman dedikasi → dialog konfirmasi + frasa **SAYA MENGERTI**; kolom `public.users` (`account_deleted`, `account_deleted_at`); RPC pasca-login & reset setelah ≥30 hari; checklist MCP **DEV**

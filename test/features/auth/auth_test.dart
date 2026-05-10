@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/features/auth/models/account_login_resolve_model.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,6 +35,7 @@ void main() {
         'avatar_url': null,
         'created_at': null,
         'updated_at': null,
+        'account_deleted': false,
       };
 
       final user = UserModel.fromMap(map);
@@ -42,6 +44,26 @@ void main() {
       expect(user.avatarUrl, isNull);
       expect(user.createdAt, isNull);
       expect(user.updatedAt, isNull);
+      expect(user.accountDeleted, false);
+      expect(user.accountDeletedAt, isNull);
+    });
+
+    test('parses account_deleted flagged user', () {
+      final map = {
+        'id': 'user-1',
+        'email': 'dormant@test.com',
+        'full_name': null,
+        'avatar_url': null,
+        'account_deleted': true,
+        'account_deleted_at': '2026-05-01T00:00:00.000Z',
+        'created_at': null,
+        'updated_at': null,
+      };
+
+      final user = UserModel.fromMap(map);
+
+      expect(user.accountDeleted, true);
+      expect(user.accountDeletedAt, isNotNull);
     });
   });
 
@@ -158,6 +180,19 @@ void main() {
       expect(restored.email, original.email);
       expect(restored.fullName, original.fullName);
       expect(restored.avatarUrl, original.avatarUrl);
+    });
+  });
+
+  group('AccountLoginResolveModel — fromRpcJson', () {
+    test('parses cooldown payload', () {
+      final m = AccountLoginResolveModel.fromRpcJson({
+        'allowed': false,
+        'reason': 'account_cooldown',
+        'days_remaining': 7,
+      });
+      expect(m.allowed, isFalse);
+      expect(m.reason, 'account_cooldown');
+      expect(m.daysRemaining, 7);
     });
   });
 

@@ -14,6 +14,8 @@ class UserModel {
     this.createdAt,
     this.updatedAt,
     this.showAds = true,
+    this.accountDeleted = false,
+    this.accountDeletedAt,
   });
 
   /// UUID dari auth.users.id (primary key).
@@ -40,6 +42,12 @@ class UserModel {
   /// Default `true` untuk semua user baru.
   final bool showAds;
 
+  /// Penanda soft delete akun (`public.users.account_deleted`).
+  final bool accountDeleted;
+
+  /// Waktu UTC permintaan soft delete (`account_deleted_at`).
+  final DateTime? accountDeletedAt;
+
   /// Membuat [UserModel] dari Map (hasil query Supabase).
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
@@ -48,6 +56,13 @@ class UserModel {
       fullName: map['full_name'] as String?,
       avatarUrl: map['avatar_url'] as String?,
       showAds: map['show_ads'] as bool? ?? true,
+      accountDeleted: map['account_deleted'] as bool? ?? false,
+      accountDeletedAt: map['account_deleted_at'] != null
+          ? SakuDateUtils.parseRequiredTimestamp(
+              map['account_deleted_at'],
+              fieldName: 'account_deleted_at',
+            )
+          : null,
       createdAt: map['created_at'] != null
           ? SakuDateUtils.parseRequiredTimestamp(
               map['created_at'],
@@ -84,6 +99,8 @@ class UserModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? showAds,
+    bool? accountDeleted,
+    DateTime? accountDeletedAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -93,6 +110,8 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       showAds: showAds ?? this.showAds,
+      accountDeleted: accountDeleted ?? this.accountDeleted,
+      accountDeletedAt: accountDeletedAt ?? this.accountDeletedAt,
     );
   }
 

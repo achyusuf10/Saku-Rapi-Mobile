@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'Data kamu aman & terenkripsi'**
   String get loginSecurityNote;
 
+  /// No description provided for @loginAccountCooldownDays.
+  ///
+  /// In id, this message translates to:
+  /// **'Akun Anda sedang masa tunggu penghapusan. Silakan coba lagi dalam {daysRemaining} hari.'**
+  String loginAccountCooldownDays(int daysRemaining);
+
   /// No description provided for @logoutConfirm.
   ///
   /// In id, this message translates to:
@@ -3538,6 +3544,90 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Hutang & Piutang'**
   String get profileDebtLoan;
+
+  /// No description provided for @profileDeleteAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Akun'**
+  String get profileDeleteAccount;
+
+  /// No description provided for @deleteAccountScreenTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus akun'**
+  String get deleteAccountScreenTitle;
+
+  /// No description provided for @deleteAccountIntroTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa yang terjadi'**
+  String get deleteAccountIntroTitle;
+
+  /// No description provided for @deleteAccountBulletSoftDelete.
+  ///
+  /// In id, this message translates to:
+  /// **'Akun Anda akan ditandai terhapus.'**
+  String get deleteAccountBulletSoftDelete;
+
+  /// No description provided for @deleteAccountBulletCooldown.
+  ///
+  /// In id, this message translates to:
+  /// **'Anda tidak dapat masuk aplikasi selama 30 hari sejak penandaan hapus.'**
+  String get deleteAccountBulletCooldown;
+
+  /// No description provided for @deleteAccountBulletReactivate.
+  ///
+  /// In id, this message translates to:
+  /// **'Setelah 30 hari Anda dapat masuk lagi; penanda hapus akan dihapus otomatis.'**
+  String get deleteAccountBulletReactivate;
+
+  /// No description provided for @deleteAccountButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus akun saya'**
+  String get deleteAccountButton;
+
+  /// No description provided for @deleteAccountConfirmTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi hapus akun'**
+  String get deleteAccountConfirmTitle;
+
+  /// No description provided for @deleteAccountConfirmMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Tindakan ini memberi penanda penghapusan pada akun. Ketik SAYA MENGERTI untuk mengaktifkan tombol hapus.'**
+  String get deleteAccountConfirmMessage;
+
+  /// No description provided for @deleteAccountConfirmHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketik SAYA MENGERTI di sini'**
+  String get deleteAccountConfirmHint;
+
+  /// No description provided for @deleteAccountConfirmCancel.
+  ///
+  /// In id, this message translates to:
+  /// **'Batal'**
+  String get deleteAccountConfirmCancel;
+
+  /// No description provided for @deleteAccountConfirmProceed.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus akun'**
+  String get deleteAccountConfirmProceed;
+
+  /// No description provided for @deleteAccountUnderstandPhraseExact.
+  ///
+  /// In id, this message translates to:
+  /// **'SAYA MENGERTI'**
+  String get deleteAccountUnderstandPhraseExact;
+
+  /// No description provided for @deleteAccountSuccessSignedOut.
+  ///
+  /// In id, this message translates to:
+  /// **'Akun ditandai terhapus. Anda telah keluar dari aplikasi.'**
+  String get deleteAccountSuccessSignedOut;
 
   /// No description provided for @debtLoanFormSubCategory.
   ///

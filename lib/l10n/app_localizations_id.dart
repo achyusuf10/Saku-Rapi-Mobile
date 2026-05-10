@@ -87,6 +87,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginSecurityNote => 'Data kamu aman & terenkripsi';
 
   @override
+  String loginAccountCooldownDays(int daysRemaining) {
+    return 'Akun Anda sedang masa tunggu penghapusan. Silakan coba lagi dalam $daysRemaining hari.';
+  }
+
+  @override
   String get logoutConfirm => 'Yakin ingin keluar?';
 
   @override
@@ -1879,6 +1884,53 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get profileDebtLoan => 'Hutang & Piutang';
+
+  @override
+  String get profileDeleteAccount => 'Hapus Akun';
+
+  @override
+  String get deleteAccountScreenTitle => 'Hapus akun';
+
+  @override
+  String get deleteAccountIntroTitle => 'Apa yang terjadi';
+
+  @override
+  String get deleteAccountBulletSoftDelete =>
+      'Akun Anda akan ditandai terhapus.';
+
+  @override
+  String get deleteAccountBulletCooldown =>
+      'Anda tidak dapat masuk aplikasi selama 30 hari sejak penandaan hapus.';
+
+  @override
+  String get deleteAccountBulletReactivate =>
+      'Setelah 30 hari Anda dapat masuk lagi; penanda hapus akan dihapus otomatis.';
+
+  @override
+  String get deleteAccountButton => 'Hapus akun saya';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Konfirmasi hapus akun';
+
+  @override
+  String get deleteAccountConfirmMessage =>
+      'Tindakan ini memberi penanda penghapusan pada akun. Ketik SAYA MENGERTI untuk mengaktifkan tombol hapus.';
+
+  @override
+  String get deleteAccountConfirmHint => 'Ketik SAYA MENGERTI di sini';
+
+  @override
+  String get deleteAccountConfirmCancel => 'Batal';
+
+  @override
+  String get deleteAccountConfirmProceed => 'Hapus akun';
+
+  @override
+  String get deleteAccountUnderstandPhraseExact => 'SAYA MENGERTI';
+
+  @override
+  String get deleteAccountSuccessSignedOut =>
+      'Akun ditandai terhapus. Anda telah keluar dari aplikasi.';
 
   @override
   String get debtLoanFormSubCategory => 'Kategori';

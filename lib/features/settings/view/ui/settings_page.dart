@@ -78,6 +78,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 label: l10n.profileDebtLoan,
                 onTap: () => context.push(AppRouter.debtLoan),
               ),
+              SettingsTile(
+                icon: FontAwesomeIcons.userSlash,
+                label: l10n.profileDeleteAccount,
+                iconColor: colors.error,
+                onTap: () => context.push(AppRouter.deleteAccount),
+              ),
             ],
           ),
 

@@ -26,6 +26,14 @@
   "loginErrorGeneric": "Sign in failed. Please try again.",
   "loginTitle": "Welcome to SakuRapi",
   "loginSecurityNote": "Your data is safe & encrypted",
+  "loginAccountCooldownDays": "This account is in a deletion waiting period. Please try again in {daysRemaining} days.",
+  "@loginAccountCooldownDays": {
+    "placeholders": {
+      "daysRemaining": {
+        "type": "int"
+      }
+    }
+  },
   "logoutConfirm": "Are you sure you want to sign out?",
   "logoutButton": "Sign Out",
   "walletTitle": "My Wallets",
@@ -896,6 +904,20 @@
     }
   },
   "profileDebtLoan": "Debt & Loan",
+  "profileDeleteAccount": "Delete Account",
+  "deleteAccountScreenTitle": "Delete account",
+  "deleteAccountIntroTitle": "What happens next",
+  "deleteAccountBulletSoftDelete": "Your account will be marked as deleted.",
+  "deleteAccountBulletCooldown": "You won't be able to sign in for 30 days from the deletion time.",
+  "deleteAccountBulletReactivate": "After 30 days you can sign in again; the deleted flag will be cleared automatically.",
+  "deleteAccountButton": "Delete my account",
+  "deleteAccountConfirmTitle": "Confirm deletion",
+  "deleteAccountConfirmMessage": "This action applies a deletion marker to your account. Type SAYA MENGERTI to enable the deletion button.",
+  "deleteAccountConfirmHint": "Type SAYA MENGERTI here",
+  "deleteAccountConfirmCancel": "Cancel",
+  "deleteAccountConfirmProceed": "Delete account",
+  "deleteAccountUnderstandPhraseExact": "SAYA MENGERTI",
+  "deleteAccountSuccessSignedOut": "Account marked deleted. You have been signed out.",
   "debtLoanFormSubCategory": "Category",
   "debtLoanFormPickTransaction": "Pick Transaction",
   "debtLoanFormNoUnpaidDebt": "No outstanding debts found",

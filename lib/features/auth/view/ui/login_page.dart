@@ -15,15 +15,40 @@ import 'package:go_router/go_router.dart';
 /// Halaman login SakuRapi.
 ///
 /// Sesuai PRD §7.1: Login hanya via Google Sign-In melalui Supabase Auth.
-/// Menangani edge case: user cancel, network error, dan auth failure.
-class LoginPage extends ConsumerWidget {
+/// Menangani edge case: user cancel, network error, auth failure,
+/// serta masa tunggu penghapusan akun (`loginAccountCooldownDays`).
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
+
+    ref.listen<AppAuthState>(authControllerProvider, (previous, next) {
+      final days = next.accountCooldownDaysRemaining;
+      if (days == null) return;
+      if (previous?.accountCooldownDaysRemaining == days) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+
+        context.showAppAlert(
+          context.l10n.loginAccountCooldownDays(days),
+          alertType: AlertTypeEnum.warning,
+          flashDuration: 5,
+        );
+        ref
+            .read(authControllerProvider.notifier)
+            .dismissAccountCooldownNotice();
+      });
+    });
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -34,11 +59,9 @@ class LoginPage extends ConsumerWidget {
             children: [
               const Spacer(flex: 2),
 
-              // Logo / Icon
               Image.asset(ImageConstant.logoApp, width: 200.w, height: 200.w),
               SizedBox(height: 24.h),
 
-              // Title
               Text(
                 l10n.loginTitle,
                 style: TextStyleConstants.h6.copyWith(
@@ -49,7 +72,6 @@ class LoginPage extends ConsumerWidget {
               ),
               SizedBox(height: 8.h),
 
-              // Subtitle
               Text(
                 l10n.loginSubtitle,
                 style: TextStyleConstants.b2.copyWith(
@@ -60,7 +82,6 @@ class LoginPage extends ConsumerWidget {
 
               const Spacer(flex: 2),
 
-              // Google Sign-In button
               SakuButton(
                 text: l10n.loginWithGoogle,
                 isLoading: authState.isLoading,
@@ -73,7 +94,6 @@ class LoginPage extends ConsumerWidget {
               ),
               SizedBox(height: 16.h),
 
-              // Security note
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -100,17 +120,6 @@ class LoginPage extends ConsumerWidget {
     );
   }
 
-  /// Menangani proses Google Sign-In.
-  ///
-  /// Flow:
-  /// 1. Panggil [AuthController.signInWithGoogle].
-  /// 2. Jika berhasil → GoRouter redirect otomatis ke dashboard.
-  /// 3. Jika gagal → tampilkan alert error.
-  ///
-  /// Edge case yang ditangani:
-  /// - User cancel sign-in → pesan diabaikan (bukan error fatal).
-  /// - Network failure → tampilkan error generic.
-  /// - Auth failure → tampilkan pesan dari Supabase.
   Future<void> _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
     final success = await ref
         .read(authControllerProvider.notifier)
@@ -119,10 +128,13 @@ class LoginPage extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (!success) {
-      final errorMsg = ref.read(authControllerProvider).errorMessage;
+      final state = ref.read(authControllerProvider);
+      final cooldownActive = state.accountCooldownDaysRemaining != null;
 
-      // Jangan tampilkan error jika user hanya cancel sign-in
-      if (errorMsg != null &&
+      final errorMsg = state.errorMessage;
+
+      if (!cooldownActive &&
+          errorMsg != null &&
           !errorMsg.toLowerCase().contains('dibatalkan') &&
           !errorMsg.toLowerCase().contains('cancel')) {
         context.showAppAlert(
@@ -133,6 +145,5 @@ class LoginPage extends ConsumerWidget {
     } else {
       context.go(AppRouter.dashboard);
     }
-    // Jika success, GoRouter redirect otomatis via refreshListenable
   }
 }

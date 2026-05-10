@@ -71,6 +71,7 @@ class AppAuthState {
     this.status = AuthStatus.initial,
     this.user,
     this.errorMessage,
+    this.accountCooldownDaysRemaining,
   });
 
   /// Status autentikasi saat ini.
@@ -81,6 +82,9 @@ class AppAuthState {
 
   /// Pesan error terakhir (null jika tidak ada error).
   final String? errorMessage;
+
+  /// Sisa hari blokir masa tunggu penghapusan akun (splash/login); null jika tidak relevan.
+  final int? accountCooldownDaysRemaining;
 
   /// Apakah sedang dalam proses autentikasi.
   bool get isLoading => status == AuthStatus.loading;
@@ -93,11 +97,16 @@ class AppAuthState {
     AuthStatus? status,
     UserModel? user,
     String? errorMessage,
+    int? accountCooldownDaysRemaining,
+    bool clearAccountCooldown = false,
   }) {
     return AppAuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage,
+      accountCooldownDaysRemaining: clearAccountCooldown
+          ? null
+          : (accountCooldownDaysRemaining ?? this.accountCooldownDaysRemaining),
     );
   }
 }
@@ -152,7 +161,7 @@ class AuthController extends StateNotifier<AppAuthState> {
     result.map(
       success: (success) {
         if (success.data != null) {
-          state = state.copyWith(
+          state = AppAuthState(
             status: AuthStatus.authenticated,
             user: success.data,
           );
@@ -162,7 +171,7 @@ class AuthController extends StateNotifier<AppAuthState> {
             runtimeType: AuthController,
           );
         } else {
-          state = state.copyWith(status: AuthStatus.unauthenticated);
+          state = const AppAuthState(status: AuthStatus.unauthenticated);
           AppLogger.call(
             '[Auth] [AuthController] No session to restore',
             colorLog: ColorLog.yellow,
@@ -170,9 +179,13 @@ class AuthController extends StateNotifier<AppAuthState> {
         }
       },
       error: (error) {
-        state = state.copyWith(
+        final cooldownDays = error.errorData is int
+            ? error.errorData! as int
+            : null;
+        state = AppAuthState(
           status: AuthStatus.unauthenticated,
-          errorMessage: error.message,
+          errorMessage: cooldownDays != null ? null : error.message,
+          accountCooldownDaysRemaining: cooldownDays,
         );
       },
     );
@@ -189,7 +202,7 @@ class AuthController extends StateNotifier<AppAuthState> {
 
     return result.map(
       success: (success) {
-        state = state.copyWith(
+        state = AppAuthState(
           status: AuthStatus.authenticated,
           user: success.data,
         );
@@ -197,9 +210,13 @@ class AuthController extends StateNotifier<AppAuthState> {
         return true;
       },
       error: (error) {
-        state = state.copyWith(
+        final cooldownDays = error.errorData is int
+            ? error.errorData! as int
+            : null;
+        state = AppAuthState(
           status: AuthStatus.unauthenticated,
-          errorMessage: error.message,
+          errorMessage: cooldownDays != null ? null : error.message,
+          accountCooldownDaysRemaining: cooldownDays,
         );
         return false;
       },
@@ -245,6 +262,12 @@ class AuthController extends StateNotifier<AppAuthState> {
         // Silently fail, keep existing profile
       },
     );
+  }
+
+  /// Mengosongkan banner masa tunggu penghapusan akun di UI login.
+  void dismissAccountCooldownNotice() {
+    if (state.accountCooldownDaysRemaining == null) return;
+    state = state.copyWith(clearAccountCooldown: true);
   }
 }
 

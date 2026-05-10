@@ -2,6 +2,7 @@ import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
 import 'package:app_saku_rapi/features/auth/datasource/auth_local_data_source.dart';
 import 'package:app_saku_rapi/features/auth/datasource/auth_remote_data_source.dart';
+import 'package:app_saku_rapi/features/auth/models/account_login_resolve_model.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:app_saku_rapi/utils/services/hive_services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,12 +11,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 ///
 /// Mengorkestrasikan [AuthRemoteDataSource] dan [AuthLocalDataSource]
 /// sesuai 3-file pattern SakuRapi.
-///
-/// Bertanggung jawab atas:
-/// - Login via Google → Supabase → cache profil lokal
-/// - Logout → hapus session + cache
-/// - Pengecekan session untuk splash flow
-/// - Read/update profil user
 class AuthRepository {
   AuthRepository({
     AuthRemoteDataSource? remoteDataSource,
@@ -26,68 +21,52 @@ class AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
 
-  /// Login via Google Sign-In dan sinkronkan profil.
-  ///
-  /// Flow:
-  /// 1. Panggil Google Sign-In → Supabase `signInWithIdToken`.
-  /// 2. Setelah berhasil, ambil profil dari `public.users`.
-  /// 3. Cache profil ke Hive lokal.
-  ///
-  /// Returns [DataState<UserModel>] jika seluruh flow sukses.
+  /// Login via Google Sign-In dan sinkronkan profil dengan gerbang hapus-akun (RPC).
   Future<DataState<UserModel>> signInWithGoogle() async {
-    // Step 1: Sign in ke Supabase via Google
     final authResult = await _remoteDataSource.signInWithGoogle();
 
-    return authResult.map(
-      success: (authSuccess) async {
-        final userId = authSuccess.data.user?.id;
+    switch (authResult) {
+      case DataStateSuccess(data: final response):
+        final userId = response.user?.id;
         if (userId == null) {
           return const DataState<UserModel>.error(
             message: 'User ID tidak ditemukan setelah login',
           );
         }
 
-        // Step 2: Ambil profil dari public.users
-        // Trigger handle_new_user() di Supabase sudah membuat record-nya
-        final profileResult = await _remoteDataSource.getUserProfile(userId);
-
-        return profileResult.map(
-          success: (profileSuccess) {
-            // Step 3: Cache profil lokal
-            _localDataSource.cacheUserProfile(profileSuccess.data);
-
-            AppLogger.logSuccess(
-              'Sign-in complete: ${profileSuccess.data.email}',
-              runtimeType: AuthRepository,
-            );
-
-            return DataState<UserModel>.success(data: profileSuccess.data);
-          },
-          error: (profileError) {
-            AppLogger.logError(
-              'Failed to fetch profile after sign-in: ${profileError.message}',
-              runtimeType: AuthRepository,
-            );
+        final gateBlock = await _evaluateLoginGate();
+        switch (gateBlock) {
+          case _GateNone():
+            break;
+          case _GateCooldown(:final daysRemaining):
             return DataState<UserModel>.error(
-              message: profileError.message,
-              exception: profileError.exception,
-              stackTrace: profileError.stackTrace,
+              message: '',
+              errorData: daysRemaining,
             );
-          },
-        );
-      },
-      error: (authError) {
+          case _GateInvalidSession():
+            return const DataState<UserModel>.error(message: 'Sesi tidak valid');
+        }
+
+        return _fetchProfileAndCacheSignedIn(userId);
+      case DataStateError(
+        message: final message,
+        exception: final exception,
+        stackTrace: final stackTrace,
+        errorData: final errorData,
+      ):
         AppLogger.logError(
-          'Google Sign-In failed: ${authError.message}',
+          'Google Sign-In failed: $message',
           runtimeType: AuthRepository,
         );
         return DataState<UserModel>.error(
-          message: authError.message,
-          exception: authError.exception,
-          stackTrace: authError.stackTrace,
+          message: message,
+          exception: exception,
+          stackTrace: stackTrace,
+          errorData: errorData,
         );
-      },
-    );
+      default:
+        throw StateError('Unexpected auth result: ${authResult.runtimeType}');
+    }
   }
 
   /// Sign out dan bersihkan semua data lokal.
@@ -96,12 +75,8 @@ class AuthRepository {
 
     return result.map(
       success: (_) {
-        // Wipe seluruh Hive box agar tidak ada cache akun lama
-        // yang tertinggal ketika user login dengan akun berbeda.
         HiveService.reset();
-
         AppLogger.logSuccess('Sign-out complete', runtimeType: AuthRepository);
-
         return const DataState<void>.success(data: null);
       },
       error: (error) {
@@ -118,11 +93,7 @@ class AuthRepository {
     );
   }
 
-  /// Cek apakah ada session aktif saat app dibuka.
-  ///
-  /// Digunakan di splash screen untuk menentukan redirect.
-  /// Jika ada session aktif, coba refresh profil dari remote.
-  /// Jika gagal (offline), fallback ke cache lokal.
+  /// Restore session untuk splash: gerbang RPC dulu, lalu profil/cached fallback.
   Future<DataState<UserModel?>> restoreSession() async {
     final session = _remoteDataSource.getCurrentSession();
 
@@ -137,20 +108,30 @@ class AuthRepository {
     final userId = session.user.id;
 
     AppLogger.call(
-      '[Auth] [AuthRepository] Session found, fetching profile...',
+      '[Auth] [AuthRepository] Session found, resolving login gate...',
       colorLog: ColorLog.blue,
     );
 
-    // Coba ambil profil terbaru dari remote
+    final gateBlock = await _evaluateLoginGate();
+    switch (gateBlock) {
+      case _GateNone():
+        break;
+      case _GateCooldown(:final daysRemaining):
+        return DataState<UserModel?>.error(
+          message: '',
+          errorData: daysRemaining,
+        );
+      case _GateInvalidSession():
+        return const DataState<UserModel?>.error(message: 'Sesi tidak valid');
+    }
+
     final profileResult = await _remoteDataSource.getUserProfile(userId);
 
-    return profileResult.map(
-      success: (profileSuccess) {
-        _localDataSource.cacheUserProfile(profileSuccess.data);
-        return DataState<UserModel?>.success(data: profileSuccess.data);
-      },
-      error: (_) {
-        // Fallback ke cache lokal jika remote gagal
+    switch (profileResult) {
+      case DataStateSuccess(data: final profile):
+        _localDataSource.cacheUserProfile(profile);
+        return DataState<UserModel?>.success(data: profile);
+      case DataStateError():
         final cached = _localDataSource.getCachedUserProfile();
         if (cached != null) {
           AppLogger.call(
@@ -160,8 +141,6 @@ class AuthRepository {
           return DataState<UserModel?>.success(data: cached);
         }
 
-        // Masih ada session tapi tidak bisa dapat profil
-        // Buat UserModel minimal dari auth data
         final authUser = _remoteDataSource.getCurrentAuthUser();
         if (authUser != null) {
           final minimalUser = UserModel(
@@ -175,21 +154,20 @@ class AuthRepository {
         }
 
         return const DataState<UserModel?>.success(data: null);
-      },
-    );
+      default:
+        throw StateError(
+          'Unexpected profile fetch outcome: ${profileResult.runtimeType}',
+        );
+    }
   }
 
-  /// Mendapatkan profil user saat ini.
-  ///
-  /// Prioritas: cache lokal → remote.
+  /// Mendapatkan profil user saat ini — cache → remote.
   Future<DataState<UserModel>> getCurrentUserProfile() async {
-    // Coba cache dulu
     final cached = _localDataSource.getCachedUserProfile();
     if (cached != null) {
       return DataState.success(data: cached);
     }
 
-    // Fallback ke remote
     final authUser = _remoteDataSource.getCurrentAuthUser();
     if (authUser == null) {
       return const DataState.error(message: 'User belum login');
@@ -225,13 +203,121 @@ class AuthRepository {
     );
   }
 
+  /// RPC `soft_delete_own_account` untuk user yang sedang login.
+  Future<DataState<void>> softDeleteOwnAccount() async {
+    return _remoteDataSource.softDeleteOwnAccount();
+  }
+
   /// Stream auth state change untuk router refresh.
   Stream<AuthState> onAuthStateChange() {
     return _remoteDataSource.onAuthStateChange();
   }
 
-  /// Mendapatkan cached user (sync, tanpa remote call).
+  /// Cached user tanpa remote call.
   UserModel? getCachedUser() {
     return _localDataSource.getCachedUserProfile();
   }
+
+  Future<DataState<UserModel>> _fetchProfileAndCacheSignedIn(String userId) async {
+    final profileResult = await _remoteDataSource.getUserProfile(userId);
+
+    switch (profileResult) {
+      case DataStateSuccess(data: final profile):
+        _localDataSource.cacheUserProfile(profile);
+        AppLogger.logSuccess(
+          'Sign-in complete: ${profile.email}',
+          runtimeType: AuthRepository,
+        );
+        return DataState<UserModel>.success(data: profile);
+      case DataStateError(
+        message: final message,
+        exception: final exception,
+        stackTrace: final stackTrace,
+        errorData: final errorData,
+      ):
+        AppLogger.logError(
+          'Failed to fetch profile after sign-in: $message',
+          runtimeType: AuthRepository,
+        );
+        return DataState<UserModel>.error(
+          message: message,
+          exception: exception,
+          stackTrace: stackTrace,
+          errorData: errorData,
+        );
+      default:
+        throw StateError(
+          'Unexpected profile fetch outcome: ${profileResult.runtimeType}',
+        );
+    }
+  }
+
+  /// Evaluasi [resolve_account_login_state]. Mengosongkan sesi jika blok.
+  Future<_GateBlock> _evaluateLoginGate() async {
+    final gateResult = await _remoteDataSource.resolveAccountLoginState();
+
+    switch (gateResult) {
+      case DataStateSuccess(data: final AccountLoginResolveModel g):
+        if (!g.allowed && g.reason == 'account_cooldown') {
+          AppLogger.call(
+            '[Auth] [AuthRepository] Blocking session (account_cooldown, '
+            'days_remaining=${g.daysRemaining})',
+            colorLog: ColorLog.yellow,
+          );
+          await _signOutSilentlyAlwaysResetHive();
+          return _GateCooldown(g.daysRemaining ?? 1);
+        }
+
+        if (!g.allowed && g.reason == 'not_authenticated') {
+          AppLogger.call(
+            '[Auth] [AuthRepository] Blocking session (not_authenticated)',
+            colorLog: ColorLog.yellow,
+          );
+          await _signOutSilentlyAlwaysResetHive();
+          return const _GateInvalidSession();
+        }
+        return const _GateNone();
+      case DataStateError(message: final m):
+        AppLogger.logError(
+          'resolve_account_login_state unavailable ($m); continuing without gate',
+          runtimeType: AuthRepository,
+        );
+        return const _GateNone();
+      default:
+        throw StateError(
+          'Unexpected resolve_account_login_state outcome: ${gateResult.runtimeType}',
+        );
+    }
+  }
+
+  Future<void> _signOutSilentlyAlwaysResetHive() async {
+    final out = await _remoteDataSource.signOut();
+    out.maybeWhen(
+      error: (message, exception, stackTrace, errorData) {
+        AppLogger.logError(
+          'Sign-out during gate failed (ignored): $message',
+          runtimeType: AuthRepository,
+        );
+      },
+      orElse: () {},
+    );
+    HiveService.reset();
+  }
+}
+
+sealed class _GateBlock {
+  const _GateBlock();
+}
+
+final class _GateNone extends _GateBlock {
+  const _GateNone();
+}
+
+final class _GateCooldown extends _GateBlock {
+  const _GateCooldown(this.daysRemaining);
+  final int daysRemaining;
+}
+
+final class _GateInvalidSession extends _GateBlock {
+  const _GateInvalidSession();
 }

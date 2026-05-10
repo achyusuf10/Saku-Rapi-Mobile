@@ -1,6 +1,7 @@
 import 'package:app_saku_rapi/core/logger/app_logger.dart';
 import 'package:app_saku_rapi/core/network/supabase_handler.dart';
 import 'package:app_saku_rapi/core/state/data_state.dart';
+import 'package:app_saku_rapi/features/auth/models/account_login_resolve_model.dart';
 import 'package:app_saku_rapi/features/auth/models/user_model.dart';
 import 'package:app_saku_rapi/features/auth/utils/google_id_token_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -227,6 +228,47 @@ class AuthRemoteDataSource {
   /// untuk merespons login/logout secara realtime.
   Stream<AuthState> onAuthStateChange() {
     return _client.auth.onAuthStateChange;
+  }
+
+  /// Memanggil RPC `resolve_account_login_state`: cooldown hapus akun & reaktivasi.
+  ///
+  /// WAJIB ada sesi terautentikasi (JWT). Digunakan setelah login / saat restore.
+  Future<DataState<AccountLoginResolveModel>> resolveAccountLoginState() async {
+    return SupabaseHandler.call<AccountLoginResolveModel>(
+      function: () async {
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Resolving account login state...',
+          colorLog: ColorLog.blue,
+        );
+
+        final response = await _client.rpc('resolve_account_login_state');
+        final map = Map<String, dynamic>.from(response as Map);
+        final model = AccountLoginResolveModel.fromRpcJson(map);
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Login gate allowed=${model.allowed} '
+          'reason=${model.reason}',
+          colorLog: ColorLog.blue,
+        );
+        return model;
+      },
+    );
+  }
+
+  /// Memanggil RPC `soft_delete_own_account` — penanda soft delete di `public.users`.
+  Future<DataState<void>> softDeleteOwnAccount() async {
+    return SupabaseHandler.call<void>(
+      function: () async {
+        AppLogger.call(
+          '[Auth] [AuthRemoteDataSource] Soft-deleting account...',
+          colorLog: ColorLog.blue,
+        );
+        await _client.rpc('soft_delete_own_account');
+        AppLogger.logSuccess(
+          'Account marked as deleted',
+          runtimeType: AuthRemoteDataSource,
+        );
+      },
+    );
   }
 
   Future<GoogleSignInAccount> _resolveGoogleUser() async {
