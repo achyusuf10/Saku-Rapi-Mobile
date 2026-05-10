@@ -141,7 +141,7 @@ class _TextInputSheetState extends ConsumerState<TextInputSheet> {
                 onSubmitted: (_) => _submit(),
                 maxLines: 3,
                 minLines: 1,
-                maxLength: 60,
+                maxLength: 100,
               ),
             ],
             if (state.status == TextInputStatus.processing) ...[
