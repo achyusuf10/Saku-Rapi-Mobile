@@ -1,3 +1,4 @@
+import 'package:app_saku_rapi/core/constants/image_constant.dart';
 import 'package:app_saku_rapi/core/constants/text_style_constants.dart';
 import 'package:app_saku_rapi/core/enums/alert_type_enum.dart';
 import 'package:app_saku_rapi/core/extensions/context_ext.dart';
@@ -34,21 +35,7 @@ class LoginPage extends ConsumerWidget {
               const Spacer(flex: 2),
 
               // Logo / Icon
-              Container(
-                width: 80.w,
-                height: 80.w,
-                decoration: BoxDecoration(
-                  color: colors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.wallet,
-                    size: 36.w,
-                    color: colors.primary,
-                  ),
-                ),
-              ),
+              Image.asset(ImageConstant.logoApp, width: 200.w, height: 200.w),
               SizedBox(height: 24.h),
 
               // Title
