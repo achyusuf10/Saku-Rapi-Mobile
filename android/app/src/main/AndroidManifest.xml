@@ -50,7 +50,7 @@
 
         <!-- Saku Rapi Home Widget Provider -->
         <receiver
-            android:name="app.saku_rapi.com.widget.SakuRapiWidgetProvider"
+            android:name="app.sakurapi.com.widget.SakuRapiWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -62,7 +62,7 @@
 
         <!-- Widget Configuration Activity -->
         <activity
-            android:name="app.saku_rapi.com.widget.SakuRapiWidgetConfigActivity"
+            android:name="app.sakurapi.com.widget.SakuRapiWidgetConfigActivity"
             android:exported="true"
             android:theme="@style/WidgetConfigTheme">
             <intent-filter>

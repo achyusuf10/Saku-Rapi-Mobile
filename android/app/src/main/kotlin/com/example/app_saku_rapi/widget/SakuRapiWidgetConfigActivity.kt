@@ -1,4 +1,4 @@
-package app.saku_rapi.com.widget
+package app.sakurapi.com.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -14,7 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import app.saku_rapi.com.R
+import app.sakurapi.com.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 import org.json.JSONArray
 

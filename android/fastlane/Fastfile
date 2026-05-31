@@ -34,8 +34,8 @@ default_platform(:android)
 # ============================================================================
 
 FIREBASE_APP_IDS = {
-  "dev"  => "1:552332948009:android:04601fd346659c2d4aa238",
-  "prod" => "1:1047479153880:android:acf2a7d7900cff33cd93ad",
+  "dev"  => "1:552332948009:android:5e4d1051a8ed97f64aa238",
+  "prod" => "1:1047479153880:android:99dc421d5adbfbabcd93ad",
 }.freeze
 
 FIREBASE_TESTER_GROUPS = "Tester"
@@ -246,7 +246,7 @@ platform :android do
   end
 
   def get_package_name(flavor)
-    base = "app.saku_rapi.com"
+    base = "app.sakurapi.com"
     flavor == "prod" ? base : "#{base}.#{flavor}"
   end
 

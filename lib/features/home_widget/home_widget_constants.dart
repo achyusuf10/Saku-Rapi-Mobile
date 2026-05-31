@@ -12,7 +12,7 @@ class HomeWidgetConstants {
 
   /// Qualified Android widget name (with package).
   static const String androidQualifiedName =
-      'app.saku_rapi.com.widget.SakuRapiWidgetProvider';
+      'app.sakurapi.com.widget.SakuRapiWidgetProvider';
 
   // --- SharedPreferences Keys ---
 
@@ -50,5 +50,5 @@ class HomeWidgetConstants {
   static const String actionText = 'text';
 
   // --- iOS App Group (future use) ---
-  static const String iosAppGroupId = 'group.app.saku_rapi.com';
+  static const String iosAppGroupId = 'group.app.sakurapi.com';
 }

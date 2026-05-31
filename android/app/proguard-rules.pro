@@ -39,5 +39,5 @@
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 
 # ─── SakuRapi Home Widget ─────────────────────────────────────────────────────
--keep class app.saku_rapi.com.widget.** { *; }
+-keep class app.sakurapi.com.widget.** { *; }
 -keep class es.nickerbocker.home_widget.** { *; }

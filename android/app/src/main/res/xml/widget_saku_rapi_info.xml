@@ -8,6 +8,6 @@
     android:initialLayout="@layout/widget_saku_rapi"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:configure="app.saku_rapi.com.widget.SakuRapiWidgetConfigActivity"
+    android:configure="app.sakurapi.com.widget.SakuRapiWidgetConfigActivity"
     android:previewLayout="@layout/widget_saku_rapi"
     android:description="@string/widget_description" />

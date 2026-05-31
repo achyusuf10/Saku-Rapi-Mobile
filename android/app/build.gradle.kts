@@ -28,7 +28,7 @@ plugins {
 }
 
 android {
-    namespace = "app.saku_rapi.com"
+    namespace = "app.sakurapi.com"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -43,7 +43,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "app.saku_rapi.com"
+        applicationId = "app.sakurapi.com"
         minSdk = flutter.minSdkVersion  // AdMob requires minSdk 23+
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

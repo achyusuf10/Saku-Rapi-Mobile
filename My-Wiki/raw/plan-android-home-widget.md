@@ -76,7 +76,7 @@ File: `lib/features/dashboard/view/widgets/dashboard_quick_actions.dart`
 
 ### 2.4. Android Native
 
-- Package: `app.saku_rapi.com`
+- Package: `app.sakurapi.com`
 - Flavors: `dev` (suffix `.dev`) dan `prod`
 - `MainActivity` extends `FlutterActivity` (singleTop launchMode)
 - Build: Kotlin DSL (`build.gradle.kts`), Java 17, desugaring enabled
@@ -527,7 +527,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 **Integrasi di `main.dart`:**
 ```dart
 // Di bootstrap(), setelah app siap:
-HomeWidget.setAppGroupId('group.app.saku_rapi.com'); // iOS only, tapi good practice
+HomeWidget.setAppGroupId('group.app.sakurapi.com'); // iOS only, tapi good practice
 HomeWidget.registerInteractivityCallback(homeWidgetBackgroundCallback);
 
 // Di SakuRapiApp widget, setup listener (butuh ProviderScope ref):
@@ -569,7 +569,7 @@ void _initHomeWidgetListeners(WidgetRef ref) {
     android:initialLayout="@layout/widget_saku_rapi"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:configure="app.saku_rapi.com.widget.SakuRapiWidgetConfigActivity"
+    android:configure="app.sakurapi.com.widget.SakuRapiWidgetConfigActivity"
     android:previewImage="@drawable/widget_preview"
     android:description="@string/widget_description" />
 ```
@@ -804,7 +804,7 @@ class SakuRapiWidgetProvider : HomeWidgetProvider() {
                                   viewId: Int, type: String, walletId: String) {
         val uri = Uri.parse("sakurapi://action?type=$type&walletId=$walletId")
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-            setClassName(context.packageName, "app.saku_rapi.com.MainActivity")
+            setClassName(context.packageName, "app.sakurapi.com.MainActivity")
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val pendingIntent = PendingIntent.getActivity(
@@ -1208,8 +1208,8 @@ User taps [👁] on widget (default: hidden)
 ### 7.2. Product Flavors
 
 Widget perlu di-register di manifest yang dibagikan kedua flavor (`src/main/`). Application ID berbeda per flavor:
-- Dev: `app.saku_rapi.com.dev`
-- Prod: `app.saku_rapi.com`
+- Dev: `app.sakurapi.com.dev`
+- Prod: `app.sakurapi.com`
 
 `qualifiedAndroidName` di `HomeWidget.updateWidget()` harus menyesuaikan. Atau gunakan `androidName` saja (class name tanpa package) karena home_widget akan resolve otomatis.
 
@@ -1250,7 +1250,7 @@ fun formatRupiah(amount: Double): String {
 
 Pastikan widget-related classes tidak di-obfuscate. Tambahkan rules di `proguard-rules.pro`:
 ```
--keep class app.saku_rapi.com.widget.** { *; }
+-keep class app.sakurapi.com.widget.** { *; }
 ```
 
 ---

@@ -1,4 +1,4 @@
-package app.saku_rapi.com.widget
+package app.sakurapi.com.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -9,8 +9,8 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.RemoteViews
-import app.saku_rapi.com.R
-import app.saku_rapi.com.MainActivity
+import app.sakurapi.com.R
+import app.sakurapi.com.MainActivity
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 import org.json.JSONArray
@@ -31,9 +31,9 @@ class SakuRapiWidgetProvider : AppWidgetProvider() {
         private const val TAG = "SakuRapiWidget"
 
         // Actions for PendingIntent
-        const val ACTION_PREV = "app.saku_rapi.com.widget.ACTION_PREV"
-        const val ACTION_NEXT = "app.saku_rapi.com.widget.ACTION_NEXT"
-        const val ACTION_TOGGLE_BALANCE = "app.saku_rapi.com.widget.ACTION_TOGGLE_BALANCE"
+        const val ACTION_PREV = "app.sakurapi.com.widget.ACTION_PREV"
+        const val ACTION_NEXT = "app.sakurapi.com.widget.ACTION_NEXT"
+        const val ACTION_TOGGLE_BALANCE = "app.sakurapi.com.widget.ACTION_TOGGLE_BALANCE"
 
         // SharedPreferences keys — harus sama dengan HomeWidgetConstants di Dart
         const val KEY_WALLET_DATA = "wallet_data"

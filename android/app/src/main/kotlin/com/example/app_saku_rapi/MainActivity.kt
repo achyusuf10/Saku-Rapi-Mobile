@@ -1,4 +1,4 @@
-package app.saku_rapi.com
+package app.sakurapi.com
 
 import io.flutter.embedding.android.FlutterActivity
 
